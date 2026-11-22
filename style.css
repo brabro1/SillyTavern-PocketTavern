@@ -63,8 +63,8 @@ html.stmui-on *::-webkit-scrollbar {
 /* Pages, menus and popups need an opaque surface even when the theme's tint is translucent. */
 @supports (color: rgb(from red r g b)) {
     :root {
-        --stmui-solid: rgb(from var(--stmui-surface) r g b);
-        --stmui-opaque: rgb(from var(--stmui-surface) r g b);
+        --stmui-solid: rgb(from var(--stmui-surface) r g b / 1);
+        --stmui-opaque: rgb(from var(--stmui-surface) r g b / 1);
     }
 }
 
@@ -123,10 +123,30 @@ html.stmui-glass .stmui-chat-finder,
 html.stmui-glass.stmui-wide body:not(.movingUI) #movingDivs > div,
 html.stmui-glass.stmui-touch body > .gg-popup > .gg-popup-content,
 html.stmui-glass.stmui-chat #send_form,
-html.stmui-glass.stmui-chat #chat .mes,
-html.stmui-glass.stmui-chat .welcomeRecent .recentChatList .recentChat {
+html.stmui-glass.stmui-wide.stmui-chat #chat .mes,
+html.stmui-glass.stmui-wide.stmui-chat .welcomeRecent .recentChatList .recentChat {
     -webkit-backdrop-filter: var(--stmui-glass-blur) !important;
     backdrop-filter: var(--stmui-glass-blur) !important;
+}
+
+/* Phones: message cards and recent chats are tinted, not blurred. A blur per card
+   was the costliest paint on a phone (the streaming reply re-blurred every frame),
+   so the tint is a step stronger instead. Bars, sheets and the message box keep it. */
+@supports (color: rgb(from red r g b)) {
+    html.stmui-on.stmui-glass:not(.stmui-wide):not(:has(body.no-blur)) {
+        --stmui-bot-tint: rgb(from var(--SmartThemeBotMesBlurTintColor) r g b / clamp(0.58, calc(alpha + 0.08), 0.92));
+        --stmui-user-tint: rgb(from var(--SmartThemeUserMesBlurTintColor) r g b / clamp(0.58, calc(alpha + 0.08), 0.92));
+    }
+}
+
+/* No Blur Effect: a see-through panel with nothing blurred behind it lets the chat
+   under it show through as readable text. Bars, pages, sheets, dialogs and the
+   message box go solid; message cards keep their tint, so the picture still shows. */
+@supports (color: rgb(from red r g b)) {
+    html.stmui-on.stmui-glass:has(body.no-blur) {
+        --stmui-surface: rgb(from var(--SmartThemeBlurTintColor) r g b / 1);
+        --stmui-solid: rgb(from var(--SmartThemeBlurTintColor) r g b / 1);
+    }
 }
 
 /* Sheets are drawn over a dark base so they are always opaque; frosted here. */
@@ -1552,6 +1572,12 @@ html.stmui-chat #chat .ch_name .name_text {
     letter-spacing: 0.01em;
 }
 
+/* SillyTavern's model icon beside the name ("?" for a custom source) took the name's
+   colour and read as a stray glyph. It is secondary, like the timestamp; its title says the model. */
+html.stmui-chat #chat .ch_name .timestamp-icon {
+    color: var(--stmui-muted);
+}
+
 html.stmui-chat #chat .ch_name .timestamp {
     margin-left: 8px;
     color: var(--stmui-muted);
@@ -2285,13 +2311,14 @@ html.stmui-chat #send_form .mes_stop::before {
     background: currentColor;
 }
 
-/* A soft pulse while the reply is being written. */
+/* A soft pulse while the reply is being written: a ring that grows and fades.
+   Only transform and opacity move, so it never repaints the message box. */
 html.stmui-motion-full.stmui-chat #send_form .mes_stop::after {
     content: '';
     position: absolute;
     inset: 0;
+    border: 2px solid color-mix(in srgb, var(--stmui-accent) 55%, transparent);
     border-radius: 50%;
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--stmui-accent) 55%, transparent);
     animation: stmui-stop-pulse 1.6s ease-out infinite;
     pointer-events: none;
 }
@@ -2301,8 +2328,14 @@ html.stmui-chat #send_form .mes_stop:active {
 }
 
 @keyframes stmui-stop-pulse {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
     to {
-        box-shadow: 0 0 0 10px transparent;
+        opacity: 0;
+        transform: scale(1.48);
     }
 }
 
@@ -3122,6 +3155,17 @@ html.stmui-on .mes_text pre,
 html.stmui-on .mes_text table {
     max-width: 100%;
     overflow-x: auto;
+}
+
+/* A table too wide for the card scrolls sideways (a block can, a table box can't)
+   instead of cutting words in the middle ("Seraph/ina") to fit. */
+html.stmui-on .mes_text table {
+    display: block;
+    width: max-content;
+}
+
+html.stmui-on .mes_text :is(th, td) {
+    overflow-wrap: break-word;
 }
 
 html.stmui-on .mes_text img,
@@ -4736,7 +4780,6 @@ html.stmui-on .stmui-jump:active {
 html.stmui-page-open .stmui-jump {
     visibility: hidden;
 }
-
 .stmui-jump .stmui-svg {
     width: 22px;
     height: 22px;
@@ -4806,6 +4849,16 @@ html.stmui-chat .welcomePanel .welcomeHeaderVersionDisplay {
     font-weight: 600;
     line-height: 1.3;
     overflow-wrap: anywhere;
+}
+
+/* Beside four buttons on a phone the version wrapped to three lines; two at most,
+   breaking between words, so the version number stays and the build hash is cut. */
+html.stmui-chat:not(.stmui-wide):not(.stmui-compact) .welcomePanel .welcomeHeaderVersionDisplay {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: normal;
 }
 
 html.stmui-chat .welcomePanel .welcomeHeaderTitle .mes_button {

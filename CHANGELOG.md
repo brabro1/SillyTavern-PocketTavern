@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.25.0
+
+From a visual audit at 390 × 844 and 1440 × 900: glass that stays readable with No Blur, lighter glass on phones, toasts above sheets, and a cleaner exit when Pocket Tavern is turned off.
+
+### Phone
+
+- **No blur on every message.** Glass blurred each message card on its own, and a reply that is being written was blurred again on every update: the heaviest paint work on a phone. On the phone layout the cards (and the recent chats on the start screen) are now tinted, not blurred, and their tint is 8% stronger so text keeps its contrast. The bars, menus, sheets and the message box keep their blur. The desktop layout is unchanged.
+- **Start screen:** "SillyTavern 1.19.1 'release' (hash)" wrapped to three lines beside four buttons. It is two lines at most now, broken between words, so the version stays and the build hash is cut.
+
+### Desktop
+
+- **Clicks beside an open page.** To keep a page open beside the chat, Pocket Tavern stopped every mousedown outside it at `<body>`, so SillyTavern's menus, pickers and other extensions that close on an outside click never heard it. Now the open page is marked as pinned for that one click (SillyTavern skips pinned panels; the mark has no styling and comes off before the mouseup), and the click goes on as normal.
+- **More:** with the rail listing SillyTavern's pages, an extension's page (Character Library, for example) sat alone as one tile in a grid row. One or two pages are rows at the top of the list now; three or more stay tiles.
+
+### Both
+
+- **Glass with No Blur Effect.** With SillyTavern's **No Blur Effect** on, glass had no blur but kept its see-through tints: pages were 80% opaque, More and the ☰ and wand sheets 72–80%, and the message box 80%, so the chat, the persona button and other text under them showed through clearly enough to read. With No Blur on, the bars, pages, sheets, dialogs and the message box are solid now; message cards keep their tint so your picture still shows. The "opaque" colour Pocket Tavern uses for pages over a translucent theme was not fully opaque either (relative colours keep the source's alpha unless told otherwise); it is now.
+- **Toasts above sheets.** Pocket Tavern's sheets and the picture viewer are modal dialogs, which draw above everything else, so SillyTavern's notices appeared under them and could not be tapped. While one is open, the notices move into it (SillyTavern's own helper for its popups) and back to the page when it closes.
+- **Tables in messages** that are wider than the card scroll sideways instead of breaking words in the middle ("Seraph / ina").
+- **SillyTavern's model icon** beside a character's name (a "?" for a custom source) took the name's colour and read like a stray character. It is muted like the date now; hovering still shows the model.
+- **Turning Pocket Tavern off** now also: lets the browser show its own "install app" prompt again (it was held back even while off); removes the stand-in clipboard that copy buttons use on non-HTTPS addresses (it also offers `readText` now, which fails politely instead of throwing); puts the wand button's visibility back; returns the character search box to its exact place instead of the end of its form; and no longer marks a message as being edited.
+- **Typing and keys:** Enter in Pocket Tavern's own boxes (lorebook picker search, prompt names, Search this chat) no longer fires while an IME is still composing a word. Holding Ctrl+K (⌘K) after it opened Search everything no longer passes the repeats to the browser's own Ctrl+K.
+- **Lighter work:** the page-wide watcher skips the chat's own changes (a streaming reply changes it on every token) except for the message editor; new pictures are checked once per frame instead of on every added node; when only the window's height changes (the keyboard on Android), Pocket Tavern updates its classes instead of re-running everything; the Stop button's pulse moves with transform and opacity instead of repainting a shadow; and opening chats no longer stacks up touch and wheel listeners on the chat. Waiting at the newest message after a chat opens now also stops for scroll keys and the scrollbar.
+- `tests/phone.mjs` has a new step: with No Blur, the message box, More and the Extensions page are solid; with blur, the box is frosted and phone cards are not; a toast shows above an open sheet; a wide table keeps whole words. The desktop step checks that a click beside an open page still reaches the document and leaves nothing pinned. The glass step expects a solid top bar when No Blur is on.
+
 ## 2.24.1
 
 A fix and polish round from a full audit and a Reddit report: nothing squeezed on 320px phones, bigger chip buttons, Arabic arrows, keyboard fixes on a computer, and a tidier Presets and Backgrounds page.

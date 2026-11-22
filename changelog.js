@@ -1,6 +1,16 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.25.0',
+        items: [
+            "Glass with SillyTavern's No Blur Effect on: the bars, pages, menus and the message box are solid now, so the chat behind them no longer shows through as readable text. Messages keep their see-through cards over your picture.",
+            "On a phone, messages are no longer blurred one by one (that was the heaviest work while a reply streams in); their cards are a little more solid instead. The bars, menus and message box keep their blur.",
+            "Notices (toasts) now show above Pocket Tavern's menus and sheets, where you can tap them. Tables in messages scroll sideways instead of cutting words in half.",
+            "On a computer, clicking beside an open page keeps it open without blocking other menus and extensions that close on an outside click. More shows SillyTavern's last page or two as rows instead of a lone tile.",
+            "Turning Pocket Tavern off now leaves your browser's install prompt, the copy button helper and the character search box exactly as they were. Also fixed: Enter while typing with an IME (Japanese, Chinese), and holding Ctrl+K.",
+        ],
+    },
+    {
         version: '2.24.1',
         items: [
             "On the narrowest phones (320–372px) with Guided Generations, the buttons in the message box no longer get squeezed to a sliver. The context ring steps aside there; Quick switch still shows how full the context is.",

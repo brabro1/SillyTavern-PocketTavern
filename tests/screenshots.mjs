@@ -337,7 +337,10 @@ if (want('glass')) {
     await closeSheet();
     await openDemoChat();
     await until(() => document.documentElement.classList.contains('stmui-glass'));
+    // The test copy has SillyTavern's No Blur Effect on, which makes glass panels solid: show the blur.
+    const noBlur = await page.evaluate(() => { const had = document.body.classList.contains('no-blur'); document.body.classList.remove('no-blur'); return had; });
     await shot('glass');
+    await page.evaluate(had => document.body.classList.toggle('no-blur', had), noBlur);
     if (before) await page.evaluate(file => [...document.querySelectorAll('#bg_menu_content .bg_example')].find(e => e.getAttribute('bgfile') === file)?.click(), before);
     await page.evaluate(() => { delete SillyTavern.getContext().extensionSettings.mobileUI.stTheme; });
     // Azure set its avatar shape (Rectangle): back to what it was.

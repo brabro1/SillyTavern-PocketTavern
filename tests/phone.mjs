@@ -1070,13 +1070,15 @@ await step('a theme gives way to the background you pick, every theme turns to g
         await until(() => !document.documentElement.classList.contains('stmui-backdrop') && !document.getElementById('stmui_bg_note'));
         const tint = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backgroundColor);
         if (!/rgba\(0, 0, 0, 0\)|transparent/.test(tint)) throw new Error(`the chat still covers the background: ${tint}`);
-        // Glass: with the background showing, the top bar is see-through too.
+        // Glass: with the background showing, the top bar is see-through too, and solid with
+        // SillyTavern's No Blur (a see-through bar with nothing blurred let the chat show through).
         const bar = await page.evaluate(() => ({
             glass: document.documentElement.classList.contains('stmui-glass'),
+            noBlur: document.body.classList.contains('no-blur'),
             color: getComputedStyle(document.querySelector('.stmui-appbar')).backgroundColor,
         }));
-        const barAlpha = Number((bar.color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]);
-        if (!bar.glass || !/rgba|\//.test(bar.color) || barAlpha > 0.9) throw new Error(`no glass over the background: ${JSON.stringify(bar)}`);
+        const barAlpha = /rgba|\//.test(bar.color) ? Number((bar.color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]) : 1;
+        if (!bar.glass || (bar.noBlur ? barAlpha < 1 : barAlpha > 0.9)) throw new Error(`no glass over the background: ${JSON.stringify(bar)}`);
         await page.evaluate(() => globalThis.toastr?.clear());
         // Settings → Look: SillyTavern's theme list is hidden; a note points to More → Themes.
         await page.locator('.stmui-tab[data-tab="more"]').click();
@@ -1287,9 +1289,13 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         });
         if (layout.panelWidth > 520 || layout.chatLeft < layout.panelRight) throw new Error(`page is not a panel beside the chat: ${JSON.stringify(layout)}`);
         await tab.locator('#send_textarea').click();
+        await tab.evaluate(() => { window.stmuiTestDown = false; document.addEventListener('mousedown', () => { window.stmuiTestDown = true; }, { once: true }); });
         await tab.mouse.click(1400, 450);
         await tab.waitForTimeout(400);
         if (await tab.evaluate(() => document.documentElement.dataset.stmuiPage) !== 'ai-config-button') throw new Error('the page closed when the chat was clicked');
+        // The page stays open without swallowing the click: menus and other extensions still hear it.
+        if (!await tab.evaluate(() => window.stmuiTestDown)) throw new Error('a click beside the page never reached the document');
+        if (await tab.evaluate(() => document.querySelectorAll('.pinnedOpen').length)) throw new Error('a panel was left marked as pinned');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.stmuiPage);
         await tab.locator('.stmui-tab[data-tab="more"]').click();
@@ -1686,6 +1692,105 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             await tab.waitForTimeout(2500);
         }
         await desk.close();
+    }
+});
+
+await step('with No Blur, glass pages, sheets and the message box are solid; phone cards are not blurred; toasts sit above sheets; tables keep whole words', async () => {
+    const before = await page.evaluate(() => {
+        const s = SillyTavern.getContext().extensionSettings.mobileUI;
+        return { theme: s.theme, backdrop: s.themeBackdrop, bg: document.getElementById('bg1').style.backgroundImage, noBlur: document.body.classList.contains('no-blur') };
+    });
+    const opaque = color => !/rgba\(.*,\s*0?\.\d+\)|\/\s*0?\.\d+\)/.test(color);
+    // Picking a theme can turn its own background back on a moment later: switch it off until glass shows.
+    const ensureGlass = async () => {
+        for (let attempt = 0; attempt < 5; attempt++) {
+            await page.waitForTimeout(500);
+            const state = await page.evaluate(() => {
+                document.getElementById('bg1').style.backgroundImage = 'url("img/ai4.png")';
+                if (document.documentElement.classList.contains('stmui-backdrop')) document.getElementById('stmui_backdrop').click();
+                return document.documentElement.classList.contains('stmui-glass');
+            });
+            if (state) return;
+        }
+        throw new Error('glass did not turn on over the background');
+    };
+    try {
+        // A see-through theme over a chat background (drawn only, nothing saved to the chat).
+        await page.evaluate(() => {
+            const theme = document.getElementById('stmui_theme');
+            theme.value = 'amoled';
+            theme.dispatchEvent(new Event('change', { bubbles: true }));
+            document.body.classList.add('no-blur');
+        });
+        await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
+        await until(() => document.querySelectorAll('#chat .mes').length > 0);
+        await ensureGlass();
+        const box = await page.evaluate(() => getComputedStyle(document.getElementById('send_form')).backgroundColor);
+        if (!opaque(box)) throw new Error(`message box is see-through with No Blur: ${box}`);
+        await showTabs();
+        await page.locator('.stmui-tab[data-tab="more"]').click();
+        await page.locator('#stmui-sheet').waitFor();
+        const sheetBg = await page.evaluate(() => getComputedStyle(document.querySelector('#stmui-sheet .stmui-panel')).backgroundColor);
+        if (!opaque(sheetBg)) throw new Error(`More is see-through with No Blur: ${sheetBg}`);
+        // A toast while the sheet is open is drawn above it, where it can be tapped.
+        const toast = await page.evaluate(async () => {
+            window.toastr.info('Above the sheet', 'Test', { timeOut: 1500 });
+            await new Promise(resolve => setTimeout(resolve, 400));
+            const el = document.querySelector('#toast-container .toast');
+            if (!el) return 'no toast';
+            const r = el.getBoundingClientRect();
+            return el.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)) ? 'ok' : 'under the sheet';
+        });
+        if (toast !== 'ok') throw new Error(`toast: ${toast}`);
+        await closeSheet();
+        await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle').click());
+        await until(() => document.documentElement.dataset.stmuiPage === 'extensions-settings-button');
+        await page.waitForTimeout(400);
+        const pageBg = await page.evaluate(() => getComputedStyle(document.querySelector('#extensions-settings-button .drawer-content')).backgroundColor);
+        if (!opaque(pageBg)) throw new Error(`Extensions page is see-through with No Blur: ${pageBg}`);
+        await page.locator('.stmui-tab[data-tab="chat"]').click();
+        await until(() => !document.documentElement.dataset.stmuiPage);
+        // Blur on: the message box is frosted, the cards on a phone are only tinted.
+        await ensureGlass();
+        const blur = await page.evaluate(async () => {
+            document.body.classList.remove('no-blur');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            return {
+                box: getComputedStyle(document.getElementById('send_form')).backdropFilter,
+                card: getComputedStyle(document.querySelector('#chat .mes')).backdropFilter,
+                why: `${document.documentElement.className} | ${document.body.className} | ${getComputedStyle(document.documentElement).getPropertyValue('--stmui-glass-blur')}`,
+            };
+        });
+        if (blur.box === 'none') throw new Error(`the message box lost its blur: ${blur.why}`);
+        if (blur.card !== 'none') throw new Error(`message cards are still blurred on a phone: ${blur.card}`);
+        // A table wider than the card scrolls instead of cutting words.
+        const table = await page.evaluate(() => {
+            const text = [...document.querySelectorAll('#chat .mes .mes_text')].pop();
+            text.insertAdjacentHTML('beforeend', '<table id="stmui_test_table"><tr><th>Name</th><th>Role</th><th>Notes about this person that go on and on</th></tr><tr><td>Seraphina</td><td>Guardian</td><td>Lives in the forest glade and heals travellers</td></tr></table>');
+            const el = document.getElementById('stmui_test_table');
+            const cut = [...el.querySelectorAll('td, th')].some(cell => cell.getClientRects().length && cell.firstChild && (() => {
+                const range = document.createRange();
+                range.selectNodeContents(cell);
+                const lines = new Set([...range.getClientRects()].map(r => Math.round(r.top)));
+                return lines.size > 1 && !/\s/.test(cell.textContent.trim());
+            })());
+            const result = { cut, display: getComputedStyle(el).display, inside: el.getBoundingClientRect().right <= text.getBoundingClientRect().right + 1 };
+            el.remove();
+            return result;
+        });
+        if (table.cut) throw new Error('a one-word table cell was split across lines');
+        if (!table.inside) throw new Error('a table runs out of its message');
+    } finally {
+        await page.evaluate(b => {
+            const theme = document.getElementById('stmui_theme');
+            theme.value = b.theme;
+            theme.dispatchEvent(new Event('change', { bubbles: true }));
+            const backdrop = document.getElementById('stmui_backdrop');
+            if (backdrop.checked !== b.backdrop) backdrop.click();
+            document.getElementById('bg1').style.backgroundImage = b.bg;
+            document.body.classList.toggle('no-blur', b.noBlur);
+        }, before).catch(() => {});
+        await page.waitForTimeout(2200);
     }
 });
 

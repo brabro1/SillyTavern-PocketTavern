@@ -703,7 +703,7 @@ class Sheet {
             this.renderList(true);
         });
         this.input.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.isComposing) {
                 event.preventDefault();
                 this.input.blur();
             }
@@ -960,6 +960,26 @@ function viewportFollow() {
 
 let stopViewportFollow = null;
 
+/**
+ * Toasts in the top layer: a sheet or the picture viewer is a modal dialog, which
+ * draws over everything, so SillyTavern's toasts sat under it and could not be
+ * clicked. SillyTavern's own helper moves the toast container into the newest
+ * open dialog, and back to the page once none is open. Loaded lazily, so a
+ * missing or renamed helper leaves toasts as they were instead of breaking us.
+ */
+let fixToasts = null;
+import(new URL('../../../popup.js', import.meta.url).href)
+    .then(module => { fixToasts = typeof module.fixToastrForDialogs === 'function' ? module.fixToastrForDialogs : null; })
+    .catch(() => { fixToasts = null; });
+
+function syncToasts() {
+    try {
+        fixToasts?.();
+    } catch {
+        // Toasts keep showing where they were.
+    }
+}
+
 function showSheet(instance) {
     if (sheet) closeSheet(true);
     sheet = instance;
@@ -971,6 +991,7 @@ function showSheet(instance) {
     fitSheetToViewport();
     document.body.append(sheet.dialog);
     sheet.dialog.showModal();
+    syncToasts();
     // Opening focuses the first field; make sure that did not scroll the sheet.
     sheet.dialog.scrollTop = 0;
     requestAnimationFrame(() => sheet?.dialog.classList.add('stmui-sheet-open'));
@@ -989,6 +1010,8 @@ function closeSheet(immediate = false) {
     sheet = null;
     const finish = () => {
         if (current.dialog.open) current.dialog.close();
+        // Before removing it: the toast container may be inside and must go back to the page.
+        syncToasts();
         current.dialog.remove();
     };
     if (immediate) {
@@ -996,6 +1019,9 @@ function closeSheet(immediate = false) {
     } else {
         // Taps during the fade-out must not hit rows of a sheet that is already closing.
         current.dialog.style.pointerEvents = 'none';
+        // New toasts during the fade-out go to the page, not into a dialog about to be removed.
+        current.dialog.setAttribute('closing', '');
+        syncToasts();
         current.dialog.classList.remove('stmui-sheet-open');
         setTimeout(finish, 210);
     }
@@ -1056,7 +1082,7 @@ function saveEditor() {
 }
 
 function syncEditorState() {
-    const on = editorOpen();
+    const on = active && editorOpen();
     document.documentElement.classList.toggle('stmui-editing', on);
     if (on) {
         const box = editingTextarea();
@@ -1239,7 +1265,7 @@ function syncPromptNameBox() {
             spellcheck: 'false',
         });
         box.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.isComposing) {
                 event.preventDefault();
                 box.blur();
             }
@@ -2115,7 +2141,16 @@ function openMoreSheet() {
                 class: 'stmui-search-field',
                 onclick: () => openGlobalSearch(),
             }, [ui('search'), h('span', { text: 'Search everything' }), isWide() ? h('kbd', { class: 'stmui-kbd', text: IS_MAC ? '⌘K' : 'Ctrl K' }) : null]));
-            if (tiles.length) body.append(h('div', { class: 'stmui-tiles' }, tiles));
+            // One or two pages left (the desktop rail lists the rest) read as rows, not a lone tile in a grid.
+            const pageRows = tiles.length > 0 && tiles.length < 3 ? drawers.map(drawer => h('button', {
+                type: 'button',
+                class: 'stmui-menu-row',
+                onclick: () => {
+                    closeSheet(true);
+                    openPage(drawer.id);
+                },
+            }, [ui(pageInfo(drawer).icon, 'stmui-menu-row-icon'), h('span', { text: pageInfo(drawer).title }), ui('chevron-right', 'stmui-menu-row-go')])) : [];
+            if (tiles.length >= 3) body.append(h('div', { class: 'stmui-tiles' }, tiles));
 
             const context = ctx();
             const inChat = !!(context.groupId || context.characterId !== undefined);
@@ -2124,6 +2159,7 @@ function openMoreSheet() {
             }, [ui(iconName, 'stmui-menu-row-icon'), h('span', { text: t(label) }), ui('chevron-right', 'stmui-menu-row-go')]);
             const themeName = currentTheme()?.name ?? t('Your theme');
             body.append(h('div', { class: 'stmui-menu-list' }, [
+                ...pageRows,
                 h('button', {
                     type: 'button',
                     class: 'stmui-menu-row stmui-menu-row-theme',
@@ -2704,9 +2740,14 @@ function startObserver() {
         let rescan = false;
         let layers = false;
         let editorChanged = false;
+        const chat = document.getElementById('chat');
         for (const record of records) {
             if (record.target === document.body) layers = true;
-            if (rescan) continue;
+            // Inside the chat (a streaming reply changes it on every token) only the message editor matters:
+            // lorebook selects and pickers never live there.
+            const inChat = !!chat && chat.contains(record.target);
+            if (inChat && editorChanged) continue;
+            if (rescan && !inChat) continue;
             if (!editorChanged) {
                 for (const node of [...record.addedNodes, ...record.removedNodes]) {
                     if (node.nodeType === 1 && (node.id === 'curEditTextarea' || node.querySelector?.('#curEditTextarea'))) {
@@ -2715,6 +2756,7 @@ function startObserver() {
                     }
                 }
             }
+            if (inChat || rescan) continue;
             for (const node of record.addedNodes) {
                 if (node.nodeType !== 1 || node.closest?.('#chat')) continue;
                 if (node.matches?.(selector) || node.querySelector?.(selector)) {
@@ -2755,7 +2797,13 @@ function syncWandShortcut() {
     const existing = document.getElementById('stmui_wand_container');
     const want = active && settings.wandShortcut && settings.lorebookPicker;
     if (!want) {
-        existing?.remove();
+        if (existing) {
+            existing.remove();
+            // The wand is shown for our item; SillyTavern hides it when it has no items of its own.
+            const wand = document.getElementById('extensionsMenuButton');
+            if (wand && wandDisplay.saved) wand.style.display = wandDisplay.value;
+            wandDisplay.saved = false;
+        }
         return;
     }
     if (existing) return;
@@ -2776,8 +2824,14 @@ function syncWandShortcut() {
     }, [h('div', { class: 'fa-solid fa-book-atlas extensionsMenuExtensionButton' }), h('span', { text: 'Lorebooks' })]);
     menu.append(h('div', { id: 'stmui_wand_container', class: 'extension_container' }, [item]));
     const button = document.getElementById('extensionsMenuButton');
-    if (button) button.style.display = '';
+    if (button) {
+        wandDisplay.value = button.style.display;
+        wandDisplay.saved = true;
+        button.style.display = '';
+    }
 }
+
+const wandDisplay = { saved: false, value: '' };
 
 // ---------------------------------------------------------- phone extras
 
@@ -3196,10 +3250,22 @@ function patchClipboard() {
             value: {
                 stmui: true,
                 writeText: text => (copyWithFallback(String(text)) ? Promise.resolve() : Promise.reject(new Error('Copy failed'))),
+                // Reading needs a secure page; fail the way a browser would instead of throwing "not a function".
+                readText: () => Promise.reject(new DOMException('Reading the clipboard needs HTTPS', 'NotAllowedError')),
             },
         });
     } catch {
         // Read-only in this browser; our own Copy still works.
+    }
+}
+
+/** Turning Pocket Tavern off takes back the stand-in clipboard. */
+function unpatchClipboard() {
+    if (!navigator.clipboard?.stmui) return;
+    try {
+        delete navigator.clipboard;
+    } catch {
+        // Could not be removed; it only copies text, so leaving it is harmless.
     }
 }
 
@@ -3645,6 +3711,7 @@ function openViewer(options) {
     viewer = new Viewer(options);
     document.body.append(viewer.dialog);
     viewer.dialog.showModal();
+    syncToasts();
     requestAnimationFrame(() => viewer?.dialog.classList.add('stmui-viewer-open'));
     scheduleHistorySync();
 }
@@ -3657,11 +3724,16 @@ function closeViewer(immediate = false) {
     window.clearTimeout(current.tapTimer);
     const finish = () => {
         if (current.dialog.open) current.dialog.close();
+        // Before removing it: the toast container may be inside and must go back to the page.
+        syncToasts();
         current.dialog.remove();
     };
     if (immediate) finish();
     else {
         current.dialog.style.pointerEvents = 'none';
+        // New toasts during the fade-out go to the page, not into a dialog about to be removed.
+        current.dialog.setAttribute('closing', '');
+        syncToasts();
         current.dialog.classList.remove('stmui-viewer-open');
         setTimeout(finish, 220);
     }
@@ -4255,9 +4327,16 @@ function buildCharToolbar() {
     }
     // SillyTavern's search box moves into the row (it goes back when Pocket Tavern is turned off).
     const slot = bar.querySelector('.stmui-ctool-search');
-    if (search.parentElement !== slot) slot.append(search);
+    if (search.parentElement !== slot) {
+        // Where it was, so turning off puts it back in the same place, not at the end of the form.
+        charSearchHome.parent = search.parentElement;
+        charSearchHome.next = search.nextSibling;
+        slot.append(search);
+    }
     updateCharToolbar();
 }
+
+const charSearchHome = { parent: null, next: null };
 
 function updateCharToolbar() {
     const bar = document.getElementById('stmui_char_toolbar');
@@ -4278,7 +4357,10 @@ function updateCharToolbar() {
 function restoreCharToolbar() {
     const search = document.getElementById('character_search_bar');
     const form = document.getElementById('form_character_search_form');
-    if (search && form && search.parentElement !== form) form.append(search);
+    const { parent, next } = charSearchHome;
+    if (search && parent?.isConnected && search.parentElement !== parent) parent.insertBefore(search, next?.parentNode === parent ? next : null);
+    else if (search && form && !form.contains(search)) form.append(search);
+    charSearchHome.parent = charSearchHome.next = null;
     document.getElementById('stmui_char_toolbar')?.remove();
 }
 
@@ -4619,13 +4701,10 @@ function enhanceWelcome() {
 function showWelcomeFromTop() {
     const chat = document.getElementById('chat');
     if (!chat) return;
-    let touched = false;
-    const stop = () => { touched = true; };
-    chat.addEventListener('touchstart', stop, { once: true, passive: true });
-    chat.addEventListener('wheel', stop, { once: true, passive: true });
+    const started = userScrollSince();
     for (const delay of [0, 120, 400, 900]) {
         setTimeout(() => {
-            if (!touched && chat.querySelector('.welcomePanel')) chat.scrollTop = 0;
+            if (!started() && chat.querySelector('.welcomePanel')) chat.scrollTop = 0;
         }, delay);
     }
 }
@@ -5077,6 +5156,9 @@ const pictures = {
     // New sources waiting to be put in, all in one frame.
     swaps: new Map(),
     swapFrame: 0,
+    // Elements added since the last frame, scanned together.
+    added: new Set(),
+    addedFrame: 0,
     // The picture last shown in each kind of spot ("grid|avatar|Aria.png" → url).
     last: new Map(),
     // Animated picture links that failed to load (the file was deleted, or the
@@ -5303,6 +5385,9 @@ function syncPictures() {
         document.removeEventListener('error', onPictureError, { capture: true });
         pictures.observer = null;
         pictures.seen = null;
+        cancelAnimationFrame(pictures.addedFrame);
+        pictures.addedFrame = 0;
+        pictures.added.clear();
         pictures.near.clear();
         pictures.swaps.clear();
         pictures.last.clear();
@@ -5346,8 +5431,18 @@ function syncPictures() {
                     continue;
                 }
                 for (const node of record.addedNodes) {
-                    if (node.nodeType === 1) scanPictures(node);
+                    if (node.nodeType === 1) pictures.added.add(node);
                 }
+            }
+            // Added nodes are scanned once per frame (a streaming reply adds some on every token),
+            // still before the frame is drawn, so a known picture never flashes its thumbnail.
+            if (pictures.added.size && !pictures.addedFrame) {
+                pictures.addedFrame = requestAnimationFrame(() => {
+                    pictures.addedFrame = 0;
+                    const nodes = [...pictures.added];
+                    pictures.added.clear();
+                    for (const node of nodes) if (node.isConnected) scanPictures(node);
+                });
             }
         });
         pictures.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
@@ -6033,10 +6128,11 @@ function primeChatSizes(delay = 0) {
  * the chat ended up far above the newest message. For a moment after a chat
  * opens, keep it at the newest message, until you scroll yourself.
  */
-const newest = { until: 0 };
+const newest = { until: 0, started: null };
 
 function keepAtNewest() {
     const chat = document.getElementById('chat');
+    if (newest.started?.()) newest.until = 0;
     if (!chat || Date.now() > newest.until || ctx().getCurrentChatId?.() === undefined) return;
     chat.scrollTop = chat.scrollHeight;
 }
@@ -6045,10 +6141,32 @@ function holdAtNewest(ms = 2500) {
     const chat = document.getElementById('chat');
     if (!active || !chat || ctx().powerUserSettings?.auto_scroll_chat_to_bottom === false) return;
     newest.until = Date.now() + ms;
-    const stop = () => { newest.until = 0; };
-    chat.addEventListener('touchstart', stop, { once: true, passive: true });
-    chat.addEventListener('wheel', stop, { once: true, passive: true });
+    newest.started = userScrollSince();
     for (const delay of [60, 250, 500, 900, 1400, 2200]) setTimeout(keepAtNewest, delay);
+}
+
+/**
+ * Scrolling by hand: a touch, the wheel, a scroll key or the scrollbar. One set of
+ * listeners on the chat (added once), so opening chats does not pile up more.
+ * Returns a check: has the user scrolled since this call?
+ */
+const userScroll = { at: 0, wired: null };
+
+function userScrollSince() {
+    const chat = document.getElementById('chat');
+    if (chat && userScroll.wired !== chat) {
+        userScroll.wired = chat;
+        const mark = () => { userScroll.at = performance.now(); };
+        chat.addEventListener('touchstart', mark, { passive: true });
+        chat.addEventListener('wheel', mark, { passive: true });
+        // The scrollbar: a press on the chat itself, not on a message inside it.
+        chat.addEventListener('pointerdown', event => { if (event.target === chat) mark(); }, { passive: true });
+        chat.addEventListener('keydown', event => {
+            if (['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key) && !event.target.closest?.('textarea, input, select, [contenteditable]')) mark();
+        });
+    }
+    const since = performance.now();
+    return () => userScroll.at > since;
 }
 
 function onChatWidthChange() {
@@ -6210,7 +6328,7 @@ function openChatFinder() {
     });
     input.addEventListener('keydown', event => {
         // Enter: the next older match; Shift+Enter: the next newer one; Escape closes the bar.
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.isComposing) {
             event.preventDefault();
             showFinderHit(finder.index + (event.shiftKey ? 1 : -1));
         } else if (event.key === 'Escape') {
@@ -8068,6 +8186,7 @@ function syncExtras() {
     if (!active || !settings.keepAwake) setAwake(false);
     if (!active || !settings.imageViewer) closeViewer(true);
     if (active) patchClipboard();
+    else unpatchClipboard();
     if (extras.wired) return;
     extras.wired = true;
     document.addEventListener('click', onBackgroundPick, true);
@@ -8089,7 +8208,12 @@ function syncExtras() {
     }
     // Capture phase: runs before SillyTavern's own delegated handlers.
     document.addEventListener('pointerdown', onSendPointerDown, true);
-    document.body.addEventListener('mousedown', onChatMouseDown);
+    window.addEventListener('mousedown', onChatMouseDown, true);
+    // The mark comes off at the end of the mousedown, or, when something stopped it on the way
+    // (the rail's tabs do), before the mouseup and click that follow can act on it.
+    window.addEventListener('mousedown', releaseKeptOpen);
+    window.addEventListener('mouseup', releaseKeptOpen, true);
+    window.addEventListener('click', releaseKeptOpen, true);
     document.addEventListener('keydown', onWideKeyDown);
     document.addEventListener('keydown', onWideShortcut);
     matchMedia(WIDE_QUERY).addEventListener?.('change', () => {
@@ -8130,6 +8254,8 @@ function syncExtras() {
     window.addEventListener('online', () => scheduleServerCheck(300));
     window.addEventListener('offline', () => scheduleServerCheck(300));
     window.addEventListener('beforeinstallprompt', event => {
+        // Only while Pocket Tavern is on (More -> Install as an app); off, the browser's own prompt is left alone.
+        if (!active) return;
         event.preventDefault();
         install.prompt = event;
     });
@@ -8237,12 +8363,31 @@ function onStrayScroll() {
 }
 
 /** On the desktop layout a page stays open beside the chat while you use the chat. */
+const keptOpen = [];
+
+/**
+ * SillyTavern closes every open panel that is not pinned on any mousedown that
+ * reaches <html>. On the desktop layout a page stays open beside the chat, so it
+ * is marked pinned only while this one event runs (the class has no styling).
+ * The event itself still reaches document listeners: menus, pickers and other
+ * extensions that close on an outside click. Back, the tab again, or Escape
+ * still close the page.
+ */
 function onChatMouseDown(event) {
     const root = document.documentElement;
-    if (!root.classList.contains('stmui-wide') || !root.classList.contains('stmui-page-open')) return;
-    // SillyTavern closes open panels on any mousedown that reaches <html>; stop it at <body>.
-    // Back, the tab again, or Escape still close the page.
-    if (!event.target.closest?.('.drawer-content')) event.stopPropagation();
+    if (!active || !root.classList.contains('stmui-wide') || !root.classList.contains('stmui-page-open')) return;
+    if (event.target.closest?.('.drawer-content')) return;
+    for (const drawer of document.querySelectorAll('.openDrawer:not(.pinnedOpen)')) {
+        drawer.classList.add('pinnedOpen');
+        keptOpen.push(drawer);
+    }
+    if (!keptOpen.length) return;
+    // Taken off once the event has bubbled to the window, or on the next task if something stopped it.
+    window.setTimeout(releaseKeptOpen, 0);
+}
+
+function releaseKeptOpen() {
+    for (const drawer of keptOpen.splice(0)) drawer.classList.remove('pinnedOpen');
 }
 
 // -- reload by itself after an update
@@ -8628,6 +8773,12 @@ function onWideShortcut(event) {
     if (event.defaultPrevented || event.code !== 'KeyK' || event.shiftKey || event.altKey) return;
     if (!(IS_MAC ? event.metaKey : event.ctrlKey) || !isWide() || !active) return;
     // In a text box SillyTavern uses Ctrl+K for inline code.
+    // Held down after it opened Search everything, the repeats must not reach the browser
+    // (its own Ctrl+K is the address bar search), even though the search box now has focus.
+    if (event.repeat && sheet) {
+        event.preventDefault();
+        return;
+    }
     if (isTypingField(document.activeElement) || sheet || document.querySelector('dialog[open]')) return;
     event.preventDefault();
     openGlobalSearch();
@@ -8865,9 +9016,22 @@ function init() {
     applyState();
 
     let resizeTimer = 0;
+    let lastWidth = window.innerWidth;
     const reevaluate = () => {
         window.clearTimeout(resizeTimer);
-        resizeTimer = window.setTimeout(applyState, 150);
+        resizeTimer = window.setTimeout(() => {
+            // Only the height changed (the keyboard on Android opens and closes like this) and nothing
+            // it decides would change: the classes are enough, not the whole pass over pages and the chat.
+            const sameWidth = window.innerWidth === lastWidth;
+            lastWidth = window.innerWidth;
+            const wideNow = active && settings.appShell && matchMedia(WIDE_QUERY).matches;
+            if (sameWidth && shouldBeActive() === active && wideNow === isWide()) {
+                setFeatureClasses();
+                syncIosViewport();
+                return;
+            }
+            applyState();
+        }, 150);
     };
     window.addEventListener('resize', reevaluate);
     window.addEventListener('orientationchange', reevaluate);
