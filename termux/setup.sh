@@ -24,7 +24,9 @@ BASHRC="$HOME/.bashrc"
 MARK_BEGIN="# >>> SillyTavern autostart (Mobile UI) >>>"
 MARK_END="# <<< SillyTavern autostart (Mobile UI) <<<"
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
-HERE="$(cd "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd || pwd)"
+if ! HERE="$(cd "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd)"; then
+    HERE="$(pwd)"
+fi
 
 ASSUME_YES=0
 REMOVE=0
@@ -276,10 +278,12 @@ remove_bashrc_block
 if ask "Start SillyTavern automatically whenever you open Termux?" y; then
     {
         echo "$MARK_BEGIN"
-        echo 'if [ -z "${STMUI_AUTOSTARTED:-}" ] && [ -x "$HOME/.shortcuts/SillyTavern" ]; then'
-        echo '    export STMUI_AUTOSTARTED=1'
-        echo '    "$HOME/.shortcuts/SillyTavern" --quiet-if-running'
-        echo 'fi'
+        cat <<'EOF'
+if [ -z "${STMUI_AUTOSTARTED:-}" ] && [ -x "$HOME/.shortcuts/SillyTavern" ]; then
+    export STMUI_AUTOSTARTED=1
+    "$HOME/.shortcuts/SillyTavern" --quiet-if-running
+fi
+EOF
         echo "$MARK_END"
     } >> "$BASHRC"
     ok "Opening Termux now starts SillyTavern (if it isn't running yet)"
