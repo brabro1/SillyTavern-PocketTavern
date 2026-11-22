@@ -49,8 +49,8 @@ It switches itself on and picks the right layout for each screen. Your character
 | ![Prompt editor](docs/screenshots/prompt-editor.jpg) | ![Personas](docs/screenshots/personas.jpg) | ![Chat in the Bubbles look](docs/screenshots/bubbles.jpg) |
 | **Midnight theme** | **Paper theme** | **Paper theme, compact** |
 | ![Midnight theme](docs/screenshots/midnight.jpg) | ![Paper theme](docs/screenshots/light.jpg) | ![Paper theme with the compact size and docked message box](docs/screenshots/compact-light.jpg) |
-| **Glass over a chat background** | | |
-| ![SillyTavern's Azure theme as glass over a beach background](docs/screenshots/glass.jpg) | | |
+| **Over a chat background** | | |
+| ![SillyTavern's Azure theme over a beach background: solid bars, tinted message cards](docs/screenshots/glass.jpg) | | |
 
 </details>
 
@@ -81,7 +81,7 @@ It switches itself on and picks the right layout for each screen. Your character
 - − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.
 
 **🎨 Make it yours**
-- 12 themes (9 dark, 3 light), plus your SillyTavern themes made to fit. Over your chat background every theme turns to frosted glass.
+- 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
 - Cards, bubbles or flat messages, four text sizes, and animations you can turn down or off.
 - Menus in English, Spanish, Portuguese, Russian, Chinese, Japanese and Arabic.
 
@@ -178,10 +178,10 @@ They're in the guide button (the compass) next to Send. Hold it to repeat your l
 Yes, they're supported just like Android. Safari's keyboard gets its own handling, so the bars, chat and editors stay in view while you type. An iPad held upright gets the phone layout, and held sideways the desktop layout; set the chat width under **More → Themes → Chat width**. To use it like an app, tap **Share → Add to Home Screen** in Safari.
 
 **My chat background doesn't show.**
-Pocket Tavern's own themes come with their own background. Pick a background on the **Backgrounds** page and Pocket Tavern switches to yours, or turn off **Theme background** under **More → Themes**. With a background showing, every theme turns to frosted glass so the picture shows everywhere. With SillyTavern's **No Blur Effect** on, the bars, pages, menus and message box are solid instead, so nothing shows through them, and the messages stay see-through. SillyTavern themes and **Your theme** always show your background.
+Pocket Tavern's own themes come with their own background. Pick a background on the **Backgrounds** page and Pocket Tavern switches to yours, or turn off **Theme background** under **More → Themes**. With a background showing, the messages become tinted cards so the picture shows through them and between them, while the bars, pages, menus and message box stay solid and readable. Nothing is blurred. SillyTavern themes and **Your theme** always show your background.
 
 **Where did SillyTavern's UI Theme list go?**
-It moved to **More → Themes → From SillyTavern**. Every SillyTavern theme you have (and any you import there) shows up as a card. Over your background it keeps its own look (its glass, tints, blur and text shadow) in Pocket Tavern's layout, with the text kept readable. **Your theme** uses SillyTavern's colors exactly as they are, and **Settings → Look → Theme Colors** changes it. Pocket Tavern's chat look (cards, bubbles, flat) needs SillyTavern's Chat Style on **Flat**, and picking a look sets that for you.
+It moved to **More → Themes → From SillyTavern**. Every SillyTavern theme you have (and any you import there) shows up as a card. Over your background it keeps its own message tints and text shadow in Pocket Tavern's layout, with the text kept readable (Pocket Tavern doesn't blur anything). **Your theme** uses SillyTavern's colors exactly as they are, and **Settings → Look → Theme Colors** changes it. Pocket Tavern's chat look (cards, bubbles, flat) needs SillyTavern's Chat Style on **Flat**, and picking a look sets that for you.
 
 **I don't want it on my computer.**
 In Pocket Tavern settings, set "Use it on this device" to **Phones only**.

@@ -1035,7 +1035,7 @@ await step('the character list view keeps rows apart, and the start screen can h
     }
 });
 
-await step('a theme gives way to the background you pick, every theme turns to glass over it, SillyTavern themes are in Themes instead of Settings → Look, and the chat look switches Chat Style to Flat', async () => {
+await step('a theme gives way to the background you pick, every theme shows it under tinted message cards with solid bars, SillyTavern themes are in Themes instead of Settings → Look, and the chat look switches Chat Style to Flat', async () => {
     const before = await page.evaluate(() => {
         const s = SillyTavern.getContext().extensionSettings.mobileUI;
         return { avatar: document.getElementById('avatar_style').value, theme: s.theme, backdrop: s.themeBackdrop, stTheme: s.stTheme, style: document.getElementById('chat_display').value, bg: decodeURIComponent((getComputedStyle(document.getElementById('bg1')).backgroundImage.match(/\/backgrounds\/([^"')]+)/) ?? [])[1] ?? '') || null };
@@ -1070,15 +1070,14 @@ await step('a theme gives way to the background you pick, every theme turns to g
         await until(() => !document.documentElement.classList.contains('stmui-backdrop') && !document.getElementById('stmui_bg_note'));
         const tint = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backgroundColor);
         if (!/rgba\(0, 0, 0, 0\)|transparent/.test(tint)) throw new Error(`the chat still covers the background: ${tint}`);
-        // Glass: with the background showing, the top bar is see-through too, and solid with
-        // SillyTavern's No Blur (a see-through bar with nothing blurred let the chat show through).
+        // With the background showing, the bars stay solid (DESIGN.md: no glassmorphism) and the cards let it through.
         const bar = await page.evaluate(() => ({
             glass: document.documentElement.classList.contains('stmui-glass'),
-            noBlur: document.body.classList.contains('no-blur'),
             color: getComputedStyle(document.querySelector('.stmui-appbar')).backgroundColor,
+            card: getComputedStyle(document.querySelector('#chat .mes:not([is_system="true"])') ?? document.body).backgroundColor,
         }));
-        const barAlpha = /rgba|\//.test(bar.color) ? Number((bar.color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]) : 1;
-        if (!bar.glass || (bar.noBlur ? barAlpha < 1 : barAlpha > 0.9)) throw new Error(`no glass over the background: ${JSON.stringify(bar)}`);
+        const alphaOf = color => (/rgba|\//.test(color) ? Number((color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]) : 1);
+        if (!bar.glass || alphaOf(bar.color) < 1) throw new Error(`the top bar is not solid over the background: ${JSON.stringify(bar)}`);
         await page.evaluate(() => globalThis.toastr?.clear());
         // Settings → Look: SillyTavern's theme list is hidden; a note points to More → Themes.
         await page.locator('.stmui-tab[data-tab="more"]').click();
@@ -1695,7 +1694,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
     }
 });
 
-await step('with No Blur, glass pages, sheets and the message box are solid; phone cards are not blurred; toasts sit above sheets; tables keep whole words', async () => {
+await step('over a chat background, pages, sheets and the message box are solid and nothing is blurred; toasts sit above sheets; tables keep whole words', async () => {
     const before = await page.evaluate(() => {
         const s = SillyTavern.getContext().extensionSettings.mobileUI;
         return { theme: s.theme, backdrop: s.themeBackdrop, bg: document.getElementById('bg1').style.backgroundImage, noBlur: document.body.classList.contains('no-blur') };
@@ -1750,19 +1749,14 @@ await step('with No Blur, glass pages, sheets and the message box are solid; pho
         if (!opaque(pageBg)) throw new Error(`Extensions page is see-through with No Blur: ${pageBg}`);
         await page.locator('.stmui-tab[data-tab="chat"]').click();
         await until(() => !document.documentElement.dataset.stmuiPage);
-        // Blur on: the message box is frosted, the cards on a phone are only tinted.
+        // With SillyTavern's blur on too, nothing in the page is blurred (DESIGN.md).
         await ensureGlass();
-        const blur = await page.evaluate(async () => {
+        const blurred = await page.evaluate(async () => {
             document.body.classList.remove('no-blur');
             await new Promise(resolve => setTimeout(resolve, 200));
-            return {
-                box: getComputedStyle(document.getElementById('send_form')).backdropFilter,
-                card: getComputedStyle(document.querySelector('#chat .mes')).backdropFilter,
-                why: `${document.documentElement.className} | ${document.body.className} | ${getComputedStyle(document.documentElement).getPropertyValue('--stmui-glass-blur')}`,
-            };
+            return [...document.querySelectorAll('*')].filter(el => { const b = getComputedStyle(el).backdropFilter; return b && b !== 'none'; }).map(el => el.id || String(el.className).slice(0, 30)).slice(0, 5);
         });
-        if (blur.box === 'none') throw new Error(`the message box lost its blur: ${blur.why}`);
-        if (blur.card !== 'none') throw new Error(`message cards are still blurred on a phone: ${blur.card}`);
+        if (blurred.length) throw new Error(`blurred elements: ${blurred.join(', ')}`);
         // A table wider than the card scrolls instead of cutting words.
         const table = await page.evaluate(() => {
             const text = [...document.querySelectorAll('#chat .mes .mes_text')].pop();
@@ -1815,8 +1809,9 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
         await until(() => document.querySelectorAll('#chat .mes .mes_edit').length >= 20);
         await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
         await page.waitForTimeout(2800);
-        const blurred = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backdropFilter);
-        if (blurred === 'none') throw new Error('#chat has no blur with No Blur off: the test would prove nothing');
+        // SillyTavern blurs #chat when No Blur is off; Pocket Tavern switches that off, which keeps fixed layers on screen.
+        const chatBlur = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backdropFilter);
+        if (chatBlur !== 'none') throw new Error(`#chat is blurred (${chatBlur}): fixed layers inside it would be trapped`);
         // An older message, so the chat is scrolled when the editor opens.
         await page.evaluate(() => { const all = [...document.querySelectorAll('#chat .mes .mes_edit')]; all[Math.max(0, all.length - 3)].click(); });
         await until(() => document.documentElement.classList.contains('stmui-editing'));

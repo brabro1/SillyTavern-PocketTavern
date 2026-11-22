@@ -19,6 +19,30 @@ for (const file of ['icons.js', 'themes.js', 'i18n.js', 'locales.js', 'changelog
     }
 }
 
+// Every theme meets DESIGN.md's contrast rule and stays flat (no glows or gradients).
+try {
+    const { THEMES } = await import(new URL('themes.js', root));
+    const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+    const lum = hex => {
+        const [r, g, b] = rgb(hex).map(v => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+    const problems = [];
+    for (const t of THEMES) {
+        const checks = [['text', t.text, t.bg, 4.5], ['text on cards', t.text, t.raised, 4.5], ['narration', t.muted, t.bg, 4.5], ['dialogue', t.quote, t.bg, 4.5], ['accent', t.accent, t.bg, 3], ['text on accent', t.onAccent, t.accent, 4.5]];
+        for (const [what, fg, bg, min] of checks) {
+            const value = ratio(fg, bg);
+            if (value < min) problems.push(`${t.name} ${what} ${value.toFixed(2)} < ${min}`);
+        }
+        if (/gradient/.test(t.backdrop)) problems.push(`${t.name} has a gradient backdrop`);
+    }
+    if (problems.length) fail('themes meet the contrast rule', problems.join('; '));
+    else ok(`${THEMES.length} themes meet the contrast rule and are flat`);
+} catch (error) {
+    fail('themes meet the contrast rule', error);
+}
+
 const json = async file => JSON.parse(await readFile(new URL(file, root), 'utf8'));
 try {
     const manifest = await json('manifest.json');

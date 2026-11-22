@@ -1,6 +1,14 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.26.0',
+        items: [
+            "A calmer look, first step: a new default theme, Pocket (graphite with one blue accent), and Pocket Light. Pick them under More → Themes; your current theme stays as it is.",
+            "Nothing is blurred any more. Over a chat background the messages are tinted cards, so your picture still shows, and the bars, pages, menus and message box are solid and easy to read. It is also lighter work for your phone.",
+            "The other themes are flat now: no glows behind the chat. Neon is now Abyss, a calm near-black blue with the same cyan accent.",
+        ],
+    },
+    {
         version: '2.25.1',
         items: [
             "Fixed: with blur on (SillyTavern's No Blur Effect off), tapping edit on a message hid the message box but showed no editor, and an opened lorebook entry got stuck. Both editors were drawn far above the screen. They open in place now, with the keyboard.",

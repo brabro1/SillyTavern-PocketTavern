@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.26.0
+
+The first step of the redesign to the new DESIGN.md: design tokens, a new default theme, and no blur anywhere.
+
+### Both
+
+- **Design tokens.** Pocket Tavern's colours, radii, spacing, motion and layers now come from one set of `--pt-*` tokens (DESIGN.md, sections 2 and 7). The older `--stmui-*` names still work and point at them, so nothing that depends on them breaks.
+- **Pocket and Pocket Light.** A new default theme for new installs, built from the design system's palette: a graphite canvas (#0e0f12), soft off-white text, one restrained blue accent, hairline borders. Pocket Light is the same in daylight. Your saved theme is not changed.
+- **No blur.** Every `backdrop-filter` is gone, including SillyTavern's own blur on the chat, drawers and popups while Pocket Tavern is on. Over a chat background the bars, pages, sheets, dialogs and the message box are solid; only message cards are a translucent tint, with their text checked for contrast over the picture. This is what 2.25.0 did with No Blur on, now for everyone. Lighter for phone GPUs, and it removes the cause of the 2.25.1 editor bug for good.
+- **Flat themes.** The radial glows behind Midnight, Ocean, Ember, Neon and Cloud (and behind SillyTavern themes made to fit) are gone. Neon (a magenta glow) is now **Abyss**: near-black blue with the same cyan accent; a saved Neon choice turns into Abyss.
+- **Solid bars.** The top bar, the tab bar, the jump-to-latest button and the docked message box were 92–97% see-through; they are solid now.
+- `tests/check.mjs` checks every theme against the contrast rule (text and dialogue 4.5:1, accent 3:1, text on accent 4.5:1) and that none has a gradient. The phone test expects solid bars over a background and no blurred element anywhere.
+
 ## 2.25.1
 
 A fix for editing on phones with blur on, found on a real Android phone over USB debugging.

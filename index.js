@@ -34,7 +34,7 @@ const DEFAULTS = Object.freeze({
     lorebookPicker: true,
     longSelects: false,
     wandShortcut: true,
-    theme: 'st',
+    theme: 'pocket',
     themeBackdrop: true,
     modernFont: true,
     customIcons: true,
@@ -121,8 +121,8 @@ const EXTRAS = [
 ];
 
 const MOTION_LABELS = {
-    full: 'Smooth: animations and glass effects',
-    light: 'Light: quick fades, no blur (faster)',
+    full: 'Smooth: all animations',
+    light: 'Light: quick fades only (faster)',
     off: 'Off: no animations (fastest)',
 };
 
@@ -2318,8 +2318,8 @@ function chatBackgroundSet() {
 }
 
 /**
- * Glass: with your chat background showing, every theme turns see-through and
- * frosted, like SillyTavern's own look. Off when a Pocket Tavern theme shows its
+ * A chat background shows (html.stmui-glass): the chat turns clear and messages
+ * become tinted cards over the picture. Off when a Pocket Tavern theme shows its
  * own background, or when no background picture is set.
  */
 function syncGlass() {

@@ -1,8 +1,8 @@
 /**
  * Pocket Tavern themes.
  *
- * A theme overrides SillyTavern's own --SmartTheme* colors (and our --stmui-*
- * tokens) with !important stylesheet rules, so the whole interface changes
+ * A theme overrides SillyTavern's own --SmartTheme* colors (and the --pt-*
+ * design tokens, see DESIGN.md) with !important stylesheet rules, so the whole interface changes
  * while the user's saved SillyTavern theme stays untouched. Choosing "Your
  * SillyTavern theme" removes the overrides again.
  */
@@ -23,18 +23,32 @@
  * @property {string} user      user message tint
  * @property {string} bot       character message tint
  * @property {string} border
- * @property {string} backdrop  CSS background behind the chat
+ * @property {string} [elevated] hover and popover surface (default: mixed from raised)
+ * @property {string} backdrop  flat colour behind the chat (no gradients, DESIGN.md)
  */
 
 /** @type {Theme[]} */
 export const THEMES = [
-    // Each theme differs in structure, not only in hue: how light the surface is,
-    // whether there is a glow (at most one) and where, and an accent tuned for it.
+    // Pocket and Pocket Light are the design system's own palette (DESIGN.md, section 2).
+    // The others differ in structure, not only in hue: how light the surface is and an
+    // accent tuned for it. All are flat: no glows, no gradients.
     {
-        id: 'midnight', name: 'Midnight', note: 'Ink-blue night, violet glow', mode: 'dark',
+        id: 'pocket', name: 'Pocket', note: 'Calm graphite, one blue accent', mode: 'dark',
+        bg: '#0e0f12', raised: '#16181d', elevated: '#1e2128', text: '#eceef2', muted: '#9aa0ad', accent: '#5b8def', onAccent: '#0b1630', quote: '#b9cdf5',
+        user: 'rgba(91, 141, 239, 0.12)', bot: 'rgba(255, 255, 255, 0.04)', border: 'rgba(255, 255, 255, 0.08)',
+        backdrop: '#0e0f12',
+    },
+    {
+        id: 'pocket-light', name: 'Pocket Light', note: 'The same, in daylight', mode: 'light',
+        bg: '#f6f7f9', raised: '#ffffff', elevated: '#eceef2', text: '#16181d', muted: '#5a6170', accent: '#2f5fc4', onAccent: '#ffffff', quote: '#2a4f9a',
+        user: 'rgba(47, 95, 196, 0.08)', bot: 'rgba(22, 24, 29, 0.035)', border: 'rgba(22, 24, 29, 0.10)',
+        backdrop: '#f6f7f9',
+    },
+    {
+        id: 'midnight', name: 'Midnight', note: 'Ink-blue night, violet accent', mode: 'dark',
         bg: '#0f1020', raised: '#1a1b33', text: '#e6e6f5', muted: '#a3a3c2', accent: '#8b7cf6', onAccent: '#14102e', quote: '#c4b5fd',
         user: 'rgba(139, 124, 246, 0.15)', bot: 'rgba(255, 255, 255, 0.045)', border: 'rgba(160, 160, 255, 0.14)',
-        backdrop: 'radial-gradient(110% 55% at 80% 0%, #241d52 0%, transparent 60%), #0b0c18',
+        backdrop: '#0b0c18',
     },
     {
         id: 'amoled', name: 'AMOLED', note: 'True black, candle gold', mode: 'dark',
@@ -49,10 +63,10 @@ export const THEMES = [
         backdrop: '#181825',
     },
     {
-        id: 'ocean', name: 'Ocean', note: 'Sea blue, light from above', mode: 'dark',
+        id: 'ocean', name: 'Ocean', note: 'Deep sea blue', mode: 'dark',
         bg: '#0e2331', raised: '#173649', text: '#e2f0f7', muted: '#9cbccc', accent: '#5fb3d9', onAccent: '#062033', quote: '#a3d4ea',
         user: 'rgba(95, 179, 217, 0.15)', bot: 'rgba(255, 255, 255, 0.05)', border: 'rgba(163, 212, 234, 0.13)',
-        backdrop: 'radial-gradient(130% 60% at 50% 0%, #144a63 0%, transparent 65%), #08161f',
+        backdrop: '#08161f',
     },
     {
         id: 'forest', name: 'Forest', note: 'Moss and bark', mode: 'dark',
@@ -67,10 +81,10 @@ export const THEMES = [
         backdrop: '#170f14',
     },
     {
-        id: 'ember', name: 'Ember', note: 'Hearth glow from below', mode: 'dark',
+        id: 'ember', name: 'Ember', note: 'Warm hearth browns', mode: 'dark',
         bg: '#1a130e', raised: '#2a1f17', text: '#f5e9df', muted: '#c6ab96', accent: '#e8924a', onAccent: '#341604', quote: '#f2c08c',
         user: 'rgba(232, 146, 74, 0.14)', bot: 'rgba(255, 255, 255, 0.045)', border: 'rgba(242, 192, 140, 0.13)',
-        backdrop: 'radial-gradient(130% 55% at 50% 100%, #4a220c 0%, transparent 65%), #120c08',
+        backdrop: '#120c08',
     },
     {
         id: 'nord', name: 'Nord', note: 'Cool arctic slate', mode: 'dark',
@@ -79,10 +93,11 @@ export const THEMES = [
         backdrop: '#2e3440',
     },
     {
-        id: 'cyber', name: 'Neon', note: 'Night city, magenta glow', mode: 'dark',
-        bg: '#0a0a14', raised: '#15152a', text: '#e8e8ff', muted: '#9d9dc6', accent: '#2ec4d6', onAccent: '#022529', quote: '#f0a6f5',
-        user: 'rgba(46, 196, 214, 0.13)', bot: 'rgba(240, 166, 245, 0.06)', border: 'rgba(46, 196, 214, 0.18)',
-        backdrop: 'radial-gradient(110% 55% at 100% 0%, #3a0b56 0%, transparent 60%), #06060d',
+        // Was "Neon" (a magenta glow); the id stays so a saved choice keeps working.
+        id: 'cyber', name: 'Abyss', note: 'Near-black blue, cyan accent', mode: 'dark',
+        bg: '#0a0b12', raised: '#141623', text: '#e6e8f2', muted: '#9a9fb8', accent: '#2ec4d6', onAccent: '#022529', quote: '#a9d8df',
+        user: 'rgba(46, 196, 214, 0.12)', bot: 'rgba(255, 255, 255, 0.045)', border: 'rgba(255, 255, 255, 0.10)',
+        backdrop: '#07080d',
     },
     {
         id: 'paper', name: 'Paper', note: 'Ink on paper, easy reading', mode: 'light',
@@ -91,10 +106,10 @@ export const THEMES = [
         backdrop: '#ebebe7',
     },
     {
-        id: 'cloud', name: 'Cloud', note: 'Daylight sky, deep teal', mode: 'light',
+        id: 'cloud', name: 'Cloud', note: 'Daylight, deep teal', mode: 'light',
         bg: '#f2f5f8', raised: '#ffffff', text: '#1b2430', muted: '#56637a', accent: '#0f6e8c', onAccent: '#ffffff', quote: '#0d5c75',
         user: 'rgba(15, 110, 140, 0.08)', bot: 'rgba(27, 36, 48, 0.035)', border: 'rgba(27, 36, 48, 0.11)',
-        backdrop: 'radial-gradient(130% 55% at 50% 0%, #dcebf3 0%, transparent 65%), #f2f5f8',
+        backdrop: '#f2f5f8',
     },
     {
         id: 'lavender', name: 'Lavender', note: 'Soft lilac and plum', mode: 'light',
@@ -167,9 +182,9 @@ const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
  * A Pocket Tavern theme from a SillyTavern UI theme. With no chat background it
  * is solid: its text, narration, dialogue and panel colors on Pocket Tavern's
  * recipe (raised cards, quiet message tints, checked contrast). Over a chat
- * background it keeps SillyTavern's own look (see `glass`): how see-through its
- * panels are, its message tints, its blur strength and its text shadow, with
- * floors so text stays readable. The most colorful of its text colors becomes
+ * background (see `glass`) its message cards keep its own tints and how
+ * see-through they are, and its text shadow, with floors so text stays readable.
+ * Panels stay solid and nothing is blurred (DESIGN.md, section 7). The most colorful of its text colors becomes
  * the accent.
  * @param {Record<string, any>} st A SillyTavern theme (its saved JSON).
  * @returns {Theme|null}
@@ -194,7 +209,6 @@ export function themeFromSillyTavern(st) {
     const accent = readable(vivid, bg, 3);
     const darkInk = mixRgb(accent, BLACK, 0.82);
     const onAccent = contrast(WHITE, accent) >= contrast(darkInk, accent) ? WHITE : darkInk;
-    const glow = mixRgb(bg, accent, 0.16);
     const floor = mixRgb(bg, base, 0.35);
     // Message cards in the theme's own tints (Azure: navy for the character, blue for you),
     // kept dark (or light) enough that the text reads on them.
@@ -230,11 +244,9 @@ export function themeFromSillyTavern(st) {
         user: rgba(accent, dark ? 0.14 : 0.08),
         bot: rgba(text, dark ? 0.045 : 0.035),
         border: rgba(text, dark ? 0.12 : 0.11),
-        backdrop: `radial-gradient(120% 55% at 50% 0%, ${hex(glow)} 0%, transparent 65%), ${hex(floor)}`,
+        backdrop: hex(floor),
         glass: {
-            panel: clamp(panel.a, 0.55, 0.86),
             card: clamp(tintAlpha + 0.3, 0.55, 0.85),
-            blur: clamp(Number(st.blur_strength) || 10, 4, 10),
             shadow: clamp(Number(st.shadow_width) || 0, 0, 3),
             shadowColor: shadow ? rgba(shadow, clamp(shadow.a, 0, 0.9)) : 'transparent',
             botCard: hex(botCard),
@@ -244,16 +256,15 @@ export function themeFromSillyTavern(st) {
 }
 
 /**
- * See-through values over a chat background. A SillyTavern theme brings its own;
- * Pocket Tavern's themes get frosted panels and cards in their surface color.
+ * Message cards over a chat background. A SillyTavern theme brings its own tints;
+ * Pocket Tavern's themes get cards in their surface colour. Only the cards are
+ * see-through: bars, pages, sheets and the composer stay solid, and nothing is blurred.
  */
 function glassOf(t) {
     if (t.glass) return t.glass;
     const light = t.mode === 'light';
     return {
-        panel: light ? 0.76 : 0.72,
-        card: light ? 0.78 : 0.7,
-        blur: 8,
+        card: light ? 0.82 : 0.76,
         // A faint shadow under light text keeps it clear over a sharp picture.
         shadow: light ? 0 : 1,
         shadowColor: light ? 'transparent' : 'rgba(0, 0, 0, 0.55)',
@@ -309,38 +320,30 @@ export function themeCss(theme, scope) {
     --SmartThemeShadowColor: transparent !important;
     --SmartThemeFastUIBGColor: ${t.bg} !important;
     --shadowWidth: 0 !important;
-    --stmui-accent: ${t.accent};
-    --stmui-on-accent: ${t.onAccent};
-    --stmui-surface: ${t.bg};
-    --stmui-solid: ${t.bg};
-    --stmui-opaque: ${t.bg};
-    --stmui-raised: ${t.raised};
-    --stmui-raised-2: color-mix(in srgb, ${t.text} 8%, ${t.raised});
-    --stmui-line: ${t.border};
-    --stmui-user-tint: ${t.user};
-    --stmui-bot-tint: ${t.bot};
-    --stmui-backdrop: ${t.backdrop};
+    --pt-bg: ${t.bg};
+    --pt-surface: ${t.raised};
+    --pt-surface-elevated: ${t.elevated ?? `color-mix(in srgb, ${t.text} 8%, ${t.raised})`};
+    --pt-border: ${t.border};
+    --pt-text-primary: ${t.text};
+    --pt-accent: ${t.accent};
+    --pt-on-accent: ${t.onAccent};
+    --pt-card-user: ${t.user};
+    --pt-card-bot: ${t.bot};
+    --pt-backdrop: ${t.backdrop};
 }
-/* Glass: your chat background shows. Panels, bars, sheets and the message box are
-   frosted in the theme's surface color, the chat itself is clear, and each message
-   is a frosted card. A SillyTavern theme keeps its own amounts, blur and text shadow. */
+/* A chat background shows: the chat itself is clear and each message is a tinted
+   card over the picture. Bars, pages, sheets and the composer stay solid. */
 ${scope}.stmui-glass {
-    --SmartThemeBlurTintColor: ${see(t.bg, g.panel)} !important;
     --SmartThemeChatTintColor: transparent !important;
     --SmartThemeBotMesBlurTintColor: ${see(g.botCard, g.card)} !important;
     --SmartThemeUserMesBlurTintColor: ${see(g.userCard, g.card)} !important;
     --SmartThemeShadowColor: ${g.shadowColor} !important;
     --shadowWidth: ${g.shadow} !important;
-    --stmui-surface: ${see(t.bg, g.panel)};
-    --stmui-solid: ${see(t.bg, Math.min(g.panel + 0.08, 0.94))};
-    --stmui-raised: ${see(t.raised, 0.6)};
-    --stmui-raised-2: ${see(`color-mix(in srgb, ${t.text} 8%, ${t.raised})`, 0.7)};
-    --stmui-bot-tint: ${see(g.botCard, g.card)};
-    --stmui-user-tint: ${see(g.userCard, g.card)};
-    --stmui-blur: ${g.blur}px;
+    --pt-card-bot: ${see(g.botCard, g.card)};
+    --pt-card-user: ${see(g.userCard, g.card)};
     ${inkCss}
 }
-/* Looks without cards (Flat, SillyTavern's Document) keep a frosted chat to read on. */
+/* Looks without cards (Flat, SillyTavern's Document) keep a tinted chat to read on. */
 ${scope}.stmui-glass:is([data-stmui-look="flat"], :has(body:is(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle))) {
     --SmartThemeChatTintColor: ${see(t.bg, g.card)} !important;
 }

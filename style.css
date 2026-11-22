@@ -10,21 +10,64 @@
    ========================================================================== */
 
 :root {
-    --stmui-accent: var(--SmartThemeQuoteColor, #e18a24);
-    --stmui-text: var(--SmartThemeBodyColor, #dcdcd2);
-    --stmui-muted: color-mix(in srgb, var(--stmui-text) 62%, transparent);
-    --stmui-faint: color-mix(in srgb, var(--stmui-text) 40%, transparent);
-    --stmui-surface: var(--SmartThemeBlurTintColor, #171717);
-    --stmui-solid: color-mix(in srgb, var(--stmui-surface) 92%, #0b0b0b);
-    /* Always opaque, even in glass: bars that stick while content scrolls under them. */
-    --stmui-opaque: color-mix(in srgb, var(--stmui-surface) 92%, #0b0b0b);
-    --stmui-raised: color-mix(in srgb, var(--stmui-text) 7%, var(--stmui-surface));
-    --stmui-raised-2: color-mix(in srgb, var(--stmui-text) 11%, var(--stmui-surface));
-    --stmui-line: color-mix(in srgb, var(--stmui-text) 14%, transparent);
-    --stmui-accent-soft: color-mix(in srgb, var(--stmui-accent) 16%, transparent);
-    --stmui-on-accent: #fff;
+    /* Design tokens (DESIGN.md, sections 2 and 7): the source of truth. With "Your
+       theme" they come from SillyTavern's own colours; a Pocket Tavern theme sets
+       them in themes.js. */
+    --pt-text-primary: var(--SmartThemeBodyColor, #eceef2);
+    --pt-text-secondary: color-mix(in srgb, var(--pt-text-primary) 64%, transparent);
+    --pt-text-muted: color-mix(in srgb, var(--pt-text-primary) 46%, transparent);
+    --pt-bg: color-mix(in srgb, var(--SmartThemeBlurTintColor, #0e0f12) 92%, #0b0b0b);
+    --pt-surface: color-mix(in srgb, var(--pt-text-primary) 7%, var(--pt-bg));
+    --pt-surface-elevated: color-mix(in srgb, var(--pt-text-primary) 11%, var(--pt-bg));
+    --pt-border: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
+    --pt-accent: var(--SmartThemeQuoteColor, #5b8def);
+    --pt-accent-soft: color-mix(in srgb, var(--pt-accent) 16%, transparent);
+    --pt-on-accent: #fff;
     /* Destructive actions. Mixed toward the text colour so it stays readable on light and dark themes. */
-    --stmui-danger: color-mix(in srgb, #e5484d 78%, var(--stmui-text));
+    --pt-danger: color-mix(in srgb, #e55353 78%, var(--pt-text-primary));
+    /* Message cards: the only see-through surfaces (over a chat background). */
+    --pt-card-user: color-mix(in srgb, var(--pt-accent) 9%, transparent);
+    --pt-card-bot: color-mix(in srgb, var(--pt-text-primary) 5%, transparent);
+    --pt-backdrop: var(--pt-bg);
+    --pt-radius-sm: 10px;
+    --pt-radius: 14px;
+    --pt-space-1: 4px;
+    --pt-space-2: 8px;
+    --pt-space-3: 12px;
+    --pt-space-4: 16px;
+    --pt-space-5: 20px;
+    --pt-space-6: 24px;
+    --pt-space-8: 32px;
+    --pt-ease: cubic-bezier(0.2, 0, 0, 1);
+    --pt-dur-fast: 150ms;
+    --pt-dur: 220ms;
+    /* Layers, lowest first. SillyTavern's own popups and toasts open in the top layer
+       (dialogs) above all of these. */
+    --pt-z-chat: 30;
+    --pt-z-page: 3005;
+    --pt-z-panel: 3050;
+    --pt-z-editor: 3300;
+    --pt-z-bars: 4010;
+    --pt-z-banner: 4030;
+    --pt-z-popup: 5000;
+
+    /* The older names, kept as aliases of the tokens above (not for new code). */
+    --stmui-accent: var(--pt-accent);
+    --stmui-text: var(--pt-text-primary);
+    --stmui-muted: var(--pt-text-secondary);
+    --stmui-faint: var(--pt-text-muted);
+    --stmui-surface: var(--pt-bg);
+    --stmui-solid: var(--pt-bg);
+    --stmui-opaque: var(--pt-bg);
+    --stmui-raised: var(--pt-surface);
+    --stmui-raised-2: var(--pt-surface-elevated);
+    --stmui-line: var(--pt-border);
+    --stmui-accent-soft: var(--pt-accent-soft);
+    --stmui-on-accent: var(--pt-on-accent);
+    --stmui-danger: var(--pt-danger);
+    --stmui-user-tint: var(--pt-card-user);
+    --stmui-bot-tint: var(--pt-card-bot);
+    --stmui-backdrop: var(--pt-backdrop);
     --stmui-tap: 48px;
     --stmui-radius: 16px;
     --stmui-radius-sm: 12px;
@@ -36,8 +79,6 @@
     /* iOS-style sheet curve and a gentle overshoot for small things that pop. */
     --stmui-ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
     --stmui-ease-pop: cubic-bezier(0.34, 1.4, 0.5, 1);
-    --stmui-user-tint: color-mix(in srgb, var(--stmui-accent) 9%, transparent);
-    --stmui-bot-tint: color-mix(in srgb, var(--stmui-text) 5%, transparent);
 }
 
 /* No scrollbars anywhere, like a phone app: content still scrolls by touch. */
@@ -60,113 +101,50 @@ html.stmui-on *::-webkit-scrollbar {
     height: 1em;
 }
 
-/* Pages, menus and popups need an opaque surface even when the theme's tint is translucent. */
+/* The canvas is always opaque, even when SillyTavern's panel tint is see-through:
+   bars, pages, sheets, dialogs and the composer are solid (DESIGN.md, section 7). */
 @supports (color: rgb(from red r g b)) {
     :root {
-        --stmui-solid: rgb(from var(--stmui-surface) r g b / 1);
-        --stmui-opaque: rgb(from var(--stmui-surface) r g b / 1);
+        --pt-bg: rgb(from var(--SmartThemeBlurTintColor, #0e0f12) r g b / 1);
     }
 }
 
+/* No blur anywhere (DESIGN.md): it lags phone GPUs, and a backdrop-filter makes an
+   element the containing block of its fixed children, which once put the full-screen
+   message editor and an opened lorebook entry far off the screen (2.25.1). This also
+   switches off SillyTavern's own blur on the chat, drawers and popups while Pocket
+   Tavern is on. */
+html.stmui-on *,
+html.stmui-on *::before,
+html.stmui-on *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
 /* ==========================================================================
-   Glass (html.stmui-glass): a chat background is showing, with Your theme, a
-   SillyTavern theme, or a Pocket Tavern theme whose Theme background is off.
-   Like SillyTavern's own look: the bars, pages, sheets, popups and the message
-   box are frosted, the chat is clear, and each message is a frosted card.
-   A Pocket Tavern or SillyTavern theme sets the amounts in themes.js; Your
-   theme uses SillyTavern's own colors, kept between readable limits.
-   SillyTavern's "No Blur Effect" (body.no-blur) keeps the tints but drops
-   the blur.
+   A chat background (html.stmui-glass): with Your theme, a SillyTavern theme, or
+   a Pocket Tavern theme whose Theme background is off. The chat is clear and each
+   message is a tinted card over the picture; everything else stays solid. A Pocket
+   Tavern or SillyTavern theme sets the card tints in themes.js; Your theme uses
+   SillyTavern's own message tints, kept between readable limits.
    ========================================================================== */
 
-/* A light blur, so the picture stays a picture: at most 10px, and 6px on phones
-   (their screens are small, so a strong blur turned it into a smear). */
-html.stmui-glass {
-    --stmui-glass-blur: blur(min(var(--stmui-blur, 8px), 10px)) saturate(1.15);
-}
-
-html.stmui-glass:not(.stmui-wide) {
-    --stmui-glass-blur: blur(min(var(--stmui-blur, 6px), 6px)) saturate(1.15);
-}
-
-html.stmui-glass:has(body.no-blur) {
-    --stmui-glass-blur: none;
-}
-
 html.stmui-on.stmui-glass:not(.stmui-themed) {
-    --stmui-blur: var(--SmartThemeBlurStrength, 10px);
     --SmartThemeChatTintColor: transparent !important;
-    --stmui-raised: color-mix(in srgb, var(--stmui-text) 8%, transparent);
-    --stmui-raised-2: color-mix(in srgb, var(--stmui-text) 13%, transparent);
-    --stmui-solid: color-mix(in srgb, var(--SmartThemeBlurTintColor) 100%, transparent);
-    --stmui-bot-tint: var(--SmartThemeBotMesBlurTintColor);
-    --stmui-user-tint: var(--SmartThemeUserMesBlurTintColor);
+    --pt-card-bot: var(--SmartThemeBotMesBlurTintColor);
+    --pt-card-user: var(--SmartThemeUserMesBlurTintColor);
 }
 
 @supports (color: rgb(from red r g b)) {
     html.stmui-on.stmui-glass:not(.stmui-themed) {
-        --stmui-surface: rgb(from var(--SmartThemeBlurTintColor) r g b / clamp(0.55, alpha, 0.86));
-        --stmui-solid: rgb(from var(--SmartThemeBlurTintColor) r g b / clamp(0.62, alpha, 0.92));
-        --stmui-bot-tint: rgb(from var(--SmartThemeBotMesBlurTintColor) r g b / clamp(0.5, alpha, 0.85));
-        --stmui-user-tint: rgb(from var(--SmartThemeUserMesBlurTintColor) r g b / clamp(0.5, alpha, 0.85));
+        --pt-card-bot: rgb(from var(--SmartThemeBotMesBlurTintColor) r g b / clamp(0.58, alpha, 0.88));
+        --pt-card-user: rgb(from var(--SmartThemeUserMesBlurTintColor) r g b / clamp(0.58, alpha, 0.88));
     }
 }
 
-html.stmui-glass.stmui-shell .stmui-appbar,
-html.stmui-glass.stmui-shell .stmui-tabbar,
-html.stmui-glass.stmui-shell #top-settings-holder .drawer-content.openDrawer,
-html.stmui-glass .stmui-sheet .stmui-panel,
-html.stmui-glass.stmui-touch dialog.popup:not(.transparent_dialogue_popup),
-html.stmui-glass.stmui-touch :is(#extensionsMenu, #select_chat_popup),
-html.stmui-glass.stmui-shell #completion_prompt_manager_popup,
-html.stmui-glass .stmui-chat-finder,
-html.stmui-glass.stmui-wide body:not(.movingUI) #movingDivs > div,
-html.stmui-glass.stmui-touch body > .gg-popup > .gg-popup-content,
-html.stmui-glass.stmui-chat #send_form,
-html.stmui-glass.stmui-wide.stmui-chat #chat .mes,
-html.stmui-glass.stmui-wide.stmui-chat .welcomeRecent .recentChatList .recentChat {
-    -webkit-backdrop-filter: var(--stmui-glass-blur) !important;
-    backdrop-filter: var(--stmui-glass-blur) !important;
-}
-
-/* Phones: message cards and recent chats are tinted, not blurred. A blur per card
-   was the costliest paint on a phone (the streaming reply re-blurred every frame),
-   so the tint is a step stronger instead. Bars, sheets and the message box keep it. */
-@supports (color: rgb(from red r g b)) {
-    html.stmui-on.stmui-glass:not(.stmui-wide):not(:has(body.no-blur)) {
-        --stmui-bot-tint: rgb(from var(--SmartThemeBotMesBlurTintColor) r g b / clamp(0.58, calc(alpha + 0.08), 0.92));
-        --stmui-user-tint: rgb(from var(--SmartThemeUserMesBlurTintColor) r g b / clamp(0.58, calc(alpha + 0.08), 0.92));
-    }
-}
-
-/* No Blur Effect: a see-through panel with nothing blurred behind it lets the chat
-   under it show through as readable text. Bars, pages, sheets, dialogs and the
-   message box go solid; message cards keep their tint, so the picture still shows. */
-@supports (color: rgb(from red r g b)) {
-    html.stmui-on.stmui-glass:has(body.no-blur) {
-        --stmui-surface: rgb(from var(--SmartThemeBlurTintColor) r g b / 1);
-        --stmui-solid: rgb(from var(--SmartThemeBlurTintColor) r g b / 1);
-    }
-}
-
-/* Sheets are drawn over a dark base so they are always opaque; frosted here. */
-html.stmui-glass .stmui-sheet .stmui-panel {
-    background: var(--stmui-solid);
-}
-
-/* The bars use the frosted surface as it is (they were nearly solid to spare phones a live blur). */
-html.stmui-glass.stmui-shell :is(.stmui-appbar, .stmui-tabbar) {
-    background: var(--stmui-surface);
-}
-
-/* The message box is a frosted panel like the bars, a step stronger than a card. */
-html.stmui-glass.stmui-chat:not(.stmui-docked) #send_form {
-    background: var(--stmui-solid) !important;
-}
-
-/* The first message of a chat that is not drawn as a card (system notes) gets a frosted backing too. */
+/* The first message of a chat that is not drawn as a card (system notes) gets a tinted backing too. */
 html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_system='true'] {
-    background: var(--stmui-bot-tint);
+    background: var(--pt-card-bot);
 }
 
 /* ---- Settings panel (visible on every device) --------------------------- */
@@ -1132,7 +1110,7 @@ html.stmui-shell .stmui-appbar {
     box-sizing: border-box;
     border-bottom: 1px solid var(--stmui-line);
     /* Nearly solid instead of live blur: blurring the chat behind on every scroll frame is heavy for phones. */
-    background: color-mix(in srgb, var(--stmui-surface) 96%, transparent);
+    background: var(--pt-bg);
     color: var(--stmui-text);
     text-shadow: none;
 }
@@ -1290,7 +1268,7 @@ html.stmui-shell .stmui-tabbar {
     padding: 0 var(--stmui-safe-right) var(--stmui-safe-bottom) var(--stmui-safe-left);
     box-sizing: border-box;
     border-top: 1px solid var(--stmui-line);
-    background: color-mix(in srgb, var(--stmui-surface) 97%, transparent);
+    background: var(--pt-bg);
     text-shadow: none;
     transition: transform 0.18s ease;
 }
@@ -4756,7 +4734,7 @@ html.stmui-on .stmui-jump {
     padding: 0;
     border: 1px solid var(--stmui-line);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--stmui-surface) 94%, transparent);
+    background: var(--pt-bg);
     color: var(--stmui-text);
     box-shadow: none;
     outline: 1px solid var(--stmui-line);
@@ -6083,25 +6061,13 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) {
     padding: 10px calc(12px + var(--stmui-safe-right)) 0 calc(12px + var(--stmui-safe-left)) !important;
     border: 0 !important;
     border-radius: 0 !important;
-    /* Opaque, not the frosted page colour: the chat it covers is not blurred behind it (see below). */
-    background: var(--stmui-opaque) !important;
+    /* Opaque: the chat it covers must not show through (DESIGN.md, section 8). */
+    background: var(--pt-bg) !important;
     box-shadow: none !important;
     content-visibility: visible;
     animation: stmui-fade 0.18s ease-out;
 }
 
-/* A backdrop-filter makes an element the containing block of its position: fixed
-   descendants. SillyTavern blurs #chat and its pages when No Blur is off (Glass
-   blurs pages too), so the editor, fixed inside #chat, was placed in the scrolled
-   chat thousands of pixels above the screen: the message box went away and no
-   editor showed. The same trapped an opened lorebook entry inside its page. While
-   one is open, the container drops its blur; the layer is opaque, so nothing is lost.
-   (Ids twice: Glass pins the page's blur with !important at a higher specificity.) */
-html.stmui-chat.stmui-editing #sheld #chat,
-html.stmui-entry-editing #top-settings-holder #WorldInfo {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-}
 
 /* Nothing else from the chat peeks around the editor. */
 html.stmui-chat.stmui-editing #form_sheld,
@@ -7983,7 +7949,7 @@ html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#wo
     gap: 6px;
     padding: 8px 14px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--stmui-surface) 92%, transparent);
+    background: var(--pt-bg);
     color: var(--stmui-muted);
     font-size: 14px;
     font-weight: 700;
@@ -9335,7 +9301,7 @@ html.stmui-chat.stmui-docked #send_form:focus-within {
     border-top: 1px solid var(--stmui-line) !important;
     border-radius: 0;
     /* The same surface as the tab bar, so with the tabs out they read as one bottom bar. */
-    background: color-mix(in srgb, var(--stmui-surface) 97%, transparent) !important;
+    background: var(--pt-bg) !important;
     box-shadow: none;
 }
 
