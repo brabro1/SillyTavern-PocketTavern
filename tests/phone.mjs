@@ -1799,10 +1799,21 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
     // then sat in the scrolled chat or page, far above the screen (seen on a real phone).
     const noBlur = await page.evaluate(() => document.body.classList.contains('no-blur'));
     const onScreen = r => r && r.top >= 0 && r.top < 200 && r.bottom <= 900;
+    const book = 'Pocket Tavern blur test';
     try {
         await page.evaluate(() => document.body.classList.remove('no-blur'));
         await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
-        await until(() => document.querySelectorAll('#chat .mes .mes_edit').length > 1);
+        await until(() => document.querySelectorAll('#chat .mes .mes_edit').length > 0);
+        // A chat long enough to scroll, drawn in this page only (a fresh SillyTavern has one message).
+        await page.evaluate(async () => {
+            const context = SillyTavern.getContext();
+            const sample = context.chat.filter(message => !message.is_system).slice(0, 4);
+            while (context.chat.length < 24) for (const message of sample) context.chat.push(structuredClone(message));
+            await context.clearChat();
+            await context.printMessages();
+        });
+        await until(() => document.querySelectorAll('#chat .mes .mes_edit').length >= 20);
+        await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
         await page.waitForTimeout(2800);
         const blurred = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backdropFilter);
         if (blurred === 'none') throw new Error('#chat has no blur with No Blur off: the test would prove nothing');
@@ -1818,12 +1829,21 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
         await showTabs();
         await page.locator('.stmui-tab[data-tab="WI-SP-button"]').click();
         await until(() => document.documentElement.dataset.stmuiPage === 'WI-SP-button');
-        await page.evaluate(() => {
+        // A lorebook of its own with a dozen entries, so the page scrolls (deleted below).
+        await page.evaluate(async name => {
+            const context = SillyTavern.getContext();
+            await context.saveWorldInfo(name, { entries: {} }, true);
+            await context.updateWorldInfoList();
             const select = document.getElementById('world_editor_select');
-            select.value = [...select.options].find(option => option.textContent === 'Big Test Lorebook').value;
+            select.value = [...select.options].find(option => option.textContent === name).value;
             jQuery(select).trigger('change');
-        });
-        await until(() => document.querySelectorAll('#world_popup_entries_list .world_entry').length >= 8, null, 10000);
+        }, book);
+        await until(() => document.getElementById('world_popup_new')?.offsetParent, null, 10000);
+        for (let i = 0; i < 12; i++) {
+            await page.evaluate(() => document.getElementById('world_popup_new').click());
+            await page.waitForTimeout(150);
+        }
+        await until(() => document.querySelectorAll('#world_popup_entries_list .world_entry').length >= 12, null, 10000);
         await page.evaluate(() => {
             const entry = document.querySelectorAll('#world_popup_entries_list .world_entry')[6];
             entry.scrollIntoView({ block: 'center' });
@@ -1840,15 +1860,20 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
         await page.evaluate(() => document.querySelector('.world_entry.stmui-entry-open .inline-drawer-toggle').click());
         await until(() => !document.documentElement.classList.contains('stmui-entry-editing'));
     } finally {
-        await page.evaluate(had => {
+        await page.evaluate(async ([had, name]) => {
+            const context = SillyTavern.getContext();
             document.body.classList.toggle('no-blur', had);
             document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click();
             const select = document.getElementById('world_editor_select');
             select.value = '';
             jQuery(select).trigger('change');
+            await fetch('/api/worldinfo/delete', { method: 'POST', headers: context.getRequestHeaders(), body: JSON.stringify({ name }) });
+            await context.updateWorldInfoList();
             document.querySelector('.stmui-tab[data-tab="chat"]')?.click();
-        }, noBlur).catch(() => {});
-        await page.waitForTimeout(600);
+            // The chat as it is on disk again.
+            await context.reloadCurrentChat();
+        }, [noBlur, book]).catch(() => {});
+        await page.waitForTimeout(1000);
     }
 });
 
