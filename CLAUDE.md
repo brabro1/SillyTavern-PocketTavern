@@ -1,27 +1,41 @@
-# Pocket Tavern
+# SillyTavern-PocketTavern — Engineering & Agent Rules
 
-A SillyTavern extension with two layouts on one shared core: **Pocket Tavern on phones** (Android, iPhone, iPad held upright) and **Pocket Tavern on desktop** (computers, tablets held sideways). Same themes, tokens and logic; separate layout, UI and design. iPhone and iPad are core devices, not extras. Plain JavaScript and CSS, no build step. Files: `index.js` (logic and markup), `style.css`, `themes.js`, `icons.js`, `locales.js`, `changelog.js`.
+## Project Overview
+`SillyTavern-PocketTavern` is a SillyTavern extension that provides a fast, polished, native-feeling chat interface for both mobile phones and desktop—while coexisting cleanly alongside native SillyTavern.
 
-## Workflow
+**Before making any UI, layout, or CSS change, read `DESIGN.md` in full.**
 
-Use the `release` skill (`.claude/skills/release/`, kept out of git because it holds local paths) for every change: reproducing a report, the design rules, the test copy, tests, docs, screenshots, the banner, versioning and publishing. Follow it in order.
+---
 
-## Phone, desktop or both
+## Non-Negotiable SillyTavern Coexistence Rules
+PocketTavern must work *alongside* SillyTavern, never fight or corrupt it:
+1. **Strict CSS Scoping:** 100% of PocketTavern styles MUST be scoped under a dedicated root selector (e.g., `.pt-root` or `#pocket-tavern`). Never style bare HTML elements (`body`, `html`, `button`, `input`, `textarea`, `a`, `::-webkit-scrollbar`) globally.
+2. **Official APIs Only:** Prefer SillyTavern's `eventSource`, `event_types`, `getContext()`, and official extension hooks. Do not destructively monkey-patch core SillyTavern functions.
+3. **Clean Mount & Teardown:** Toggling PocketTavern on/off must cleanly restore native SillyTavern with zero orphaned DOM nodes, zero stuck `overflow: hidden` scroll locks, and zero duplicate event listeners.
+4. **Z-Index Discipline:** Never trap or cover SillyTavern's native modals, popups, extension settings, or toast notifications. Keep PocketTavern's z-index layers documented and minimal.
+5. **No Global Namespace Pollution:** Keep JS state encapsulated in ES modules or a single namespace object.
 
-Before any change, decide where it belongs: **Phone**, **Desktop**, or **Both**, and say so in the plan, the changelog and the reply. Phone-only styles go under `html:not(.stmui-wide)`, desktop-only styles under `html.stmui-wide`; shared logic and tokens stay in the core. Check phone changes on Android and iPhone/iPad sizes, desktop changes at 1366 × 700, 1440 × 900 and 1920 × 1080. See "Two layouts, one core" in DESIGN.md.
+---
 
-## UI work
+## Mandatory Visual Verification Loop (Never Guess From Code)
+Never assume a UI fix worked just because the CSS looks right. For every visual, layout, or interaction change:
+1. Connect to the running local SillyTavern instance at `http://127.0.0.1:8000` (ask the user if a different port is used).
+2. Use Playwright (Playwright MCP if available, otherwise a temporary headless Chromium script) to load the extension, interact with it, and check for console errors.
+3. Capture screenshots to `/tmp/pt-audit/` across **both** viewports:
+   - **Mobile (`390x844`):** Chat view, focused composer, open drawers/menus, long messages/code blocks, and toggling PocketTavern off/on.
+   - **Desktop (`1440x900`):** Full chat layout, open panels, hover/focus states, and native SillyTavern view with PocketTavern loaded.
+4. **Visually inspect every PNG screenshot** before declaring a task done. Look specifically for:
+   - Overlapping text, icons, or buttons
+   - Horizontal overflow or clipped elements
+   - Broken alignment, awkward spacing, or low contrast
+   - Native SillyTavern UI corruption
+5. Repeat **Fix → Re-Screenshot → Inspect** until there are zero visual defects and zero console errors.
+6. Delete temporary scripts and `/tmp/pt-audit/` artifacts before finishing; never commit screenshots to git.
 
-Read [DESIGN.md](DESIGN.md) before changing anything visual (`style.css`, `themes.js`, or markup in `index.js`). It sets the type scale, radii, spacing, tap sizes, accent rules and theme checks. Use the `frontend-design` skill inside those rules, and where the two differ, DESIGN.md wins.
+---
 
-Do not add raw colours, font sizes, radii or spacing values that the guide doesn't allow, and do not make anything tappable smaller than 44px.
-
-## Checks
-
-From `tests/`: `npm run check`, `npm run phone` (the phone walkthrough plus desktop steps) and `node ios.mjs` (iPhone and iPad; also with `ENGINE=webkit`). `node screenshots.mjs` retakes the README screenshots and `node brand.mjs` redraws the banner; both need a running SillyTavern with test data (see the header of each file).
-
-## Never
-
-- Commit credentials, personal SillyTavern data, chat histories or the owner's lorebook names.
-- Use the owner's real email in commands or commits (see the release skill for the commit identity).
-- Post on Reddit or anywhere public. Draft the text; the owner posts it.
+## Performance & Code Quality Standards
+- **GPU-Only Animations:** Animate only `transform` and `opacity`. Never animate `height`, `width`, `top`, `left`, `margin`, `padding`, or `box-shadow`.
+- **Observer Hygiene:** Debounce/throttle `MutationObserver`, `ResizeObserver`, `scroll`, and `input` handlers. Always disconnect observers when PocketTavern is inactive or unmounted.
+- **Streaming Stability:** During token streaming, auto-scroll smoothly only when the user is already near the bottom. Never hijack scroll if the user scrolled up to read earlier messages.
+- **No Dead Code:** Remove unused CSS rules, dead helper functions, and leftover debug `console.log` statements.
