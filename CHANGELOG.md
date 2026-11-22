@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.25.1
+
+A fix for editing on phones with blur on, found on a real Android phone over USB debugging.
+
+### Both
+
+- **Editing a message or a lorebook entry with blur on.** Tapping edit hid the message box but showed no editor and no keyboard; opening a lorebook entry made the Lorebooks page freeze. Both editors are full-screen layers fixed inside a container: the message editor inside the chat, an opened entry inside the Lorebooks page. With SillyTavern's No Blur Effect off, SillyTavern blurs the chat and Glass blurs the page, and a `backdrop-filter` makes an element the frame for every fixed layer inside it. So the editor was placed in the scrolled chat (12,500px above the screen on the reporter's phone) and the entry in the scrolled page. While one is open, its container now drops its blur, and the editor and the open entry are opaque so nothing behind shows through. It happened on computers too with blur on, and did not show in tests because the test copy has No Blur on.
+- `tests/phone.mjs` has a new step that turns SillyTavern's blur on, edits an older message and opens a lorebook entry from further down the page, and checks both are on the screen. It fails without the fix.
+
 ## 2.25.0
 
 From a visual audit at 390 × 844 and 1440 × 900: glass that stays readable with No Blur, lighter glass on phones, toasts above sheets, and a cleaner exit when Pocket Tavern is turned off.

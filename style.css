@@ -6083,10 +6083,24 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) {
     padding: 10px calc(12px + var(--stmui-safe-right)) 0 calc(12px + var(--stmui-safe-left)) !important;
     border: 0 !important;
     border-radius: 0 !important;
-    background: var(--stmui-solid) !important;
+    /* Opaque, not the frosted page colour: the chat it covers is not blurred behind it (see below). */
+    background: var(--stmui-opaque) !important;
     box-shadow: none !important;
     content-visibility: visible;
     animation: stmui-fade 0.18s ease-out;
+}
+
+/* A backdrop-filter makes an element the containing block of its position: fixed
+   descendants. SillyTavern blurs #chat and its pages when No Blur is off (Glass
+   blurs pages too), so the editor, fixed inside #chat, was placed in the scrolled
+   chat thousands of pixels above the screen: the message box went away and no
+   editor showed. The same trapped an opened lorebook entry inside its page. While
+   one is open, the container drops its blur; the layer is opaque, so nothing is lost.
+   (Ids twice: Glass pins the page's blur with !important at a higher specificity.) */
+html.stmui-chat.stmui-editing #sheld #chat,
+html.stmui-entry-editing #top-settings-holder #WorldInfo {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
 }
 
 /* Nothing else from the chat peeks around the editor. */
@@ -8423,7 +8437,7 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open {
     padding: 0 calc(14px + var(--stmui-safe-right, 0px)) 24px calc(14px + var(--stmui-safe-left, 0px));
     border: 0;
     border-radius: 0;
-    background: var(--stmui-solid);
+    background: var(--stmui-opaque);
     overflow-y: auto;
     overscroll-behavior: contain;
     animation: stmui-fade 0.18s ease-out;

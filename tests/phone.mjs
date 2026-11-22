@@ -1794,6 +1794,64 @@ await step('with No Blur, glass pages, sheets and the message box are solid; pho
     }
 });
 
+await step("with SillyTavern's blur on, the message editor and an opened lorebook entry stay on the screen", async () => {
+    // A backdrop-filter on #chat or a page made it the frame for the fixed editor, which
+    // then sat in the scrolled chat or page, far above the screen (seen on a real phone).
+    const noBlur = await page.evaluate(() => document.body.classList.contains('no-blur'));
+    const onScreen = r => r && r.top >= 0 && r.top < 200 && r.bottom <= 900;
+    try {
+        await page.evaluate(() => document.body.classList.remove('no-blur'));
+        await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
+        await until(() => document.querySelectorAll('#chat .mes .mes_edit').length > 1);
+        await page.waitForTimeout(2800);
+        const blurred = await page.evaluate(() => getComputedStyle(document.getElementById('chat')).backdropFilter);
+        if (blurred === 'none') throw new Error('#chat has no blur with No Blur off: the test would prove nothing');
+        // An older message, so the chat is scrolled when the editor opens.
+        await page.evaluate(() => { const all = [...document.querySelectorAll('#chat .mes .mes_edit')]; all[Math.max(0, all.length - 3)].click(); });
+        await until(() => document.documentElement.classList.contains('stmui-editing'));
+        await page.waitForTimeout(400);
+        const editor = await page.evaluate(() => { const b = document.getElementById('curEditTextarea').closest('.mes').getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) }; });
+        if (!onScreen(editor)) throw new Error(`the message editor is off the screen: ${JSON.stringify(editor)}`);
+        await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel').click());
+        await until(() => !document.documentElement.classList.contains('stmui-editing'));
+        // A lorebook entry opened from further down the page.
+        await showTabs();
+        await page.locator('.stmui-tab[data-tab="WI-SP-button"]').click();
+        await until(() => document.documentElement.dataset.stmuiPage === 'WI-SP-button');
+        await page.evaluate(() => {
+            const select = document.getElementById('world_editor_select');
+            select.value = [...select.options].find(option => option.textContent === 'Big Test Lorebook').value;
+            jQuery(select).trigger('change');
+        });
+        await until(() => document.querySelectorAll('#world_popup_entries_list .world_entry').length >= 8, null, 10000);
+        await page.evaluate(() => {
+            const entry = document.querySelectorAll('#world_popup_entries_list .world_entry')[6];
+            entry.scrollIntoView({ block: 'center' });
+            entry.querySelector('.inline-drawer-toggle').click();
+        });
+        await until(() => document.documentElement.classList.contains('stmui-entry-editing'));
+        await page.waitForTimeout(400);
+        const entry = await page.evaluate(() => {
+            const b = document.querySelector('.world_entry.stmui-entry-open').getBoundingClientRect();
+            return { top: Math.round(b.top), bottom: Math.round(b.bottom), scrolled: Math.round(document.getElementById('WorldInfo').scrollTop) };
+        });
+        if (!entry.scrolled) throw new Error('the Lorebooks page was not scrolled: the test would prove nothing');
+        if (!onScreen(entry)) throw new Error(`the opened entry is off the screen: ${JSON.stringify(entry)}`);
+        await page.evaluate(() => document.querySelector('.world_entry.stmui-entry-open .inline-drawer-toggle').click());
+        await until(() => !document.documentElement.classList.contains('stmui-entry-editing'));
+    } finally {
+        await page.evaluate(had => {
+            document.body.classList.toggle('no-blur', had);
+            document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click();
+            const select = document.getElementById('world_editor_select');
+            select.value = '';
+            jQuery(select).trigger('change');
+            document.querySelector('.stmui-tab[data-tab="chat"]')?.click();
+        }, noBlur).catch(() => {});
+        await page.waitForTimeout(600);
+    }
+});
+
 await step('no errors from Pocket Tavern', async () => {
     if (extensionErrors.length) throw new Error(extensionErrors.join(' | '));
 });

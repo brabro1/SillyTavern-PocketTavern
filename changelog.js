@@ -1,6 +1,12 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.25.1',
+        items: [
+            "Fixed: with blur on (SillyTavern's No Blur Effect off), tapping edit on a message hid the message box but showed no editor, and an opened lorebook entry got stuck. Both editors were drawn far above the screen. They open in place now, with the keyboard.",
+        ],
+    },
+    {
         version: '2.25.0',
         items: [
             "Glass with SillyTavern's No Blur Effect on: the bars, pages, menus and the message box are solid now, so the chat behind them no longer shows through as readable text. Messages keep their see-through cards over your picture.",
