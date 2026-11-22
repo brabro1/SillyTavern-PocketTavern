@@ -26,6 +26,8 @@ export const ICONS = {
     'chevron-up': '<path d="m18 15-6-6-6 6"/>',
     'chevron-left': '<path d="m15 18-6-6 6-6"/>',
     'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+    'chevrons-left': '<path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/>',
+    'chevrons-right': '<path d="m13 17 5-5-5-5M6 17l5-5-5-5"/>',
     'circle-chevron-down': '<circle cx="12" cy="12" r="10"/><path d="m16 10-4 4-4-4"/>',
     'circle-chevron-up': '<circle cx="12" cy="12" r="10"/><path d="m8 14 4-4 4 4"/>',
     'arrow-left': '<path d="m12 19-7-7 7-7M19 12H5"/>',
@@ -83,6 +85,8 @@ export const ICONS = {
     'book': '<path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
     'sliders': '<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
     'plug': '<path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/>',
+    'plug-check': '<path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/><path d="m16 19 2 2 4-4"/>',
+    'plug-alert': '<path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/><path d="M20 15v3M20 21h.01"/>',
     'type': '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
     'settings': '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
     'puzzle': '<path d="M15.39 4.39a1 1 0 0 0 1.68-.47 2.5 2.5 0 1 1 3.01 3.01 1 1 0 0 0-.47 1.68l1.68 1.68a2.41 2.41 0 0 1 0 3.42l-1.68 1.68a1 1 0 0 1-1.68-.47 2.5 2.5 0 1 0-3.01 3.01 1 1 0 0 1 .47 1.68l-1.68 1.68a2.41 2.41 0 0 1-3.42 0l-1.68-1.68a1 1 0 0 0-1.68.47 2.5 2.5 0 1 1-3.01-3.01 1 1 0 0 0 .47-1.68l-1.68-1.68a2.41 2.41 0 0 1 0-3.42l1.68-1.68a1 1 0 0 1 1.68.47 2.5 2.5 0 1 0 3.01-3.01 1 1 0 0 1-.47-1.68l1.68-1.68a2.41 2.41 0 0 1 3.42 0z"/>',
@@ -100,6 +104,7 @@ export const ICONS = {
     'play': '<path d="M6 4l14 8-14 8z"/>',
     'eraser': '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21M22 21H7M5 11l9 9"/>',
     'filter': '<path d="M22 3H2l8 9.46V19l4 2v-8.54z"/>',
+    'filter-x': '<path d="M13.013 3H2l8 9.46V19l4 2v-8.54l.9-1.055M22 3l-5 5M17 3l5 5"/>',
     'scroll': '<path d="M19 17V5a2 2 0 0 0-2-2H4M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
     'note': '<path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5z"/><path d="M15 3v4a2 2 0 0 0 2 2h4"/>',
     'scale': '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
@@ -135,8 +140,8 @@ export const FA_MAP = {
     'fa-plus': 'plus',
     'fa-chevron-down': 'chevron-down', 'fa-angle-down': 'chevron-down', 'fa-caret-down': 'chevron-down',
     'fa-chevron-up': 'chevron-up', 'fa-angle-up': 'chevron-up', 'fa-caret-up': 'chevron-up',
-    'fa-chevron-left': 'chevron-left', 'fa-angle-left': 'chevron-left', 'fa-angles-left': 'chevron-left',
-    'fa-chevron-right': 'chevron-right', 'fa-angle-right': 'chevron-right', 'fa-angles-right': 'chevron-right',
+    'fa-chevron-left': 'chevron-left', 'fa-angle-left': 'chevron-left', 'fa-angles-left': 'chevrons-left',
+    'fa-chevron-right': 'chevron-right', 'fa-angle-right': 'chevron-right', 'fa-angles-right': 'chevrons-right',
     'fa-circle-chevron-down': 'circle-chevron-down',
     'fa-circle-chevron-up': 'circle-chevron-up',
     'fa-left-long': 'arrow-left', 'fa-arrow-left': 'arrow-left',
@@ -154,7 +159,7 @@ export const FA_MAP = {
     'fa-file-circle-plus': 'file-plus',
     'fa-file-alt': 'file-text', 'fa-file-lines': 'file-text', 'fa-file': 'file-text',
     'fa-recycle': 'reset', 'fa-rotate-left': 'reset', 'fa-undo': 'reset',
-    'fa-repeat': 'refresh', 'fa-arrows-rotate': 'refresh', 'fa-rotate': 'refresh', 'fa-sync': 'refresh', 'fa-rotate-right': 'refresh',
+    'fa-repeat': 'refresh', 'fa-arrows-rotate': 'refresh', 'fa-rotate': 'refresh', 'fa-sync': 'refresh', 'fa-rotate-right': 'rotate-cw',
     'fa-clock-rotate-left': 'history', 'fa-history': 'history',
     'fa-circle-info': 'info', 'fa-info-circle': 'info',
     'fa-circle-question': 'help', 'fa-question-circle': 'help',
@@ -187,7 +192,7 @@ export const FA_MAP = {
     'fa-address-card': 'contact', 'fa-passport': 'contact',
     'fa-book-atlas': 'book', 'fa-book': 'book', 'fa-book-open': 'book',
     'fa-sliders': 'sliders',
-    'fa-plug': 'plug', 'fa-plug-circle-exclamation': 'plug', 'fa-plug-circle-check': 'plug',
+    'fa-plug': 'plug', 'fa-plug-circle-exclamation': 'plug-alert', 'fa-plug-circle-check': 'plug-check',
     'fa-font': 'type',
     'fa-gear': 'settings', 'fa-cog': 'settings', 'fa-user-cog': 'settings', 'fa-user-gear': 'settings', 'fa-gears': 'settings',
     'fa-cubes': 'puzzle', 'fa-puzzle-piece': 'puzzle',
@@ -203,7 +208,7 @@ export const FA_MAP = {
     'fa-circle-stop': 'stop', 'fa-stop': 'stop',
     'fa-play': 'play',
     'fa-eraser': 'eraser',
-    'fa-filter': 'filter', 'fa-filter-circle-xmark': 'filter',
+    'fa-filter': 'filter', 'fa-filter-circle-xmark': 'filter-x',
     'fa-scroll': 'scroll',
     'fa-note-sticky': 'note',
     'fa-scale-balanced': 'scale',
@@ -233,6 +238,7 @@ export const FA_MAP = {
 };
 
 const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const SVG_MASK_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
 
 /** Inline SVG element for our own chrome. */
 export function svgIcon(name, className = '') {
@@ -246,7 +252,7 @@ export function svgIcon(name, className = '') {
 /** Stylesheet that swaps mapped Font Awesome glyphs for the icons above. */
 export function iconCss(scope) {
     const maskFor = name => {
-        const svg = `${SVG_OPEN.replace('currentColor', '#000')}${ICONS[name]}</svg>`;
+        const svg = `${SVG_MASK_OPEN}${ICONS[name]}</svg>`;
         return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
     };
     const byIcon = new Map();
@@ -272,8 +278,9 @@ export function iconCss(scope) {
     return css;
 }
 
-/** A data-URI mask for one icon, for CSS `mask` (e.g. notification icons). */
-export function iconUrl(name) {
-    const svg = `${SVG_OPEN.replace('currentColor', '#000')}${ICONS[name] ?? ''}</svg>`;
+/** A data-URI mask or image for one icon (e.g. notification icons, search input background). */
+export function iconUrl(name, color = '#000') {
+    if (!ICONS[name]) return '';
+    const svg = `${SVG_MASK_OPEN.replace('#000', color)}${ICONS[name]}</svg>`;
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }

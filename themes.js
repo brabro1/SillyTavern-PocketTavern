@@ -139,10 +139,15 @@ const parseColor = value => {
         const a = rgb[4] === undefined ? 1 : rgb[4].endsWith('%') ? parseFloat(rgb[4]) / 100 : Number(rgb[4]);
         return { r: Number(rgb[1]), g: Number(rgb[2]), b: Number(rgb[3]), a };
     }
-    const hex = text.match(/^#([0-9a-f]{6})([0-9a-f]{2})?$/i);
-    if (hex) {
-        const n = parseInt(hex[1], 16);
-        return { r: n >> 16, g: (n >> 8) & 255, b: n & 255, a: hex[2] ? parseInt(hex[2], 16) / 255 : 1 };
+    const hex6 = text.match(/^#([0-9a-f]{6})([0-9a-f]{2})?$/i);
+    if (hex6) {
+        const n = parseInt(hex6[1], 16);
+        return { r: n >> 16, g: (n >> 8) & 255, b: n & 255, a: hex6[2] ? parseInt(hex6[2], 16) / 255 : 1 };
+    }
+    const hex3 = text.match(/^#([0-9a-f]{3})([0-9a-f])?$/i);
+    if (hex3) {
+        const [r, g, b] = [...hex3[1]].map(ch => parseInt(ch + ch, 16));
+        return { r, g, b, a: hex3[2] ? parseInt(hex3[2] + hex3[2], 16) / 255 : 1 };
     }
     return null;
 };
@@ -192,9 +197,12 @@ const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 export function themeFromSillyTavern(st) {
     if (!st?.name) return null;
     const text0 = parseColor(st.main_text_color) ?? { r: 220, g: 220, b: 210, a: 1 };
-    const dark = luminance(text0) > 0.3;
+    const rawPanel = parseColor(st.blur_tint_color);
+    const rawChat = parseColor(st.chat_tint_color);
+    const surfaceHint = rawPanel && rawPanel.a >= 0.25 ? rawPanel : (rawChat && rawChat.a >= 0.25 ? rawChat : null);
+    const dark = surfaceHint ? luminance(surfaceHint) < 0.35 : luminance(text0) > 0.3;
     const base = dark ? { r: 12, g: 12, b: 14, a: 1 } : { r: 250, g: 250, b: 248, a: 1 };
-    const panel = parseColor(st.blur_tint_color) ?? base;
+    const panel = rawPanel ?? base;
     let bg = over(panel, base);
     for (let i = 0; i < 24 && contrast(over(text0, bg), bg) < 7; i++) bg = mixRgb(bg, base, 0.12);
     const text = readable(over(text0, bg), bg, 7);
@@ -275,21 +283,34 @@ function glassOf(t) {
 
 const see = (color, alpha) => `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`;
 
+function readableOnBoth(fg, a, b, min) {
+    let color = readable(fg, a, min);
+    if (b) color = readable(color, b, min);
+    return color;
+}
+
 /**
- * Text colors for glass: checked against a card as it looks over a mid-tone
- * picture (the card's color at its see-through amount over grey), and lifted
- * where they would fade. A faint narration color on a clear card was the usual
- * casualty. Returns only the colors that changed.
+ * Text colors for glass: checked against bot and user cards as they look over a
+ * mid-tone picture (each card's color at its see-through amount over grey), and
+ * lifted where they would fade. Returns only the colors that changed.
  */
 function glassInk(t, g) {
-    const card = parseColor(g.botCard) ?? parseColor(t.bg);
-    if (!card) return {};
-    const seen = over({ ...card, a: g.card }, { r: 128, g: 128, b: 128, a: 1 });
+    const midGrey = { r: 128, g: 128, b: 128, a: 1 };
+    const surfaces = [g.botCard, g.userCard]
+        .map(parseColor)
+        .filter(Boolean)
+        .map(card => over({ ...card, a: g.card }, midGrey));
+    if (!surfaces.length) {
+        const bg = parseColor(t.bg);
+        if (!bg) return {};
+        surfaces.push(over({ ...bg, a: g.card }, midGrey));
+    }
     const out = {};
     for (const [key, min] of [['text', 7], ['muted', 4.5], ['quote', 4.5]]) {
         const color = parseColor(t[key]);
         if (!color) continue;
-        const fixed = readable(color, seen, min);
+        let fixed = color;
+        for (const seen of surfaces) fixed = readable(fixed, seen, min);
         if (hex(fixed) !== hex(color)) out[key] = hex(fixed);
     }
     return out;
@@ -301,9 +322,32 @@ export function themeCss(theme, scope) {
     const t = theme;
     const g = glassOf(t);
     const ink = glassInk(t, g);
+    const bgRgb = parseColor(t.bg);
+    const raisedRgb = parseColor(t.raised) ?? bgRgb;
+    const mutedRgb = parseColor(t.muted);
+    const mutedLow = bgRgb && mutedRgb
+        ? hex(readableOnBoth(mixRgb(mutedRgb, bgRgb, 0.22), bgRgb, raisedRgb, 3.2))
+        : t.muted;
+    const danger = bgRgb
+        ? hex(readableOnBoth({ r: 229, g: 83, b: 83, a: 1 }, bgRgb, raisedRgb, 4.6))
+        : '#e55353';
+    const warn = bgRgb
+        ? hex(readableOnBoth(t.mode === 'light' ? { r: 180, g: 92, b: 0, a: 1 } : { r: 240, g: 168, b: 60, a: 1 }, bgRgb, raisedRgb, 4.5))
+        : (t.mode === 'light' ? '#9a5500' : '#f0a83c');
+    const ok = bgRgb
+        ? hex(readableOnBoth(t.mode === 'light' ? { r: 26, g: 127, b: 75, a: 1 } : { r: 79, g: 186, b: 126, a: 1 }, bgRgb, raisedRgb, 4.5))
+        : (t.mode === 'light' ? '#1a7f4b' : '#4fba7e');
+    const info = bgRgb
+        ? hex(readableOnBoth(t.mode === 'light' ? { r: 15, g: 102, b: 178, a: 1 } : { r: 92, g: 174, b: 240, a: 1 }, bgRgb, raisedRgb, 4.5))
+        : (t.mode === 'light' ? '#0f66b2' : '#5caef0');
+    const gold = bgRgb
+        ? hex(readableOnBoth(t.mode === 'light' ? { r: 160, g: 106, b: 0, a: 1 } : { r: 245, g: 204, b: 76, a: 1 }, bgRgb, raisedRgb, 4.5))
+        : (t.mode === 'light' ? '#9a6700' : '#f5cc4c');
     const inkCss = [
         ink.text ? `--SmartThemeBodyColor: ${ink.text} !important;` : '',
+        ink.text ? `--pt-text-primary: ${ink.text};` : '',
         ink.muted ? `--SmartThemeEmColor: ${ink.muted} !important;` : '',
+        ink.muted ? `--pt-text-secondary: ${ink.muted};` : '',
         ink.quote ? `--SmartThemeQuoteColor: ${ink.quote} !important;` : '',
     ].filter(Boolean).join('\n    ');
     return `${scope} {
@@ -325,8 +369,15 @@ export function themeCss(theme, scope) {
     --pt-surface-elevated: ${t.elevated ?? `color-mix(in srgb, ${t.text} 8%, ${t.raised})`};
     --pt-border: ${t.border};
     --pt-text-primary: ${t.text};
+    --pt-text-secondary: ${t.muted};
+    --pt-text-muted: ${mutedLow};
     --pt-accent: ${t.accent};
     --pt-on-accent: ${t.onAccent};
+    --pt-danger: ${danger};
+    --pt-warn: ${warn};
+    --pt-ok: ${ok};
+    --pt-info: ${info};
+    --pt-gold: ${gold};
     --pt-card-user: ${t.user};
     --pt-card-bot: ${t.bot};
     --pt-backdrop: ${t.backdrop};

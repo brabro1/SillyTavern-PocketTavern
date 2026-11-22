@@ -121,7 +121,7 @@ Then reload SillyTavern in your browser.
 
 </details>
 
-**Update:** **More → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). From version 2.21.0 on, the page reloads by itself once nothing is in progress (switch **Reload after updates** off to reload by hand). A short **What's new** list shows once.
+**Update:** **More → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). Once nothing is in progress, the page reloads automatically (switch **Reload after updates** off to reload by hand) and shows a short **What's new** list once.
 
 **Remove:** **Extensions → Manage extensions**, then delete Pocket Tavern.
 
@@ -160,10 +160,10 @@ There are also **Update SillyTavern** (updates SillyTavern and starts it again) 
 Yes. Pocket Tavern runs in your browser, so install it on that SillyTavern and open its address on any device. Your phone gets the phone layout and your computer gets the desktop layout, with the same chats on both.
 
 **Everything feels too big.**
-Pick **Compact** under **More → Themes → Size**, and a smaller text size under **More → Phone features**.
+Pick **Compact** under **More → Themes → Size**, and a smaller text size under **More → Phone features** (**Features** on a computer).
 
 **Where did the tabs go?**
-In a chat they tuck away so you don't tap them by accident. Tap the arrow in the message box to bring them back, or turn off **Hide tabs in a chat** under **More → Phone features**.
+In a chat they tuck away on a phone so you don't tap them by accident. Tap the arrow in the message box to bring them back, or turn off **Hide tabs in a chat** under **More → Phone features**.
 
 **The page beside the chat is too narrow on my computer.**
 Drag its right edge to make it wider; double-click the edge to reset it. For long prompts, the prompt editor has a full-screen button next to Save.
@@ -172,7 +172,7 @@ Drag its right edge to make it wider; double-click the edge to reset it. For lon
 Most of them. Their panels show up under **More**, and their buttons fit into the message box. Some get special care, listed under [Compatibility](#compatibility). If one doesn't work, [tell me](#feedback).
 
 **I use Guided Generations. Where did its buttons go?**
-They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **More → Phone features**.
+They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **More → Phone features** (**Features** on a computer).
 
 **Does it work on iPhone and iPad?**
 Yes, they're supported just like Android. Safari's keyboard gets its own handling, so the bars, chat and editors stay in view while you type. An iPad held upright gets the phone layout, and held sideways the desktop layout; set the chat width under **More → Themes → Chat width**. To use it like an app, tap **Share → Add to Home Screen** in Safari.

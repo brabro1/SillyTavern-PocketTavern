@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quick:
     name: Files load and versions agree
@@ -16,10 +20,12 @@ jobs:
           node-version: 22
       - run: node tests/check.mjs
       - name: Termux setup script is valid
-        run: bash -n termux/setup.sh
+        run: |
+          bash -n termux/setup.sh
+          shellcheck termux/setup.sh
 
   phone:
-    name: Phone test in SillyTavern
+    name: Phone, desktop & iOS tests in SillyTavern
     needs: quick
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -59,12 +65,19 @@ jobs:
         working-directory: extension/tests
         run: npm install --no-audit --no-fund
 
-      - name: Run the phone test
+      - name: Run the phone & desktop test
         working-directory: extension/tests
         env:
           ST_URL: http://127.0.0.1:8000
           CHROME_CHANNEL: chrome
         run: node phone.mjs
+
+      - name: Run the iPhone & iPad test
+        working-directory: extension/tests
+        env:
+          ST_URL: http://127.0.0.1:8000
+          CHROME_CHANNEL: chrome
+        run: node ios.mjs
 
       - name: Keep screenshots of failed steps
         if: failure()

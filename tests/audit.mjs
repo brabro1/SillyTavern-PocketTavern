@@ -4,17 +4,20 @@
 //   ST_URL=http://127.0.0.1:8000 CHROME_CHANNEL=chrome node audit.mjs results/audit
 import { chromium, devices } from 'playwright';
 import { mkdirSync } from 'node:fs';
-const OUT = process.argv[2];
+const OUT = process.argv[2] || 'results/audit';
 mkdirSync(OUT, { recursive: true });
 const sizes = [
-    { name: 'phone', width: 375, height: 812 },
-    { name: 'small', width: 360, height: 640 },
-    { name: 'land', width: 812, height: 375 },
+    { name: 'phone', width: 390, height: 844, desktop: false },
+    { name: 'small', width: 360, height: 640, desktop: false },
+    { name: 'land', width: 812, height: 375, desktop: false },
+    { name: 'desktop', width: 1440, height: 900, desktop: true },
 ];
 const report = [];
 const browser = await chromium.launch({ channel: process.env.CHROME_CHANNEL || undefined });
 for (const size of sizes) {
-    const context = await browser.newContext({ ...devices['Pixel 7'], viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1 });
+    const context = await browser.newContext(size.desktop
+        ? { viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1 }
+        : { ...devices['Pixel 7'], viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1 });
     const page = await context.newPage();
     const logs = [];
     page.on('pageerror', e => logs.push(`pageerror: ${e.message}`));
@@ -63,16 +66,18 @@ for (const size of sizes) {
     await page.evaluate(() => [...document.querySelectorAll('#chat .mes .extraMesButtonsHint')].pop()?.click()); await shot('mesmenu'); await close();
     await page.evaluate(() => [...document.querySelectorAll('#chat .mes .mes_edit')].pop()?.click()); await shot('editor');
     await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click()); await settle(500);
-    // Keyboard up: the screen gets shorter while typing.
-    await page.locator('#send_textarea').tap().catch(() => {});
-    await page.setViewportSize({ width: size.width, height: Math.round(size.height * 0.55) });
-    await settle(800);
-    await page.locator('#send_textarea').fill('Testing a longer message that wraps onto a second and maybe a third line in the box.');
-    await shot('keyboard');
-    await page.locator('#send_textarea').fill('');
-    await page.evaluate(() => document.activeElement?.blur());
-    await page.setViewportSize({ width: size.width, height: size.height });
-    await settle(600);
+    // Keyboard up: on phone sizes the screen gets shorter while typing.
+    if (!size.desktop) {
+        await page.locator('#send_textarea').tap().catch(() => {});
+        await page.setViewportSize({ width: size.width, height: Math.round(size.height * 0.55) });
+        await settle(800);
+        await page.locator('#send_textarea').fill('Testing a longer message that wraps onto a second and maybe a third line in the box.');
+        await shot('keyboard');
+        await page.locator('#send_textarea').fill('');
+        await page.evaluate(() => document.activeElement?.blur());
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await settle(600);
+    }
     for (const id of ['rightNavHolder', 'WI-SP-button', 'ai-config-button']) { await tab(id); await shot(`page-${id}`); }
     await page.evaluate(() => document.querySelector('#user-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-settings');
     await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-extensions');
@@ -87,3 +92,4 @@ for (const size of sizes) {
 }
 await browser.close();
 console.log(report.length ? report.join('\n') : 'nothing found');
+if (report.length) process.exit(1);

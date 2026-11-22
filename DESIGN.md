@@ -1,123 +1,149 @@
-# PocketTavern — Design System & UI Specification
+# Pocket Tavern — Design System & UI Specification
+
+This document is the single source of truth for Pocket Tavern's visual design, tokens, layout rules, and component behavior across **Phone** and **Desktop**.
+
+---
 
 ## 1. Core Aesthetic Philosophy
-PocketTavern should feel like a **fast, calm, native messaging & reading app**—comparable to Telegram, Linear, or Apple Messages—not a flashy web demo.
-- **Content First:** The character's writing and conversation are the star. Chrome (headers, toolbars, buttons) stays quiet and out of the way.
-- **Tactile & Crisp:** Clear borders, subtle surface elevation, sharp typography, and predictable spacing.
+Pocket Tavern should feel like a **fast, calm, native messaging & reading app**—comparable to Telegram, Linear, or Apple Messages—not a flashy web demo.
+- **Content First:** The character's writing and conversation are the star. Chrome (bars, toolbars, buttons) stays quiet and out of the way.
+- **Tactile & Crisp:** Clear hairline borders, subtle surface elevation, sharp typography, and predictable 4px-grid spacing.
 - **Zero "AI Slop":** Every visual element must earn its place.
 
-### Explicitly Banned Visual Patterns (AI Slop)
-Do NOT use any of the following:
-- Purple/pink/cyan neon gradients or glowing borders/shadows
-- Heavy `backdrop-filter: blur()` glassmorphism (looks generic and lags on mobile GPUs)
+### Explicitly Banned Visual Patterns
+Do NOT introduce any of the following:
+- Purple/pink/cyan neon gradients or glowing borders/drop-shadows
+- `backdrop-filter: blur()` anywhere — it lags mobile GPUs **and** turns an element into the containing block of its `position: fixed` children, which breaks full-screen editors over scrolled chats/pages. Pocket Tavern explicitly disables SillyTavern's own blur while active.
 - Card-inside-card-inside-card nesting
-- Random emojis used as UI icons (use clean, consistent monochrome SVG icons)
-- Oversized rounded pills (`border-radius: 9999px`) on every single container
+- Random emojis used as UI icons (use clean monochrome Lucide-style SVGs from `icons.js`)
+- Oversized pill radii (`9999px`) on every container
 - Bouncy, slow, or theatrical animations
 
 ---
 
-## 2. Color & Theme Tokens
-All tokens must be prefixed with `--pt-` and scoped inside `.pt-root`.
+## 2. Design Tokens, Themes & Z-Index Layers
 
-### Dark Mode (Default)
-- `--pt-bg`: `#0e0f12` (app canvas)
-- `--pt-surface`: `#16181d` (composer, drawers, secondary bubbles)
-- `--pt-surface-elevated`: `#1e2128` (hover states, popovers)
-- `--pt-border`: `rgba(255, 255, 255, 0.08)` (hairline separators, never harsh)
-- `--pt-text-primary`: `#eceef2` (main prose — soft off-white, not blinding `#fff`)
-- `--pt-text-secondary`: `#9aa0ad` (timestamps, metadata, subtle labels)
-- `--pt-text-muted`: `#6b7280` (placeholders, disabled states)
-- `--pt-accent`: `#5b8def` (single restrained accent for primary actions/active states; can inherit ST accent if readable)
-- `--pt-danger`: `#e55353` (destructive actions only)
+### Root & Token Naming
+All styles are scoped under `html.stmui-on` (plus state classes on `<html>`). **`--pt-*` tokens are the source of truth**; older `--stmui-*` variables alias them for backward compatibility and are not used in new code.
 
-### Contrast Rule
-All body text must meet **WCAG AA (4.5:1 minimum)** contrast. Secondary metadata must meet at least **3:1**.
+### Color & Surface Tokens (Default Theme: **Pocket**)
+| Token | Pocket (Dark) | Pocket Light | Role |
+|---|---|---|---|
+| `--pt-bg` | `#0e0f12` | `#f6f7f9` | Opaque app canvas, bars, pages, sheets, dialogs, composer |
+| `--pt-surface` | `#16181d` | `#ffffff` | Cards, fields, secondary containers |
+| `--pt-surface-elevated` | `#1e2128` | `#eceef2` | Hover states, popovers, raised controls |
+| `--pt-border` | `rgba(255, 255, 255, 0.08)` | `rgba(22, 24, 29, 0.10)` | Hairline separators |
+| `--pt-text-primary` | `#eceef2` | `#16181d` | Main prose and primary labels |
+| `--pt-text-secondary` | `#9aa0ad` | `#5a6170` | Timestamps, narration, metadata, subtle labels |
+| `--pt-text-muted` | contrast-checked (`≥ 3:1`) | contrast-checked (`≥ 3:1`) | Placeholders, disabled hints |
+| `--pt-accent` | `#5b8def` | `#2f5fc4` | Single restrained accent for primary actions/active states |
+| `--pt-accent-soft` | `16%` `--pt-accent` | `16%` `--pt-accent` | Soft selection/active tint |
+| `--pt-on-accent` | `#0b1630` | `#ffffff` | Text/icons placed on `--pt-accent` |
+| `--pt-danger` | contrast-checked (`≥ 4.5:1`) | contrast-checked (`≥ 4.5:1`) | Destructive actions only |
+| `--pt-card-user` / `--pt-card-bot` | subtle surface tint | subtle surface tint | Message card backgrounds (the only translucent surfaces over chat backgrounds) |
+| `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat backdrop behind the chat (no gradients) |
+
+### Spacing, Radii & Motion Tokens
+- **Spacing (4px scale):** `--pt-space-1` (`4px`), `--pt-space-2` (`8px`), `--pt-space-3` (`12px`), `--pt-space-4` (`16px`), `--pt-space-5` (`20px`), `--pt-space-6` (`24px`), `--pt-space-8` (`32px`).
+- **Radii:** `--pt-radius-sm` (`10px`, controls/inputs), `--pt-radius` (`14px`, message cards/panels).
+- **Motion:** `--pt-dur-fast` (`150ms`), `--pt-dur` (`220ms`), `--pt-ease` (`cubic-bezier(0.2, 0, 0, 1)`).
+
+### Z-Index Scale
+Every layered element must sit on this documented scale (never invent ad-hoc `9999`/`30000` values):
+| Token | Value | Layer |
+|---|---|---|
+| `--pt-z-chat` | `30` | In-chat floating controls (Jump to bottom) |
+| `--pt-z-page` | `3005` | Full-screen pages / desktop side page |
+| `--pt-z-panel` | `3050` | Desktop side tool panels (`#movingDivs`) |
+| `--pt-z-finder` | `3150` | In-chat search bar (below full-screen message editor) |
+| `--pt-z-edge` | `3250` | Desktop panel resize edge |
+| `--pt-z-editor` | `3300` | Full-screen editors (message editor, opened lorebook entry, prompt editor) |
+| `--pt-z-drag` | `3500` | Swipe-to-regenerate hint overlay |
+| `--pt-z-bars` | `4010` | App bar and bottom tab bar / desktop left rail |
+| `--pt-z-banner` | `4030` | Connection / translation status banners |
+| `--pt-z-popup` | `5000` | Top-level popups & extension overlays (native `<dialog>` sheets open in the browser top layer above all z-indexes) |
+
+### Contrast & Theme Rules
+- **WCAG AA Minimum:** Body text, narration, dialogue, text on cards, text on accent, and `--pt-danger` must meet **4.5:1** minimum. Secondary/muted labels and accents must meet at least **3:1** on both `--pt-bg` and `--pt-surface`.
+- **Never hardcode dark-only hexes** (such as bright yellows/pastels) for icons, badges, toasts, or warnings—derive semantic colors so they pass contrast on all 10 dark and 4 light themes (`Pocket`, `Pocket Light`, `Paper`, `Cloud`, `Lavender`, etc.).
+- **SillyTavern Themes & Chat Backgrounds (`html.stmui-glass`):** SillyTavern themes are converted into these roles with contrast enforced. Over a chat background, bars, pages, sheets, dialogs, and the composer stay **opaque**; only message cards become translucent tints so the artwork shows through and between them. Both `--SmartThemeBodyColor` and `--pt-text-primary` are lifted over mid-grey until they meet contrast.
 
 ---
 
 ## 3. Typography & Reading Ergonomics
-Roleplay and long-form chat live or die by readability:
-- **Font Stack:** `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif` (or inherit SillyTavern's user-chosen font when set).
-- **Body Text:** `15px` on mobile, `15.5px–16px` on desktop; `line-height: 1.6`.
-- **Paragraph Spacing:** Clear `0.75em` gap between paragraphs inside a message so walls of text stay scannable.
-- **Italics / Actions / Dialogue:** Ensure `*italics*` and `"dialogue"` have clear visual distinction without garish colors.
-- **Desktop Measure:** Cap the reading column at `720px–780px` centered. Never stretch text wall-to-wall on a 1440p monitor.
-- **Code Blocks & Tables:** Horizontally scrollable inside their own container (`overflow-x: auto`) so they never break the page width.
+- **Font Stack:** `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif` (or inherit SillyTavern's user-chosen font when **System font** is off).
+- **Reading Size:** `15px` on phones and `16px` on desktop by default, `line-height: 1.6`, clear paragraph rhythm (`0.75em` gap between paragraphs in Comfortable mode). The **Chat text size** setting scales smoothly from this baseline.
+- **Dialogue & Narration:** `*italics*` (`--SmartThemeEmColor`) and `"dialogue"` (`--SmartThemeQuoteColor`) remain visually distinct without garish neon colors.
+- **Desktop Reading Column:** Respects SillyTavern's **Chat width** slider (`More → Themes → Chat width`) centered in the available column, never stretching uncontrolled wall-to-wall or crushing `#send_form` when side panels are open.
+- **Code Blocks & Tables:** Horizontally scrollable inside their own container (`overflow-x: auto`) so wide content never breaks viewport width.
 
 ---
 
-## 4. Spacing, Radii & Layout
+## 4. Two Layouts & Platform Invariants
 
-### Spacing Scale (4px Base)
-Use only multiples of 4px: `4px`, `8px`, `12px`, `16px`, `20px`, `24px`, `32px`.
+### Phone Layout (`html:not(.stmui-wide)`)
+- **Structure:** Top app bar, bottom tab bar (Chat, Characters, Lorebooks, Presets, More — auto-tucked in chat when enabled), full-screen pages one at a time, bottom-sheet menus, and Android/browser back-gesture integration.
+- **Safe Areas:** Pad top bar with `env(safe-area-inset-top)` and bottom bar / docked composer with `env(safe-area-inset-bottom)`.
+- **Touch Targets:** **44×44px** is the strict floor for every tappable control on a phone, including steppers, chevrons, close buttons, tags, and chip `×` buttons. Visual chrome may look smaller (e.g. a 32px chip) only if its hit area fills 44px via padding or `::after`.
+- **No Horizontal Scroll:** Zero elements may bleed past viewport width (test down to `320px` and `360px` with extensions enabled).
 
-### Border Radius
-- Small controls (buttons, inputs): `8px–10px`
-- Message containers / panels: `12px–14px`
-- Avatars: `50%` (circle) or `10px` (squircle) — pick one and stay consistent.
+### Desktop Layout (`html.stmui-wide`, `≥ 960×560`)
+- **Structure:** Compact left navigation rail with every page, resizable side page panel beside the chat that stays open while chatting, right-hand column for tool panels (Author's Note, CFG, Token Probabilities), centered dialogs instead of bottom sheets, `Escape` (only when not focused in a text input) and `Ctrl/Cmd+K` for Search everything.
+- **Dual-Panel Fit:** Left side panel width must account for any open right-hand tool panel (`--stmui-right`) so the center chat & composer never crush below usable width on `960–1200px` screens.
+- **Pointer Precision:** On fine pointers (`@media (pointer: fine)`), Compact controls may drop under `44px`; on touch devices (tablets/touch laptops), touch targets stay `44px`.
+- **Hover & Keyboard Focus:** Subtle hover states (`--pt-surface-elevated`) and clear `:focus-visible` outlines on every interactive control—never strip `outline: none` without a `:focus-visible` ring.
 
-### Mobile Layout (`390x844` Target)
-- **Viewport:** Use `100dvh` and `visualViewport` listeners so the virtual keyboard pushes the composer up cleanly without hiding it or breaking scroll.
-- **Safe Areas:** Pad top header with `env(safe-area-inset-top)` and bottom composer with `env(safe-area-inset-bottom)`.
-- **Touch Targets:** Every tappable button/icon MUST be at least `44x44px` (use padding if the visual icon is `18px–20px`).
-- **No Horizontal Scroll:** `overflow-x: hidden` on the root container; zero elements may bleed past viewport width.
+### iPhone & iPad (Safari / WebKit)
+- Safari does not shrink the layout viewport when the virtual keyboard opens.
+- Every fixed or input-bearing layer (app bar, `#sheld`, open pages, prompt editor, message editor, opened lorebook entry, `#character_popup`, `.stmui-chat-finder`, popups, banners) must follow `--stmui-ios-top` and `--stmui-ios-h` while `html.stmui-ios-kb` is active—**never rely on `100dvh` alone** for fixed layers.
+- On iPad landscape (`html.stmui-wide.stmui-ios-kb`), full-screen editors must keep their desktop horizontal rail/column offsets rather than stretching over the left rail.
+- Verify every phone/fixed/keyboard change in both Chrome and WebKit (`ENGINE=webkit node ios.mjs`).
 
-### Desktop Layout (`1440x900` Target)
-- Centered chat column (`max-width: 760px`) with generous breathing room.
-- Drawers/sidebars slide cleanly without pushing or squishing text awkwardly.
-- Full keyboard support: `Enter` sends, `Shift + Enter` inserts newline, `Escape` closes active drawers/modals.
-- Subtle hover states (`background: var(--pt-surface-elevated)`) and clear `:focus-visible` outlines.
+### Android Keyboard
+- The chat and composer slide together as **one piece** when the window shrinks—never animate either independently.
+- The root page itself never scrolls; hidden bars/elements must leave layout (`display: none`).
+
+### Full-Screen Layers (from SillyTavern DOM)
+- Full-screen editors built from SillyTavern elements (message editor, opened lorebook entry, prompt editor) are `position: fixed`, opaque (`--pt-bg`), `align-self: stretch`, and placed between the bars.
+- Their ancestors must never carry persistent `backdrop-filter`, `transform`, `filter`, or `contain`.
+
+### Right-to-Left (`html.stmui-rtl`)
+- Active only when an RTL dictionary is actually loaded (currently Arabic `ar`).
+- Prefer CSS logical properties (`text-align: start`, `margin-inline-start/end`, `inset-inline-start/end`) over physical `left`/`right` inside bars, sheets, search bars, and chat finder. Flip directional arrows and set `lang` on dialogs/sheets for proper hyphenation.
 
 ---
 
 ## 5. Component Specifications
 
-### Top Bar
-- Compact (`48px–52px` height), single row, clean hairline bottom border.
-- Shows: Character avatar + name (truncated cleanly with `text-overflow: ellipsis`), menu/drawer toggle, and a clean one-tap toggle back to native SillyTavern.
+### Top Bar (`.stmui-appbar`)
+- Compact (`48px–52px` height), single row, solid `--pt-bg`, clean hairline bottom border.
+- Shows active character/group avatar + truncated title (`text-overflow: ellipsis`) or current page title + back button, quick translate trigger (on chat), and page/chat contextual action. Switching back to native SillyTavern lives in **More → Pocket Tavern settings**.
 
-### Message List
-- Clear visual separation between User and Character messages (subtle surface tint or alignment, not loud neon bubbles).
-- Message actions (swipe, edit, regenerate, delete) must be unobtrusive: hidden or low-opacity until hovered on desktop, or cleanly accessible via a compact action row / tap on mobile—never cluttering every message with 8 loud buttons.
+### Message List & Avatars
+- Subtle separation between User (`--pt-card-user`) and Character (`--pt-card-bot`) messages across **Cards**, **Bubbles**, and **Flat** looks.
+- Honors all four of SillyTavern's `avatar_style` shapes (Circle, Square, Rounded, Rectangle).
+- Message actions remain calm and unobtrusive (hover-revealed on desktop; clean compact row + `⋯` action sheet on phone); swipes sit in a compact `‹ 1/3 ›` pill.
 
-### Composer (Input Bar)
-- Auto-growing `<textarea>` capped at ~35% of viewport height before scrolling internally.
-- Single clear Send / Stop-Generating button positioned at the bottom-right.
-- Secondary actions (attach, impersonate, quick actions) tucked cleanly into a `+` menu or subtle icon row—never cramped.
+### Composer (`#send_form`)
+- Supports **Floating** and **Docked** layouts; auto-growing `<textarea>` capped before scrolling internally.
+- **Send / Stop** sits anchored at the bottom-right and never shrinks.
+- Houses SillyTavern's `☰` chat options, wand (**Tools**), persona chip, tabs toggle arrow (phone), context ring, and compatible extension triggers (e.g. Guided Generations compass, Input History inside the field, slim Quick Reply chips). Any extension button that does not fit cleanly next to Send moves to the wand's **Tools** sheet.
+- Extension compatibility patches are keyed strictly on each extension's markup and do nothing when absent (tested with Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse, and Chat Completion Tabs).
+
+### Sheets & Dialogs
+- Bottom sheets on phones (drag handle, safe-area padding), centered modal dialogs on desktop (no downward drag-dismiss on desktop).
+- Preserve keyboard focus (restore trigger focus on close; avoid blowing away focused controls during toggle refreshes) and always show a clear empty state when search yields no matches.
 
 ---
 
-## 6. Motion & Transitions
-- **Duration:** `150ms` for micro-interactions (hover, button press), `200ms–240ms` for drawers/modals.
-- **Easing:** `cubic-bezier(0.2, 0, 0, 1)` (snappy, native-feeling ease-out).
-- **Reduced Motion:** Respect `@media (prefers-reduced-motion: reduce)` by disabling non-essential transitions.
+## 6. Motion & Writing
 
----
+### Motion
+- **Durations:** `150ms` micro-interactions, `200ms–240ms` sheets/panels/dialogs.
+- **Easing:** `cubic-bezier(0.2, 0, 0, 1)` (snappy, native ease-out—avoid bouncy overshoot curves).
+- **Reduced Motion:** Both `html.stmui-motion-off` and `@media (prefers-reduced-motion: reduce)` must neutralize animations **and** pseudo-elements (`*::before`, `*::after`) with `animation-iteration-count: 1 !important` and `0s` delays so infinite indicators never strobe.
 
-## 7. Decisions for this codebase (November 2026)
-- **Root and tokens:** the root selector is `html.stmui-on` (see CLAUDE.md). The `--pt-*` tokens above are the source of truth; the older `--stmui-*` tokens are aliases of them and are not used in new code.
-- **Themes:** the palette in section 2 is the default theme, **Pocket**, with a matching light version. The other Pocket Tavern themes stay, built from the same roles (`--pt-bg`, `--pt-surface`, `--pt-surface-elevated`, `--pt-border`, the three text levels, one accent, danger), flat (no glows, no gradients) and meeting the contrast rule. SillyTavern UI themes are offered too, converted to these roles with the contrast rule enforced.
-- **Chat backgrounds:** no `backdrop-filter` anywhere. Over a chat background, bars, pages, sheets, dialogs and the composer stay solid; only message cards are a translucent tint, so the picture shows through them and between them. Card text is checked against the tint over mid grey and lifted until it meets the contrast rule. SillyTavern's own blur on `#chat` and its drawers is switched off while Pocket Tavern's shell is on: a `backdrop-filter` (like `transform` or `filter`) makes an element the containing block of its `position: fixed` children, which once put the full-screen message editor thousands of pixels off screen (2.25.1).
-- **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6, 0.75em between paragraphs. The Chat text size setting scales up from there.
-
-## 8. Pocket Tavern specifics
-Rules that come from real bugs and devices; they apply on top of sections 1–6.
-
-**Two layouts.** Phone layout: a tab bar at the bottom (Chat, Characters, Lorebooks, Presets, More), pages full screen one at a time, menus as bottom sheets, a back gesture. Desktop layout (`html.stmui-wide`, at least 960 × 560): a rail on the left with every page, pages as a panel beside the chat that stays open and can be widened, menus as dialogs in the middle, Escape and Ctrl+K. Words follow the device (never "phone" on desktop, never "click" on a phone). On desktop with a mouse (`pointer: fine`) Compact controls may go under 44px; with a finger they stay 44px.
-
-**Touch targets.** 44px is the floor for anything tappable on a phone, including steppers, chevrons and chip ×. A control can look smaller (a 32px chip) if its hit area fills 44px.
-
-**iPhone and iPad.** Safari does not shrink the page for the keyboard. Anything fixed to the screen follows `--stmui-ios-top` / `--stmui-ios-h` while `html.stmui-ios-kb` is on, never `100dvh`. Every phone change is checked in Chrome and in WebKit.
-
-**Android keyboard.** The chat and composer slide as one piece when the window shrinks; never animate either alone. The page itself never scrolls; anything hidden leaves the page (`display: none`).
-
-**Full-screen layers** made from SillyTavern's own elements (the message editor, an opened lorebook entry, the prompt editor) are fixed, opaque, `align-self: stretch`, and placed between the bars. Their containers must not carry `backdrop-filter`, `transform`, `filter` or `contain`.
-
-**SillyTavern's DOM.** Never move SillyTavern's elements; mark them with classes, hide them, or place them with CSS. Layout other CSS keeps breaking (the composer) is pinned with `!important` on the few properties that matter, with a comment. Turning Pocket Tavern off leaves nothing behind.
-
-**Other extensions.** Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse and Chat Completion Tabs are installed in the test copy; patches for them are keyed on their markup and do nothing when they are absent. Send never shrinks; an extension button that does not fit next to Send moves to the wand's Tools sheet.
-
-**Right to left.** Arabic sets `html.stmui-rtl`: arrows that point a way flip, text beside a picture starts at the start edge, sheets carry `lang` so long words hyphenate.
-
-**Writing.** Sentence case, plain verbs, no apologies. Every label goes through `t()` with a row in `locales.js` (es, pt, ru, zh, ja, ar).
+### Writing & Localization
+- Sentence case, plain verbs, no jargon, no apologies.
+- Words follow the active layout: never say "phone" or "tap / long-press" on desktop, and never say "click" on a phone.
+- Every user-facing UI label goes through `t()` with matching entries in `locales.js` (`es`, `pt`, `ru`, `zh`, `ja`, `ar`). Never run user-authored data through `t()`.

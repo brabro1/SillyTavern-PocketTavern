@@ -23,8 +23,8 @@ body:
     id: version
     attributes:
       label: Pocket Tavern version
-      description: Shown under More → What's new.
-      placeholder: "2.10.0"
+      description: Shown under More → What's new or More → Update Pocket Tavern.
+      placeholder: "2.26.0"
     validations:
       required: true
   - type: input
@@ -51,8 +51,20 @@ body:
       placeholder: "Pixel 7, Chrome 142, SillyTavern running in Termux (or: Windows PC, Firefox 145)"
     validations:
       required: true
+  - type: input
+    id: theme
+    attributes:
+      label: Theme, chat background & custom CSS
+      description: Optional. Which Pocket Tavern / SillyTavern theme are you using, and do you use a chat background or custom CSS?
+      placeholder: "Pocket (default), no custom CSS"
   - type: textarea
     id: extensions
     attributes:
       label: Other extensions you use
       description: Optional. Some extensions change the same parts of the page.
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console errors
+      description: Optional. Any red errors from browser DevTools (remove any personal names or URLs first).
+      render: text

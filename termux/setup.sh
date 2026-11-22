@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # One-time setup for starting SillyTavern with one tap on Android (Termux).
 #
 #   bash setup.sh            set everything up (asks two questions)
@@ -23,7 +23,8 @@ BASHRC="$HOME/.bashrc"
 # The markers keep the old name so --remove also finds blocks written by older versions.
 MARK_BEGIN="# >>> SillyTavern autostart (Mobile UI) >>>"
 MARK_END="# <<< SillyTavern autostart (Mobile UI) <<<"
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+HERE="$(cd "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd || pwd)"
 
 ASSUME_YES=0
 REMOVE=0
@@ -32,7 +33,21 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --yes|-y) ASSUME_YES=1 ;;
         --remove|--uninstall) REMOVE=1 ;;
-        --dir) shift; ST_DIR="${1:-}" ;;
+        --dir)
+            if [ $# -lt 2 ] || [ -z "${2:-}" ]; then
+                echo "Missing folder after --dir"
+                exit 2
+            fi
+            shift
+            ST_DIR="$1"
+            ;;
+        --dir=*)
+            ST_DIR="${1#--dir=}"
+            if [ -z "$ST_DIR" ]; then
+                echo "Missing folder after --dir="
+                exit 2
+            fi
+            ;;
         *) echo "Unknown option: $1"; exit 2 ;;
     esac
     shift
@@ -56,16 +71,22 @@ ask() {
 
 remove_bashrc_block() {
     [ -f "$BASHRC" ] || return 0
-    awk -v b="$MARK_BEGIN" -v e="$MARK_END" '
+    local tmp="$BASHRC.stmui.tmp.$$"
+    if awk -v b="$MARK_BEGIN" -v e="$MARK_END" '
         $0 == b { skip = 1; next }
         $0 == e { skip = 0; next }
         !skip { print }
-    ' "$BASHRC" > "$BASHRC.stmui.tmp" && mv "$BASHRC.stmui.tmp" "$BASHRC"
+    ' "$BASHRC" > "$tmp"; then
+        mv "$tmp" "$BASHRC"
+    else
+        rm -f "$tmp"
+    fi
 }
 
 if [ "$REMOVE" = 1 ]; then
     rm -f "$SHORTCUTS/SillyTavern" "$SHORTCUTS/Stop SillyTavern" "$SHORTCUTS/Update SillyTavern" "$SHORTCUTS/icons/SillyTavern.png" "$BOOT_DIR/start-sillytavern"
     remove_bashrc_block
+    command -v termux-wake-unlock > /dev/null 2>&1 && termux-wake-unlock
     ok "Removed the SillyTavern shortcuts and autostart."
     exit 0
 fi
@@ -95,6 +116,10 @@ if [ -z "$ST_DIR" ]; then
         exit 1
     }
 fi
+if [ ! -d "$ST_DIR" ]; then
+    say "Folder not found: $ST_DIR"
+    exit 1
+fi
 ST_DIR="$(cd "$ST_DIR" && pwd)"
 if [ ! -f "$ST_DIR/server.js" ]; then
     say "$ST_DIR does not look like SillyTavern (no server.js)."
@@ -122,15 +147,17 @@ fi
 
 mkdir -p "$SHORTCUTS/icons"
 
+ST_DIR_QUOTED="$(printf '%q' "$ST_DIR")"
+
 # ---- the one-tap start script ----------------------------------------------
 
-cat > "$SHORTCUTS/SillyTavern" <<EOF
-#!$PREFIX/bin/bash
-# Start SillyTavern if it is not running, then open it. Made by Pocket Tavern's setup.sh.
-ST_DIR="$ST_DIR"
-EOF
+{
+    printf '#!%s/bin/bash\n' "$PREFIX"
+    printf '# Start SillyTavern if it is not running, then open it. Made by Pocket Tavern'\''s setup.sh.\n'
+    printf 'ST_DIR=%s\n' "$ST_DIR_QUOTED"
+} > "$SHORTCUTS/SillyTavern"
 cat >> "$SHORTCUTS/SillyTavern" <<'EOF'
-PORT="$(grep -E '^port:' "$ST_DIR/config.yaml" 2>/dev/null | head -n 1 | tr -dc '0-9')"
+PORT="$(grep -E '^[[:space:]]*port:' "$ST_DIR/config.yaml" 2>/dev/null | head -n 1 | sed 's/#.*//' | tr -dc '0-9')"
 URL="http://127.0.0.1:${PORT:-8000}/"
 
 is_up() { curl -s -o /dev/null -m 2 "$URL"; }
@@ -159,9 +186,11 @@ echo "Starting SillyTavern... it opens in your browser as soon as it's ready."
 echo "Keep this window in the background. To stop: Ctrl+C here, or the 'Stop SillyTavern' shortcut."
 echo ""
 
-# Open the browser once the server answers (it takes a few seconds the first time).
+# Open the browser once the server answers (exits early if the server process dies).
+PARENT=$$
 (
     for _ in $(seq 1 240); do
+        kill -0 "$PARENT" 2>/dev/null || exit 0
         sleep 1
         if is_up; then open_it; exit 0; fi
     done
@@ -172,30 +201,53 @@ EOF
 
 # ---- stop script -----------------------------------------------------------
 
-cat > "$SHORTCUTS/Stop SillyTavern" <<EOF
-#!$PREFIX/bin/bash
-# Stop SillyTavern. Made by Pocket Tavern's setup.sh.
-if pkill -f "node server.js"; then echo "SillyTavern stopped."; else echo "SillyTavern was not running."; fi
+{
+    printf '#!%s/bin/bash\n' "$PREFIX"
+    printf '# Stop SillyTavern. Made by Pocket Tavern'\''s setup.sh.\n'
+} > "$SHORTCUTS/Stop SillyTavern"
+cat >> "$SHORTCUTS/Stop SillyTavern" <<'EOF'
+if ! command -v pkill > /dev/null 2>&1; then
+    echo "pkill is missing. Install procps:  pkg install procps"
+    sleep 2
+    exit 1
+fi
+if pkill -f "node (\./)?server\.js"; then echo "SillyTavern stopped."; else echo "SillyTavern was not running."; fi
 command -v termux-wake-unlock > /dev/null 2>&1 && termux-wake-unlock
 sleep 1
 EOF
 
 # ---- update script ---------------------------------------------------------
 
-cat > "$SHORTCUTS/Update SillyTavern" <<EOF
-#!$PREFIX/bin/bash
-# Update SillyTavern, then start it again. Made by Pocket Tavern's setup.sh.
-ST_DIR="$ST_DIR"
-EOF
+{
+    printf '#!%s/bin/bash\n' "$PREFIX"
+    printf '# Update SillyTavern, then start it again. Made by Pocket Tavern'\''s setup.sh.\n'
+    printf 'ST_DIR=%s\n' "$ST_DIR_QUOTED"
+} > "$SHORTCUTS/Update SillyTavern"
 cat >> "$SHORTCUTS/Update SillyTavern" <<'EOF'
 echo "Updating SillyTavern..."
-if pkill -f "node server.js"; then echo "Stopped SillyTavern for the update."; sleep 2; fi
+if command -v pkill > /dev/null 2>&1 && pkill -f "node (\./)?server\.js"; then
+    echo "Stopped SillyTavern for the update."
+    for _ in $(seq 1 10); do
+        pgrep -f "node (\./)?server\.js" > /dev/null 2>&1 || break
+        sleep 0.5
+    done
+fi
 cd "$ST_DIR" || { echo "SillyTavern folder not found: $ST_DIR"; read -r -n 1 -p "Press any key to close."; exit 1; }
-if git pull --rebase --autostash \
-    && npm install --no-save --no-audit --no-fund --loglevel=error --no-progress --omit=dev --ignore-scripts; then
-    echo ""
-    echo "SillyTavern is up to date. Starting it..."
+if ! command -v git > /dev/null 2>&1 || ! command -v npm > /dev/null 2>&1; then
+    echo "git and npm are needed to update SillyTavern."
+    sleep 3
+elif git pull --rebase --autostash; then
+    if npm install --no-save --no-audit --no-fund --loglevel=error --no-progress --omit=dev --ignore-scripts; then
+        echo ""
+        echo "SillyTavern is up to date. Starting it..."
+    else
+        echo ""
+        echo "Packages did not finish installing (see above). Starting SillyTavern..."
+        sleep 3
+    fi
 else
+    # Avoid leaving SillyTavern stuck mid-rebase with conflict markers.
+    git rebase --abort > /dev/null 2>&1 || true
     echo ""
     echo "The update did not finish (see the messages above). Starting SillyTavern as it was..."
     sleep 3
@@ -208,7 +260,7 @@ ok "Added the 'SillyTavern', 'Stop SillyTavern' and 'Update SillyTavern' shortcu
 
 # The icon: next to this script, inside SillyTavern's extensions, or from GitHub.
 ICON=""
-for candidate in "$HERE/../assets/icon-192.png"     "$ST_DIR"/data/*/extensions/*PocketTavern*/assets/icon-192.png     "$ST_DIR"/data/*/extensions/*Mobile-UI*/assets/icon-192.png     "$ST_DIR"/public/scripts/extensions/third-party/*PocketTavern*/assets/icon-192.png     "$ST_DIR"/public/scripts/extensions/third-party/*Mobile-UI*/assets/icon-192.png; do
+for candidate in "$HERE/../assets/icon-192.png" "$ST_DIR"/data/*/extensions/*PocketTavern*/assets/icon-192.png "$ST_DIR"/data/*/extensions/*Mobile-UI*/assets/icon-192.png "$ST_DIR"/public/scripts/extensions/third-party/*PocketTavern*/assets/icon-192.png "$ST_DIR"/public/scripts/extensions/third-party/*Mobile-UI*/assets/icon-192.png; do
     if [ -f "$candidate" ]; then ICON="$candidate"; break; fi
 done
 if [ -n "$ICON" ]; then
@@ -238,11 +290,16 @@ fi
 rm -f "$BOOT_DIR/start-sillytavern"
 if ask "Also start SillyTavern when the phone turns on? (needs the Termux:Boot app)" n; then
     mkdir -p "$BOOT_DIR"
-    cat > "$BOOT_DIR/start-sillytavern" <<EOF
-#!$PREFIX/bin/bash
-# Start SillyTavern at boot. Made by Pocket Tavern's setup.sh.
-termux-wake-lock
-cd "$ST_DIR" && nohup node server.js --browserLaunchEnabled false > "\$HOME/sillytavern.log" 2>&1 &
+    {
+        printf '#!%s/bin/bash\n' "$PREFIX"
+        printf '# Start SillyTavern at boot. Made by Pocket Tavern'\''s setup.sh.\n'
+        printf 'ST_DIR=%s\n' "$ST_DIR_QUOTED"
+    } > "$BOOT_DIR/start-sillytavern"
+    cat >> "$BOOT_DIR/start-sillytavern" <<'EOF'
+command -v termux-wake-lock > /dev/null 2>&1 && termux-wake-lock
+PORT="$(grep -E '^[[:space:]]*port:' "$ST_DIR/config.yaml" 2>/dev/null | head -n 1 | sed 's/#.*//' | tr -dc '0-9')"
+if curl -s -o /dev/null -m 2 "http://127.0.0.1:${PORT:-8000}/"; then exit 0; fi
+cd "$ST_DIR" && nohup node server.js --browserLaunchEnabled false > "$HOME/sillytavern.log" 2>&1 &
 EOF
     chmod 700 "$BOOT_DIR/start-sillytavern"
     ok "SillyTavern starts when the phone boots (open Termux:Boot once to activate it)"
@@ -257,4 +314,4 @@ say "  3. Tap the SillyTavern shortcut: it starts SillyTavern and opens it."
 say "     'Update SillyTavern' updates it and starts it again; 'Stop SillyTavern' stops it."
 say ""
 say "Tip: in Android settings, set Termux's battery use to 'Unrestricted' so it isn't closed in the background."
-say "To undo all of this:  bash \"$HERE/$(basename "${BASH_SOURCE[0]}")\" --remove"
+say "To undo all of this:  bash \"$HERE/$(basename "$SCRIPT_PATH")\" --remove"
