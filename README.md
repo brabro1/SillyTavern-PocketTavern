@@ -39,6 +39,8 @@ It switches itself on and picks the right layout for each screen. Your character
 | Before (no Pocket Tavern) | Recent chats | Message editor |
 | :---: | :---: | :---: |
 | ![SillyTavern on a phone without Pocket Tavern](docs/screenshots/before.jpg) | ![Recent chats on the start screen](docs/screenshots/recent.jpg) | ![Message editor](docs/screenshots/editor.jpg) |
+| **A character's sheet** | **Chat history** | **Notifications** |
+| ![Tapping a character shows Chat, New chat, Edit and its recent chats](docs/screenshots/character-sheet.jpg) | ![Chat history: each chat with its last message as a bubble](docs/screenshots/history.jpg) | ![Notifications as calm cards with a small coloured icon](docs/screenshots/notifications.jpg) |
 | **Tabs shown in a chat** | **Translated chat** | **Chat options (☰)** |
 | ![The arrow in the message box brought the tabs back](docs/screenshots/tabs-shown.jpg) | ![Chat translated to Spanish](docs/screenshots/translate.jpg) | ![Chat options grouped into Reply, This chat and Chats](docs/screenshots/chat-options.jpg) |
 | **Settings** | **A settings section** | **More** |
@@ -75,7 +77,7 @@ It switches itself on and picks the right layout for each screen. Your character
 - Edit a message on a full page, search the chat, translate it, and open pictures full screen.
 
 **🗂️ Characters, personas, lorebooks and presets**
-- Characters and personas as picture cards, with search, favorites and an A–Z strip.
+- Characters and personas as picture cards, with search, favorites and an A–Z strip you can slide along. Choosing a character shows its sheet first: **Chat**, **New chat**, **Edit** and its recent chats (turn it off with **Character preview**).
 - Character cards with tabs for Description, First message and Notes.
 - Lorebook entries as cards with keyword chips, and a searchable picker.
 - − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.
@@ -84,13 +86,13 @@ It switches itself on and picks the right layout for each screen. Your character
 
 **🎨 Make it yours**
 - 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
-- Cards, bubbles or flat messages, four text sizes, and animations you can turn down or off.
+- Cards, bubbles or flat messages, four text sizes, and animations you can turn down or off. Notifications are calm cards, and on a computer every list has a slim scrollbar.
 - Menus in English, Spanish, Portuguese, Russian, Chinese, Japanese and Arabic.
 
 **⚡ Handy extras**
 - **Quick switch:** change persona, connection, model or preset in two taps.
 - **Search everything:** characters, chats, lorebooks and settings in one box.
-- **Recent chats** grouped by character on the start screen, and an eye button there that hides the message box for more room.
+- **Recent chats** grouped by character on the start screen, each with its last message drawn like a message in your theme's colours, and ⋯ to pin, rename or delete. Chat history looks the same. An eye button there hides the message box for more room.
 - A banner when SillyTavern stops answering (handy with Termux).
 - **Updates in one tap:** **More → Update Pocket Tavern**, and **More → SillyTavern updates** tells you when a new SillyTavern is out and how to update it.
 

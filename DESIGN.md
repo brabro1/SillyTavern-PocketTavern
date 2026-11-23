@@ -144,6 +144,22 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - Bottom sheets on phones (drag handle, safe-area padding), centered modal dialogs on desktop (no downward drag-dismiss on desktop).
 - Preserve keyboard focus (restore trigger focus on close; avoid blowing away focused controls during toggle refreshes) and always show a clear empty state when search yields no matches.
 
+### Chat Rows (Recent chats, Chat history, a character's sheet)
+- One row shape everywhere: a title line (the character, or the chat's own name, or "Chat from 12 May 2023" for an unnamed chat), when, and `⋯`; then the last message as a **message bubble**; then how many messages.
+- The bubble is drawn like a message card of the chat: `--pt-card-bot` tint, hairline edge, the chat font, and SillyTavern's narration (`--SmartThemeEmColor`) and dialogue (`--SmartThemeQuoteColor`) colours, so a theme or SillyTavern theme shows in the preview too. `*narration*`, `"dialogue"` and `**bold**` are built as DOM nodes from text, never HTML. Three lines at most (two in Compact and in groups), clamped inside the bubble so no sliver of the next line shows; `dir="auto"` so the `…` falls on the right side in any language.
+- `⋯` (a 32px circle with a 44px tap area) opens a sheet with that chat's actions; each one runs SillyTavern's own button (pin, rename, export, delete), which stays in the row, hidden. The file name, file size and three small icons are not shown.
+- The chat that is open now gets an accent edge and an "Open now" label, not a coloured block.
+
+### Character Sheet
+- Tapping a character in the list opens their sheet (a dialog on desktop) instead of their chat: picture, a few words (creator's note or description), **Chat** (accent), **New chat**, **Edit**, and up to five recent chats as chat rows, newest first. Nothing changes until you pick something. Groups, bulk select and the favourite star keep SillyTavern's behaviour. The **Character preview** setting turns it off.
+- **Chat** replays the list tap SillyTavern and Pocket Tavern already know: on a phone the page closes into the chat, on desktop the card stays beside it. **Edit** selects the character without leaving the page.
+
+### A–Z Strip
+- 28px wide, 12px letters in `--pt-text-secondary`, no track until used. Touching or pressing it shows a soft track, an accent light (24px, with a soft glow) that glides to the letter under the pointer, a lens on the letters around it (they grow and lean out, distance 0–3), and a 56px accent bubble with the letter riding beside the finger. A mouse gets the lens without jumping until it presses. Only `transform` and `opacity` move, `--pt-dur-fast`.
+
+### Notifications
+- A calm card on `--pt-surface-elevated`: hairline edge, `--pt-radius`, a soft shadow, a 20px icon in the status colour (`--pt-ok`, `--pt-info`, `--pt-warn`, `--pt-danger`), the title in `--pt-text-primary` and the message in `--pt-text-secondary` (primary when there is no title), a 2px progress line. No coloured fill. Below the top bar on a phone (8px from the edges), 380px wide at the top right on desktop.
+
 ---
 
 ## 6. Motion & Writing
@@ -167,7 +183,7 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - **Chat backgrounds:** no `backdrop-filter` anywhere. Over a chat background, bars, pages, sheets, dialogs and the composer stay solid; only message cards are a translucent tint, so the picture shows through them and between them. Card text is checked against the tint over mid grey and lifted until it meets the contrast rule. SillyTavern's own blur on `#chat` and its drawers is switched off while the shell is on (2.25.1: a blurred container put the full-screen message editor thousands of pixels off screen).
 - **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6 (Compact 1.5), 0.75em between paragraphs (Compact 0.5em). The Chat text size setting scales up from there.
 - **SillyTavern themes' message cards:** a converted theme keeps its own **User Message** and **AI Message** colours, even when they are the same (GitHub issue #5); they are only made darker or lighter until the text meets the contrast rule. A theme without message tints gets Pocket Tavern's faint cards.
-- **Scrollbars:** Pocket Tavern's own scrolling areas (sheets, lists, the rail) never show one. On the phone layout the chat and the pages don't either (they scroll by touch, and SillyTavern's 11px bar would take room from the text). On the desktop layout SillyTavern's own lists, pages and the chat keep their scrollbars for the mouse. Never hide scrollbars on every element.
+- **Scrollbars:** on the phone layout nothing shows one: the chat, the pages, sheets and lists scroll by touch, and SillyTavern's 11px bar would take room from the text. On the desktop layout every list scrolls with a slim bar for the mouse: 8px of room, a 4px rounded thumb at 18% of the text colour that comes up to 32% when you point at the list (48% while dragging), no track, no arrows (Firefox: `scrollbar-width: thin`). Only the rail and the segmented controls, which scroll sideways, never show one. Never hide scrollbars on every element.
 - **SillyTavern's own screens** stay SillyTavern's: marked, restyled with tokens and placed with CSS, never moved or rebuilt. Where a screen is a long list of settings, Pocket Tavern may show it in steps (a list of sections that each open their own page, like Settings) by hiding the other sections, not by moving them.
 
 ### Targets not built yet

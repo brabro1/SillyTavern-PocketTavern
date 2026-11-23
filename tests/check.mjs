@@ -187,6 +187,19 @@ try {
     fail('style.css static checks', error);
 }
 
+// Older iPhones (Safari before iOS 16.4) cannot parse a regex lookbehind; one would stop the whole extension loading there.
+try {
+    const found = [];
+    for (const file of ['index.js', 'themes.js', 'i18n.js', 'icons.js', 'locales.js', 'changelog.js']) {
+        const text = await readFile(new URL(file, root), 'utf8');
+        if (/\(\?<[=!]/.test(text)) found.push(file);
+    }
+    if (found.length) fail('no regex lookbehind (older Safari)', found.join(', '));
+    else ok('no regex lookbehind, so older iPhones load the extension');
+} catch (error) {
+    fail('no regex lookbehind (older Safari)', error);
+}
+
 // A SillyTavern theme's message cards keep its own User Message and AI Message colours (GitHub issue #5).
 try {
     const { themeFromSillyTavern } = await import(new URL('themes.js', root));

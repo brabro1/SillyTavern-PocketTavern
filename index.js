@@ -59,6 +59,7 @@ const DEFAULTS = Object.freeze({
     recentLanguages: [],
     autoTranslate: false,
     charPage: true,
+    charPreview: true,
     dragSwipe: true,
     foldLong: true,
     contextMeter: true,
@@ -106,6 +107,7 @@ const EXTRAS = [
     { key: 'sharpPictures', id: 'stmui_sharp', label: 'Sharp character pictures', hint: 'Shows the full-quality picture instead of the small thumbnail, sized for your screen.' },
     { key: 'animatedPictures', id: 'stmui_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
     { key: 'charPage', id: 'stmui_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
+    { key: 'charPreview', id: 'stmui_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
     { key: 'recentTools', id: 'stmui_recenttools', label: 'Chat list helpers', hint: 'Search and swipe in Recent chats; chat history grouped by date.' },
     { key: 'longPress', id: 'stmui_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
     { key: 'serverWatch', id: 'stmui_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
@@ -114,7 +116,7 @@ const EXTRAS = [
     { key: 'saveDrafts', id: 'stmui_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
     { key: 'keepAwake', id: 'stmui_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
     { key: 'imageViewer', id: 'stmui_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
-    { key: 'niceToasts', id: 'stmui_toasts', label: 'Nicer notifications', hint: 'Cards with an icon and color; swipe one sideways to dismiss it.' },
+    { key: 'niceToasts', id: 'stmui_toasts', label: 'Nicer notifications', hint: 'Calm cards with a small coloured icon; swipe one sideways to dismiss it.' },
     { key: 'sendEffect', id: 'stmui_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
     { key: 'haptics', id: 'stmui_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
     { key: 'autoReload', id: 'stmui_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
@@ -2389,7 +2391,7 @@ function toastIconCss() {
         .map(([type, name]) => `html.stmui-toasts #toast-container > .toast-${type} { --stmui-t-icon: ${iconUrl(name)}; }`)
         .join(' ')
         // A grey magnifier drawn inside search boxes.
-        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; }`;
+        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; }`;
 }
 
 /** A Pocket Tavern theme (not a SillyTavern one): only these have a background of their own. */
@@ -4369,7 +4371,7 @@ const CARD_TOOLS = [
     ['#create_button_label', 'Create'],
 ];
 const CARD_TABS = [['desc', 'Description'], ['greet', 'First message'], ['notes', 'Notes & tags']];
-const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc' };
+const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false };
 
 /**
  * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
@@ -4396,6 +4398,197 @@ function onExportClick(event) {
             row('json', 'file-text', "The character's details as a text file."),
         ])),
     }));
+}
+
+// -- characters page: a character's sheet before its chat
+
+/**
+ * Tapping a character in the list shows its sheet (a dialog on a computer): picture, a few
+ * words about them, Chat, New chat and Edit, and their recent chats with the last message of
+ * each. Nothing changes until you pick something. Groups, bulk select and the favourite star
+ * keep SillyTavern's own behaviour.
+ */
+function onCharacterTap(event) {
+    if (!active || !settings.touchSizing || !settings.charPage || !settings.charPreview || chars.passTap) return;
+    const entry = event.target.closest?.('#rm_print_characters_block .character_select');
+    if (!entry || event.target.closest('.ch_fav_icon, .tag, .bulk_select_checkbox')) return;
+    if (document.querySelector('#rm_print_characters_block.group_overlay_mode_select')) return;
+    const chid = Number(entry.dataset.chid);
+    if (!Number.isInteger(chid) || !ctx().characters?.[chid]) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    buzz(6);
+    openCharacterSheet(entry, chid);
+}
+
+async function fetchCharacterChats(avatar) {
+    const response = await fetch('/api/characters/chats', {
+        method: 'POST',
+        headers: ctx().getRequestHeaders(),
+        body: JSON.stringify({ avatar_url: avatar }),
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (!data || typeof data !== 'object' || data.error) return [];
+    return Object.values(data)
+        .filter(chat => chat?.file_name)
+        .sort((a, b) => (Number(b.last_mes) || 0) - (Number(a.last_mes) || 0));
+}
+
+/** Runs `then` once SillyTavern has switched chats (or after a while, if it never says so). */
+function afterChatChange(then) {
+    const context = ctx();
+    const eventName = context.eventTypes?.CHAT_CHANGED;
+    let done = false;
+    const once = () => {
+        if (done) return;
+        done = true;
+        if (eventName) context.eventSource?.removeListener?.(eventName, once);
+        setTimeout(then, 150);
+    };
+    if (eventName) context.eventSource?.on?.(eventName, once);
+    setTimeout(once, 2500);
+}
+
+/**
+ * Opens a chat with this character: the list tap SillyTavern and Pocket Tavern already know
+ * (on a phone the page closes into the chat; on a computer the card stays beside it), then the
+ * chosen chat if it is not their latest, then `then`.
+ */
+function chatWithCharacter(entry, chid, fileId, then) {
+    closeSheet(true);
+    const context = ctx();
+    const same = !context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid);
+    const finish = async () => {
+        try {
+            if (fileId && ctx().characters[chid]?.chat !== fileId) await ctx().openCharacterChat(fileId);
+        } catch (error) {
+            console.warn(LOG, 'Could not open that chat', error);
+        }
+        then?.();
+    };
+    if (!same) afterChatChange(finish);
+    chars.passTap = true;
+    try {
+        if (entry?.isConnected) entry.click();
+        else context.selectCharacterById(String(chid));
+    } finally {
+        chars.passTap = false;
+    }
+    // Already their chat: no switch happens, so carry on now (on a phone, back to the chat).
+    if (same) {
+        finish().then(() => {
+            if (!isWide()) closePages();
+        });
+    }
+}
+
+/** Edit the card: select the character without leaving the Characters page. */
+async function editCharacter(chid) {
+    closeSheet(true);
+    if (shell) shell.jumpAt = 0;
+    await ctx().selectCharacterById(String(chid));
+}
+
+function aboutCharacter(character) {
+    const context = ctx();
+    const raw = character.data?.creator_notes || character.creatorcomment || character.description || '';
+    let text = String(raw).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    try {
+        if (text && typeof context.substituteParams === 'function') text = context.substituteParams(text, undefined, character.name);
+    } catch {
+        // Keep the text as written.
+    }
+    return text.length > 280 ? `${text.slice(0, 280).trimEnd()}…` : text;
+}
+
+function openCharacterSheet(entry, chid) {
+    const context = ctx();
+    const character = context.characters[chid];
+    const state = { chats: null };
+    const instance = new MenuSheet({
+        title: 'Character',
+        fill: body => fillCharacterSheet(body, { entry, chid, character, chats: state.chats }),
+    });
+    instance.dialog.classList.add('stmui-char-sheet');
+    // A character's name is shown as it is, never translated.
+    instance.title.textContent = character.name;
+    instance.title.dir = 'auto';
+    instance.dialog.setAttribute('aria-label', character.name);
+    showSheet(instance);
+    fetchCharacterChats(character.avatar).catch(() => []).then(chats => {
+        state.chats = chats;
+        if (sheet === instance && !instance.closing) instance.refresh();
+    });
+}
+
+function fillCharacterSheet(body, { entry, chid, character, chats }) {
+    const context = ctx();
+    // Who they are.
+    const picture = h('img', { class: 'stmui-cs-avatar', alt: '', loading: 'lazy' });
+    picture.src = context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`;
+    picture.addEventListener('error', () => picture.classList.add('stmui-cs-avatar-missing'), { once: true });
+    const about = aboutCharacter(character);
+    const hero = h('div', { class: 'stmui-cs-hero' }, [picture]);
+    if (about) {
+        const text = h('p', { class: 'stmui-cs-about' });
+        text.append(formatPreview(about));
+        text.dir = 'auto';
+        hero.append(text);
+    }
+    body.append(hero);
+
+    // What to do.
+    const action = (iconName, label, run, primary = false) => h('button', {
+        type: 'button',
+        class: `stmui-cs-action${primary ? ' stmui-cs-primary' : ''}`,
+        onclick: () => {
+            buzz(6);
+            run();
+        },
+    }, [ui(iconName), h('span', { text: label })]);
+    body.append(h('div', { class: 'stmui-cs-actions' }, [
+        action('chat', 'Chat', () => chatWithCharacter(entry, chid, null), true),
+        action('chat-plus', 'New chat', () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_start_new_chat')?.click())),
+        action('pencil', 'Edit', () => editCharacter(chid)),
+    ]));
+
+    // Their chats, newest first.
+    body.append(h('p', { class: 'stmui-recent-heading stmui-cs-heading', text: 'Recent chats' }));
+    if (!chats) {
+        body.append(h('p', { class: 'stmui-menu-foot', text: 'Loading chats…' }));
+        return;
+    }
+    if (!chats.length) {
+        body.append(h('p', { class: 'stmui-menu-foot', text: 'No chats yet. Chat starts the first one.' }));
+        return;
+    }
+    const list = h('div', { class: 'stmui-cs-chats' });
+    for (const chat of chats.slice(0, 5)) {
+        const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
+        const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+        const line = h('span', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileId), h('small', { class: 'stmui-rc-when', raw: when })]);
+        if (character.chat === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Latest' }));
+        const meta = h('small', { class: 'stmui-rc-meta' });
+        const count = Number(chat.chat_items);
+        if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
+        list.append(h('button', {
+            type: 'button',
+            class: 'stmui-rc stmui-cs-chat',
+            onclick: () => {
+                buzz(6);
+                chatWithCharacter(entry, chid, fileId);
+            },
+        }, [h('span', { class: 'stmui-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
+    }
+    body.append(list);
+    if (chats.length > 5) {
+        body.append(h('button', {
+            type: 'button',
+            class: 'stmui-cs-all menu_button',
+            onclick: () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_select_chat')?.click()),
+        }, [ui('history'), h('span', { text: t('All chats ({count})', { count: chats.length }) })]));
+    }
 }
 
 function displayName(title) {
@@ -4686,18 +4879,48 @@ function buildAzStrip() {
         return;
     }
     old?.remove();
-    const strip = h('div', { id: 'stmui_az', class: 'stmui-az', 'aria-label': 'Jump to letter', 'data-letters': letters.join('') }, letters.map(letter => h('span', { text: letter, 'data-letter': letter })));
+    const strip = h('div', { id: 'stmui_az', class: 'stmui-az', role: 'navigation', 'aria-label': 'Jump to letter', 'data-letters': letters.join('') }, [
+        // A soft light that glides to the letter under your finger (or mouse).
+        h('i', { class: 'stmui-az-glow', 'aria-hidden': 'true' }),
+        ...letters.map(letter => h('span', { raw: letter, 'data-letter': letter })),
+    ]);
     strip.stmuiFirst = firstOf;
+    const spans = Array.from(strip.querySelectorAll('span'));
     let bubble = document.getElementById('stmui_az_bubble');
     if (!bubble) {
         bubble = h('div', { id: 'stmui_az_bubble', class: 'stmui-az-bubble', 'aria-hidden': 'true' });
         holder.append(bubble);
     }
+    let current = -1;
     let last = '';
-    const jump = event => {
+    let dragging = false;
+    let frame = 0;
+    let pending = null;
+    const indexAt = clientY => {
         const rect = strip.getBoundingClientRect();
-        if (rect.height <= 0) return;
-        const index = Math.max(0, Math.min(letters.length - 1, Math.floor(((event.clientY - rect.top) / rect.height) * letters.length)));
+        if (rect.height <= 0) return -1;
+        return Math.max(0, Math.min(letters.length - 1, Math.floor(((clientY - rect.top) / rect.height) * letters.length)));
+    };
+    // Letters near the active one grow and lean out (distance 0-3), like a lens over the strip.
+    const mark = index => {
+        if (index === current) return;
+        current = index;
+        spans.forEach((span, i) => {
+            const distance = index < 0 ? '' : String(Math.min(4, Math.abs(i - index)));
+            if (span.dataset.d !== distance) span.dataset.d = distance;
+        });
+        if (index >= 0) strip.style.setProperty('--stmui-az-y', `${spans[index].offsetTop + spans[index].offsetHeight / 2}px`);
+        strip.classList.toggle('stmui-az-on', index >= 0);
+    };
+    const jump = clientY => {
+        const index = indexAt(clientY);
+        if (index < 0) return;
+        mark(index);
+        // The bubble rides beside your finger, kept level with the strip.
+        const holderTop = holder.getBoundingClientRect().top;
+        const rect = strip.getBoundingClientRect();
+        const y = Math.max(rect.top, Math.min(rect.bottom, clientY)) - holderTop;
+        bubble.style.transform = `translate3d(0, ${Math.round(y)}px, 0)`;
         const letter = letters[index];
         if (letter === last) return;
         last = letter;
@@ -4707,6 +4930,16 @@ function buildAzStrip() {
         bubble.classList.add('stmui-az-bubble-on');
         buzz(4);
     };
+    // Pointer moves come many per frame; act on the latest once a frame.
+    const queue = (clientY, run) => {
+        pending = { clientY, run };
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+            frame = 0;
+            if (pending && strip.isConnected) pending.run(pending.clientY);
+            pending = null;
+        });
+    };
     strip.addEventListener('pointerdown', event => {
         event.preventDefault();
         try {
@@ -4714,17 +4947,27 @@ function buildAzStrip() {
         } catch {
             // The pointer is already gone.
         }
+        dragging = true;
         last = '';
-        jump(event);
+        strip.classList.add('stmui-az-active');
+        jump(event.clientY);
     });
     strip.addEventListener('pointermove', event => {
-        if (event.buttons || event.pointerType === 'touch') jump(event);
+        if (dragging) queue(event.clientY, jump);
+        // A mouse over the strip: the lens follows it, and nothing scrolls until you press.
+        else if (event.pointerType === 'mouse') queue(event.clientY, y => mark(indexAt(y)));
     });
     const end = () => {
+        dragging = false;
         last = '';
+        strip.classList.remove('stmui-az-active');
         bubble.classList.remove('stmui-az-bubble-on');
+        if (!strip.matches(':hover')) mark(-1);
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) strip.addEventListener(type, end);
+    strip.addEventListener('pointerleave', () => {
+        if (!dragging) mark(-1);
+    });
     shieldFromDrawerAutoClose(strip);
     holder.append(strip);
     placeAzStrip(strip, list, letters.length);
@@ -4817,6 +5060,7 @@ function syncWelcome() {
         document.querySelectorAll('.recentChat.stmui-match, .recentChat.stmui-nomatch').forEach(node => node.classList.remove('stmui-match', 'stmui-nomatch'));
         document.querySelectorAll('.recentChatList.stmui-searching').forEach(node => node.classList.remove('stmui-searching'));
         document.querySelectorAll('.welcomePanel[data-stmui]').forEach(node => delete node.dataset.stmui);
+        undecorateRows(document.querySelector('#chat .welcomePanel') ?? document.createElement('div'));
         return;
     }
     if (chat && !welcome.observer) {
@@ -4885,7 +5129,10 @@ function enhanceWelcome() {
         list.append(empty);
     }
 
-    for (const card of cards) wireSwipe(card, card.parentElement);
+    for (const card of cards) {
+        decorateRecentRow(card);
+        wireSwipe(card, card.parentElement);
+    }
     showWelcomeFromTop();
 }
 
@@ -4942,6 +5189,188 @@ function openRecentThen(card, then) {
     setTimeout(once, 2500);
 }
 
+// -- chat previews: the last message drawn like a message, in the chat's own colours
+
+/**
+ * Builds a message preview the way a chat message reads: *narration* and _narration_ in the
+ * narration colour, "dialogue" in the quote colour, **bold**. Plain DOM nodes from text, never
+ * HTML. A preview cut at its start ("…she smiles.* Then") or end ("*She takes") keeps the half
+ * it is in.
+ */
+function formatPreview(text) {
+    const out = document.createDocumentFragment();
+    let str = String(text ?? '').replace(/\s+/g, ' ').trim();
+    const lone = str.replace(/\*\*/g, '').split('*').length - 1;
+    let lead = '';
+    let tail = '';
+    if (lone % 2 === 1) {
+        // An odd asterisk: the preview was cut inside narration.
+        if (/^(?:\.\.\.|…)/.test(str) && str.indexOf('*') > -1) {
+            const at = str.indexOf('*');
+            lead = str.slice(0, at);
+            str = str.slice(at + 1);
+        } else {
+            const at = str.lastIndexOf('*');
+            tail = str.slice(at + 1);
+            str = str.slice(0, at);
+        }
+    }
+    if (lead) out.append(h('em', { raw: lead }));
+    // No lookbehind: Safari before iOS 16.4 cannot parse it, and the whole extension would fail to load.
+    const pattern = /\*\*\*([^*]+)\*\*\*|\*\*([^*]+)\*\*|\*([^*]+)\*|(^|[^\w])_([^_]+)_(?!\w)|("[^"]+"|“[^”]+”|«[^»]+»)/g;
+    let cursor = 0;
+    for (const match of str.matchAll(pattern)) {
+        if (match.index > cursor) out.append(str.slice(cursor, match.index));
+        if (match[1] !== undefined) out.append(h('strong', {}, [h('em', { raw: match[1] })]));
+        else if (match[2] !== undefined) out.append(h('strong', { raw: match[2] }));
+        else if (match[3] !== undefined) out.append(h('em', { raw: match[3] }));
+        else if (match[5] !== undefined) out.append(match[4], h('em', { raw: match[5] }));
+        else out.append(h('q', { raw: match[6] }));
+        cursor = match.index + match[0].length;
+    }
+    if (cursor < str.length) out.append(str.slice(cursor));
+    if (tail) out.append(h('em', { raw: tail }));
+    return out;
+}
+
+/** A message bubble with the preview in it, styled like the chat's message cards. */
+function previewBubble(text) {
+    // The words sit in their own box so the line limit never shows a sliver of the next line.
+    const words = h('span', { class: 'stmui-bubble-text' });
+    // Its own direction from its words, so a cut line ends with … on the right side in any language.
+    words.dir = 'auto';
+    words.append(formatPreview(text));
+    return h('span', { class: 'stmui-bubble' }, [words]);
+}
+
+/** "1 message", "5 messages". */
+function messageCount(count) {
+    return count === 1 ? t('1 message') : t('{count} messages', { count });
+}
+
+/**
+ * The name to show for a chat: its own name when it was renamed, otherwise when it was started
+ * ("Seraphina - 2023-5-12 @21h 32m 29s 224ms" reads as "Chat from 12 May 2023"). Branches and
+ * other names stay as they are. Returns `{ text, raw }`: `raw` is user text, never translated.
+ */
+function chatTitle(fileName) {
+    const name = String(fileName ?? '').replace(/\.jsonl$/i, '').trim();
+    const match = name.match(/(?:^|\s-\s)(\d{4})-(\d{1,2})-(\d{1,2})\s?@\s?(\d{1,2})h\s?(\d{1,2})m\s?(\d{1,2})s(?:\s?\d+\s?ms)?$/);
+    if (!match || /^Branch #/i.test(name)) return { text: name, raw: true };
+    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]));
+    if (Number.isNaN(date.getTime())) return { text: name, raw: true };
+    return { text: t('Chat from {date}', { date: date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) }), raw: false };
+}
+
+function titleNode(tag, className, fileName) {
+    const title = chatTitle(fileName);
+    const node = h(tag, { class: className });
+    node.textContent = title.text;
+    if (title.raw) node.dir = 'auto';
+    return node;
+}
+
+/** The ⋯ menu of a chat row: rename, pin, export, delete. Each runs SillyTavern's own button. */
+function openChatRowMenu(fileName, items) {
+    const instance = new MenuSheet({
+        title: 'Chat',
+        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, items.filter(Boolean).map(item => h('button', {
+            type: 'button',
+            class: `stmui-menu-row${item.danger ? ' stmui-danger' : ''}`,
+            onclick: () => {
+                closeSheet(true);
+                item.run();
+            },
+        }, [ui(item.icon, 'stmui-menu-row-icon'), h('span', { text: item.label })])))),
+    });
+    // The chat's name is shown as it is.
+    instance.title.textContent = chatTitle(fileName).text;
+    instance.dialog.setAttribute('aria-label', instance.title.textContent);
+    showSheet(instance);
+}
+
+function moreButton(label, onOpen) {
+    const button = h('button', {
+        type: 'button',
+        class: 'stmui-rc-more',
+        'aria-label': label,
+        title: label,
+        onclick: event => {
+            event.preventDefault();
+            event.stopPropagation();
+            buzz(6);
+            onOpen();
+        },
+    }, [ui('ellipsis')]);
+    // The row opens its chat on a tap; the menu button must not.
+    for (const type of ['pointerdown', 'touchstart', 'mousedown']) button.addEventListener(type, event => event.stopPropagation(), { passive: true });
+    return button;
+}
+
+/**
+ * A recent chat on the start screen: a title line (character or chat name, when, ⋯), the last
+ * message as a bubble, and how many messages. SillyTavern's own row stays underneath (hidden),
+ * so tapping opens the chat and its pin, rename and delete buttons do the work.
+ */
+function decorateRecentRow(card) {
+    if (card.querySelector(':scope > .stmui-rc-body')) return;
+    card.classList.add('stmui-rc');
+    const inGroup = !!card.closest('.stmui-group-chats');
+    const name = card.querySelector('.characterName')?.textContent.trim() ?? '';
+    const head = h('div', { class: 'stmui-rc-line' });
+    if (inGroup) {
+        head.append(titleNode('b', 'stmui-rc-title', card.dataset.file));
+    } else {
+        const who = h('b', { class: 'stmui-rc-title', raw: name });
+        who.dir = 'auto';
+        head.append(who);
+    }
+    const date = card.querySelector('.chatDate');
+    const when = h('small', { class: 'stmui-rc-when', raw: date?.textContent.trim() ?? '' });
+    if (date?.title) when.title = date.title;
+    const pinned = () => !!card.querySelector('.pinChat.active, .recentChatPinned');
+    head.append(when, moreButton('Chat options', () => openChatRowMenu(card.dataset.file, [
+        { icon: 'bookmark', label: pinned() ? 'Unpin' : 'Pin', run: () => card.querySelector('.pinChat')?.click() },
+        { icon: 'pencil', label: 'Rename', run: () => card.querySelector('.renameChat')?.click() },
+        { icon: 'trash', label: 'Delete', danger: true, run: () => card.querySelector('.deleteChat')?.click() },
+    ])));
+    const count = Number.parseInt(card.querySelector('.counterBlock small')?.textContent ?? '', 10);
+    const meta = h('small', { class: 'stmui-rc-meta' });
+    if (!inGroup && card.dataset.file) meta.append(titleNode('span', 'stmui-rc-chat', card.dataset.file));
+    if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
+    const body = h('div', { class: 'stmui-rc-body' }, [head, previewBubble(card.querySelector('.chatMessage')?.textContent ?? '')]);
+    if (meta.childElementCount) body.append(meta);
+    card.append(body);
+}
+
+function undecorateRows(root = document) {
+    root.querySelectorAll('.stmui-rc-body').forEach(node => node.remove());
+    root.querySelectorAll('.stmui-rc').forEach(node => node.classList.remove('stmui-rc'));
+}
+
+/**
+ * A chat in Chat history: its name (or when it was started), when it was last written to and
+ * how many messages, the last message as a bubble, and ⋯ for rename, export and delete.
+ */
+function decorateHistoryRow(block) {
+    if (block.querySelector(':scope > .stmui-rc-body')) return;
+    block.classList.add('stmui-rc');
+    const fileName = block.getAttribute('file_name') ?? '';
+    const head = h('div', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileName)]);
+    if (block.hasAttribute('highlight')) head.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
+    const button = selector => () => block.querySelector(selector)?.click();
+    head.append(moreButton('Chat options', () => openChatRowMenu(fileName, [
+        { icon: 'pencil', label: 'Rename', run: button('.renameChatButton') },
+        { icon: 'file-export', label: 'Export as JSONL', run: button('.exportRawChatButton') },
+        { icon: 'file-text', label: 'Download as text', run: button('.exportChatButton') },
+        { icon: 'trash', label: 'Delete', danger: true, run: button('.PastChat_cross') },
+    ])));
+    const meta = h('small', { class: 'stmui-rc-meta' }, [h('span', { raw: block.querySelector('.chat_messages_date')?.textContent.trim() ?? '' })]);
+    const count = Number.parseInt((block.querySelector('.chat_messages_num')?.textContent ?? '').replace(/\D+/g, ' '), 10);
+    if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
+    block.append(h('div', { class: 'stmui-rc-body' }, [head, previewBubble(block.querySelector('.select_chat_block_mes')?.textContent ?? ''), meta]));
+}
+
 /**
  * One character's recent chats as a dropdown card. The top row shows the
  * character, the last thing said and when; tap it for the latest chat, or the
@@ -4979,8 +5408,8 @@ function buildChatGroup(chats) {
     title.textContent = name;
     const when = h('small', { class: 'stmui-group-when' });
     when.textContent = latest.querySelector('.chatDate')?.textContent.trim() ?? '';
-    const last = h('small', { class: 'stmui-group-last' });
-    last.textContent = latest.querySelector('.chatMessage')?.textContent.replace(/\s+/g, ' ').trim() ?? '';
+    const last = previewBubble(latest.querySelector('.chatMessage')?.textContent ?? '');
+    last.classList.add('stmui-group-last');
     main.append(face, h('span', { class: 'stmui-group-text' }, [h('span', { class: 'stmui-group-line' }, [title, when]), last]));
 
     // The arrow: open or close the list.
@@ -5162,6 +5591,7 @@ function groupChatHistory() {
     for (const wrapper of list.querySelectorAll(':scope > .select_chat_block_wrapper')) {
         if (getComputedStyle(wrapper).display === 'none') continue;
         const block = wrapper.querySelector('.select_chat_block');
+        if (block) decorateHistoryRow(block);
         const group = dateGroup(block ? chatDateOf(block) : null);
         if (group !== lastGroup) {
             wrapper.before(h('p', { class: 'stmui-date-heading', text: group }));
@@ -5176,6 +5606,7 @@ function syncChatHistory() {
         chatList.observer?.disconnect();
         chatList.observer = null;
         list?.querySelectorAll('.stmui-date-heading').forEach(node => node.remove());
+        if (list) undecorateRows(list);
         return;
     }
     if (list && !chatList.observer) {
@@ -9828,6 +10259,7 @@ function init() {
     document.addEventListener('error', onAvatarError, true);
     document.addEventListener('click', event => extnav.onClick(event), true);
     document.addEventListener('click', onExportClick, true);
+    document.addEventListener('click', onCharacterTap, true);
     document.addEventListener('focusin', () => shell?.checkKeyboard());
     document.addEventListener('focusout', () => setTimeout(() => shell?.checkKeyboard(), 50));
 

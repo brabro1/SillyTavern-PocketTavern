@@ -100,18 +100,63 @@
     --stmui-ease-pop: var(--pt-ease);
 }
 
-/* Scrollbars (DESIGN.md, section 7). Pocket Tavern's own scrolling areas (sheets, lists, the
-   rail) scroll without a bar, like an app. On a phone the chat and the pages do too: they scroll
-   by touch, and SillyTavern's 11px bar would take room from the text. On the desktop layout
-   SillyTavern's own lists, pages and the chat keep their scrollbars for the mouse. */
-html.stmui-on :is(.stmui-list, .stmui-menu-body, .stmui-panel, .stmui-tabbar, .stmui-segmented),
-html.stmui-on:not(.stmui-wide) :is(#chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div) {
+/* Scrollbars (DESIGN.md, section 7). On a phone nothing shows one: the chat, the pages, sheets and
+   lists scroll by touch, and SillyTavern's 11px bar would take room from the text. On the desktop
+   layout every list has a slim bar for the mouse (below); only the rail and the segmented
+   controls, which scroll sideways, never do. */
+html.stmui-on :is(.stmui-tabbar, .stmui-segmented),
+html.stmui-on:not(.stmui-wide) :is(.stmui-list, .stmui-menu-body, .stmui-panel, #chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div) {
     scrollbar-width: none;
 }
 
-html.stmui-on :is(.stmui-list, .stmui-menu-body, .stmui-panel, .stmui-tabbar, .stmui-segmented)::-webkit-scrollbar,
-html.stmui-on:not(.stmui-wide) :is(#chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div)::-webkit-scrollbar {
+html.stmui-on :is(.stmui-tabbar, .stmui-segmented)::-webkit-scrollbar,
+html.stmui-on:not(.stmui-wide) :is(.stmui-list, .stmui-menu-body, .stmui-panel, #chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div)::-webkit-scrollbar {
     display: none;
+}
+
+/* On the desktop layout every list scrolls with a slim bar for the mouse: 8px of room, a 4px
+   rounded thumb that is faint until you point at the list, no track and no arrows. */
+html.stmui-on.stmui-wide ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+html.stmui-on.stmui-wide ::-webkit-scrollbar-track,
+html.stmui-on.stmui-wide ::-webkit-scrollbar-track:hover,
+html.stmui-on.stmui-wide ::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+html.stmui-on.stmui-wide ::-webkit-scrollbar-button {
+    display: none;
+}
+
+html.stmui-on.stmui-wide ::-webkit-scrollbar-thumb:vertical,
+html.stmui-on.stmui-wide ::-webkit-scrollbar-thumb:horizontal {
+    min-width: 32px;
+    min-height: 32px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--pt-text-primary) 18%, transparent);
+    background-clip: padding-box;
+    box-shadow: none;
+}
+
+html.stmui-on.stmui-wide :hover::-webkit-scrollbar-thumb:vertical,
+html.stmui-on.stmui-wide :hover::-webkit-scrollbar-thumb:horizontal {
+    background-color: color-mix(in srgb, var(--pt-text-primary) 32%, transparent);
+}
+
+html.stmui-on.stmui-wide ::-webkit-scrollbar-thumb:active {
+    background-color: color-mix(in srgb, var(--pt-text-primary) 48%, transparent);
+}
+
+/* Firefox draws its own thin bar from two colours. */
+@supports (-moz-appearance: none) {
+    :where(html.stmui-on.stmui-wide) * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--pt-text-primary) 24%, transparent) transparent;
+    }
 }
 
 .stmui-svg {
@@ -1467,8 +1512,8 @@ html.stmui-shell #WorldInfo #world_popup_entries_list {
 /* Toasts: below the app bar, full width, rounded. */
 html.stmui-on body #toast-container {
     top: calc(var(--topBarBlockSize) + 8px) !important;
-    left: calc(10px + var(--stmui-safe-left)) !important;
-    right: calc(10px + var(--stmui-safe-right)) !important;
+    left: calc(8px + var(--stmui-safe-left)) !important;
+    right: calc(8px + var(--stmui-safe-right)) !important;
     width: auto !important;
     transform: none !important;
 }
@@ -3111,16 +3156,28 @@ html.stmui-touch #select_chat_cross {
 
 html.stmui-touch #select_chat_popup .select_chat_block {
     margin-top: 8px;
-    padding: 12px 12px;
+    padding: 12px;
+    border: 1px solid color-mix(in srgb, var(--pt-text-primary) 16%, transparent);
     border-radius: var(--pt-radius);
-    border-color: var(--stmui-line);
-    background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
+    background: var(--pt-surface);
     line-height: 1.4;
+    cursor: pointer;
 }
 
+/* The chat that is open now: an accent edge and an "Open now" label, not a coloured block. */
 html.stmui-touch #select_chat_popup .select_chat_block[highlight] {
-    border-color: color-mix(in srgb, var(--stmui-accent) 55%, transparent);
-    background: var(--stmui-accent-soft);
+    border-color: color-mix(in srgb, var(--stmui-accent) 60%, transparent);
+    background: var(--pt-surface);
+}
+
+html.stmui-touch #select_chat_popup .select_chat_block:active {
+    background: var(--pt-surface-elevated);
+}
+
+/* Pocket Tavern's row (name, when, bubble, ⋯) replaces SillyTavern's line of file name,
+   size and three small icons; those stay in the page for the ⋯ menu to use. */
+html.stmui-touch #select_chat_popup .select_chat_block.stmui-rc > :is(#select_chat_name_wrapper, .select_chat_block_mes) {
+    display: none !important;
 }
 
 html.stmui-touch #select_chat_popup .select_chat_block .menu_button,
@@ -4852,8 +4909,61 @@ html.stmui-chat .welcomePanel .welcomeHeaderTitle .mes_button {
     margin: 0;
     padding: 0;
     border-radius: var(--pt-radius-sm);
+    color: var(--pt-text-secondary);
     font-size: 16px;
-    opacity: 0.8;
+    opacity: 1;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle .mes_button:active {
+    background: var(--pt-surface-elevated);
+}
+
+/* Three buttons, each with one job, in this order: hide the message box (eye), Recent chats
+   settings (gear: how many chats to show), and fold the list away or bring it back (one chevron).
+   SillyTavern shows only one of its show / hide buttons at a time; Pocket Tavern's sizing used to
+   show both, so the down arrow did nothing and the cross hid the whole list. */
+html.stmui-chat .welcomePanel .welcomeHeaderTitle .stmui-home-box {
+    order: 1;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle .recentChatsSettings {
+    order: 2;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle :is(.showRecentChats, .hideRecentChats) {
+    order: 3;
+}
+
+html.stmui-chat .welcomePanel.recentHidden .welcomeHeaderTitle :is(.hideRecentChats, .recentChatsSettings),
+html.stmui-chat .welcomePanel:not(.recentHidden) .welcomeHeaderTitle .showRecentChats {
+    display: none;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle :is(.showRecentChats, .hideRecentChats) > i {
+    display: none;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle :is(.showRecentChats, .hideRecentChats)::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    background: currentColor;
+    -webkit-mask: var(--stmui-chev-up-icon) center / contain no-repeat;
+    mask: var(--stmui-chev-up-icon) center / contain no-repeat;
+}
+
+html.stmui-chat .welcomePanel .welcomeHeaderTitle .showRecentChats::before {
+    -webkit-mask-image: var(--stmui-chev-down-icon);
+    mask-image: var(--stmui-chev-down-icon);
+}
+
+html.stmui-chat .welcomePanel.recentHidden .welcomeHeaderTitle .showRecentChats {
+    color: var(--pt-text-primary);
+}
+
+.stmui-menu-row.stmui-danger,
+.stmui-menu-row.stmui-danger .stmui-menu-row-icon {
+    color: var(--pt-danger);
 }
 
 html.stmui-chat .welcomePanel .welcomeHeader {
@@ -4911,23 +5021,22 @@ html.stmui-chat .welcomeRecent .recentChatList {
     gap: 8px;
 }
 
-/* Each chat is a card: avatar, then name and date, the last line, then stats and actions. */
+/* Each chat is a row: the picture, then a title line (who or which chat, when, ⋯), the last
+   message drawn as a message bubble in the chat's own colours, and how many messages.
+   SillyTavern's own row stays inside (hidden), so a tap opens the chat as always. */
 html.stmui-chat .welcomeRecent .recentChatList .recentChat {
-    display: grid;
-    grid-template-areas:
-        'avatar name date'
-        'avatar msg msg'
-        'avatar stats actions';
-    grid-template-columns: 52px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 4px 12px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
     margin: 0;
-    padding: 12px 12px 8px 12px;
+    padding: 12px;
     /* A clearer edge than the usual hairline: the cards sit close to the page colour in soft themes
        and blended into it for readers with low vision (Kahvana's report). */
     border: 1px solid color-mix(in srgb, var(--pt-text-primary) 16%, transparent);
     border-radius: var(--pt-radius);
     background: var(--stmui-raised);
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -4943,16 +5052,17 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat:active {
     background: var(--stmui-raised-2);
 }
 
-html.stmui-chat .welcomeRecent .recentChat :is(.recentChatInfo, .chatNameContainer, .chatMessageContainer) {
-    display: contents;
+/* Until Pocket Tavern has drawn its row, SillyTavern's own content shows as it is. */
+html.stmui-chat .welcomeRecent .recentChat.stmui-rc > .recentChatInfo {
+    display: none;
 }
 
 html.stmui-chat .welcomeRecent .recentChatList .recentChat > .avatar {
-    grid-area: avatar;
-    align-self: start;
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     margin: 0;
     border-radius: 50%;
     overflow: hidden;
@@ -4964,107 +5074,11 @@ html.stmui-chat .welcomeRecent .recentChat > .avatar img {
     object-fit: cover;
 }
 
-/* Character name on top, the chat's own name under it. */
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatNameContainer .chatName {
-    grid-area: name;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    line-height: 1.25;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatName > :is(strong, span:last-of-type) {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatName > strong {
-    font-size: 16px;
-    font-weight: 700;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatName > span:first-of-type {
-    display: none;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatName > span:last-of-type {
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatDate {
-    grid-area: date;
-    align-self: start;
-    padding-top: 4px;
-    color: var(--pt-text-secondary);
-    font-size: 12px;
-    white-space: nowrap;
-}
-
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatMessageContainer .chatMessage {
-    grid-area: msg;
-    margin-top: 4px;
-    color: var(--pt-text-primary);
-    font-size: 14px;
-    line-height: 1.4;
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatStats {
-    grid-area: stats;
-    align-self: center;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-    color: var(--stmui-muted);
-    font-size: 12px;
-}
-
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatStats .counterBlock {
-    align-items: center;
-}
-
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatActions {
-    grid-area: actions;
-    gap: 4px;
-    margin-top: 4px;
-}
-
-html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatActions button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: var(--pt-radius-sm);
-    background: transparent;
-    color: var(--stmui-muted);
-    font-size: 16px;
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatActions button:active {
-    background: var(--stmui-raised-2);
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatActions .pinChat.active {
-    color: var(--stmui-accent);
-}
-
-html.stmui-chat .welcomeRecent .recentChat .chatActions .deleteChat:active {
-    color: var(--pt-danger);
-}
-
-/* Pinned chats get a small badge on the avatar. */
+/* Pinned chats get a small badge on the picture. */
 html.stmui-chat .welcomeRecent .recentChatList .recentChat .recentChatPinned {
+    position: absolute;
     top: 8px;
-    left: 48px;
+    left: 40px;
     z-index: 1;
     display: inline-flex;
     align-items: center;
@@ -5079,12 +5093,169 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat .recentChatPinned {
     opacity: 1;
 }
 
+html.stmui-chat.stmui-rtl .welcomeRecent .recentChatList .recentChat .recentChatPinned {
+    left: auto;
+    right: 40px;
+}
+
 html.stmui-chat .welcomeRecent .recentChatList .showMoreChats {
     width: auto;
     height: 40px;
     margin: 4px auto 0;
     padding: 0 24px;
     border-radius: 999px;
+}
+
+/* -- One chat row: Recent chats, Chat history and a character's sheet ------- */
+
+.stmui-rc-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    text-align: start;
+}
+
+.stmui-rc-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 24px;
+}
+
+.stmui-rc-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--pt-text-primary);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stmui-rc-when {
+    flex: 0 0 auto;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.stmui-rc-now {
+    flex: 0 0 auto;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--pt-accent-soft);
+    color: var(--pt-text-primary);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+/* ⋯ looks small but takes a full 44px tap. */
+.stmui-rc-more {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: -8px -8px -8px 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stmui-rc-more::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+}
+
+.stmui-rc-more .stmui-svg {
+    width: 20px;
+    height: 20px;
+}
+
+.stmui-rc-more:active {
+    background: var(--pt-surface-elevated);
+}
+
+html.stmui-rtl .stmui-rc-more {
+    margin: -8px 0 -8px -8px;
+}
+
+.stmui-rc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    min-width: 0;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.stmui-rc-meta > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The last message, drawn like a message card of the chat: the same tint, edge, narration and
+   dialogue colours and font as the theme (or SillyTavern theme) gives the chat. */
+.stmui-bubble {
+    display: block;
+    align-self: stretch;
+    padding: 8px 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: 4px var(--pt-radius-sm) var(--pt-radius-sm) var(--pt-radius-sm);
+    background: var(--pt-card-bot);
+    color: var(--SmartThemeBodyColor, var(--pt-text-primary));
+    font-family: var(--mainFontFamily, inherit);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+.stmui-bubble-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--stmui-clamp, 3);
+}
+
+html.stmui-rtl .stmui-bubble {
+    border-radius: var(--pt-radius-sm) 4px var(--pt-radius-sm) var(--pt-radius-sm);
+}
+
+.stmui-bubble em {
+    color: var(--SmartThemeEmColor, var(--pt-text-secondary));
+}
+
+.stmui-bubble q {
+    color: var(--SmartThemeQuoteColor, var(--pt-accent));
+    quotes: none;
+}
+
+.stmui-bubble q::before,
+.stmui-bubble q::after {
+    content: none;
+}
+
+.stmui-bubble strong {
+    font-weight: 700;
 }
 
 /* ==========================================================================
@@ -5799,19 +5970,21 @@ html.stmui-on body #toast-container {
     margin-top: 0 !important;
 }
 
+/* A notification is a calm card on the page's solid surface: a small icon in its colour
+   (green done, blue info, amber warning, red error), the words, and a thin line for the time
+   left. No coloured fill, so a stack of them never shouts over the chat. */
 html.stmui-toasts body #toast-container > div.toast {
     --stmui-t-color: var(--stmui-accent);
     position: relative;
     box-sizing: border-box;
-    min-height: 56px;
-    padding: 12px 40px 12px 56px !important;
-    border: 1px solid color-mix(in srgb, var(--stmui-t-color) 35%, var(--stmui-line));
+    min-height: 48px;
+    padding: 12px 44px 12px 44px !important;
+    border: 1px solid var(--pt-border);
     border-radius: var(--pt-radius);
-    background: color-mix(in srgb, var(--stmui-t-color) 10%, var(--stmui-solid)) !important;
+    background: var(--pt-surface-elevated) !important;
     background-image: none !important;
-    color: var(--stmui-text) !important;
-    box-shadow: none;
-    outline: 1px solid var(--stmui-line);
+    color: var(--pt-text-primary) !important;
+    box-shadow: 0 8px 24px color-mix(in srgb, #000 28%, transparent);
     font-size: 14px;
     line-height: 1.4;
     text-shadow: none;
@@ -5825,40 +5998,46 @@ html.stmui-toasts body #toast-container > div.toast.toast-info { --stmui-t-color
 html.stmui-toasts body #toast-container > div.toast.toast-warning { --stmui-t-color: var(--pt-warn); }
 html.stmui-toasts body #toast-container > div.toast.toast-error { --stmui-t-color: var(--pt-danger); }
 
-/* Icon in a soft tile on the left. */
 html.stmui-toasts body #toast-container > .toast::before {
-    content: '';
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--pt-radius-sm);
-    background: color-mix(in srgb, var(--stmui-t-color) 22%, transparent);
+    content: none;
 }
 
 html.stmui-toasts body #toast-container > .toast::after {
     content: '';
     position: absolute;
-    top: 19px;
-    left: 19px;
-    width: 18px;
-    height: 18px;
+    top: 14px;
+    left: 14px;
+    width: 20px;
+    height: 20px;
     background: var(--stmui-t-color);
     -webkit-mask: var(--stmui-t-icon) center / contain no-repeat;
     mask: var(--stmui-t-icon) center / contain no-repeat;
 }
 
+html.stmui-toasts.stmui-rtl body #toast-container > .toast::after {
+    left: auto;
+    right: 14px;
+}
+
+html.stmui-toasts.stmui-rtl body #toast-container > div.toast {
+    text-align: start;
+}
+
 html.stmui-toasts body #toast-container > .toast .toast-title {
     margin-bottom: 4px;
-    color: var(--stmui-text);
-    font-size: 16px;
+    color: var(--pt-text-primary);
+    font-size: 14px;
     font-weight: 700;
 }
 
 html.stmui-toasts body #toast-container > .toast .toast-message {
-    color: color-mix(in srgb, var(--stmui-text) 85%, transparent);
+    color: var(--pt-text-secondary);
     overflow-wrap: anywhere;
+}
+
+/* With no title, the words are the message itself: full strength. */
+html.stmui-toasts body #toast-container > .toast:not(:has(.toast-title)) .toast-message {
+    color: var(--pt-text-primary);
 }
 
 html.stmui-toasts body #toast-container > .toast .toast-message a {
@@ -5867,21 +6046,27 @@ html.stmui-toasts body #toast-container > .toast .toast-message a {
 
 html.stmui-toasts body #toast-container > .toast .toast-close-button {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 2px;
+    right: 0;
     width: 44px;
     height: 44px;
     padding: 0;
-    color: var(--stmui-muted);
+    color: var(--pt-text-secondary);
     font-size: 20px;
+    font-weight: 400;
     text-shadow: none;
     opacity: 1;
 }
 
+html.stmui-toasts.stmui-rtl body #toast-container > .toast .toast-close-button {
+    right: auto;
+    left: 0;
+}
+
 html.stmui-toasts body #toast-container > .toast .toast-progress {
-    height: 3px;
+    height: 2px;
     background: var(--stmui-t-color);
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 /* ==========================================================================
@@ -6690,60 +6875,122 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block {
     padding-right: 20px;
 }
 
+/* The A–Z strip: small quiet letters beside the list. Touch or press it and a soft light
+   glides to the letter under your finger while the letters around it lean out like a lens,
+   and a bubble with the letter rides beside your finger. With a mouse the lens follows the
+   pointer, and pressing jumps. Only transform and opacity move. */
 .stmui-az {
     position: absolute;
-    top: 50%;
     right: 0;
     z-index: 5;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    max-height: 62%;
-    padding: 8px 4px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--stmui-surface) 70%, transparent);
-    transform: translateY(-40%);
+    box-sizing: border-box;
+    width: 28px;
+    padding: 4px 0;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+    cursor: pointer;
+}
+
+/* The track: a soft pill that shows while you use the strip. */
+.stmui-az::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-surface-elevated) 88%, transparent);
+    opacity: 0;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+}
+
+.stmui-az.stmui-az-on::before {
+    opacity: 1;
+}
+
+.stmui-az-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--pt-accent) 55%, transparent);
+    opacity: 0;
+    transform: translateY(var(--stmui-az-y, 0)) scale(0.5);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
+    pointer-events: none;
+}
+
+.stmui-az.stmui-az-on .stmui-az-glow {
+    opacity: 1;
+    transform: translateY(var(--stmui-az-y, 0)) scale(1);
 }
 
 .stmui-az span {
+    position: relative;
     display: block;
-    min-width: 16px;
-    padding: 1px 4px;
-    color: var(--stmui-muted);
+    min-width: 20px;
+    color: var(--pt-text-secondary);
     font-size: 12px;
-    font-weight: 700;
-    line-height: 1.25;
+    font-weight: 650;
+    line-height: 1;
     text-align: center;
+    transform-origin: 100% 50%;
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
 }
 
+.stmui-az span[data-d='0'] {
+    color: var(--pt-on-accent);
+    transform: scale(1.15);
+}
+
+.stmui-az span[data-d='1'] {
+    color: var(--pt-text-primary);
+    transform: translateX(-10px) scale(1.3);
+}
+
+.stmui-az span[data-d='2'] {
+    color: var(--pt-text-primary);
+    transform: translateX(-6px) scale(1.15);
+}
+
+.stmui-az span[data-d='3'] {
+    transform: translateX(-2px) scale(1.05);
+}
+
+/* The letter you are on, big, beside your finger. */
 .stmui-az-bubble {
     position: absolute;
-    top: 40%;
-    left: 50%;
+    top: 0;
+    right: 48px;
     z-index: 6;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 72px;
-    height: 72px;
-    border-radius: var(--pt-radius);
-    background: var(--stmui-accent);
-    color: var(--stmui-on-accent);
+    width: 56px;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    box-shadow: 0 8px 24px color-mix(in srgb, #000 30%, transparent);
+    color: var(--pt-on-accent);
     font-size: 24px;
     font-weight: 800;
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7);
-    transition: opacity var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
+    scale: 0.6;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease), scale var(--pt-dur-fast) var(--pt-ease);
     pointer-events: none;
 }
 
 .stmui-az-bubble.stmui-az-bubble-on {
-    opacity: 0.95;
-    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    scale: 1;
 }
 
 /* ==========================================================================
@@ -6916,7 +7163,7 @@ html.stmui-chat .welcomeRecent .recentChatList.stmui-searching .showMoreChats {
 
 /* While searching, every chat counts, including the ones folded under "show more". */
 html.stmui-chat .welcomeRecent .recentChatList .recentChat.hidden.stmui-match {
-    display: grid;
+    display: flex;
     visibility: visible !important;
 }
 
@@ -7099,13 +7346,7 @@ html.stmui-chat .stmui-group-when {
 }
 
 html.stmui-chat .stmui-group-last {
-    display: -webkit-box;
-    overflow: hidden;
-    color: color-mix(in srgb, var(--stmui-text) 72%, transparent);
-    font-size: 14px;
-    line-height: 1.35;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    --stmui-clamp: 2;
 }
 
 html.stmui-chat .stmui-group-toggle {
@@ -7221,37 +7462,15 @@ html.stmui-chat .stmui-group-chats::before {
 }
 
 html.stmui-chat .welcomeRecent .recentChatList .stmui-group-chats .recentChat {
-    position: relative;
-    grid-template-areas:
-        'name date'
-        'msg msg'
-        'stats actions';
-    grid-template-columns: minmax(0, 1fr) auto;
     margin-left: 24px;
-    padding: 12px 8px 8px 12px;
+    padding: 12px;
     overflow: visible;
     border-radius: var(--pt-radius-sm);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
 }
 
-html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat > .avatar,
-html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat .chatName > strong {
+html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat > .avatar {
     display: none;
-}
-
-html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat .chatName > span:last-of-type {
-    color: var(--stmui-text);
-    font-size: 14px;
-    font-weight: 650;
-}
-
-html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat .chatMessage {
-    display: -webkit-box;
-    margin-top: 4px;
-    overflow: hidden;
-    font-size: 14px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
 }
 
 html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat::before {
@@ -7268,7 +7487,7 @@ html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat::before {
 
 /* SillyTavern folds some chats away (and makes them invisible); inside a group they all count. */
 html.stmui-chat .welcomeRecent .recentChatList .stmui-group-chats .recentChat.hidden {
-    display: grid;
+    display: flex;
     visibility: visible !important;
 }
 
@@ -7279,6 +7498,163 @@ html.stmui-chat .welcomeRecent .recentChatList .stmui-group-chats .recentChat.st
 html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
     left: 22px;
     border-radius: var(--pt-radius-sm);
+}
+
+/* -- A character's sheet: who they are, what to do, their recent chats --------- */
+
+.stmui-cs-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin: 4px 4px 16px;
+}
+
+.stmui-cs-avatar {
+    flex: 0 0 auto;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--pt-surface-elevated);
+    box-shadow: 0 0 0 1px var(--pt-border);
+    object-fit: cover;
+}
+
+.stmui-cs-avatar-missing {
+    visibility: hidden;
+}
+
+.stmui-cs-about {
+    display: -webkit-box;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+}
+
+.stmui-cs-about em {
+    color: var(--SmartThemeEmColor, var(--pt-text-secondary));
+}
+
+.stmui-cs-about q {
+    color: var(--SmartThemeQuoteColor, var(--pt-accent));
+    quotes: none;
+}
+
+.stmui-cs-about q::before,
+.stmui-cs-about q::after {
+    content: none;
+}
+
+.stmui-cs-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 4px 16px;
+}
+
+.stmui-cs-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    height: 64px;
+    margin: 0;
+    padding: 0 4px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stmui-cs-action span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stmui-cs-action .stmui-svg {
+    width: 20px;
+    height: 20px;
+}
+
+.stmui-cs-action.stmui-cs-primary {
+    border-color: transparent;
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+}
+
+.stmui-cs-action:active {
+    transform: scale(0.97);
+}
+
+.stmui-cs-heading {
+    margin: 0 4px 8px;
+}
+
+.stmui-cs-chats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 4px;
+}
+
+.stmui-cs-chat {
+    display: flex;
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stmui-cs-chat:active {
+    background: var(--pt-surface-elevated);
+}
+
+.stmui-cs-chat .stmui-bubble {
+    --stmui-clamp: 2;
+}
+
+.stmui-cs-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 8px);
+    height: 44px;
+    margin: 12px 4px 4px;
+    border-radius: var(--pt-radius-sm);
+}
+
+@media (hover: hover) {
+    :is(.stmui-cs-action:not(.stmui-cs-primary), .stmui-cs-chat):hover {
+        background: var(--pt-surface-elevated);
+    }
+
+    .welcomeRecent .recentChat .stmui-rc-more:hover,
+    #select_chat_popup .stmui-rc-more:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
 }
 
 /* -- Your persona sheet and the quick editor --------------------------------- */
@@ -7821,18 +8197,6 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .ch_add_p
 }
 
 /* -- A–Z strip: exactly beside the list ----------------------------------- */
-
-html.stmui-charpage .stmui-az {
-    transform: none;
-    max-height: none;
-    padding: 4px 1px;
-    background: transparent;
-}
-
-html.stmui-charpage .stmui-az span {
-    min-width: 18px;
-    font-size: 12px;
-}
 
 /* The picture sets the card's height (a card made only of overlays would collapse). */
 html.stmui-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {
@@ -9510,10 +9874,8 @@ html.stmui-chat.stmui-compact .welcomeRecent .recentChatList {
 }
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    gap: 0 8px;
-    padding: 8px 4px 0 12px;
-    border-radius: var(--pt-radius);
+    gap: 8px;
+    padding: 8px 12px;
 }
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat > .avatar {
@@ -9524,23 +9886,19 @@ html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat > .avat
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat .recentChatPinned {
     top: 4px;
-    left: 40px;
+    left: 36px;
 }
 
-html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat .chatMessageContainer .chatMessage {
-    display: -webkit-box;
-    margin-top: 4px;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
+html.stmui-chat.stmui-compact .stmui-rc-body {
+    gap: 4px;
 }
 
-html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat :is(.chatStats, .chatActions) {
-    margin-top: 0;
+html.stmui-chat.stmui-compact .welcomeRecent .stmui-bubble {
+    --stmui-clamp: 2;
 }
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .stmui-group-chats .recentChat {
-    padding: 8px 4px 0 12px;
+    padding: 8px 12px;
 }
 
 /* Tablets and unfolded foldables: the chat is a centred column with lines short
@@ -11133,6 +11491,10 @@ html.stmui-wide #select_chat_popup .select_chat_block_filename_item {
 html.stmui-wide #select_chat_popup .select_chat_block_mes {
     font-size: 16px;
     line-height: 1.45;
+}
+
+html.stmui-wide #select_chat_popup .stmui-bubble {
+    --stmui-clamp: 4;
 }
 
 /* -- The message editor fills the chat column ----------------------------- */

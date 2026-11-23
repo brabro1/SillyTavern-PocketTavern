@@ -357,6 +357,15 @@ export const STRINGS = {
     'The phone layout you are using now': ['El diseño para móvil que usas ahora', 'O layout para celular que você está usando', 'Телефонный интерфейс, которым вы сейчас пользуетесь', '你正在使用的手机布局', '今使っているスマホ向けの画面', 'تخطيط الهاتف الذي تستخدمه الآن'],
 
     // Chat options (☰)
+    'Chat from {date}': ['Chat del {date}', 'Chat de {date}', 'Чат от {date}', '{date} 的聊天', '{date} のチャット', 'دردشة {date}'],
+    'All chats ({count})': ['Todos los chats ({count})', 'Todos os chats ({count})', 'Все чаты ({count})', '全部聊天（{count}）', 'すべてのチャット（{count}）', 'كل الدردشات ({count})'],
+    'Open now': ['Abierto ahora', 'Aberto agora', 'Открыт сейчас', '当前打开', '表示中', 'مفتوحة الآن'],
+    'Latest': ['Último', 'Mais recente', 'Последний', '最新', '最新', 'الأحدث'],
+    'Export as JSONL': ['Exportar como JSONL', 'Exportar como JSONL', 'Экспорт в JSONL', '导出为 JSONL', 'JSONL で書き出す', 'تصدير بصيغة JSONL'],
+    'Download as text': ['Descargar como texto', 'Baixar como texto', 'Скачать как текст', '下载为文本', 'テキストでダウンロード', 'تنزيل كنص'],
+    'No chats yet. Chat starts the first one.': ['Aún no hay chats. Chat empieza el primero.', 'Ainda não há chats. Chat começa o primeiro.', 'Чатов пока нет. «Чат» начнёт первый.', '还没有聊天。点“聊天”开始第一个。', 'まだチャットはありません。「チャット」で最初のチャットを始めます。', 'لا توجد دردشات بعد. «دردشة» تبدأ الأولى.'],
+    'Character preview': ['Vista previa del personaje', 'Prévia do personagem', 'Карточка персонажа', '角色预览', 'キャラクターのプレビュー', 'معاينة الشخصية'],
+    '1 message': ['1 mensaje', '1 mensagem', '1 сообщение', '1 条消息', '1 件のメッセージ', 'رسالة واحدة'],
     'Chat options': ['Opciones del chat', 'Opções do chat', 'Параметры чата', '聊天选项', 'チャットのオプション', 'خيارات الدردشة'],
     'Reply': ['Respuesta', 'Resposta', 'Ответ', '回复', '返信', 'الرد'],
     'This chat': ['Este chat', 'Este chat', 'Этот чат', '此聊天', 'このチャット', 'هذه الدردشة'],

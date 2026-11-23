@@ -207,6 +207,37 @@ if (want('characters')) {
     await tab('chat');
 }
 
+if (want('character-sheet')) {
+    await tab('rightNavHolder');
+    await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
+    await until(() => document.querySelector('#rm_print_characters_block .character_select'));
+    await page.evaluate(() => [...document.querySelectorAll('#rm_print_characters_block .character_select')].find(row => row.querySelector('.ch_name')?.textContent.trim() === 'Seraphina')?.click());
+    await until(() => document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble'));
+    await shot('character-sheet');
+    await closeSheet();
+    await tab('chat');
+}
+
+if (want('history')) {
+    await page.evaluate(() => document.getElementById('option_select_chat')?.click());
+    await until(() => document.querySelector('#select_chat_div .select_chat_block.stmui-rc .stmui-bubble'));
+    await shot('history');
+    await page.evaluate(() => document.getElementById('select_chat_cross')?.click());
+    await page.waitForTimeout(400);
+}
+
+if (want('notifications')) {
+    await page.evaluate(() => {
+        toastr.success('Chat saved.');
+        toastr.info('Grayed-out options have no effect when Chat Completion API is used.');
+        toastr.warning('The reply was cut short. Raise the response length to get the rest.', 'Reply cut short');
+    });
+    await page.waitForTimeout(700);
+    await shot('notifications');
+    await page.evaluate(() => toastr.clear());
+    await page.waitForTimeout(500);
+}
+
 if (want('more')) {
     await tab('more');
     await shot('more');

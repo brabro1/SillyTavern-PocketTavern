@@ -1602,6 +1602,9 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await tab.evaluate(() => document.getElementById('rm_button_characters')?.click());
         await settle(800);
         await tab.locator('#rm_print_characters_block .character_select').first().click();
+        // Their sheet first; Chat opens the chat beside the page.
+        await tab.waitForFunction(() => !!document.querySelector('#stmui-sheet.stmui-char-sheet .stmui-cs-primary'), null, { timeout: 5000 });
+        await tab.locator('#stmui-sheet .stmui-cs-primary').click();
         await settle(2500);
         if (await tab.evaluate(() => document.documentElement.dataset.stmuiPage) !== 'rightNavHolder') throw new Error('picking a character closed the page');
         // Personas: labeled tools like a character card, and on a wide page the list and the card side by side.
@@ -2165,6 +2168,199 @@ await step("More… on a character card stays above the Description tabs at 1920
         } finally {
             await view.close();
         }
+    }
+});
+
+await step('tapping a character shows its sheet (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
+    const goCharacters = async () => {
+        await showTabs();
+        await page.locator('.stmui-tab[data-tab="rightNavHolder"]').click();
+        await until(() => document.documentElement.dataset.stmuiPage === 'rightNavHolder');
+        await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
+        await until(() => !!document.querySelector('#rm_print_characters_block .character_select'));
+    };
+    const tapCharacter = name => page.evaluate(who => {
+        const entry = [...document.querySelectorAll('#rm_print_characters_block .character_select')].find(row => row.querySelector('.ch_name')?.textContent.trim() === who);
+        entry.scrollIntoView({ block: 'center' });
+        entry.click();
+    }, name);
+    const chatId = () => page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null);
+    // Start from another character, so a chat switch would show.
+    await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
+    await page.waitForTimeout(1500);
+    const before = await chatId();
+    await goCharacters();
+    await tapCharacter('Seraphina');
+    await until(() => !!document.querySelector('#stmui-sheet.stmui-char-sheet'));
+    const sheetState = await page.evaluate(() => ({
+        title: document.querySelector('#stmui-sheet .stmui-title')?.textContent,
+        actions: [...document.querySelectorAll('#stmui-sheet .stmui-cs-action')].map(button => button.textContent.trim()),
+        page: document.documentElement.dataset.stmuiPage,
+    }));
+    if (sheetState.title !== 'Seraphina') throw new Error(`the sheet is titled ${sheetState.title}`);
+    if (sheetState.actions.join('|') !== 'Chat|New chat|Edit') throw new Error(`actions: ${sheetState.actions.join(', ')}`);
+    if (await chatId() !== before) throw new Error('tapping a character switched chats');
+    // Its recent chats come in with their last message as a bubble.
+    await until(() => !!document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble'));
+    const narration = await page.evaluate(() => !!document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble em'));
+    if (!narration) throw new Error("the preview does not draw *narration* like the chat");
+    // Edit: their card, still on the Characters page.
+    await page.locator('#stmui-sheet .stmui-cs-action', { hasText: 'Edit' }).click();
+    await until(() => !document.getElementById('stmui-sheet') && SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina');
+    await page.waitForTimeout(800);
+    if (await page.evaluate(() => document.documentElement.dataset.stmuiPage) !== 'rightNavHolder') throw new Error('Edit left the Characters page');
+    if (!(await page.evaluate(() => !!document.getElementById('stmui_card_tabs')?.getBoundingClientRect().height))) throw new Error('Edit did not show the card');
+    // Chat from the sheet: on a phone it lands in the chat.
+    await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
+    await page.waitForTimeout(1200);
+    await goCharacters();
+    await tapCharacter('Seraphina');
+    await until(() => !!document.querySelector('#stmui-sheet .stmui-cs-primary'));
+    await page.locator('#stmui-sheet .stmui-cs-primary').click();
+    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina' && !document.documentElement.dataset.stmuiPage, null, 10000);
+    // Turned off, a tap opens the chat at once, as before.
+    await page.evaluate(() => {
+        const box = document.getElementById('stmui_charpreview');
+        box.checked = false;
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    try {
+        await goCharacters();
+        await tapCharacter('Aria');
+        await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Aria', null, 10000);
+        if (await page.locator('#stmui-sheet.stmui-char-sheet').count()) throw new Error('the sheet opened with Character preview off');
+    } finally {
+        await page.evaluate(() => {
+            const box = document.getElementById('stmui_charpreview');
+            box.checked = true;
+            box.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        await page.waitForTimeout(1500);
+        if (await page.evaluate(() => !!document.documentElement.dataset.stmuiPage)) await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]')?.click());
+    }
+});
+
+await step('recent chats and chat history show each chat as a title, a message bubble and ⋯; the start screen header has one fold button', async () => {
+    await page.locator('.stmui-ab-home').click();
+    await until(() => !!document.querySelector('#chat .welcomePanel .recentChat.stmui-rc .stmui-bubble'), null, 10000);
+    const home = await page.evaluate(() => {
+        const visible = el => !!el && getComputedStyle(el).display !== 'none';
+        const panel = document.querySelector('#chat .welcomePanel');
+        const row = panel.querySelector('.recentChat.stmui-rc');
+        return {
+            stInfoHidden: getComputedStyle(row.querySelector('.recentChatInfo')).display === 'none',
+            more: !!row.querySelector('.stmui-rc-more'),
+            show: visible(panel.querySelector('.showRecentChats')),
+            hide: visible(panel.querySelector('.hideRecentChats')),
+            moreSize: (() => { const r = row.querySelector('.stmui-rc-more').getBoundingClientRect(); return Math.round(r.width); })(),
+        };
+    });
+    if (!home.stInfoHidden || !home.more) throw new Error(`recent chat row: ${JSON.stringify(home)}`);
+    if (home.show === home.hide) throw new Error(`show and hide recent chats are both ${home.show ? 'shown' : 'hidden'}`);
+    // ⋯ opens the chat's menu without opening the chat.
+    await page.evaluate(() => document.querySelector('#chat .welcomePanel .recentChat.stmui-rc .stmui-rc-more').click());
+    await until(() => !!document.getElementById('stmui-sheet'));
+    const items = await page.evaluate(() => [...document.querySelectorAll('#stmui-sheet .stmui-menu-row')].map(row => row.textContent.trim()));
+    if (!items.includes('Rename') || !items.includes('Delete') || !items.some(item => /^(Pin|Unpin)$/.test(item))) throw new Error(`menu: ${items.join(', ')}`);
+    await closeSheet();
+    if (await page.evaluate(() => !!SillyTavern.getContext().getCurrentChatId?.())) throw new Error('⋯ opened the chat');
+    // Folding the list leaves one button to bring it back.
+    await page.evaluate(() => document.querySelector('#chat .welcomePanel .hideRecentChats').click());
+    const folded = await page.evaluate(() => {
+        const visible = el => !!el && getComputedStyle(el).display !== 'none';
+        const panel = document.querySelector('#chat .welcomePanel');
+        return { show: visible(panel.querySelector('.showRecentChats')), hide: visible(panel.querySelector('.hideRecentChats')), list: visible(panel.querySelector('.welcomeRecent')) };
+    });
+    await page.evaluate(() => document.querySelector('#chat .welcomePanel .showRecentChats').click());
+    if (!folded.show || folded.hide || folded.list) throw new Error(`folded: ${JSON.stringify(folded)}`);
+    // Chat history rows.
+    await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => document.getElementById('option_select_chat')?.click());
+    await until(() => !!document.querySelector('#select_chat_div .select_chat_block.stmui-rc .stmui-bubble'), null, 10000);
+    const history = await page.evaluate(() => {
+        const block = document.querySelector('#select_chat_div .select_chat_block.stmui-rc');
+        return {
+            stHidden: getComputedStyle(block.querySelector('#select_chat_name_wrapper')).display === 'none',
+            title: block.querySelector('.stmui-rc-title')?.textContent,
+            now: !!document.querySelector('#select_chat_div .select_chat_block[highlight] .stmui-rc-now'),
+        };
+    });
+    if (!history.stHidden || !history.title) throw new Error(`history row: ${JSON.stringify(history)}`);
+    if (!history.now) throw new Error('the open chat is not marked');
+    await page.evaluate(() => document.querySelector('#select_chat_div .stmui-rc-more').click());
+    await until(() => !!document.getElementById('stmui-sheet'));
+    const historyItems = await page.evaluate(() => [...document.querySelectorAll('#stmui-sheet .stmui-menu-row')].map(row => row.textContent.trim()));
+    if (historyItems.join('|') !== 'Rename|Export as JSONL|Download as text|Delete') throw new Error(`history menu: ${historyItems.join(', ')}`);
+    await closeSheet();
+    await page.evaluate(() => document.getElementById('select_chat_cross')?.click());
+    await page.waitForTimeout(500);
+});
+
+await step('notifications are calm cards: a solid surface, a small coloured icon, no coloured fill', async () => {
+    const look = await page.evaluate(async () => {
+        toastr.warning('Connection is slow.');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        const toast = document.querySelector('#toast-container > .toast-warning');
+        const s = getComputedStyle(toast);
+        const surface = getComputedStyle(document.documentElement).getPropertyValue('--pt-surface-elevated').trim();
+        const probe = document.createElement('div');
+        probe.style.background = surface;
+        document.body.append(probe);
+        const expected = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        const out = { bg: s.backgroundColor, expected, icon: getComputedStyle(toast, '::after').maskImage || getComputedStyle(toast, '::after').webkitMaskImage, tile: getComputedStyle(toast, '::before').content };
+        toastr.clear();
+        return out;
+    });
+    if (look.bg !== look.expected) throw new Error(`the toast is ${look.bg}, not the surface ${look.expected}`);
+    if (!/url\(/.test(look.icon)) throw new Error('the toast has no icon');
+    if (look.tile !== 'none') throw new Error('the old icon tile is still drawn');
+});
+
+await step('the A–Z strip: a light on the letter under the finger, a lens around it, and a bubble beside the finger', async () => {
+    await showTabs();
+    await page.locator('.stmui-tab[data-tab="rightNavHolder"]').click();
+    await until(() => document.documentElement.dataset.stmuiPage === 'rightNavHolder');
+    await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
+    const sort = await page.evaluate(() => document.getElementById('character_sort_order')?.value);
+    try {
+        await page.evaluate(() => {
+            const select = document.getElementById('character_sort_order');
+            const option = [...select.options].find(item => item.dataset.field === 'name' && item.dataset.order === 'asc');
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        await until(() => document.getElementById('stmui_az')?.getBoundingClientRect().height > 0, null, 8000);
+        const box = await page.evaluate(() => { const r = document.getElementById('stmui_az').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * 0.4 }; });
+        await page.mouse.move(box.x, box.y);
+        await page.mouse.down();
+        await page.mouse.move(box.x, box.y + 20, { steps: 3 });
+        await page.waitForTimeout(250);
+        const during = await page.evaluate(() => ({
+            on: document.getElementById('stmui_az').classList.contains('stmui-az-on'),
+            lens: [...document.querySelectorAll('#stmui_az span')].map(span => span.dataset.d).filter(d => d !== undefined && d !== '').length,
+            active: document.querySelector('#stmui_az span[data-d="0"]')?.textContent,
+            bubble: document.getElementById('stmui_az_bubble')?.classList.contains('stmui-az-bubble-on'),
+            bubbleText: document.getElementById('stmui_az_bubble')?.textContent,
+        }));
+        await page.mouse.up();
+        await page.waitForTimeout(250);
+        const after = await page.evaluate(() => document.getElementById('stmui_az_bubble')?.classList.contains('stmui-az-bubble-on'));
+        if (!during.on || during.lens < 3 || !during.bubble) throw new Error(`while dragging: ${JSON.stringify(during)}`);
+        if (during.active !== during.bubbleText) throw new Error(`the light is on ${during.active} but the bubble says ${during.bubbleText}`);
+        if (after) throw new Error('the bubble stayed after letting go');
+    } finally {
+        await page.evaluate(value => {
+            const select = document.getElementById('character_sort_order');
+            if (value && select.value !== value) {
+                select.value = value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }, sort);
+        await page.waitForTimeout(800);
+        await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]')?.click());
+        await page.waitForTimeout(500);
     }
 });
 

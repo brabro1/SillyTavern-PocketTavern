@@ -2,7 +2,7 @@
 
 ## 2.28.0
 
-The second step of the redesign (type, radius, spacing and motion), and fixes for GitHub issues #3, #4 and #5.
+The second step of the redesign (type, radius, spacing and motion), new chat lists, a character sheet, calmer notifications, a new A–Z strip, and fixes for GitHub issues #3, #4 and #5.
 
 ### Both
 
@@ -17,13 +17,19 @@ The second step of the redesign (type, radius, spacing and motion), and fixes fo
 - **The context ring** (GitHub issue #3). It could stay on a small number, such as 64 tokens. Extensions and some SillyTavern features send small prompts of their own in the background (a summary, a classification), and the ring counted the last prompt it saw. It now counts only the prompt for your reply, and when the reply is done (or a message is deleted or swiped) it reads SillyTavern's own record of that prompt, the same numbers as its Prompt view.
 - **More… on a character card** (GitHub issue #4). SillyTavern sizes the card's tool area to the height of the header beside it; with Pocket Tavern's layout (tools under the picture) that held it short, so the More… menu slid under the Description / First message / Notes & tags tabs. Reported in Firefox at 1920 × 1080; it happened in every browser and on phones too. The header now fits its contents, and the empty gap between the two rows of tools is gone.
 
+- **Chats look like chats.** In Recent chats on the start screen and in Chat history, each chat is a row: who (or the chat's own name, or "Chat from 12 May 2023" for an unnamed one), when, and its last message drawn as a message bubble, with *narration*, "dialogue" and **bold** in the colours and font your theme (or SillyTavern theme) gives the chat, and how many messages. The file name, file size and three small icons are gone; ⋯ on each chat opens Pin, Rename and Delete (Rename, Export as JSONL, Download as text and Delete in Chat history), which use SillyTavern's own buttons. The chat that is open now has an accent edge and an "Open now" label instead of a coloured block.
+- **The start screen's buttons** each do one thing: the eye hides the message box, the gear opens Recent chats settings (how many chats to show), and one arrow folds the list away or brings it back. Pocket Tavern's sizing showed SillyTavern's show and hide buttons both at once, so the down arrow did nothing and the cross hid the whole list.
+- **A character's sheet.** Choosing a character in the list no longer jumps into their chat. Their sheet opens (a dialog on a computer): picture, a few words about them, **Chat**, **New chat**, **Edit**, and their five newest chats with the last message of each; tap one to open it. Groups and bulk select work as before. **More → Phone features → Character preview** (or the Pocket Tavern settings) turns it off.
+- **The A–Z strip** is slimmer and quieter. Touch it (or press it with a mouse) and a soft light glides to the letter under your finger, the letters around it lean out like a lens, and a bubble with the letter rides beside your finger. With a mouse the lens follows the pointer before you press.
+- **Notifications** are calm cards on the page's solid surface: a small icon in their colour, the words, and a thin line for the time left, instead of blocks filled with green, blue, amber or red.
+
 ### Phone
 
-- **No scrollbars on the chat and pages,** as before. Pocket Tavern's own sheets and lists never show one.
+- **No scrollbars,** as before: the chat, pages, sheets and lists scroll by touch.
 
 ### Desktop
 
-- **Scrollbars are back** on SillyTavern's own lists, pages and the chat, for the mouse. Pocket Tavern used to hide every scrollbar.
+- **A slim scrollbar on every list** for the mouse: 8px of room, a thin rounded thumb that is faint until you point at the list, no track and no arrows. Pocket Tavern used to hide every scrollbar.
 - **Message text is 16px.**
 
 ## 2.27.0
