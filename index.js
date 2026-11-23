@@ -4376,7 +4376,7 @@ const CARD_TOOLS = [
     ['#create_button_label', 'Create'],
 ];
 const CARD_TABS = [['desc', 'Description'], ['greet', 'First message'], ['notes', 'Notes & tags']];
-const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null, returning: false };
+const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null };
 
 /**
  * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
@@ -4390,6 +4390,10 @@ function onExportClick(event) {
     event.stopImmediatePropagation();
     const pick = format => {
         closeSheet(true);
+        if (peekedChid() !== null) {
+            exportCardCharacter(format);
+            return;
+        }
         document.querySelector(`#export_format_popup .export_format[data-format="${format}"]`)?.click();
     };
     const row = (format, iconName, note) => h('button', { type: 'button', class: 'stmui-menu-row', onclick: () => pick(format) }, [
@@ -4489,72 +4493,152 @@ function chatWithCharacter(entry, chid, fileId, then) {
 }
 
 /**
- * Edit a character's card without ending up in their chat. SillyTavern edits only the character
- * whose chat is open (its Delete, Favorite and Export act on that one), so their chat has to load
- * behind the card. Where you were is remembered: leaving the card without pressing Chat saves it
- * and takes you back there (the chat you were in, a group chat, or the start screen).
+ * Edit a character's card without opening their chat. The card is SillyTavern's own form, filled
+ * the way SillyTavern fills it for a group member it shows without their chat
+ * (select_selected_character); the chat you are in, and SillyTavern's current character, stay as
+ * they are. Fields, the picture, Favorite, Advanced and alternate greetings save to this
+ * character (SillyTavern saves the form). Export downloads this character's file. The buttons
+ * that in SillyTavern act on the character whose chat is open (Delete, Duplicate, Lore, Chat lore,
+ * Personas, tags, Ext. Media, More…) open their chat first, then do their job: only those, and
+ * Chat, open it.
  */
 async function editCharacter(chid) {
     closeSheet(true);
     if (shell) shell.jumpAt = 0;
     const context = ctx();
-    const sameChat = !context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid);
-    const from = sameChat ? null : { chid: context.characterId, groupId: context.groupId, chatId: context.getCurrentChatId?.() ?? null };
-    chars.peek = null;
-    await context.selectCharacterById(String(chid));
-    if (from && String(ctx().characterId) === String(chid)) chars.peek = { from, chid: String(chid) };
-}
-
-/** Keep this character's chat: Chat or a recent chat was picked on the card. */
-function keepCardChat() {
-    chars.peek = null;
-}
-
-/** Called as pages change: leaving a peeked card goes back to where you were. */
-function checkCardPeek() {
-    const peek = chars.peek;
-    if (!peek || chars.returning) return;
-    const context = ctx();
-    // Another character or chat was opened meanwhile: that is where you are now.
-    if (String(context.characterId) !== peek.chid || context.groupId) {
-        chars.peek = null;
+    endCardPeek();
+    if (!context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid)) {
+        await context.selectCharacterById(String(chid));
         return;
     }
-    const editorShown = currentPageId() === 'rightNavHolder' && isShown(document.getElementById('rm_ch_create_block'));
-    if (editorShown) return;
-    chars.peek = null;
-    returnFromCard(peek.from);
+    try {
+        const st = await import('/script.js');
+        if (typeof st.select_selected_character !== 'function') throw new Error('select_selected_character is missing');
+        await st.unshallowCharacter?.(chid);
+        st.select_selected_character(chid);
+        const tags = await import('/scripts/tags.js').catch(() => null);
+        tags?.applyTagsOnCharacterSelect?.(chid);
+        chars.peek = { chid: String(chid), avatar: context.characters[chid]?.avatar };
+        document.documentElement.classList.add('stmui-card-peek');
+        syncCharacterPage();
+        shell?.update();
+    } catch (error) {
+        // An older or newer SillyTavern without these: open the card the usual way.
+        console.warn(LOG, 'Could not open the card on its own', error);
+        endCardPeek();
+        await context.selectCharacterById(String(chid));
+    }
 }
 
-async function returnFromCard(from) {
-    chars.returning = true;
-    try {
-        // Save the card now: SillyTavern saves edits a moment after typing, and that save
-        // would otherwise read the next character's card.
-        const context = ctx();
-        const eventName = context.eventTypes?.CHARACTER_EDITED;
-        const saved = new Promise(resolve => {
-            const done = () => {
-                if (eventName) context.eventSource?.removeListener?.(eventName, done);
-                resolve();
-            };
-            if (eventName) context.eventSource?.on?.(eventName, done);
-            setTimeout(done, 2000);
-        });
-        document.getElementById('create_button')?.click();
-        await saved;
-        // Let SillyTavern's own delayed save of the same card run before the card changes.
-        await new Promise(resolve => setTimeout(resolve, 1100));
-        if (from.groupId) await context.openGroupChat?.(from.groupId, from.chatId ?? undefined);
-        else if (from.chid !== undefined && context.characters[from.chid]) {
-            await context.selectCharacterById(String(from.chid));
-            if (from.chatId && ctx().getCurrentChatId?.() !== from.chatId) await ctx().openCharacterChat(from.chatId);
-        } else document.getElementById('option_close_chat')?.click();
-    } catch (error) {
-        console.warn(LOG, 'Could not go back to the chat you were in', error);
-    } finally {
-        chars.returning = false;
+/** The character whose card is open without their chat, or null. Checked live, never trusted. */
+function peekedChid() {
+    const peek = chars.peek;
+    if (!peek) return null;
+    const context = ctx();
+    const character = context.characters?.[peek.chid];
+    const shownAvatar = document.getElementById('avatar_url_pole')?.value;
+    if (!character || character.avatar !== peek.avatar || shownAvatar !== peek.avatar) return null;
+    if (!context.groupId && String(context.characterId) === peek.chid) return null;
+    return peek.chid;
+}
+
+/**
+ * Ends the card-only view. SillyTavern's form is put back on the character whose chat is open,
+ * so nothing can act on the wrong character afterwards (with Pocket Tavern off, too).
+ */
+function endCardPeek() {
+    const had = !!chars.peek;
+    chars.peek = null;
+    document.documentElement.classList.remove('stmui-card-peek');
+    if (!had) return;
+    const context = ctx();
+    if (context.groupId || context.characterId === undefined) return;
+    import('/script.js').then(st => st.select_selected_character?.(context.characterId, { switchMenu: false })).catch(() => {});
+}
+
+/** Called as pages change: leaving the card (or another card opening) ends the card-only view. */
+function checkCardPeek() {
+    if (!chars.peek) return;
+    const editorShown = currentPageId() === 'rightNavHolder' && isShown(document.getElementById('rm_ch_create_block'));
+    if (!editorShown || !peekedChid()) endCardPeek();
+}
+
+/** Opens this character's chat (the list tap: on a phone the page closes into it unless asked not to). */
+function openCharacterChatFor(chid, { stay = false, fileId = null, then = null } = {}) {
+    const context = ctx();
+    endCardPeek();
+    if (shell) shell.jumpAt = stay || isWide() ? 0 : Date.now();
+    const finish = async () => {
+        try {
+            if (fileId && ctx().getCurrentChatId?.() !== fileId) await ctx().openCharacterChat(fileId);
+        } catch (error) {
+            console.warn(LOG, 'Could not open that chat', error);
+        }
+        if (!stay && !isWide()) closePages();
+        then?.();
+    };
+    if (!context.groupId && String(context.characterId) === String(chid)) {
+        finish();
+        return;
     }
+    afterChatChange(finish);
+    context.selectCharacterById(String(chid));
+}
+
+const CARD_NEEDS_CHAT = '#delete_button, #dupe_button, #world_button, .chat_lorebook_button, #char_connections_button, #tagInput, #character_open_media_overrides, #char-management-dropdown';
+
+/** On the card-only view, a button that needs the chat opens it, then does its job. */
+function onCardPeekPress(event) {
+    if (!active || !chars.peek) return;
+    const target = event.target.closest?.(CARD_NEEDS_CHAT);
+    if (!target || !target.closest('#rm_ch_create_block')) return;
+    const chid = peekedChid();
+    if (chid === null) return;
+    // A dropdown opens (and a text box takes the focus) on the press, before any click: those are
+    // caught on pointerdown, buttons on click.
+    const isSelect = target.matches('select, input');
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if ((event.type === 'pointerdown') !== isSelect) return;
+    const name = ctx().characters[chid]?.name ?? '';
+    globalThis.toastr?.info(t("This needs {name}'s chat, so it is open now.", { name }), '', { timeOut: 4000 });
+    openCharacterChatFor(chid, {
+        stay: true,
+        // A dropdown or a text box gets the focus back; a button is pressed again.
+        then: () => {
+            const again = target.id ? document.getElementById(target.id) : document.querySelector(CARD_NEEDS_CHAT.split(', ').find(selector => target.matches(selector)));
+            if (!again) return;
+            if (isSelect) again.focus();
+            else again.click();
+        },
+    });
+}
+
+/** Export on the card-only view: SillyTavern's export, for this character. */
+async function exportCardCharacter(format) {
+    const chid = peekedChid();
+    const character = chid === null ? null : ctx().characters[chid];
+    if (!character) return false;
+    try {
+        const response = await fetch('/api/characters/export', {
+            method: 'POST',
+            headers: ctx().getRequestHeaders(),
+            body: JSON.stringify({ format, avatar_url: character.avatar }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = character.avatar.replace(/\.png$/i, `.${format}`);
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (error) {
+        console.warn(LOG, 'Export failed', error);
+        globalThis.toastr?.error(t('Could not export the character.'));
+    }
+    return true;
 }
 
 /** On the card: Chat (their latest chat) and Recent chats (pick one). */
@@ -4564,8 +4648,8 @@ function buildCardGo() {
         class: 'stmui-card-go-btn stmui-card-go-chat',
         onclick: () => {
             buzz(6);
-            keepCardChat();
-            if (!isWide()) closePages();
+            const chid = peekedChid() ?? ctx().characterId;
+            if (chid !== undefined && chid !== null) openCharacterChatFor(chid);
         },
     }, [ui('chat'), h('span', { text: 'Chat' })]);
     const recent = h('button', {
@@ -4582,7 +4666,8 @@ function buildCardGo() {
 /** The card's character's chats, newest first; picking one keeps you in it. */
 function openCardChats() {
     const context = ctx();
-    const character = context.characters?.[context.characterId];
+    const chid = peekedChid() ?? context.characterId;
+    const character = context.characters?.[chid];
     if (!character) return;
     const state = { chats: null };
     const instance = new MenuSheet({
@@ -4601,19 +4686,17 @@ function openCardChats() {
                 const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
                 const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
                 const line = h('span', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileId), h('small', { class: 'stmui-rc-when', raw: when })]);
-                if (ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
+                if (String(ctx().characterId) === String(chid) && ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
                 const meta = h('small', { class: 'stmui-rc-meta' });
                 const count = Number(chat.chat_items);
                 if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
                 list.append(h('button', {
                     type: 'button',
                     class: 'stmui-rc stmui-cs-chat',
-                    onclick: async () => {
+                    onclick: () => {
                         buzz(6);
                         closeSheet(true);
-                        keepCardChat();
-                        if (ctx().getCurrentChatId?.() !== fileId) await ctx().openCharacterChat(fileId);
-                        if (!isWide()) closePages();
+                        openCharacterChatFor(chid, { fileId });
                     },
                 }, [h('span', { class: 'stmui-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
             }
@@ -4744,7 +4827,7 @@ function syncCharacterPage() {
         restoreCharToolbar();
         document.getElementById('rm_characters_block')?.classList.remove('stmui-one-page');
         document.querySelectorAll('.stmui-btn-label, #stmui_card_tabs, .stmui-hero-name, #stmui_card_go, .stmui-cap, #stmui_az, #stmui_az_bubble').forEach(node => node.remove());
-        chars.peek = null;
+        endCardPeek();
         form?.classList.remove('stmui-ctab-desc', 'stmui-ctab-greet', 'stmui-ctab-notes');
         chars.observer?.disconnect();
         chars.listObserver?.disconnect();
@@ -10439,6 +10522,8 @@ function init() {
     document.addEventListener('click', event => extnav.onClick(event), true);
     document.addEventListener('click', onExportClick, true);
     document.addEventListener('click', onCharacterTap, true);
+    document.addEventListener('click', onCardPeekPress, true);
+    document.addEventListener('pointerdown', onCardPeekPress, true);
     document.addEventListener('focusin', () => shell?.checkKeyboard());
     document.addEventListener('focusout', () => setTimeout(() => shell?.checkKeyboard(), 50));
 

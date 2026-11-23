@@ -2204,17 +2204,28 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
     await until(() => !!document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble'));
     const narration = await page.evaluate(() => !!document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble em'));
     if (!narration) throw new Error("the preview does not draw *narration* like the chat");
-    // Edit: their card, still on the Characters page.
+    // Edit: their card, without their chat (the chat you are in stays open behind it).
     await page.locator('#stmui-sheet .stmui-cs-action', { hasText: 'Edit' }).click();
-    await until(() => !document.getElementById('stmui-sheet') && SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina');
+    await until(() => !document.getElementById('stmui-sheet') && document.getElementById('character_name_pole')?.value === 'Seraphina');
     await page.waitForTimeout(800);
     if (await page.evaluate(() => document.documentElement.dataset.stmuiPage) !== 'rightNavHolder') throw new Error('Edit left the Characters page');
     if (!(await page.evaluate(() => !!document.getElementById('stmui_card_tabs')?.getBoundingClientRect().height))) throw new Error('Edit did not show the card');
+    if (await chatId() !== before) throw new Error("Edit opened the character's chat");
     if (!(await page.locator('#stmui_card_go').isVisible())) throw new Error('the card has no Chat and Recent chats buttons');
-    // Leaving the card without pressing Chat goes back to the chat you were in.
+    // The card's Chat opens their chat.
+    await page.locator('#stmui_card_go .stmui-card-go-chat').click();
+    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina', null, 10000);
+    await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
+    await page.waitForTimeout(1200);
+    // Leaving a card without pressing Chat leaves you in your chat, with SillyTavern's card back on it.
+    await goCharacters();
+    await tapCharacter('Seraphina');
+    await until(() => !!document.querySelector('#stmui-sheet .stmui-cs-action'));
+    await page.locator('#stmui-sheet .stmui-cs-action', { hasText: 'Edit' }).click();
+    await until(() => document.getElementById('character_name_pole')?.value === 'Seraphina');
     await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
-    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Aria', null, 10000);
-    if (await chatId() !== before) throw new Error('leaving the card did not go back to the chat you were in');
+    await until(() => document.getElementById('character_name_pole')?.value === 'Aria' && !document.documentElement.classList.contains('stmui-card-peek'), null, 8000);
+    if (await chatId() !== before) throw new Error('leaving the card changed the chat');
     // Chat from the sheet: on a phone it lands in the chat.
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
     await page.waitForTimeout(1200);
