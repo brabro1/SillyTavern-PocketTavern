@@ -124,8 +124,7 @@ export const STRINGS = {
     'Nothing to choose from here yet.': ['Aún no hay nada para elegir.', 'Ainda não há nada para escolher.', 'Пока не из чего выбрать.', '这里暂时没有可选项。', 'まだ選べるものがありません。', 'لا يوجد ما تختاره هنا بعد.'],
 
     // Find a setting
-    'In {page}': ['En {page}', 'Em {page}', 'В разделе «{page}»', '在 {page} 中', '{page} 内', 'في {page}'],
-    'Type a setting name…': ['Escribe el nombre de un ajuste…', 'Digite o nome de uma configuração…', 'Введите название настройки…', '输入设置名称…', '設定名を入力…', 'اكتب اسم الإعداد…'],
+    'Find a setting in {page}': ['Buscar un ajuste en {page}', 'Encontrar uma configuração em {page}', 'Найти настройку в разделе «{page}»', '在 {page} 中查找设置', '{page} で設定を探す', 'ابحث عن إعداد في {page}'],
     '{count} settings on this page.': ['{count} ajustes en esta página.', '{count} configurações nesta página.', 'Настроек на странице: {count}.', '此页面共有 {count} 项设置。', 'このページの設定: {count} 件', '{count} إعدادًا في هذه الصفحة.'],
     'No setting matches that.': ['Ningún ajuste coincide.', 'Nenhuma configuração corresponde.', 'Ничего не найдено.', '没有匹配的设置。', '一致する設定はありません。', 'لا يوجد إعداد مطابق.'],
 
@@ -321,6 +320,26 @@ export const STRINGS = {
     'Your own style rules': ['Tus propias reglas de estilo', 'Suas próprias regras de estilo', 'Ваши собственные правила стилей', '你自己的样式规则', '自分のスタイルルール', 'قواعد التنسيق الخاصة بك'],
     'STscript': ['STscript', 'STscript', 'STscript', 'STscript', 'STscript', 'STscript'],
     'How slash commands are read': ['Cómo se leen los comandos con barra', 'Como os comandos de barra são lidos', 'Как читаются слэш-команды', '斜杠命令的解析方式', 'スラッシュコマンドの読み取り方', 'كيف تُقرأ أوامر الشرطة المائلة'],
+    // Presets tabs and Export
+    'Export character': ['Exportar personaje', 'Exportar personagem', 'Экспорт персонажа', '导出角色', 'キャラクターを書き出す', 'تصدير الشخصية'],
+    'A picture card with everything inside. Most apps can open it.': ['Una imagen con todo dentro. La mayoría de las apps pueden abrirla.', 'Uma imagem com tudo dentro. A maioria dos apps consegue abrir.', 'Картинка со всеми данными внутри. Её открывает большинство приложений.', '包含全部内容的图片卡，大多数应用都能打开。', 'すべてを含んだ画像カード。ほとんどのアプリで開けます。', 'بطاقة صورة تحوي كل شيء. تفتحها معظم التطبيقات.'],
+    "The character's details as a text file.": ['Los datos del personaje como archivo de texto.', 'Os dados do personagem como arquivo de texto.', 'Данные персонажа в текстовом файле.', '角色资料的文本文件。', 'キャラクターの情報をテキストファイルで。', 'بيانات الشخصية كملف نصي.'],
+    'Parameters': ['Parámetros', 'Parâmetros', 'Параметры', '参数', 'パラメーター', 'المعاملات'],
+    'Prompts': ['Prompts', 'Prompts', 'Промпты', '提示词', 'プロンプト', 'الموجّهات'],
+    // Formatting sections
+    'Context template': ['Plantilla de contexto', 'Modelo de contexto', 'Шаблон контекста', '上下文模板', 'コンテキストテンプレート', 'قالب السياق'],
+    'Story string and how the prompt is put together': ['La cadena de historia y cómo se arma el prompt', 'A string da história e como o prompt é montado', 'Строка истории и то, как собирается промпт', '故事字符串以及提示词的组合方式', 'ストーリー文字列とプロンプトの組み立て方', 'نص القصة وكيفية تجميع الموجّه'],
+    'Instruct template': ['Plantilla de instrucciones', 'Modelo de instrução', 'Шаблон инструкций', '指令模板', 'インストラクトテンプレート', 'قالب التعليمات'],
+    'Instruct mode and the sequences around messages': ['El modo instrucción y las secuencias alrededor de los mensajes', 'O modo de instrução e as sequências em volta das mensagens', 'Режим инструкций и последовательности вокруг сообщений', '指令模式以及消息前后的序列', 'インストラクトモードとメッセージ前後のシーケンス', 'وضع التعليمات والتسلسلات المحيطة بالرسائل'],
+    'System prompt': ['Prompt del sistema', 'Prompt do sistema', 'Системный промпт', '系统提示词', 'システムプロンプト', 'موجّه النظام'],
+    'Instructions sent before the chat': ['Instrucciones que se envían antes del chat', 'Instruções enviadas antes do chat', 'Инструкции, которые отправляются перед чатом', '在聊天之前发送的指示', 'チャットの前に送る指示', 'تعليمات تُرسل قبل الدردشة'],
+    'Reasoning': ['Razonamiento', 'Raciocínio', 'Рассуждения', '推理', '推論', 'الاستدلال'],
+    'Thinking blocks: finding, showing and sending them': ['Bloques de pensamiento: encontrarlos, mostrarlos y enviarlos', 'Blocos de pensamento: encontrar, mostrar e enviar', 'Блоки размышлений: поиск, показ и отправка', '思考块：识别、显示和发送', '思考ブロックの検出・表示・送信', 'كتل التفكير: إيجادها وعرضها وإرسالها'],
+    'Stopping strings': ['Cadenas de parada', 'Strings de parada', 'Стоп-строки', '停止字符串', '停止文字列', 'سلاسل الإيقاف'],
+    'Words that end a reply': ['Palabras que terminan una respuesta', 'Palavras que encerram uma resposta', 'Слова, на которых ответ заканчивается', '让回复结束的词语', '返信を終わらせる言葉', 'كلمات تُنهي الرد'],
+    'How tokens are counted': ['Cómo se cuentan los tokens', 'Como os tokens são contados', 'Как считаются токены', '如何计算 token', 'トークンの数え方', 'كيف تُحسب الرموز'],
+    'Miscellaneous': ['Varios', 'Diversos', 'Разное', '其他', 'その他の設定', 'متفرقات'],
+    'Start reply with, model binding and more': ['Empezar la respuesta con, vincular al modelo y más', 'Começar a resposta com, vínculo ao modelo e mais', 'Начало ответа, привязка к модели и другое', '回复开头、绑定模型等', '返信の書き出し、モデルとの紐付けなど', 'بداية الرد وربط القالب بالنموذج والمزيد'],
     'Search settings': ['Buscar ajustes', 'Buscar configurações', 'Поиск настроек', '搜索设置', '設定を検索', 'البحث في الإعدادات'],
     'Phone layout, gestures and helpers': ['Diseño para móvil, gestos y ayudas', 'Layout para celular, gestos e ajudas', 'Телефонный интерфейс, жесты и помощники', '手机布局、手势和辅助功能', 'スマホ向けの画面、ジェスチャー、便利機能', 'تخطيط الهاتف والإيماءات والأدوات المساعدة'],
 

@@ -2,6 +2,8 @@
 
 This document is the single source of truth for Pocket Tavern's visual design, tokens, layout rules, and component behavior across **Phone** and **Desktop**.
 
+Rules marked **Target** are agreed goals the code does not meet yet. They are scheduled in the redesign (Phase 2 for type, radius, spacing and motion; Phase 3 for components) and listed together in §7. Build toward them; never write them out of this document because today's code differs.
+
 ---
 
 ## 1. Core Aesthetic Philosophy
@@ -74,8 +76,10 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - **Font Stack:** `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif` (or inherit SillyTavern's user-chosen font when **System font** is off).
 - **Reading Size:** `15px` on phones and `16px` on desktop by default, `line-height: 1.6`, clear paragraph rhythm (`0.75em` gap between paragraphs in Comfortable mode). The **Chat text size** setting scales smoothly from this baseline.
 - **Dialogue & Narration:** `*italics*` (`--SmartThemeEmColor`) and `"dialogue"` (`--SmartThemeQuoteColor`) remain visually distinct without garish neon colors.
-- **Desktop Reading Column:** Respects SillyTavern's **Chat width** slider (`More → Themes → Chat width`) centered in the available column, never stretching uncontrolled wall-to-wall or crushing `#send_form` when side panels are open.
+- **Desktop Reading Column:** Centered, never stretching wall-to-wall on a 1440p monitor, and never crushing `#send_form` when side panels are open. **Target:** cap the column at `760px` (`720px–780px`), or SillyTavern's **Chat width** slider when that is narrower. Today it follows the Chat width slider alone (up to `1280px` at 2560 wide).
 - **Code Blocks & Tables:** Horizontally scrollable inside their own container (`overflow-x: auto`) so wide content never breaks viewport width.
+- **Quotes & Code Blocks:** `0.75em` above and below (`0.5em` in Compact) so the text around them reads apart.
+- **Message Cards over a Chat Background:** a card from a SillyTavern theme takes the strength of both of SillyTavern's layers (chat tint and message tint), and its text is checked against the card over a bright picture as well as a mid-grey one.
 
 ---
 
@@ -88,7 +92,8 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - **No Horizontal Scroll:** Zero elements may bleed past viewport width (test down to `320px` and `360px` with extensions enabled).
 
 ### Desktop Layout (`html.stmui-wide`, `≥ 960×560`)
-- **Structure:** Compact left navigation rail with every page, resizable side page panel beside the chat that stays open while chatting, right-hand column for tool panels (Author's Note, CFG, Token Probabilities), centered dialogs instead of bottom sheets, `Escape` (only when not focused in a text input) and `Ctrl/Cmd+K` for Search everything.
+- **Structure:** Compact left navigation rail with every page, resizable side page panel beside the chat that stays open while chatting, right-hand column for tool panels (Author's Note, CFG, Token Probabilities), centered dialogs instead of bottom sheets, and `Ctrl/Cmd+K` for Search everything.
+- **Keyboard:** `Enter` sends and `Shift+Enter` inserts a newline (SillyTavern's own **Send on Enter** setting decides; never override it), `Escape` closes the topmost dialog, sheet or page (only when not typing in a text field).
 - **Dual-Panel Fit:** Left side panel width must account for any open right-hand tool panel (`--stmui-right`) so the center chat & composer never crush below usable width on `960–1200px` screens.
 - **Pointer Precision:** On fine pointers (`@media (pointer: fine)`), Compact controls may drop under `44px`; on touch devices (tablets/touch laptops), touch targets stay `44px`.
 - **Hover & Keyboard Focus:** Subtle hover states (`--pt-surface-elevated`) and clear `:focus-visible` outlines on every interactive control—never strip `outline: none` without a `:focus-visible` ring.
@@ -117,17 +122,20 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 
 ### Top Bar (`.stmui-appbar`)
 - Compact (`48px–52px` height), single row, solid `--pt-bg`, clean hairline bottom border.
-- Shows active character/group avatar + truncated title (`text-overflow: ellipsis`) or current page title + back button, quick translate trigger (on chat), and page/chat contextual action. Switching back to native SillyTavern lives in **More → Pocket Tavern settings**.
+- Shows active character/group avatar + truncated title (`text-overflow: ellipsis`) or current page title + back button, quick translate trigger (on chat), and page/chat contextual action.
+- **Target:** a clean one-tap toggle back to native SillyTavern for this visit, with a single `44px` "Back to Pocket Tavern" pill in a corner of the native interface. Today switching lives in **More → Pocket Tavern settings**. Turning Pocket Tavern off in settings still leaves nothing behind.
 
 ### Message List & Avatars
 - Subtle separation between User (`--pt-card-user`) and Character (`--pt-card-bot`) messages across **Cards**, **Bubbles**, and **Flat** looks.
 - Honors all four of SillyTavern's `avatar_style` shapes (Circle, Square, Rounded, Rectangle).
-- Message actions remain calm and unobtrusive (hover-revealed on desktop; clean compact row + `⋯` action sheet on phone); swipes sit in a compact `‹ 1/3 ›` pill.
+- Message actions stay calm and unobtrusive, never 8 loud buttons on every message: a clean compact row + `⋯` action sheet on phone; swipes sit in a compact `‹ 1/3 ›` pill.
+- **Target (desktop):** message buttons sit at low opacity and come up fully on hover or keyboard focus of the message, with a mouse only (`@media (hover: hover)`). Today they are always shown at full strength.
 
 ### Composer (`#send_form`)
-- Supports **Floating** and **Docked** layouts; auto-growing `<textarea>` capped before scrolling internally.
+- Supports **Floating** and **Docked** layouts; auto-growing `<textarea>` capped before scrolling internally. **Target:** the cap is `~35%` of the window height (today `40dvh`).
 - **Send / Stop** sits anchored at the bottom-right and never shrinks.
 - Houses SillyTavern's `☰` chat options, wand (**Tools**), persona chip, tabs toggle arrow (phone), context ring, and compatible extension triggers (e.g. Guided Generations compass, Input History inside the field, slim Quick Reply chips). Any extension button that does not fit cleanly next to Send moves to the wand's **Tools** sheet.
+- **Target:** secondary actions tucked into one `+` menu: `☰` (Chat options) and the wand (Tools) merge into a single `+` sheet with both groups, so the row keeps at most persona, `+`, context ring, the guide button and Send, and `320px` phones are never tight.
 - Extension compatibility patches are keyed strictly on each extension's markup and do nothing when absent (tested with Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse, and Chat Completion Tabs).
 
 ### Sheets & Dialogs
@@ -147,3 +155,28 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - Sentence case, plain verbs, no jargon, no apologies.
 - Words follow the active layout: never say "phone" or "tap / long-press" on desktop, and never say "click" on a phone.
 - Every user-facing UI label goes through `t()` with matching entries in `locales.js` (`es`, `pt`, `ru`, `zh`, `ja`, `ar`). Never run user-authored data through `t()`.
+
+---
+
+## 7. Decisions for this codebase (November 2026)
+- **Root and tokens:** the root selector is `html.stmui-on` (see CLAUDE.md). The `--pt-*` tokens are the source of truth; the older `--stmui-*` tokens are aliases of them and are not used in new code. Nothing is renamed from `stmui` to `pt`: that would break saved settings, drafts, character and chat data, and users' custom CSS.
+- **Themes:** the palette in §2 is the default theme, **Pocket**, with a matching light version. The other Pocket Tavern themes stay, built from the same roles (`--pt-bg`, `--pt-surface`, `--pt-surface-elevated`, `--pt-border`, the three text levels, one accent, danger), flat (no glows, no gradients) and meeting the contrast rule. SillyTavern UI themes are offered too, converted to these roles with the contrast rule enforced.
+- **Chat backgrounds:** no `backdrop-filter` anywhere. Over a chat background, bars, pages, sheets, dialogs and the composer stay solid; only message cards are a translucent tint, so the picture shows through them and between them. Card text is checked against the tint over mid grey and lifted until it meets the contrast rule. SillyTavern's own blur on `#chat` and its drawers is switched off while the shell is on (2.25.1: a blurred container put the full-screen message editor thousands of pixels off screen).
+- **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6, 0.75em between paragraphs. The Chat text size setting scales up from there.
+- **SillyTavern's own screens** stay SillyTavern's: marked, restyled with tokens and placed with CSS, never moved or rebuilt. Where a screen is a long list of settings, Pocket Tavern may show it in steps (a list of sections that each open their own page, like Settings) by hiding the other sections, not by moving them.
+
+### Targets not built yet
+**Phase 2 (type, radius, spacing, motion):**
+- Message text at 15px on phones and 16px on desktop, line-height 1.6 (Compact 1.5), 0.75em between paragraphs (Compact 0.5em).
+- Font sizes folded into 12 / 14 / 15 / 16 / 20 / 24.
+- Radii from the tokens: 14px containers, 10px controls; round icon buttons and avatars stay round.
+- Every spacing value on the 4px scale.
+- Every duration 150–240ms with `--pt-ease`; no overshooting easing, no theatrical send animation, no `box-shadow` animation; Full motion follows `prefers-reduced-motion`.
+- Hidden scrollbars only inside Pocket Tavern's own scrolling areas, never on every element.
+
+**Phase 3 (components):**
+- Top bar 52px (48px in Compact) with the one-tap SillyTavern toggle (§5 Top Bar).
+- Desktop message buttons at low opacity until hover or focus (§5 Message List).
+- Composer: the 35% cap and the single `+` sheet (§5 Composer).
+- Desktop column capped at 760px, or Chat width when narrower (§3).
+- A `:focus-visible` ring on every Pocket Tavern control.

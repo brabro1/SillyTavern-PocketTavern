@@ -1072,7 +1072,19 @@ const OVERLAYS = [
     { selector: '#completion_prompt_manager_popup', close: () => (promptFull() ? setPromptFull(false) : leavePromptEditor()), open: () => promptEditorOpen() },
     { selector: '#shadow_select_chat_popup', close: '#select_chat_cross' },
     { selector: '#character_popup', close: '#character_cross' },
+    // Character Library (another extension) in its Embedded Panel mode: a page of its own (issue #1).
+    { selector: '#charlib-embedded-container', close: () => closeCharacterLibrary() },
 ];
+
+/** Closes Character Library's embedded panel the way it closes itself (its button toggles it). */
+function closeCharacterLibrary() {
+    const panel = document.getElementById('charlib-embedded-container');
+    if (!isShown(panel)) return false;
+    const toggle = document.querySelector('#st-gallery-btn, #charlib-launcher-dropdown [data-action="library"]');
+    if (toggle) toggle.click();
+    else panel.style.display = 'none';
+    return true;
+}
 
 function isShown(element) {
     return !!element && getComputedStyle(element).display !== 'none';
@@ -1334,7 +1346,7 @@ function openLayerCount() {
     if (editorOpen()) count += 1;
     if (chatFinderOpen()) count += 1;
     if (openLoreEntry()) count += 1;
-    if (settingsSectionOpen()) count += 1;
+    if (pageSectionOpen()) count += 1;
     return count;
 }
 
@@ -1346,7 +1358,11 @@ function watchOverlays(on) {
     const watchGuidedPopup = popup => nav.observer.observe(popup, { attributes: true, attributeFilter: ['style'] });
     nav.observer = new MutationObserver(records => {
         for (const record of records) {
-            for (const node of record.addedNodes ?? []) if (node.classList?.contains('gg-popup')) watchGuidedPopup(node);
+            for (const node of record.addedNodes ?? []) {
+                if (node.classList?.contains('gg-popup')) watchGuidedPopup(node);
+                // Layers another extension adds later (Character Library makes its panel on first use).
+                if (node.nodeType === 1 && OVERLAYS.some(overlay => node.matches(overlay.selector))) nav.observer.observe(node, { attributes: true, attributeFilter: ['style', 'class'] });
+            }
         }
         scheduleHistorySync();
     });
@@ -1432,7 +1448,7 @@ function closeTopLayer() {
         else $j()(close).trigger('click');
         return true;
     }
-    if (closeSettingsSection()) return true;
+    if (closePageSection()) return true;
     if (currentPageId()) {
         closePages();
         return true;
@@ -1598,7 +1614,7 @@ class Shell {
                     else leavePromptEditor();
                     return;
                 }
-                if (!closeSettingsSection()) closePages();
+                if (!closePageSection()) closePages();
             },
         }, [ui('arrow-left')]);
         this.avatar = h('span', { class: 'stmui-ab-avatar', 'aria-hidden': 'true' });
@@ -1940,6 +1956,8 @@ class Shell {
 
     goTab(id) {
         if (sheet) closeSheet(true);
+        // Character Library's panel covers the chat and pages: any tab leaves it.
+        if (closeCharacterLibrary() && id === 'chat') return;
         if (id === 'chat') {
             if (!currentPageId() && this.tabsOut) this.tuckAgain();
             else closePages();
@@ -1949,7 +1967,7 @@ class Shell {
         if (open === id) {
             // Tapping the current tab goes "home" within it.
             if (id === 'rightNavHolder') showCharacterList();
-            else if (id === 'user-settings-button' && closeSettingsSection()) return;
+            else if (closePageSection()) return;
             else document.querySelector(`#${id} > .drawer-content`)?.scrollTo?.({ top: 0, behavior: 'smooth' });
             return;
         }
@@ -2025,11 +2043,8 @@ class Shell {
 
     renderContent(pageId) {
         const root = document.documentElement;
-        // Settings opens on its list of sections again next time.
-        if (pageId !== 'user-settings-button' && setnav.view !== 'home') {
-            setnav.view = 'home';
-            applySettingsView();
-        }
+        // Settings and Formatting open on their list of sections again next time.
+        for (const nav of PAGE_SECTIONS) if (nav.pageId !== pageId) nav.reset();
         root.classList.toggle('stmui-page-open', !!pageId);
         if (pageId) root.dataset.stmuiPage = pageId;
         else delete root.dataset.stmuiPage;
@@ -2052,13 +2067,18 @@ class Shell {
             if (drawer && settings.touchSizing) {
                 requestAnimationFrame(() => fillRanges(drawer));
                 addSliderSteppers(drawer);
-                if (pageId === 'user-settings-button') syncSettingsNav();
+                pageSections(pageId)?.sync();
                 if (SEARCH_PAGES.includes(pageId)) {
                     describeSettings(drawer);
                     // Presets and API fill parts of their page a moment later.
                     setTimeout(() => describeSettings(drawer), 600);
                 }
                 if (pageId === 'extensions-settings-button') describeExtensions();
+                if (pageId === 'ai-config-button') {
+                    syncPresetTabs();
+                    // Chat Completion Tabs builds its own tabs up to 2 seconds after an API switch; ours step aside then.
+                    setTimeout(syncPresetTabs, 2500);
+                }
             }
             if (pageId === 'backgrounds-button' || pageId === 'user-settings-button') syncThemeNotes();
             const info = drawer ? pageInfo(drawer) : { title: '', icon: 'fa-gear' };
@@ -2084,10 +2104,11 @@ class Shell {
                 else if (isShown(document.getElementById('rm_group_chats_block'))) this.subEl.textContent = t('Group chat');
             }
             let headIcon = info.icon;
-            const section = pageId === 'user-settings-button' && setnav.view !== 'home' && SETTINGS_SECTIONS.find(item => item.id === setnav.view);
+            const sections = pageSections(pageId);
+            const section = sections?.current();
             if (section) {
-                this.titleEl.textContent = t(section.title);
-                this.subEl.textContent = t('Settings');
+                this.titleEl.textContent = section.raw ? section.title : t(section.title);
+                this.subEl.textContent = t(sections.pageTitle);
                 headIcon = section.icon;
             }
             this.search.hidden = !SEARCH_PAGES.includes(pageId) || !!editorMode;
@@ -4364,6 +4385,33 @@ const CARD_TOOLS = [
 const CARD_TABS = [['desc', 'Description'], ['greet', 'First message'], ['notes', 'Notes & tags']];
 const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc' };
 
+/**
+ * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
+ * on the card's tool grid overlapped the buttons around it (Kahvana's feedback). It is a sheet
+ * (a dialog on a computer) instead; picking a format clicks SillyTavern's own choice.
+ */
+function onExportClick(event) {
+    if (!active || !settings.touchSizing || !settings.charPage) return;
+    if (!event.target.closest?.('#export_button')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const pick = format => {
+        closeSheet(true);
+        document.querySelector(`#export_format_popup .export_format[data-format="${format}"]`)?.click();
+    };
+    const row = (format, iconName, note) => h('button', { type: 'button', class: 'stmui-menu-row', onclick: () => pick(format) }, [
+        ui(iconName, 'stmui-menu-row-icon'),
+        h('span', { class: 'stmui-row-text' }, [h('span', { raw: format.toUpperCase() }), h('small', { text: note })]),
+    ]);
+    showSheet(new MenuSheet({
+        title: t('Export character'),
+        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, [
+            row('png', 'image', 'A picture card with everything inside. Most apps can open it.'),
+            row('json', 'file-text', "The character's details as a text file."),
+        ])),
+    }));
+}
+
 function displayName(title) {
     return String(title ?? '').split('\n')[0].replace(/^\[[^\]]+\]\s*/, '').trim();
 }
@@ -6430,6 +6478,47 @@ function onChatWidthChange() {
     primeChatSizes(250);
 }
 
+// -- chat: a message picture that fails to load (a removed group member, a missing file).
+// SillyTavern swaps it for a 50px "no picture" icon, which spilled out of our smaller picture slot
+// (Kahvana's report). The icon is marked with the name's initials and a colour made from the name,
+// and CSS draws it as a circle in the slot.
+
+function nameHue(name) {
+    let hash = 0;
+    for (const char of name) hash = (hash * 31 + char.codePointAt(0)) | 0;
+    return Math.abs(hash) % 360;
+}
+
+function initialsOf(name) {
+    const firsts = String(name).trim().split(/\s+/).map(word => word.match(/[\p{L}\p{N}]/u)?.[0]).filter(Boolean);
+    if (!firsts.length) return '?';
+    return (firsts.length > 1 ? firsts[0] + firsts[firsts.length - 1] : firsts[0]).toLocaleUpperCase();
+}
+
+function markMissingAvatars(root = document.getElementById('chat')) {
+    const want = active && settings.chatStyle;
+    for (const icon of root?.querySelectorAll('.mes .avatar > .missing-avatar') ?? []) {
+        if (!want) {
+            delete icon.dataset.stmuiInitials;
+            icon.style.removeProperty('--stmui-hue');
+            continue;
+        }
+        const name = icon.closest('.mes')?.getAttribute('ch_name') ?? '';
+        const initials = initialsOf(name);
+        if (icon.dataset.stmuiInitials === initials) continue;
+        icon.dataset.stmuiInitials = initials;
+        icon.style.setProperty('--stmui-hue', String(nameHue(name)));
+    }
+}
+
+function onAvatarError(event) {
+    const img = event.target;
+    if (!active || !settings.chatStyle || !(img instanceof HTMLImageElement)) return;
+    const mes = img.closest('#chat .mes');
+    // SillyTavern's own error handler on the picture runs after this capture listener.
+    if (mes && img.closest('.avatar')) setTimeout(() => markMissingAvatars(mes), 0);
+}
+
 function foldLongMessages() {
     if (!active || !settings.chatStyle || !settings.foldLong) {
         document.querySelectorAll('#chat .mes.stmui-long, #chat .mes.stmui-long-open').forEach(mes => mes.classList.remove('stmui-long', 'stmui-long-open'));
@@ -7062,7 +7151,7 @@ function onBackgroundPick(event) {
 
 // -- lorebooks: entry cards with keyword chips, full-screen entry editor
 
-const lore = { observer: null, timer: 0 };
+const lore = { observer: null, timer: 0, edited: false };
 
 /** Keywords of every entry in the open lorebook, from its data (entries build their insides only when opened). */
 let loreKeys = { name: '', byUid: new Map() };
@@ -7081,16 +7170,14 @@ async function refreshLoreKeys() {
 }
 
 function entryKeys(entry) {
-    // Prefer the live editor textarea when the entry has been rendered/edited, falling back to cached book data.
-    const field = entry.querySelector('textarea[name="key"]');
-    if (field) {
-        const live = field.value.split(',').map(key => key.trim()).filter(Boolean);
-        return live;
-    }
-    const fromData = loreKeys.byUid.get(String(entry.getAttribute('uid')));
-    if (fromData) return fromData.map(key => String(key).trim()).filter(Boolean);
+    // An open entry has its form, with both fields: a tag picker (computers) and a plain text box (phones, or
+    // SillyTavern's "plain text keys" option). Only the one in use is filled; the other stays hidden and empty.
     const select = entry.querySelector('select[name="key"]');
-    return Array.from(select?.selectedOptions ?? []).map(option => option.value.trim()).filter(Boolean);
+    if (select?.classList.contains('select2-hidden-accessible')) return Array.from(select.selectedOptions).map(option => option.textContent.trim()).filter(Boolean);
+    const field = entry.querySelector('textarea[name="key"]');
+    if (field) return field.value.split(',').map(key => key.trim()).filter(Boolean);
+    // A closed entry has no form, so use the book's data.
+    return (loreKeys.byUid.get(String(entry.getAttribute('uid'))) ?? []).map(key => String(key).trim()).filter(Boolean);
 }
 
 async function decorateEntries(forceRefresh = false) {
@@ -7098,7 +7185,11 @@ async function decorateEntries(forceRefresh = false) {
     const list = document.getElementById('world_popup_entries_list');
     if (!list) return;
     const currentBook = document.getElementById('world_editor_select')?.selectedOptions[0]?.textContent?.trim() ?? '';
-    if (forceRefresh || (currentBook && loreKeys.name !== currentBook)) {
+    // SillyTavern replaces an entry's key list when it is edited, and removes the form when the entry closes.
+    // So after an entry was open, read the book again once its form is gone, or the chips show the old keys.
+    const closedSinceEdit = lore.edited && !list.querySelector('.world_entry [name="key"]');
+    if (forceRefresh || closedSinceEdit || (currentBook && loreKeys.name !== currentBook)) {
+        lore.edited = false;
         await refreshLoreKeys();
         if (!active || !settings.touchSizing || !settings.loreCards) return;
     }
@@ -7127,6 +7218,7 @@ async function decorateEntries(forceRefresh = false) {
         }
     }
     const anyOpen = !!list.querySelector('.world_entry.stmui-entry-open');
+    if (anyOpen) lore.edited = true;
     document.documentElement.classList.toggle('stmui-entry-editing', anyOpen);
 }
 
@@ -7150,6 +7242,7 @@ function syncLoreEntries() {
         lore.timer = 0;
         lore.observer?.disconnect();
         lore.observer = null;
+        lore.edited = false;
         document.querySelectorAll('.stmui-entry-keys').forEach(node => node.remove());
         document.querySelectorAll('.world_entry.stmui-entry-open').forEach(node => node.classList.remove('stmui-entry-open'));
         document.documentElement.classList.remove('stmui-entry-editing');
@@ -7174,6 +7267,68 @@ function syncLoreEntries() {
 }
 
 // -- presets: prompt triggers as chips
+
+// -- presets: Parameters and Prompts as two tabs (Chat Completion)
+
+/**
+ * With the Chat Completion API the Presets page is the sampler settings and then, far below, the
+ * prompt list. Chat Completion Tabs (another extension) splits them into two tabs; without it,
+ * Pocket Tavern shows two tabs of its own (Kahvana's idea). Nothing is moved: the half that is not
+ * shown is hidden, and with Chat Completion Tabs installed its own tabs are used instead.
+ */
+const presetTabs = { tab: 'params', bar: null, marked: [] };
+
+function teardownPresetTabs() {
+    presetTabs.bar?.remove();
+    presetTabs.bar = null;
+    for (const node of presetTabs.marked) node.classList.remove('stmui-ptab-path', 'stmui-ptab-prompts');
+    presetTabs.marked = [];
+    const panel = document.getElementById('left-nav-panel');
+    if (panel) delete panel.dataset.stmuiPtab;
+    document.documentElement.classList.remove('stmui-ptabs');
+}
+
+function setPresetTab(tab) {
+    presetTabs.tab = tab;
+    const panel = document.getElementById('left-nav-panel');
+    if (panel) panel.dataset.stmuiPtab = tab;
+    for (const button of presetTabs.bar?.children ?? []) {
+        const on = button.id === `stmui_ptab_${tab}`;
+        button.classList.toggle('stmui-seg-on', on);
+        button.setAttribute('aria-selected', String(on));
+    }
+}
+
+function syncPresetTabs() {
+    const manager = document.getElementById('completion_prompt_manager');
+    // The page's list of blocks: the preset picker on top (shown on both tabs), then the settings.
+    const scope = document.getElementById('ai_response_configuration');
+    const head = document.querySelector('#openai_api-presets > div');
+    const want = active && settings.touchSizing && document.getElementById('main_api')?.value === 'openai'
+        && !document.querySelector('.openai-tab-buttons') && !!head && !!scope?.contains(manager) && !!scope.querySelector(':scope > #respective-presets-block');
+    if (!want) {
+        if (presetTabs.bar || presetTabs.marked.length) teardownPresetTabs();
+        return;
+    }
+    if (!presetTabs.bar?.isConnected) {
+        teardownPresetTabs();
+        // The prompt list's block, and each box between it and the page's list of settings.
+        const block = manager.closest('.range-block') ?? manager;
+        block.classList.add('stmui-ptab-prompts');
+        presetTabs.marked.push(block);
+        for (let node = block.parentElement; node && node !== scope; node = node.parentElement) {
+            node.classList.add('stmui-ptab-path');
+            presetTabs.marked.push(node);
+        }
+        presetTabs.bar = h('div', { class: 'stmui-segmented stmui-ptabs', role: 'tablist', 'aria-label': 'Presets', 'data-stmui': '1' },
+            [['params', 'Parameters', 'sliders'], ['prompts', 'Prompts', 'note']].map(([id, label, icon]) => h('button', {
+                type: 'button', id: `stmui_ptab_${id}`, class: 'stmui-seg', role: 'tab', onclick: () => setPresetTab(id),
+            }, [ui(icon), h('span', { text: label })])));
+        head.after(presetTabs.bar);
+    }
+    setPresetTab(presetTabs.tab);
+    document.documentElement.classList.add('stmui-ptabs');
+}
 
 function syncTriggerChips() {
     const select = document.getElementById('completion_prompt_manager_popup_entry_form_injection_trigger');
@@ -7818,8 +7973,11 @@ function revealSetting(row) {
     // Chat Completion Tabs keeps Parameters and Prompts apart: switch to the tab that holds it.
     const tab = row.closest('.openai-tab-content:not(.active)');
     if (tab) document.getElementById(tab.id.replace('-content-', '-btn-'))?.click();
+    // Pocket Tavern's own Parameters / Prompts tabs, the same way.
+    if (presetTabs.bar && row.closest('#ai_response_configuration') && !row.closest('#respective-presets-block')) setPresetTab(row.closest('.stmui-ptab-prompts') ? 'prompts' : 'params');
     const section = row.closest('[data-stmui-sec]')?.dataset.stmuiSec;
-    if (section && setnav.home && setnav.view !== section) openSettingsSection(section);
+    const nav = pageSections();
+    if (section && nav?.home && nav.view !== section) nav.open(section);
     // Open any folded sections around it first.
     for (let node = row.parentElement; node; node = node.parentElement) {
         if (node.classList?.contains('inline-drawer-content') && getComputedStyle(node).display === 'none') {
@@ -7841,11 +7999,11 @@ function openSettingSearch() {
     if (!root) return;
     const items = settingItems(root);
     const title = pageInfo(drawerById(pageId)).title;
-    showSheet(new MenuSheet({
+    // The search box is the header (Kahvana's feedback: a "Find a setting" title above it only repeated it).
+    const input = h('input', { type: 'search', class: 'text_pole stmui-choice-search stmui-head-search', placeholder: t('Find a setting in {page}', { page: t(title) }), 'aria-label': t('Find a setting'), enterkeyhint: 'search' });
+    const finder = new MenuSheet({
         title: t('Find a setting'),
-        subtitle: t('In {page}', { page: t(title) }),
         fill: body => {
-            const input = h('input', { type: 'search', class: 'text_pole stmui-choice-search', placeholder: t('Type a setting name…'), 'aria-label': t('Find a setting'), enterkeyhint: 'search' });
             const list = h('div', { class: 'stmui-menu-list' });
             const foot = h('p', { class: 'stmui-menu-foot' });
             const render = () => {
@@ -7865,27 +8023,151 @@ function openSettingSearch() {
                 list.hidden = !hits.length;
                 foot.textContent = !words.length ? t('{count} settings on this page.', { count: items.length }) : (hits.length ? '' : t('No setting matches that.'));
             };
-            input.addEventListener('input', render);
-            input.addEventListener('keydown', event => {
+            // Assigned, not added: the sheet can fill its body again, and the box (in the header) stays.
+            input.oninput = render;
+            input.onkeydown = event => {
                 if (event.key !== 'Enter' || event.isComposing) return;
                 event.preventDefault();
                 list.querySelector('.stmui-menu-row')?.click();
-            });
-            body.append(input, list, foot);
+            };
+            body.append(list, foot);
             render();
-            setTimeout(() => input.focus(), 250);
         },
-    }));
+    });
+    finder.head.querySelector('.stmui-head-text')?.replaceWith(input);
+    showSheet(finder);
+    setTimeout(() => input.focus(), 250);
 }
 
-// -- settings: sections and descriptions
+// -- long pages in sections: Settings and Formatting
 
 /**
- * SillyTavern's User Settings page is one long list of about a hundred controls.
- * On a phone it opens on a short list of sections instead, like a phone's own
- * Settings app, and a section shows only its own controls. Nothing is moved:
- * each control is marked with its section and the others are hidden.
+ * Some SillyTavern pages are one long list of controls (User Settings has about a hundred).
+ * They open on a short list of sections instead, like a phone's own Settings app, and a
+ * section shows only its own controls; Back returns to the list. Nothing is moved: each
+ * block is marked with its section and the others are hidden (`.stmui-sec-off`).
  */
+class PageSections {
+    /**
+     * @param {object} spec
+     * @param {string} spec.pageId - the page's drawer id
+     * @param {string} spec.rootClass - class on <html> while the list is in use
+     * @param {string} spec.pageTitle - the page's name, shown under a section's title
+     * @param {{ id: string, icon: string, title: string, note: string }[]} spec.sections
+     * @param {() => HTMLElement | null} spec.block - the page's drawer content
+     * @param {(nav: PageSections, block: HTMLElement) => boolean} spec.mark - marks the blocks; false when the page is not laid out as expected
+     * @param {(nav: PageSections, block: HTMLElement, list: HTMLElement) => void} spec.place - puts the list of sections on the page
+     */
+    constructor(spec) {
+        Object.assign(this, spec);
+        this.view = 'home';
+        this.home = null;
+        this.marked = [];
+    }
+
+    markAs(element, id) {
+        if (!element || element.dataset.stmuiSec) return;
+        element.dataset.stmuiSec = id;
+        this.marked.push(element);
+    }
+
+    has(id) {
+        return this.marked.some(element => element.dataset.stmuiSec === id);
+    }
+
+    current() {
+        return this.view === 'home' ? null : this.sections.find(section => section.id === this.view) ?? null;
+    }
+
+    row(iconName, title, note, onclick) {
+        return h('button', { type: 'button', class: 'stmui-menu-row', onclick }, [
+            ui(iconName, 'stmui-menu-row-icon'),
+            h('span', { class: 'stmui-row-text' }, [h('span', { text: title }), h('small', { text: note })]),
+            ui('chevron-right', 'stmui-menu-row-go'),
+        ]);
+    }
+
+    sectionList() {
+        return h('div', { class: 'stmui-menu-list' }, this.sections.filter(section => this.has(section.id))
+            .map(section => this.row(section.icon, section.title, section.note, () => this.open(section.id))));
+    }
+
+    apply() {
+        const block = this.block();
+        if (!block || !this.home) return;
+        block.dataset.stmuiView = this.view;
+        for (const element of this.marked) element.classList.toggle('stmui-sec-off', element.dataset.stmuiSec !== this.view);
+    }
+
+    scrollTop() {
+        const block = this.block();
+        if (block) block.scrollTop = 0;
+    }
+
+    open(id) {
+        if (!this.home) return;
+        this.view = id;
+        this.apply();
+        this.scrollTop();
+        shell?.render(currentPageId());
+        scheduleHistorySync();
+    }
+
+    isOpen() {
+        return !!this.home && this.view !== 'home' && currentPageId() === this.pageId;
+    }
+
+    /** Back from a section to the list of sections. */
+    close() {
+        if (!this.isOpen()) return false;
+        this.view = 'home';
+        this.apply();
+        this.scrollTop();
+        shell?.render(currentPageId());
+        scheduleHistorySync();
+        return true;
+    }
+
+    /** The page opens on its list again next time. */
+    reset() {
+        if (this.view === 'home') return;
+        this.view = 'home';
+        this.apply();
+    }
+
+    teardown() {
+        for (const element of this.marked) {
+            delete element.dataset.stmuiSec;
+            element.classList.remove('stmui-sec-off');
+        }
+        this.marked = [];
+        this.home?.remove();
+        this.home = null;
+        this.view = 'home';
+        const block = this.block();
+        if (block) delete block.dataset.stmuiView;
+        document.documentElement.classList.remove(this.rootClass);
+    }
+
+    sync() {
+        const block = this.block();
+        if (!active || !settings.touchSizing || !block) {
+            if (this.home || this.marked.length) this.teardown();
+            return;
+        }
+        if (this.home?.isConnected) return;
+        this.teardown();
+        if (!this.mark(this, block)) {
+            this.teardown();
+            return;
+        }
+        this.home = h('div', { class: 'stmui-set-home', 'data-stmui': '1' });
+        this.place(this, block, this.home);
+        document.documentElement.classList.add(this.rootClass);
+        this.apply();
+    }
+}
+
 const SETTINGS_SECTIONS = [
     { id: 'look', icon: 'palette', title: 'Look', note: 'Theme, colors, avatars, text size and chat width' },
     { id: 'display', icon: 'eye', title: 'Display', note: 'Timestamps, token counts, icons and effects' },
@@ -7896,128 +8178,234 @@ const SETTINGS_SECTIONS = [
     { id: 'stscript', icon: 'scroll', title: 'STscript', note: 'How slash commands are read' },
 ];
 
-const setnav = { view: 'home', home: null, marked: [] };
-
-function settingsBlock() {
-    return document.getElementById('user-settings-block');
-}
-
-/** Marks SillyTavern's settings with their section; false when the page is not laid out as expected. */
-function markSettingsSections(block) {
-    const content = block.querySelector('#user-settings-block-content');
-    if (!content) return false;
-    const mark = (element, id) => {
-        if (!element || element.dataset.stmuiSec) return;
-        element.dataset.stmuiSec = id;
-        setnav.marked.push(element);
-    };
-    const theme = content.querySelector('#UI-Theme-Block');
-    mark(theme?.querySelector('#UI-presets-block'), 'look');
-    for (const child of theme?.querySelector(':scope > .flexNoGap')?.children ?? []) {
-        mark(child, child.querySelectorAll(':scope > label.checkbox_label').length >= 5 ? 'display' : 'look');
-    }
-    for (const group of content.querySelectorAll('#UI-Customization > div')) {
-        if (group.querySelector('#aux_field, #tag_import_setting')) mark(group, 'characters');
-        else for (const child of group.children) mark(child, child.id === 'CustomCSS-block' ? 'css' : 'other');
-    }
-    for (const group of content.querySelectorAll('#power-user-option-checkboxes > *')) {
-        mark(group, group.querySelector('[id^="stscript_"]') ? 'stscript' : 'chat');
-    }
-    // Anything else (a newer SillyTavern, another extension) goes to "Sounds and more", so nothing gets lost.
-    const sweep = parent => {
-        for (const child of parent.children) {
-            if (child.dataset.stmuiSec) continue;
-            if (child.querySelector('[data-stmui-sec]')) sweep(child);
-            else mark(child, 'other');
+const setnav = new PageSections({
+    pageId: 'user-settings-button',
+    rootClass: 'stmui-setnav',
+    pageTitle: 'Settings',
+    sections: SETTINGS_SECTIONS,
+    block: () => document.getElementById('user-settings-block'),
+    mark: (nav, block) => {
+        const content = block.querySelector('#user-settings-block-content');
+        if (!content) return false;
+        const theme = content.querySelector('#UI-Theme-Block');
+        nav.markAs(theme?.querySelector('#UI-presets-block'), 'look');
+        for (const child of theme?.querySelector(':scope > .flexNoGap')?.children ?? []) {
+            nav.markAs(child, child.querySelectorAll(':scope > label.checkbox_label').length >= 5 ? 'display' : 'look');
         }
-    };
-    sweep(content);
-    return setnav.marked.some(element => element.dataset.stmuiSec === 'look');
+        for (const group of content.querySelectorAll('#UI-Customization > div')) {
+            if (group.querySelector('#aux_field, #tag_import_setting')) nav.markAs(group, 'characters');
+            else for (const child of group.children) nav.markAs(child, child.id === 'CustomCSS-block' ? 'css' : 'other');
+        }
+        for (const group of content.querySelectorAll('#power-user-option-checkboxes > *')) {
+            nav.markAs(group, group.querySelector('[id^="stscript_"]') ? 'stscript' : 'chat');
+        }
+        // Anything else (a newer SillyTavern, another extension) goes to "Sounds and more", so nothing gets lost.
+        const sweep = parent => {
+            for (const child of parent.children) {
+                if (child.dataset.stmuiSec) continue;
+                if (child.querySelector('[data-stmui-sec]')) sweep(child);
+                else nav.markAs(child, 'other');
+            }
+        };
+        sweep(content);
+        return nav.has('look');
+    },
+    place: (nav, block, list) => {
+        list.append(
+            h('button', { type: 'button', class: 'stmui-search-field', onclick: () => openSettingSearch() }, [ui('search'), h('span', { text: 'Search settings' })]),
+            nav.sectionList(),
+            h('div', { class: 'stmui-menu-list' }, [isWide()
+                ? nav.row('desktop', 'Pocket Tavern', 'Desktop layout, helpers and themes', () => openMobileSettings())
+                : nav.row('phone', 'Pocket Tavern', 'Phone layout, gestures and helpers', () => openMobileSettings())]),
+        );
+        // The block on top holds the title, language, account and version; the list goes first in it.
+        const top = block.querySelector('#settingsSearch')?.closest('#user-settings-block > *');
+        if (top) top.prepend(list);
+        else block.prepend(list);
+    },
+});
+
+/**
+ * Formatting (Advanced Formatting) is nine headed blocks in three columns, about three
+ * screens long on a phone (Kahvana's feedback). Each column, or each block of the last
+ * one, becomes a section.
+ */
+const FORMATTING_SECTIONS = [
+    { id: 'context', icon: 'file-text', title: 'Context template', note: 'Story string and how the prompt is put together' },
+    { id: 'instruct', icon: 'list', title: 'Instruct template', note: 'Instruct mode and the sequences around messages' },
+    { id: 'sysprompt', icon: 'scroll', title: 'System prompt', note: 'Instructions sent before the chat' },
+    { id: 'reasoning', icon: 'bulb', title: 'Reasoning', note: 'Thinking blocks: finding, showing and sending them' },
+    { id: 'stopping', icon: 'stop', title: 'Stopping strings', note: 'Words that end a reply' },
+    { id: 'tokenizer', icon: 'type', title: 'Tokenizer', note: 'How tokens are counted' },
+    { id: 'misc', icon: 'sliders', title: 'Miscellaneous', note: 'Start reply with, model binding and more' },
+];
+
+const afnav = new PageSections({
+    pageId: 'advanced-formatting-button',
+    rootClass: 'stmui-afnav',
+    pageTitle: 'Formatting',
+    sections: FORMATTING_SECTIONS,
+    block: () => document.getElementById('AdvancedFormatting'),
+    mark: (nav, block) => {
+        const columns = block.querySelector(':scope > .flex-container.spaceEvenly');
+        if (!columns) return false;
+        nav.markAs(columns.querySelector(':scope > #ContextSettings'), 'context');
+        nav.markAs(columns.querySelector(':scope > #InstructSettingsColumn'), 'instruct');
+        for (const child of columns.querySelector(':scope > #SystemPromptColumn')?.children ?? []) {
+            if (child.matches('#SystemPromptBlock') || (child.matches('h4') && child.nextElementSibling?.id === 'SystemPromptBlock')) nav.markAs(child, 'sysprompt');
+            else if (child.querySelector('#custom_stopping_strings')) nav.markAs(child, 'stopping');
+            else if (child.querySelector('#tokenizer')) nav.markAs(child, 'tokenizer');
+            else if (child.querySelector('#reasoning_auto_parse, #reasoning_select')) nav.markAs(child, 'reasoning');
+            else nav.markAs(child, 'misc');
+        }
+        // A newer SillyTavern's extra column goes to Miscellaneous, so nothing gets lost.
+        for (const child of columns.children) if (!child.querySelector('[data-stmui-sec]')) nav.markAs(child, 'misc');
+        return nav.has('context') && nav.has('reasoning');
+    },
+    place: (nav, block, list) => {
+        list.append(nav.sectionList());
+        // After the title row (Master Import / Export) and the Chat Completion notice.
+        block.querySelector(':scope > .flex-container.spaceEvenly')?.before(list);
+    },
+});
+
+/**
+ * Extensions: SillyTavern shows each extension's settings as a fold-out card. They become a
+ * list like Settings, and an extension opens as its own page (Kahvana's feedback): the other
+ * extensions and the page's own controls step aside while one is open. Opening and closing
+ * still go through SillyTavern's own fold-out, so its state stays right.
+ */
+const extnav = {
+    pageId: 'extensions-settings-button',
+    pageTitle: 'Extensions',
+    rootClass: 'stmui-extnav',
+    /** The open extension's fold-out (`.inline-drawer`), or null on the list. */
+    drawer: null,
+    rows: [],
+    block: () => document.getElementById('rm_extensions_block'),
+    lists: () => ['extensions_settings', 'extensions_settings2'].map(id => document.getElementById(id)).filter(Boolean),
+    headerOf: drawer => drawer.querySelector(':scope > .inline-drawer-header, :scope > .inline-drawer-toggle'),
+    shown(drawer) {
+        const content = drawer.querySelector(':scope > .inline-drawer-content');
+        return !!content && content.style.display !== 'none' && getComputedStyle(content).display !== 'none';
+    },
+    titleOf(drawer) {
+        const header = this.headerOf(drawer);
+        const name = header?.querySelector('b, strong')?.textContent ?? (header ? ownText(header) : '');
+        return name.replace(/\s+/g, ' ').trim();
+    },
+    current() {
+        if (!this.drawer) return null;
+        // An extension's own name: shown as it is, never looked up for a translation.
+        return { title: this.titleOf(this.drawer) || t('Extensions'), icon: 'puzzle', raw: true };
+    },
+    isOpen() {
+        return !!this.drawer && currentPageId() === this.pageId;
+    },
+    enter(drawer) {
+        this.leave({ fold: true, render: false });
+        this.drawer = drawer;
+        drawer.classList.add('stmui-ext-open');
+        // Each box between the fold-out and the list, so CSS can hide everything beside it.
+        for (let node = drawer.parentElement; node && !node.classList.contains('extensions_block'); node = node.parentElement) {
+            node.classList.add('stmui-ext-path');
+        }
+        const block = this.block();
+        if (block) {
+            block.dataset.stmuiView = 'ext';
+            block.scrollTop = 0;
+        }
+        shell?.render(currentPageId());
+        scheduleHistorySync();
+    },
+    leave({ fold = true, render = true } = {}) {
+        const drawer = this.drawer;
+        if (!drawer) return false;
+        this.drawer = null;
+        drawer.classList.remove('stmui-ext-open');
+        document.querySelectorAll('.stmui-ext-path').forEach(node => node.classList.remove('stmui-ext-path'));
+        const block = this.block();
+        if (block) block.dataset.stmuiView = 'home';
+        if (fold && this.shown(drawer)) this.headerOf(drawer)?.click();
+        if (render) {
+            shell?.render(currentPageId());
+            scheduleHistorySync();
+        }
+        return true;
+    },
+    /** Back from an extension to the list. */
+    close() {
+        return this.isOpen() && this.leave();
+    },
+    /** Leaving the page folds the extension, so the page opens on the list next time. */
+    reset() {
+        this.leave({ render: false });
+    },
+    /** A click on an extension's name: follow SillyTavern's fold-out once it has opened or closed. */
+    onClick(event) {
+        if (!active || !settings.touchSizing || !this.rows.length) return;
+        const drawer = event.target.closest?.('.inline-drawer-toggle')?.closest('.inline-drawer');
+        if (!drawer || !this.rows.includes(drawer)) return;
+        const wasOpen = this.shown(drawer);
+        setTimeout(() => {
+            if (!wasOpen && this.shown(drawer)) this.enter(drawer);
+            else if (wasOpen && drawer === this.drawer) this.leave({ fold: false });
+        }, 0);
+    },
+    teardown() {
+        this.leave({ fold: false, render: false });
+        for (const node of document.querySelectorAll('.stmui-ext-row, .stmui-ext-list')) node.classList.remove('stmui-ext-row', 'stmui-ext-list');
+        this.rows = [];
+        const block = this.block();
+        if (block) delete block.dataset.stmuiView;
+        document.documentElement.classList.remove(this.rootClass);
+    },
+    sync() {
+        const block = this.block();
+        if (!active || !settings.touchSizing || !block) {
+            if (this.rows.length || this.drawer) this.teardown();
+            return;
+        }
+        // Extensions add their settings as they load, so mark the rows again each time the page opens.
+        this.rows = [];
+        for (const list of this.lists()) {
+            // An extension's fold-outs: the outermost ones in the list (not the ones inside its settings).
+            const rows = [...list.querySelectorAll('.inline-drawer')].filter(drawer => !drawer.parentElement.closest('.inline-drawer'));
+            for (const drawer of rows) drawer.classList.add('stmui-ext-row');
+            list.classList.toggle('stmui-ext-list', rows.length > 0);
+            this.rows.push(...rows);
+        }
+        if (!this.rows.length) {
+            this.teardown();
+            return;
+        }
+        // Only a click opens a page: a fold-out still sliding shut after Back looks open here.
+        if (this.drawer && !this.rows.includes(this.drawer)) this.leave({ fold: false, render: false });
+        if (!this.drawer) block.dataset.stmuiView = 'home';
+        document.documentElement.classList.add(this.rootClass);
+    },
+};
+
+const PAGE_SECTIONS = [setnav, afnav, extnav];
+
+function pageSections(pageId = currentPageId()) {
+    return PAGE_SECTIONS.find(nav => nav.pageId === pageId) ?? null;
 }
 
-function buildSettingsHome(block) {
-    const sections = SETTINGS_SECTIONS.filter(section => setnav.marked.some(element => element.dataset.stmuiSec === section.id));
-    const row = (iconName, title, note, onclick) => h('button', { type: 'button', class: 'stmui-menu-row', onclick }, [
-        ui(iconName, 'stmui-menu-row-icon'),
-        h('span', { class: 'stmui-row-text' }, [h('span', { text: title }), h('small', { text: note })]),
-        ui('chevron-right', 'stmui-menu-row-go'),
-    ]);
-    setnav.home = h('div', { class: 'stmui-set-home', 'data-stmui': '1' }, [
-        h('button', { type: 'button', class: 'stmui-search-field', onclick: () => openSettingSearch() }, [ui('search'), h('span', { text: 'Search settings' })]),
-        h('div', { class: 'stmui-menu-list' }, sections.map(section => row(section.icon, section.title, section.note, () => openSettingsSection(section.id)))),
-        h('div', { class: 'stmui-menu-list' }, [isWide()
-            ? row('desktop', 'Pocket Tavern', 'Desktop layout, helpers and themes', () => openMobileSettings())
-            : row('phone', 'Pocket Tavern', 'Phone layout, gestures and helpers', () => openMobileSettings())]),
-    ]);
-    // The block on top holds the title, language, account and version; the list goes first in it.
-    const top = block.querySelector('#settingsSearch')?.closest('#user-settings-block > *');
-    if (top) top.prepend(setnav.home);
-    else block.prepend(setnav.home);
+function pageSectionOpen() {
+    return !!pageSections()?.isOpen();
 }
 
-function applySettingsView() {
-    const block = settingsBlock();
-    if (!block || !setnav.home) return;
-    block.dataset.stmuiView = setnav.view;
-    for (const element of setnav.marked) element.classList.toggle('stmui-sec-off', element.dataset.stmuiSec !== setnav.view);
+/** Back from a section to its page's list of sections; false when no section is open. */
+function closePageSection() {
+    return !!pageSections()?.close();
 }
 
-function openSettingsSection(id) {
-    if (!setnav.home) return;
-    setnav.view = id;
-    applySettingsView();
-    const block = settingsBlock();
-    if (block) block.scrollTop = 0;
-    shell?.render(currentPageId());
-    scheduleHistorySync();
+function syncPageSections() {
+    for (const nav of PAGE_SECTIONS) nav.sync();
 }
 
-function settingsSectionOpen() {
-    return !!setnav.home && setnav.view !== 'home' && currentPageId() === 'user-settings-button';
-}
-
-/** Back from a section to the list of sections. */
-function closeSettingsSection() {
-    if (!settingsSectionOpen()) return false;
-    setnav.view = 'home';
-    applySettingsView();
-    const block = settingsBlock();
-    if (block) block.scrollTop = 0;
-    shell?.render(currentPageId());
-    scheduleHistorySync();
-    return true;
-}
-
-function teardownSettingsNav() {
-    for (const element of setnav.marked) {
-        delete element.dataset.stmuiSec;
-        element.classList.remove('stmui-sec-off');
-    }
-    setnav.marked = [];
-    setnav.home?.remove();
-    setnav.home = null;
-    setnav.view = 'home';
-    const block = settingsBlock();
-    if (block) delete block.dataset.stmuiView;
-    document.documentElement.classList.remove('stmui-setnav');
-}
-
-function syncSettingsNav() {
-    const block = settingsBlock();
-    if (!active || !settings.touchSizing || !block) {
-        if (setnav.home || setnav.marked.length) teardownSettingsNav();
-        return;
-    }
-    if (setnav.home?.isConnected) return;
-    teardownSettingsNav();
-    if (!markSettingsSections(block)) {
-        teardownSettingsNav();
-        return;
-    }
-    buildSettingsHome(block);
-    document.documentElement.classList.add('stmui-setnav');
-    applySettingsView();
-}
+// -- settings: descriptions
 
 /**
  * SillyTavern explains most settings in tooltips, which a phone never shows.
@@ -8485,12 +8873,14 @@ function syncExtras() {
     // (Also takes the one-version marker off again when Pocket Tavern turns off.)
     syncSwipeCounters();
     foldLongMessages();
+    markMissingAvatars();
     syncLoreEntries();
     syncTriggerChips();
+    syncPresetTabs();
     renderMeter();
     if (active && settings.touchSizing) addSliderSteppers();
     else removeSliderSteppers();
-    syncSettingsNav();
+    syncPageSections();
     if (!active || !settings.touchSizing) removeSettingDescriptions();
     if (!active) {
         closeChatFinder();
@@ -9174,6 +9564,11 @@ function onWideKeyDown(event) {
         else leavePromptEditor();
         return;
     }
+    // Character Library's panel has no Escape of its own (keys typed inside it stay in its frame).
+    if (!isTypingField(document.activeElement) && closeCharacterLibrary()) {
+        event.preventDefault();
+        return;
+    }
     if (openOverlays().length) return;
     const guidedPopup = openGuidedPopups().pop();
     if (guidedPopup) {
@@ -9200,7 +9595,7 @@ function onWideKeyDown(event) {
         event.preventDefault();
         return;
     }
-    if (closeSettingsSection() || (currentPageId() && (closePages(), true))) event.preventDefault();
+    if (closePageSection() || (currentPageId() && (closePages(), true))) event.preventDefault();
 }
 
 function applyState() {
@@ -9438,6 +9833,9 @@ function init() {
     }
     document.addEventListener('click', onInputHistoryClick, true);
     document.addEventListener('input', onComposerInput, true);
+    document.addEventListener('error', onAvatarError, true);
+    document.addEventListener('click', event => extnav.onClick(event), true);
+    document.addEventListener('click', onExportClick, true);
     document.addEventListener('focusin', () => shell?.checkKeyboard());
     document.addEventListener('focusout', () => setTimeout(() => shell?.checkKeyboard(), 50));
 
@@ -9474,7 +9872,10 @@ function init() {
         if (!active) return;
         syncSwipeCounters();
         window.clearTimeout(chatTimer);
-        chatTimer = window.setTimeout(foldLongMessages, 200);
+        chatTimer = window.setTimeout(() => {
+            foldLongMessages();
+            markMissingAvatars();
+        }, 200);
     };
     for (const name of ['MESSAGE_RECEIVED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'MESSAGE_EDITED', 'CHARACTER_MESSAGE_RENDERED', 'USER_MESSAGE_RENDERED', 'MORE_MESSAGES_LOADED', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'CHAT_CHANGED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], chatChanged);

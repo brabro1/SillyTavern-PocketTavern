@@ -1,6 +1,16 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.27.0',
+        items: [
+            "Easier to find your way: Formatting and Extensions open on a short list like Settings, each section or extension on its own page. With Chat Completion, Presets has Parameters and Prompts tabs. Export on a character card opens a clear PNG or JSON choice.",
+            "Easier to read: SillyTavern themes such as Cappuccino keep their dark message cards over a chat background (they went pale over bright pictures), the start screen's chats stand out more, and quotes and code blocks have room around them.",
+            "Works with Moonlit Echoes: message cards keep their colour, switches keep their shape, and the character card's buttons and the Personas buttons stay in their rows. Chat Completion Tabs' bar sits flush at the top of Presets, and Character Library's panel fits between the bars (Back closes it).",
+            "Fixed: lorebook keyword chips kept the old keywords after an edit, the swipe arrow sat beside the text with SillyTavern's Bubbles style, and the Backgrounds tabs ignored clicks near their edges. A missing picture shows the name's initials, and pages no longer repeat their name under the top bar.",
+            "Many smaller fixes from a full check of the code: a 44px Send button, warning and success colours that stay readable on light themes, steadier chat translation and search, better Arabic layout, and a cleaner switch-off. On a computer, the phone-only Vibration and Hide tabs options are hidden.",
+        ],
+    },
+    {
         version: '2.26.0',
         items: [
             "A calmer look, first step: a new default theme, Pocket (graphite with one blue accent), and Pocket Light. Pick them under More → Themes; your current theme stays as it is.",

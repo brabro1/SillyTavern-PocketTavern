@@ -40,7 +40,7 @@ Pocket Tavern works *alongside* SillyTavern and must never fight or corrupt it:
 
 ## Mandatory Visual Verification Loop (Never Guess From Code)
 Never assume a UI fix worked from CSS alone. For every visual, layout, or interaction change:
-1. Run against a local SillyTavern instance: use the read-only local copy at `http://127.0.0.1:8000` only to inspect, and run any automated tests or setting changes against the isolated test copy (e.g. port `8123` with test data only).
+1. Run against a local SillyTavern instance: use the read-only local copy at `http://127.0.0.1:8000` only to inspect, and run any automated tests or setting changes against the isolated test copy (e.g. port `8123` with test data only). Phone bugs are also checked on the owner's phone over USB (adb, see the `release` skill), attaching to the SillyTavern tab only.
 2. Use Playwright (or the scripts in `tests/`) to load the extension, exercise the changed UI, and assert zero console errors.
 3. Capture temporary screenshots to `tests/results/` (gitignored) across **both** viewports:
    - **Phone (`390×844`, plus `360px` / `412px` for composer/tool-row checks):** Chat view, focused composer, open sheets/menus, long messages/code blocks, light & dark themes, RTL, and toggling Pocket Tavern off/on.

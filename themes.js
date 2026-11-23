@@ -234,7 +234,13 @@ export function themeFromSillyTavern(st) {
         userCard = mixRgb(botCard, accent, 0.16);
         for (let i = 0; i < 24 && contrast(text, userCard) < 7; i++) userCard = mixRgb(userCard, bg, 0.15);
     }
+    // SillyTavern draws two layers over a chat background: the chat tint, then each message's tint.
+    // Pocket Tavern draws only the cards (the picture shows between them), so a card takes the
+    // strength of both layers together; with one layer, Cappuccino's cards went pale over a bright
+    // picture and its brown quotes were hard to read (Kahvana's report).
+    const chatTint = parseColor(st.chat_tint_color);
     const tintAlpha = Math.max(botTint?.a ?? 0, userTint?.a ?? 0);
+    const stacked = 1 - (1 - tintAlpha) * (1 - (chatTint?.a ?? 0));
     const shadow = parseColor(st.shadow_color);
     return {
         id: `st:${st.name}`,
@@ -254,7 +260,7 @@ export function themeFromSillyTavern(st) {
         border: rgba(text, dark ? 0.12 : 0.11),
         backdrop: hex(floor),
         glass: {
-            card: clamp(tintAlpha + 0.3, 0.55, 0.85),
+            card: clamp(Math.max(tintAlpha + 0.3, stacked), 0.55, 0.94),
             shadow: clamp(Number(st.shadow_width) || 0, 0, 3),
             shadowColor: shadow ? rgba(shadow, clamp(shadow.a, 0, 0.9)) : 'transparent',
             botCard: hex(botCard),
@@ -295,16 +301,16 @@ function readableOnBoth(fg, a, b, min) {
  * lifted where they would fade. Returns only the colors that changed.
  */
 function glassInk(t, g) {
-    const midGrey = { r: 128, g: 128, b: 128, a: 1 };
-    const surfaces = [g.botCard, g.userCard]
-        .map(parseColor)
-        .filter(Boolean)
-        .map(card => over({ ...card, a: g.card }, midGrey));
-    if (!surfaces.length) {
+    // A card over a mid-grey picture, and over a bright one (dark cards) or a dark one (light cards):
+    // bright pictures made dark cards pale enough to lose their quote colour (Kahvana's report).
+    const backdrops = [{ r: 128, g: 128, b: 128, a: 1 }, t.mode === 'light' ? { r: 24, g: 24, b: 24, a: 1 } : { r: 232, g: 232, b: 232, a: 1 }];
+    let cards = [g.botCard, g.userCard].map(parseColor).filter(Boolean);
+    if (!cards.length) {
         const bg = parseColor(t.bg);
         if (!bg) return {};
-        surfaces.push(over({ ...bg, a: g.card }, midGrey));
+        cards = [bg];
     }
+    const surfaces = cards.flatMap(card => backdrops.map(backdrop => over({ ...card, a: g.card }, backdrop)));
     const out = {};
     for (const [key, min] of [['text', 7], ['muted', 4.5], ['quote', 4.5]]) {
         const color = parseColor(t[key]);

@@ -344,6 +344,45 @@ await step('Settings opens on its sections; a section, explanations, search and 
 
 });
 
+await step('Formatting and Extensions open on a list; a section or an extension opens as its own page, and back returns to the list', async () => {
+    await page.evaluate(() => document.querySelector('#advanced-formatting-button > .drawer-toggle')?.click());
+    await until(() => document.documentElement.dataset.stmuiPage === 'advanced-formatting-button');
+    await until(() => document.querySelectorAll('#AdvancedFormatting .stmui-set-home .stmui-menu-row').length >= 6);
+    if (await page.evaluate(() => !!document.getElementById('context_presets')?.offsetParent)) throw new Error('the list of sections also shows the settings');
+    await page.locator('#AdvancedFormatting .stmui-set-home .stmui-menu-row', { hasText: 'Reasoning' }).click();
+    await until(() => document.querySelector('.stmui-ab-title')?.textContent === 'Reasoning');
+    // Only Reasoning's settings, one switch per full-width row.
+    const reasoning = await page.evaluate(() => ({
+        row: Math.round(document.getElementById('reasoning_auto_parse')?.closest('label')?.getBoundingClientRect().width ?? 0),
+        page: document.getElementById('AdvancedFormatting').clientWidth,
+        others: !!document.getElementById('context_presets')?.offsetParent || !!document.getElementById('tokenizer')?.offsetParent,
+    }));
+    if (reasoning.others || reasoning.row < reasoning.page * 0.8) throw new Error(`Reasoning section: ${JSON.stringify(reasoning)}`);
+    await page.waitForTimeout(500);
+    await page.goBack();
+    await until(() => document.querySelector('.stmui-ab-title')?.textContent === 'Formatting' && document.documentElement.dataset.stmuiPage === 'advanced-formatting-button');
+    await page.waitForTimeout(500);
+    await page.goBack();
+    await until(() => !document.documentElement.dataset.stmuiPage);
+    // Extensions: rows; one opens as its own page with its name in the top bar.
+    await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click());
+    await until(() => document.documentElement.dataset.stmuiPage === 'extensions-settings-button');
+    await until(() => document.querySelectorAll('.stmui-ext-row').length >= 4);
+    await page.locator('#qr_container .stmui-ext-row > .inline-drawer-toggle').click();
+    await until(() => document.querySelector('.stmui-ab-title')?.textContent === 'Quick Reply');
+    const extension = await page.evaluate(() => ({
+        others: [...document.querySelectorAll('.stmui-ext-row:not(.stmui-ext-open)')].filter(row => row.offsetParent).length,
+        open: !!document.querySelector('.stmui-ext-open > .inline-drawer-content')?.offsetParent,
+    }));
+    if (extension.others || !extension.open) throw new Error(`an extension's page: ${JSON.stringify(extension)}`);
+    await page.waitForTimeout(500);
+    await page.goBack();
+    await until(() => document.querySelector('.stmui-ab-title')?.textContent === 'Extensions' && !document.querySelector('.stmui-ext-open'));
+    await page.waitForTimeout(500);
+    await page.goBack();
+    await until(() => !document.documentElement.dataset.stmuiPage);
+});
+
 await step('☰ and the wand open sheets, and their items work', async () => {
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
     await until(() => document.querySelectorAll('#chat .mes').length > 0);
@@ -873,13 +912,13 @@ await step('the prompt editor reaches the tabs, opens full screen and asks befor
             }
             const height = Math.round(bar.querySelector('.openai-tab-button').getBoundingClientRect().height);
             if (made) bar.remove();
-            else document.getElementById('openai-tab-btn-prompts')?.click();
+            else (document.getElementById('openai-tab-btn-prompts') ?? document.getElementById('stmui_ptab_prompts'))?.click();
             return height;
         });
         if (tabHeight < 44) throw new Error(`the Parameters and Prompts tabs are ${tabHeight}px`);
         // Chat Completion Tabs (when installed) builds its tabs up to 2 seconds after the API switch and may hide the list on Parameters.
         await page.waitForTimeout(2200);
-        await page.evaluate(() => document.getElementById('openai-tab-btn-prompts')?.click());
+        await page.evaluate(() => (document.getElementById('openai-tab-btn-prompts') ?? document.getElementById('stmui_ptab_prompts'))?.click());
         const edit = page.locator('#completion_prompt_manager_list .prompt-manager-edit-action').first();
         await edit.scrollIntoViewIfNeeded();
         await edit.click();
@@ -961,6 +1000,24 @@ await step('a long lorebook shows every entry, and the Notes & tags tab keeps th
             return { entries: entries.length, bottom: Math.round(bottom), scroll: panel.scrollHeight };
         });
         if (reach.bottom > reach.scroll + 2) throw new Error(`the last entry is out of reach: ${JSON.stringify(reach)}`);
+        // Keyword chips follow an edit: SillyTavern replaces the entry's key list, so they are read again when it closes.
+        const chips = await page.evaluate(async () => {
+            const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+            const entry = document.querySelector('#world_popup_entries_list .world_entry');
+            const toggle = () => entry.querySelector('.world_entry_thin_controls > .inline-drawer-toggle').click();
+            toggle();
+            await sleep(700);
+            const field = [...entry.querySelectorAll('textarea[name="key"]')].find(node => node.offsetParent);
+            if (!field) return 'no key field';
+            field.value = 'alpha, beta';
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            jQuery(field).trigger('change');
+            await sleep(400);
+            toggle();
+            await sleep(1200);
+            return [...entry.querySelectorAll('.stmui-entry-keys .stmui-key-chip')].map(chip => chip.textContent).join(',');
+        });
+        if (chips !== 'alpha,beta') throw new Error(`keyword chips after an edit: ${chips}`);
     } finally {
         await page.evaluate(async name => {
             const context = SillyTavern.getContext();
@@ -1204,6 +1261,82 @@ await step('backgrounds are big enough to pick, the next-version button is an ar
     }
 });
 
+await step('a message picture that fails to load shows the name\'s initials inside its slot', async () => {
+    await page.evaluate(async () => {
+        const context = SillyTavern.getContext();
+        if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
+    });
+    await until(() => !!document.querySelector('#chat .mes .avatar img'), null, 10000);
+    // In the page only: the picture's address is broken, and SillyTavern swaps in its "no picture" icon.
+    await page.evaluate(() => { document.querySelector('#chat .mes .avatar img').src = '/thumbnail?type=avatar&file=__pocket_tavern_missing__.png'; });
+    await until(() => !!document.querySelector('#chat .mes .avatar > .missing-avatar[data-stmui-initials]'), null, 8000);
+    const picture = await page.evaluate(() => {
+        const icon = document.querySelector('#chat .mes .avatar > .missing-avatar');
+        const box = icon.getBoundingClientRect();
+        const slot = icon.parentElement.getBoundingClientRect();
+        return { initials: icon.dataset.stmuiInitials, inside: box.width <= slot.width + 0.5 && box.height <= slot.height + 0.5 && box.left >= slot.left - 0.5 && box.top >= slot.top - 0.5 };
+    });
+    if (!/^\p{L}|^\p{N}|^\?$/u.test(picture.initials) || !picture.inside) throw new Error(`missing picture: ${JSON.stringify(picture)}`);
+});
+
+await step('Export opens a sheet; the card tools fill their row and message cards keep their colour under Moonlit Echoes; Bubbles keeps SillyTavern\'s own ‹; Backgrounds has no scroll button', async () => {
+    // Message cards and the swipe arrow, in the open chat (stand-ins drawn in the page only).
+    const chatLook = await page.evaluate(() => {
+        const style = document.createElement('style');
+        // Moonlit Echoes' rule (same declaration): it unsets every message's background.
+        style.textContent = '#chat .mes { background-color: unset !important; }';
+        document.head.append(style);
+        const mes = document.querySelector('#chat .mes:not([is_system="true"])');
+        const card = getComputedStyle(mes).backgroundColor;
+        style.remove();
+        // SillyTavern's Bubbles (a theme such as Cappuccino turns it on): SillyTavern places ‹ itself.
+        document.body.classList.add('bubblechat');
+        const arrow = getComputedStyle(document.querySelector('#chat .mes > .swipe_left')).position;
+        document.body.classList.remove('bubblechat');
+        return { card, arrow };
+    });
+    if (/^rgba\(0, 0, 0, 0\)$/.test(chatLook.card)) throw new Error('message cards lose their colour under Moonlit Echoes');
+    if (chatLook.arrow === 'relative') throw new Error('under Bubbles, ‹ is pulled into the message row');
+    await page.locator('.stmui-ab-who').click();
+    await until(() => document.documentElement.dataset.stmuiPage === 'rightNavHolder');
+    await page.evaluate(() => document.getElementById('rm_button_selected_ch')?.click());
+    await until(() => !!document.getElementById('export_button')?.offsetParent, null, 10000);
+    const tools = await page.evaluate(() => {
+        const style = document.createElement('style');
+        // Moonlit Echoes lays the picture area out from the start edge (stand-in with the effect it had).
+        style.textContent = '#avatar_div { align-items: flex-start !important; } #avatar_controls { width: auto !important; flex: 0 1 auto !important; }';
+        document.head.append(style);
+        const controls = document.getElementById('avatar_controls').getBoundingClientRect().width;
+        const card = document.getElementById('avatar_div').getBoundingClientRect().width;
+        style.remove();
+        return { controls: Math.round(controls), card: Math.round(card) };
+    });
+    if (tools.controls < tools.card * 0.9) throw new Error(`the card tools are squeezed: ${JSON.stringify(tools)}`);
+    await page.locator('#export_button').click();
+    await until(() => document.querySelectorAll('#stmui-sheet .stmui-menu-row').length === 2);
+    if (await page.evaluate(() => getComputedStyle(document.getElementById('export_format_popup')).display !== 'none')) throw new Error("SillyTavern's small export list opened too");
+    await closeSheet();
+    await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]')?.click());
+    await page.waitForTimeout(400);
+    if (await page.evaluate(() => getComputedStyle(document.getElementById('bg-scroll-top')).display !== 'none')) throw new Error('the Backgrounds scroll button shows');
+});
+
+await step("Character Library's embedded panel sits between the top bar and the tabs", async () => {
+    // A stand-in with the extension's own id and inline sizes (it is not installed on GitHub's check).
+    const fit = await page.evaluate(() => {
+        const panel = document.createElement('div');
+        panel.id = 'charlib-embedded-container';
+        Object.assign(panel.style, { position: 'fixed', top: 'var(--topBarBlockSize, 37px)', left: '0', right: '0', bottom: '0', zIndex: '2999', display: 'block', background: '#1a1a2e' });
+        document.body.append(panel);
+        const box = panel.getBoundingClientRect();
+        const bar = document.querySelector('.stmui-appbar').getBoundingClientRect();
+        const tabs = document.getElementById('stmui-tabbar').getBoundingClientRect();
+        panel.remove();
+        return { top: Math.round(box.top - bar.bottom), bottom: Math.round(tabs.top - box.bottom) };
+    });
+    if (Math.abs(fit.top) > 1 || fit.bottom < -1) throw new Error(`Character Library's panel is under Pocket Tavern's bars: ${JSON.stringify(fit)}`);
+});
+
 await step('More can update Pocket Tavern in one tap and shows SillyTavern updates', async () => {
     // SillyTavern's own extension endpoints, answered here so nothing is really pulled.
     const asked = [];
@@ -1392,7 +1525,7 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
             await tab.waitForFunction(() => !!document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'), null, { timeout: 15000 });
             // Chat Completion Tabs (when installed) builds its tabs up to 2 seconds after the API switch.
             await tab.waitForTimeout(2200);
-            await tab.evaluate(() => document.getElementById('openai-tab-btn-prompts')?.click());
+            await tab.evaluate(() => (document.getElementById('openai-tab-btn-prompts') ?? document.getElementById('stmui_ptab_prompts'))?.click());
             const edit = tab.locator('#completion_prompt_manager_list .prompt-manager-edit-action').first();
             await edit.scrollIntoViewIfNeeded();
             await edit.click();
@@ -1600,7 +1733,7 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
     }
 });
 
-await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, the Backgrounds tabs clear their buttons, and Moonlit Echoes keeps the swipe pill together', async () => {
+await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, Chat Completion Tabs sticks flush, the Backgrounds tabs clear their buttons and take clicks at their edges, the Personas buttons share their row, and Moonlit Echoes keeps the swipe pill together and the switches their shape', async () => {
     const desk = await browser.newContext({ viewport: { width: 1366, height: 768 } });
     const tab = await desk.newPage();
     tab.on('pageerror', error => {
@@ -1640,6 +1773,30 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
         });
         if (presets.rows !== 1 || presets.bigRows !== 1) throw new Error(`preset buttons wrap: ${JSON.stringify(presets)}`);
         if (presets.select !== null && (presets.select < presets.footer * 0.8 || !presets.below)) throw new Error(`prompt dropdown is squeezed: ${JSON.stringify(presets)}`);
+        // Chat Completion Tabs (when installed): its bar sticks flush with the top of the page, with no strip above it.
+        const tabsGap = await tab.evaluate(async () => {
+            const bar = document.querySelector('.openai-tab-buttons');
+            const scroller = bar?.closest('.scrollableInner');
+            if (!bar || !scroller) return null;
+            scroller.scrollTop = 700;
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const gap = Math.round(bar.getBoundingClientRect().top - scroller.getBoundingClientRect().top);
+            scroller.scrollTop = 0;
+            return gap;
+        });
+        if (tabsGap !== null && Math.abs(tabsGap) > 1) throw new Error(`Chat Completion Tabs' bar sticks ${tabsGap}px from the top of the page`);
+        // Without Chat Completion Tabs, Pocket Tavern's own Parameters / Prompts tabs each show one half.
+        const ownTabs = await tab.evaluate(async () => {
+            if (!document.getElementById('stmui_ptab_prompts')) return null;
+            const shown = () => ({ prompts: !!document.getElementById('completion_prompt_manager')?.offsetParent, sliders: !!document.getElementById('range_block_openai')?.offsetParent });
+            const params = shown();
+            document.getElementById('stmui_ptab_prompts').click();
+            await new Promise(resolve => setTimeout(resolve, 200));
+            const prompts = shown();
+            document.getElementById('stmui_ptab_params').click();
+            return { params, prompts };
+        });
+        if (ownTabs && (ownTabs.params.prompts || !ownTabs.params.sliders || !ownTabs.prompts.prompts || ownTabs.prompts.sliders)) throw new Error(`Parameters / Prompts tabs: ${JSON.stringify(ownTabs)}`);
         // Backgrounds: Global and Chat never sit under the select, − and + buttons.
         await tab.locator('.stmui-tab[data-tab="backgrounds-button"]').click();
         await tab.waitForFunction(() => document.documentElement.dataset.stmuiPage === 'backgrounds-button');
@@ -1652,6 +1809,22 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             return { hit, small: buttons.filter(b => b.width < 44 || b.height < 44).length };
         });
         if (bg.hit || bg.small) throw new Error(`Backgrounds tab row: ${JSON.stringify(bg)}`);
+        // The link inside each tab switches it: it fills the tab, so a click near the top or bottom edge works too.
+        const edges = await tab.evaluate(() => [...document.querySelectorAll('#bg_tabs .bg_tab_button')].filter(node => node.offsetParent).every(node => {
+            const box = node.getBoundingClientRect();
+            return [box.top + 3, box.bottom - 3].every(y => document.elementFromPoint(box.left + box.width / 2, y)?.closest('a'));
+        }));
+        if (!edges) throw new Error('a Backgrounds tab ignores clicks near its top or bottom edge');
+        // Personas: Usage Stats, Backup and Restore share the whole row.
+        await tab.locator('.stmui-tab[data-tab="persona-management-button"]').click();
+        await tab.waitForFunction(() => document.documentElement.dataset.stmuiPage === 'persona-management-button');
+        await tab.waitForTimeout(800);
+        const personaRow = await tab.evaluate(() => {
+            const buttons = [...document.querySelectorAll('.user_stats_button, #personas_backup, #personas_restore')].map(node => node.getBoundingClientRect());
+            const row = document.getElementById('persona-management-block').getBoundingClientRect();
+            return { start: Math.round(buttons[0].left - row.left), end: Math.round(row.right - buttons.at(-1).right) };
+        });
+        if (Math.abs(personaRow.start) > 4 || Math.abs(personaRow.end) > 4) throw new Error(`the Personas buttons do not fill their row: ${JSON.stringify(personaRow)}`);
         await tab.keyboard.press('Escape');
         // Moonlit Echoes' swipe rules (a stand-in with the same declarations): ‹ stays against the rest of the pill.
         await tab.evaluate(async () => {
@@ -1685,6 +1858,18 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             return out;
         });
         if (Math.abs(pill.gap) > 1 || Math.abs(pill.top) > 2 || pill.scale !== 'none') throw new Error(`the swipe pill splits under Moonlit Echoes: ${JSON.stringify(pill)}`);
+        // Moonlit Echoes' checkbox rules (a stand-in with the same declarations): a settings switch keeps its pill shape and edge.
+        const toggle = await tab.evaluate(() => {
+            const style = document.createElement('style');
+            style.textContent = "input[type='checkbox'] { border: none !important; border-radius: 100% !important; } input[type='checkbox']:checked { background-color: red !important; }";
+            document.head.append(style);
+            const input = document.querySelector('#user-settings-block label.checkbox_label > input[type="checkbox"]');
+            const look = getComputedStyle(input);
+            const out = { radius: look.borderRadius, edge: look.borderTopWidth };
+            style.remove();
+            return out;
+        });
+        if (toggle.radius !== '999px' || toggle.edge !== '1px') throw new Error(`a switch loses its shape under Moonlit Echoes: ${JSON.stringify(toggle)}`);
     } finally {
         if (api) {
             await tab.evaluate(value => { const select = document.getElementById('main_api'); select.value = value; jQuery(select).trigger('change'); }, api).catch(() => {});

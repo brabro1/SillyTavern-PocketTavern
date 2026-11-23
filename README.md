@@ -79,6 +79,8 @@ It switches itself on and picks the right layout for each screen. Your character
 - Character cards with tabs for Description, First message and Notes.
 - Lorebook entries as cards with keyword chips, and a searchable picker.
 - − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.
+- Settings, Formatting and Extensions open on a short list: each section, or each extension, opens on its own page.
+- With Chat Completion, Presets has Parameters and Prompts tabs, so the prompt list is one tap away.
 
 **🎨 Make it yours**
 - 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
@@ -196,9 +198,10 @@ In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
 | Computers (Windows, macOS, Linux) | ✅ Desktop layout, in any up-to-date browser |
 | Guided Generations | ✅ One guide button with a menu that explains every action |
 | Input History, Quick Replies | ✅ Input History sits in the text field; quick replies are slim chips |
-| Moonlit Echoes | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style** |
+| Moonlit Echoes | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style**. Switches and page layouts keep Pocket Tavern's shape |
 | ScenePulse | ✅ Opens from the wand (**Tools**) on a phone |
-| Chat Completion Tabs | ✅ Its tabs match Pocket Tavern's |
+| Chat Completion Tabs | ✅ Its tabs match Pocket Tavern's and stay at the top of Presets as you scroll |
+| Character Library | ✅ Its embedded panel opens from **More** and fits between Pocket Tavern's bars; Back closes it |
 | Other extensions | Work alongside it |
 
 ## Privacy
