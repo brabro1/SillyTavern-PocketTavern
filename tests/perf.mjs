@@ -189,7 +189,13 @@ await cdp.send('Emulation.setCPUThrottlingRate', { rate: SLOWDOWN });
 // PROFILE="part of a scenario name": profile that one scenario with Pocket Tavern on.
 // Prints the busiest functions and what made the browser recalculate styles.
 if (process.env.PROFILE) {
-    const [name, run] = Object.entries(scenarios).find(([key]) => key.includes(process.env.PROFILE));
+    const match = Object.entries(scenarios).find(([key]) => key.includes(process.env.PROFILE));
+    if (!match) {
+        console.error(`No scenario matches PROFILE="${process.env.PROFILE}". Available: ${Object.keys(scenarios).join(', ')}`);
+        await browser.close();
+        process.exit(1);
+    }
+    const [name, run] = match;
     await page.waitForTimeout(500);
     const events = [];
     cdp.on('Tracing.dataCollected', data => events.push(...data.value));

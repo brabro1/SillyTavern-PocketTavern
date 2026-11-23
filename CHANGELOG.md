@@ -1,6 +1,45 @@
 # Changelog
 
-## 2.26.0
+## 2.27.0
+
+Feedback from Kahvana on Reddit (thank you for the detailed screenshots), a full code audit, and fixes for Moonlit Echoes and Chat Completion Tabs.
+
+### Both
+
+- **Formatting in sections.** Advanced Formatting was nine headed blocks, about three screens long on a phone. It now opens on a list like Settings: Context template, Instruct template, System prompt, Reasoning, Stopping strings, Tokenizer and Miscellaneous, each opening its own page with Back (and the back gesture) to the list. Headings are quiet text instead of SillyTavern's dark bars. Find a setting still finds everything and opens the right section.
+- **Reasoning, laid out.** Auto-Parse, Auto-Expand and Show Hidden sat three across with their explanations out of line. Every switch is a full-width row with its explanation under it, Max is a row with the number at the end, and Reasoning Formatting folds open from a 44px row.
+- **Extensions as a list.** The fold-out cards are a grouped list like Settings, one row per extension with its description and a chevron. An extension opens as its own page: the others and the page's own controls step aside, and the top bar shows the extension's name. It still opens and closes through SillyTavern's own fold-out, so nothing else changes.
+- **No repeated page names.** Lorebooks, Formatting and Extensions showed their name again under the top bar. The words are gone; the docs "?" links stay.
+- **Missing pictures.** A message whose picture fails to load (a removed group member, a missing file) showed SillyTavern's 50px "no picture" icon spilling out of the smaller picture slot. It is a circle with the name's initials now, tinted with a colour made from the name.
+- **Lorebook keyword chips** kept showing the old keywords after you edited an entry (a regression in this release's audit work). They are read again when the entry closes, from the right field on phones and on computers.
+- **Backgrounds.** The Global and Chat tabs only reacted to clicks on their words, not near their top and bottom edges (reported in Firefox at 1920 × 1080; it was every browser). The whole tab works now.
+- **Moonlit Echoes.** Its round, borderless checkboxes (all `!important`) turned Pocket Tavern's switches into squashed ovals; the switches are pinned to their pill shape and colours. On Personas, the hidden title still took half the row and pushed Usage Stats, Backup and Restore to the end; the three buttons share the row again. Its heading bars and drawer cards no longer show in the places above.
+- **Chat Completion Tabs.** Its Parameters / Prompts bar stuck a few pixels below the top of Presets, so settings scrolled past in a strip above it (on phones it was clipped instead). It sits flush at the top now, and its rounded corners no longer show text behind them.
+- **Parameters and Prompts tabs without Chat Completion Tabs.** With the Chat Completion API, Presets has two tabs of its own under the preset picker: Parameters (the samplers) and Prompts (the prompt list, which was far down the page). They stick to the top as you scroll, Find a setting switches to the right one, and with Chat Completion Tabs installed its own tabs are used instead.
+- **Readable SillyTavern themes over a chat background.** SillyTavern darkens a chat background twice (the chat tint, then each message's tint); Pocket Tavern draws only the cards, with one tint, so Cappuccino's cards were 85% dark and went pale over a bright picture, and its brown quotes dropped to about 3.4:1. Cards from a SillyTavern theme now take the strength of both layers (94% for Cappuccino), and quote, italic and body text are checked against a card over a bright picture as well as a mid-grey one.
+- **Moonlit Echoes and message cards.** Moonlit Echoes unsets every message's background with `!important` and paints an inner box that Pocket Tavern's card layout flattens, so with it on the cards had no colour at all and the text vanished over a light picture. The cards keep their colour.
+- **Moonlit Echoes and the character card.** Its own layout for the picture area squeezed the card's tools (Favorite, Advanced, Export…) into a sliver at the left and grew the picture into a large square. The tools are a four-column grid again and the picture is Pocket Tavern's circle.
+- **Swipe arrow with SillyTavern's Bubbles.** A SillyTavern theme can switch its Chat Style to Bubbles (Cappuccino does); then SillyTavern draws the messages and places ‹ itself, but a Pocket Tavern rule pulled ‹ into the message's row, a column of its own beside the text. It stays where SillyTavern puts it.
+- **Export.** SillyTavern's tiny PNG / JSON list opened over the card's other buttons. It is a sheet now (a dialog on a computer), with a line on what each format is.
+- **Start screen.** The recent chats had soft edges and dimmed text that blended into the page for readers with low vision. Their previews are at full text strength, the chat name, date and "Recent" heading use the stronger secondary colour, and the cards have a clearer edge.
+- **Quotes and code blocks** in messages have room above and below (0.75em, 0.5em in Compact), so the text around a big quote block reads apart; SillyTavern gives quotes no margin at all.
+- **Find a setting.** The search box is the sheet's header (beside Close), with the page in its placeholder ("Find a setting in Settings"), instead of a title that repeated it.
+- **Backgrounds** has no scroll-to-top button any more; no other page has one.
+- **Character Library** (GitHub issue #1). Its Embedded Panel is a fixed layer from SillyTavern's top bar to the bottom of the screen, so Pocket Tavern's tab bar (phone) and rail (computer) covered parts of it. It now takes a page's place, between the top bar and the tab bar or beside the rail, and works like one: Back, the back gesture and Escape close it, and any tab leaves it. It opens from **More → Open Character Library**.
+- **From the code audit:** user text (names, chat text, keywords) never goes through the translator, and a word like "constructor" no longer breaks it; an imported card can only point its animated picture at your own server; chat translation stops cleanly when you switch chats and keeps code blocks intact; search highlights clean up after themselves; watchers, timers and frame callbacks stop when Pocket Tavern is switched off; the picture cache has a size limit; the picture viewer no longer jumps when you lift one finger of a pinch; warning, success and info colours are contrast-checked on every theme; reduced motion covers decorative animations; more controls show a keyboard focus ring; right-to-left layouts use start and end in more places; `app.webmanifest` matches the Pocket theme.
+- **Docs and checks:** DESIGN.md keeps the redesign's agreed targets (the one-tap SillyTavern toggle, the 760px desktop column, the 35% message box and the `+` menu, keyboard rules) marked as targets, plus a layer table and iPhone/iPad rules. `tests/check.mjs` checks translations, placeholders, icons, the manifest and CSS more thoroughly, and GitHub's check also runs `ios.mjs` and shellcheck.
+
+### Phone
+
+- **Send and Stop are 44px,** like every other control; the toast close button and Show more are 44px too.
+- **iPhone and iPad:** with Safari's keyboard up, Search this chat, the character popup, banners and toasts follow the visible screen, and on an iPad held sideways the message editor no longer covers the left rail.
+
+### Desktop
+
+- **Options that only make sense on a phone** (Vibration, Hide tabs in a chat) are hidden on the desktop layout. Sheets open as dialogs without drag-to-close.
+- **Narrow windows (around 1024px)** with a side page and a tool panel open keep a usable chat column.
+- **Escape** no longer closes the side page while you type in it.
+
 
 The first step of the redesign to the new DESIGN.md: design tokens, a new default theme, and no blur anywhere.
 

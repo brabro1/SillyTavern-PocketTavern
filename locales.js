@@ -5,9 +5,9 @@
  */
 import { addDictionary } from './i18n.js';
 
-const LANGS = ['es', 'pt', 'ru', 'zh', 'ja', 'ar'];
+export const LANGS = ['es', 'pt', 'ru', 'zh', 'ja', 'ar'];
 
-const STRINGS = {
+export const STRINGS = {
     // Tabs and pages
     'Chat': ['Chat', 'Chat', 'Чат', '聊天', 'チャット', 'الدردشة'],
     'Characters': ['Personajes', 'Personagens', 'Персонажи', '角色', 'キャラクター', 'الشخصيات'],
@@ -124,8 +124,7 @@ const STRINGS = {
     'Nothing to choose from here yet.': ['Aún no hay nada para elegir.', 'Ainda não há nada para escolher.', 'Пока не из чего выбрать.', '这里暂时没有可选项。', 'まだ選べるものがありません。', 'لا يوجد ما تختاره هنا بعد.'],
 
     // Find a setting
-    'In {page}': ['En {page}', 'Em {page}', 'В разделе «{page}»', '在 {page} 中', '{page} 内', 'في {page}'],
-    'Type a setting name…': ['Escribe el nombre de un ajuste…', 'Digite o nome de uma configuração…', 'Введите название настройки…', '输入设置名称…', '設定名を入力…', 'اكتب اسم الإعداد…'],
+    'Find a setting in {page}': ['Buscar un ajuste en {page}', 'Encontrar uma configuração em {page}', 'Найти настройку в разделе «{page}»', '在 {page} 中查找设置', '{page} で設定を探す', 'ابحث عن إعداد في {page}'],
     '{count} settings on this page.': ['{count} ajustes en esta página.', '{count} configurações nesta página.', 'Настроек на странице: {count}.', '此页面共有 {count} 项设置。', 'このページの設定: {count} 件', '{count} إعدادًا في هذه الصفحة.'],
     'No setting matches that.': ['Ningún ajuste coincide.', 'Nenhuma configuração corresponde.', 'Ничего не найдено.', '没有匹配的设置。', '一致する設定はありません。', 'لا يوجد إعداد مطابق.'],
 
@@ -206,7 +205,6 @@ const STRINGS = {
     'Lorebook': ['Lorebook', 'Lorebook', 'Лорбук', '世界书', 'ロアブック', 'كتاب معرفة'],
     'Loading chats…': ['Cargando chats…', 'Carregando chats…', 'Загрузка чатов…', '正在加载聊天…', 'チャットを読み込み中…', 'جارٍ تحميل الدردشات…'],
     'Nothing matches that.': ['Nada coincide.', 'Nada corresponde.', 'Ничего не найдено.', '没有匹配项。', '一致するものはありません。', 'لا شيء مطابق.'],
-    'Search characters, chats, lorebooks, settings': ['Buscar personajes, chats, lorebooks, ajustes', 'Pesquisar personagens, chats, lorebooks, configurações', 'Поиск: персонажи, чаты, лорбуки, настройки', '搜索角色、聊天、世界书、设置', 'キャラクター・チャット・ロアブック・設定を検索', 'ابحث في الشخصيات والدردشات وكتب المعرفة والإعدادات'],
     'New character pages': ['Nuevas páginas de personajes', 'Novas páginas de personagens', 'Новые страницы персонажей', '新角色页面', '新しいキャラクター画面', 'صفحات شخصيات جديدة'],
     'Chat list helpers': ['Ayudas para la lista de chats', 'Ajudas da lista de chats', 'Помощники списка чатов', '聊天列表辅助', 'チャット一覧の便利機能', 'أدوات قائمة الدردشات'],
     'Sort': ['Ordenar', 'Ordenar', 'Сортировка', '排序', '並べ替え', 'ترتيب'],
@@ -224,15 +222,9 @@ const STRINGS = {
     'Animated pictures': ['Imágenes animadas', 'Imagens animadas', 'Анимированные изображения', '动态图片', 'アニメーション画像', 'صور متحركة'],
     'Animated': ['Animada', 'Animada', 'Анимация', '动态', 'アニメ', 'متحركة'],
     'Animated picture': ['Imagen animada', 'Imagem animada', 'Анимированное изображение', '动态图片', 'アニメーション画像', 'صورة متحركة'],
-    'Open a character first.': ['Abre un personaje primero.', 'Abra um personagem primeiro.', 'Сначала откройте персонажа.', '请先打开一个角色。', '先にキャラクターを開いてください。', 'افتح شخصية أولًا.'],
-    'That picture is too big (over 15 MB).': ['La imagen es demasiado grande (más de 15 MB).', 'A imagem é grande demais (mais de 15 MB).', 'Изображение слишком большое (больше 15 МБ).', '图片太大（超过 15 MB）。', '画像が大きすぎます（15 MB 超）。', 'الصورة كبيرة جدًا (أكثر من 15 ميغابايت).'],
     'Animated picture set for {name}.': ['Imagen animada puesta para {name}.', 'Imagem animada definida para {name}.', 'Анимированное изображение для {name} установлено.', '已为 {name} 设置动态图片。', '{name} のアニメーション画像を設定しました。', 'تم تعيين صورة متحركة لـ{name}.'],
-    'Could not save the picture.': ['No se pudo guardar la imagen.', 'Não foi possível salvar a imagem.', 'Не удалось сохранить изображение.', '无法保存图片。', '画像を保存できませんでした。', 'تعذّر حفظ الصورة.'],
-    "A GIF or animated WebP shown instead of {name}'s picture in Pocket Tavern. The character card itself is not changed.": ['Un GIF o WebP animado que se muestra en lugar de la imagen de {name} en Pocket Tavern. La tarjeta del personaje no cambia.', 'Um GIF ou WebP animado exibido no lugar da imagem de {name} no Pocket Tavern. O cartão do personagem não muda.', 'GIF или анимированный WebP вместо изображения {name} в Pocket Tavern. Сама карточка не меняется.', '在 Pocket Tavern 中代替 {name} 图片显示的 GIF 或动态 WebP。角色卡本身不变。', 'Pocket Tavern で {name} の画像の代わりに表示する GIF／アニメ WebP。キャラクターカード自体は変わりません。', 'صورة GIF أو WebP متحركة تُعرض بدل صورة {name} في Pocket Tavern. بطاقة الشخصية نفسها لا تتغير.'],
-    'Choose a different GIF': ['Elegir otro GIF', 'Escolher outro GIF', 'Выбрать другой GIF', '选择其他 GIF', '別の GIF を選ぶ', 'اختيار GIF آخر'],
-    'Choose a GIF from your phone': ['Elegir un GIF del móvil', 'Escolher um GIF do celular', 'Выбрать GIF с телефона', '从手机选择 GIF', 'スマホから GIF を選ぶ', 'اختيار GIF من هاتفك'],
-    'Use the normal picture again': ['Volver a la imagen normal', 'Voltar à imagem normal', 'Вернуть обычное изображение', '恢复普通图片', '通常の画像に戻す', 'العودة إلى الصورة العادية'],
-    'Back to the normal picture.': ['De vuelta a la imagen normal.', 'Voltou à imagem normal.', 'Обычное изображение возвращено.', '已恢复普通图片。', '通常の画像に戻しました。', 'تمت العودة إلى الصورة العادية.'],
+    'That picture is too big to animate (over 15 MB); the still picture is used.': ['La imagen es demasiado grande para animarla (más de 15 MB); se usa la imagen fija.', 'A imagem é grande demais para animar (mais de 15 MB); a imagem estática será usada.', 'Изображение слишком велико для анимации (больше 15 МБ); используется статичное.', '图片太大，无法设为动态（超过 15 MB）；将使用静态图片。', '画像が大きすぎてアニメーションできません（15 MB 超）。静止画を使います。', 'الصورة كبيرة جدًا لتحريكها (أكثر من 15 ميغابايت)؛ ستُستخدم الصورة الثابتة.'],
+    'Could not save the animated picture; the still picture is used.': ['No se pudo guardar la imagen animada; se usa la imagen fija.', 'Não foi possível salvar a imagem animada; a imagem estática será usada.', 'Не удалось сохранить анимированное изображение; используется статичное.', '无法保存动态图片；将使用静态图片。', 'アニメーション画像を保存できませんでした。静止画を使います。', 'تعذّر حفظ الصورة المتحركة؛ ستُستخدم الصورة الثابتة.'],
     // Chat tools and lorebook cards
     'Another version': ['Otra versión', 'Outra versão', 'Другой вариант', '换一个版本', '別のバージョン', 'نسخة أخرى'],
     'Previous version': ['Versión anterior', 'Versão anterior', 'Предыдущий вариант', '上一个版本', '前のバージョン', 'النسخة السابقة'],
@@ -311,10 +303,7 @@ const STRINGS = {
     'Could not save the persona': ['No se pudo guardar la persona', 'Não foi possível salvar a persona', 'Не удалось сохранить персону', '无法保存用户角色', 'ペルソナを保存できませんでした', 'تعذّر حفظ الشخصية'],
     'Edit persona': ['Editar persona', 'Editar persona', 'Изменить персону', '编辑用户角色', 'ペルソナを編集', 'تعديل الشخصية'],
     'Name and description': ['Nombre y descripción', 'Nome e descrição', 'Имя и описание', '名字和描述', '名前と説明', 'الاسم والوصف'],
-    '1 chat': ['1 chat', '1 chat', '1 чат', '1 个聊天', '1 件のチャット', 'دردشة واحدة'],
-    '{count} chats': ['{count} chats', '{count} chats', 'Чатов: {count}', '{count} 个聊天', '{count} 件のチャット', '{count} دردشات'],
     'Open the latest chat with {name}': ['Abrir el último chat con {name}', 'Abrir o último chat com {name}', 'Открыть последний чат с {name}', '打开与 {name} 的最新聊天', '{name} との最新のチャットを開く', 'فتح آخر دردشة مع {name}'],
-    'Show {count} more': ['Ver {count} más', 'Ver mais {count}', 'Показать ещё {count}', '再显示 {count} 个', 'さらに {count} 件表示', 'عرض {count} أخرى'],
     'All chats': ['Todos los chats', 'Todos os chats', 'Все чаты', '全部聊天', 'すべてのチャット', 'كل الدردشات'],
     'Character': ['Personaje', 'Personagem', 'Персонаж', '角色', 'キャラクター', 'الشخصية'],
     'Show chats with {name}': ['Ver chats con {name}', 'Ver chats com {name}', 'Показать чаты с {name}', '显示与 {name} 的聊天', '{name} とのチャットを表示', 'عرض الدردشات مع {name}'],
@@ -331,6 +320,26 @@ const STRINGS = {
     'Your own style rules': ['Tus propias reglas de estilo', 'Suas próprias regras de estilo', 'Ваши собственные правила стилей', '你自己的样式规则', '自分のスタイルルール', 'قواعد التنسيق الخاصة بك'],
     'STscript': ['STscript', 'STscript', 'STscript', 'STscript', 'STscript', 'STscript'],
     'How slash commands are read': ['Cómo se leen los comandos con barra', 'Como os comandos de barra são lidos', 'Как читаются слэш-команды', '斜杠命令的解析方式', 'スラッシュコマンドの読み取り方', 'كيف تُقرأ أوامر الشرطة المائلة'],
+    // Presets tabs and Export
+    'Export character': ['Exportar personaje', 'Exportar personagem', 'Экспорт персонажа', '导出角色', 'キャラクターを書き出す', 'تصدير الشخصية'],
+    'A picture card with everything inside. Most apps can open it.': ['Una imagen con todo dentro. La mayoría de las apps pueden abrirla.', 'Uma imagem com tudo dentro. A maioria dos apps consegue abrir.', 'Картинка со всеми данными внутри. Её открывает большинство приложений.', '包含全部内容的图片卡，大多数应用都能打开。', 'すべてを含んだ画像カード。ほとんどのアプリで開けます。', 'بطاقة صورة تحوي كل شيء. تفتحها معظم التطبيقات.'],
+    "The character's details as a text file.": ['Los datos del personaje como archivo de texto.', 'Os dados do personagem como arquivo de texto.', 'Данные персонажа в текстовом файле.', '角色资料的文本文件。', 'キャラクターの情報をテキストファイルで。', 'بيانات الشخصية كملف نصي.'],
+    'Parameters': ['Parámetros', 'Parâmetros', 'Параметры', '参数', 'パラメーター', 'المعاملات'],
+    'Prompts': ['Prompts', 'Prompts', 'Промпты', '提示词', 'プロンプト', 'الموجّهات'],
+    // Formatting sections
+    'Context template': ['Plantilla de contexto', 'Modelo de contexto', 'Шаблон контекста', '上下文模板', 'コンテキストテンプレート', 'قالب السياق'],
+    'Story string and how the prompt is put together': ['La cadena de historia y cómo se arma el prompt', 'A string da história e como o prompt é montado', 'Строка истории и то, как собирается промпт', '故事字符串以及提示词的组合方式', 'ストーリー文字列とプロンプトの組み立て方', 'نص القصة وكيفية تجميع الموجّه'],
+    'Instruct template': ['Plantilla de instrucciones', 'Modelo de instrução', 'Шаблон инструкций', '指令模板', 'インストラクトテンプレート', 'قالب التعليمات'],
+    'Instruct mode and the sequences around messages': ['El modo instrucción y las secuencias alrededor de los mensajes', 'O modo de instrução e as sequências em volta das mensagens', 'Режим инструкций и последовательности вокруг сообщений', '指令模式以及消息前后的序列', 'インストラクトモードとメッセージ前後のシーケンス', 'وضع التعليمات والتسلسلات المحيطة بالرسائل'],
+    'System prompt': ['Prompt del sistema', 'Prompt do sistema', 'Системный промпт', '系统提示词', 'システムプロンプト', 'موجّه النظام'],
+    'Instructions sent before the chat': ['Instrucciones que se envían antes del chat', 'Instruções enviadas antes do chat', 'Инструкции, которые отправляются перед чатом', '在聊天之前发送的指示', 'チャットの前に送る指示', 'تعليمات تُرسل قبل الدردشة'],
+    'Reasoning': ['Razonamiento', 'Raciocínio', 'Рассуждения', '推理', '推論', 'الاستدلال'],
+    'Thinking blocks: finding, showing and sending them': ['Bloques de pensamiento: encontrarlos, mostrarlos y enviarlos', 'Blocos de pensamento: encontrar, mostrar e enviar', 'Блоки размышлений: поиск, показ и отправка', '思考块：识别、显示和发送', '思考ブロックの検出・表示・送信', 'كتل التفكير: إيجادها وعرضها وإرسالها'],
+    'Stopping strings': ['Cadenas de parada', 'Strings de parada', 'Стоп-строки', '停止字符串', '停止文字列', 'سلاسل الإيقاف'],
+    'Words that end a reply': ['Palabras que terminan una respuesta', 'Palavras que encerram uma resposta', 'Слова, на которых ответ заканчивается', '让回复结束的词语', '返信を終わらせる言葉', 'كلمات تُنهي الرد'],
+    'How tokens are counted': ['Cómo se cuentan los tokens', 'Como os tokens são contados', 'Как считаются токены', '如何计算 token', 'トークンの数え方', 'كيف تُحسب الرموز'],
+    'Miscellaneous': ['Varios', 'Diversos', 'Разное', '其他', 'その他の設定', 'متفرقات'],
+    'Start reply with, model binding and more': ['Empezar la respuesta con, vincular al modelo y más', 'Começar a resposta com, vínculo ao modelo e mais', 'Начало ответа, привязка к модели и другое', '回复开头、绑定模型等', '返信の書き出し、モデルとの紐付けなど', 'بداية الرد وربط القالب بالنموذج والمزيد'],
     'Search settings': ['Buscar ajustes', 'Buscar configurações', 'Поиск настроек', '搜索设置', '設定を検索', 'البحث في الإعدادات'],
     'Phone layout, gestures and helpers': ['Diseño para móvil, gestos y ayudas', 'Layout para celular, gestos e ajudas', 'Телефонный интерфейс, жесты и помощники', '手机布局、手势和辅助功能', 'スマホ向けの画面、ジェスチャー、便利機能', 'تخطيط الهاتف والإيماءات والأدوات المساعدة'],
 
@@ -532,6 +541,22 @@ const STRINGS = {
     'Selected: {name}': ['Seleccionado: {name}', 'Selecionado: {name}', 'Выбрано: {name}', '已选：{name}', '選択中: {name}', 'المحدد: {name}'],
     'Nothing selected': ['Nada seleccionado', 'Nada selecionado', 'Ничего не выбрано', '未选择', '未選択', 'لم يُحدَّد شيء'],
     'Uses Google Translate, asked straight from this browser. You can pick another service in Extensions → Chat Translation.': ['Usa Google Translate, consultado directamente desde este navegador. Puedes elegir otro servicio en Extensiones → Chat Translation.', 'Usa o Google Tradutor, consultado direto deste navegador. Você pode escolher outro serviço em Extensões → Chat Translation.', 'Использует Google Translate напрямую из этого браузера. Другой сервис можно выбрать в Расширения → Chat Translation.', '直接从此浏览器使用 Google 翻译。可在 扩展 → Chat Translation 中选择其他服务。', 'このブラウザーから直接 Google 翻訳を使います。拡張機能 → Chat Translation で別のサービスを選べます。', 'يستخدم ترجمة Google مباشرةً من هذا المتصفح. يمكنك اختيار خدمة أخرى من الإضافات ← Chat Translation.'],
+    // Copy fallback, Android install steps, misc controls & status
+    'Your browser blocked copying. Select the text and copy it instead.': ['Tu navegador bloqueó la copia. Selecciona el texto y cópialo tú.', 'Seu navegador bloqueou a cópia. Selecione o texto e copie.', 'Браузер заблокировал копирование. Выделите текст и скопируйте вручную.', '浏览器阻止了复制。请选中文本后手动复制。', 'ブラウザーがコピーをブロックしました。テキストを選択してコピーしてください。', 'حظر متصفحك النسخ. حدّد النص وانسخه يدويًا.'],
+    'Your browser blocked copying. Long-press the text to copy it instead.': ['Tu navegador bloqueó la copia. Mantén pulsado el texto para copiarlo.', 'Seu navegador bloqueou a cópia. Pressione e segure o texto para copiar.', 'Браузер заблокировал копирование. Удерживайте текст, чтобы скопировать.', '浏览器阻止了复制。请长按文本进行复制。', 'ブラウザーがコピーをブロックしました。テキストを長押ししてコピーしてください。', 'حظر متصفحك النسخ. اضغط مطوّلًا على النص لنسخه.'],
+    'Action': ['Acción', 'Ação', 'Действие', '操作', '操作', 'إجراء'],
+    'None': ['Ninguno', 'Nenhum', 'Нет', '无', 'なし', 'لا شيء'],
+    "1. Tap Chrome's ⋮ menu (top right).": ['1. Toca el menú ⋮ de Chrome (arriba a la derecha).', '1. Toque no menu ⋮ do Chrome (canto superior direito).', '1. Нажмите меню ⋮ в Chrome (вверху справа).', '1. 点按 Chrome 右上角的 ⋮ 菜单。', '1. Chrome 右上の ⋮ メニューをタップします。', '1. اضغط قائمة ⋮ في Chrome (أعلى اليمين).'],
+    '2. Tap "Add to Home screen" or "Install app".': ['2. Toca "Añadir a pantalla de inicio" o "Instalar aplicación".', '2. Toque em "Adicionar à tela inicial" ou "Instalar app".', '2. Нажмите «Добавить на гл. экран» или «Установить приложение».', '2. 点按“添加到主屏幕”或“安装应用”。', '2.「ホーム画面に追加」または「アプリをインストール」をタップします。', '2. اضغط "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق".'],
+    '3. Tap Install. SillyTavern now has its own icon.': ['3. Toca Instalar. SillyTavern ya tiene su propio icono.', '3. Toque em Instalar. O SillyTavern agora tem seu próprio ícone.', '3. Нажмите «Установить». У SillyTavern теперь свой значок.', '3. 点按“安装”。SillyTavern 现在有了自己的图标。', '3.「インストール」をタップします。SillyTavern に専用のアイコンができます。', '3. اضغط تثبيت. أصبح لـ SillyTavern أيقونته الخاصة.'],
+    'Keep Termux running in the background as usual; the app opens the same SillyTavern.': ['Mantén Termux en segundo plano como siempre; la app abre el mismo SillyTavern.', 'Mantenha o Termux rodando em segundo plano como sempre; o app abre o mesmo SillyTavern.', 'Оставьте Termux работать в фоне как обычно; приложение открывает тот же SillyTavern.', '照常在后台保持 Termux 运行；该应用会打开同一个 SillyTavern。', 'いつも通り Termux をバックグラウンドで動かしておいてください。アプリは同じ SillyTavern を開きます。', 'أبقِ Termux يعمل في الخلفية كالمعتاد؛ التطبيق يفتح نفس SillyTavern.'],
+    'Make sure SillyTavern is still running, then try again.': ['Asegúrate de que SillyTavern siga en ejecución e inténtalo de nuevo.', 'Verifique se o SillyTavern ainda está rodando e tente de novo.', 'Убедитесь, что SillyTavern всё ещё запущен, и попробуйте снова.', '请确认 SillyTavern 仍在运行，然后重试。', 'SillyTavern が動作中か確認して、もう一度お試しください。', 'تأكد من أن SillyTavern لا يزال يعمل ثم حاول مجددًا.'],
+    'Pocket Tavern is off.': ['Pocket Tavern está desactivado.', 'O Pocket Tavern está desativado.', 'Pocket Tavern выключен.', 'Pocket Tavern 已关闭。', 'Pocket Tavern はオフです。', 'Pocket Tavern متوقف.'],
+    'Off on this device (set to "Off on this device").': ['Desactivado en este dispositivo (configurado en «Desactivado en este dispositivo»).', 'Desativado neste dispositivo (definido como "Desativado neste dispositivo").', 'Выключено на этом устройстве (выбрано «Выкл. на этом устройстве»).', '已在此设备上关闭（设为“在此设备上关闭”）。', 'このデバイスではオフです（「このデバイスではオフ」に設定）。', 'متوقف على هذا الجهاز (مضبوط على "متوقف على هذا الجهاز").'],
+    'Off on this device (phones only — your screen is {width}px wide).': ['Desactivado en este dispositivo (solo teléfonos — tu pantalla mide {width}px de ancho).', 'Desativado neste dispositivo (somente celulares — sua tela tem {width}px de largura).', 'Выключено на этом устройстве (только телефоны — ширина экрана {width}px).', '已在此设备上关闭（仅限手机 — 屏幕宽度为 {width}px）。', 'このデバイスではオフです（スマホのみ — 画面幅 {width}px）。', 'متوقف على هذا الجهاز (للهواتف فقط — عرض شاشتك {width}px).'],
+    'Active on this device (desktop layout).': ['Activo en este dispositivo (diseño de escritorio).', 'Ativo neste dispositivo (layout de computador).', 'Активно на этом устройстве (интерфейс для компьютера).', '已在此设备上启用（桌面布局）。', 'このデバイスで有効です（デスクトップレイアウト）。', 'نشط على هذا الجهاز (تخطيط سطح المكتب).'],
+    'Active on this device (phone layout).': ['Activo en este dispositivo (diseño de teléfono).', 'Ativo neste dispositivo (layout de celular).', 'Активно на этом устройстве (мобильный интерфейс).', '已在此设备上启用（手机布局）。', 'このデバイスで有効です（スマホレイアウト）。', 'نشط على هذا الجهاز (تخطيط الهاتف).'],
+    'Nothing matches "{query}".': ['Nada coincide con "{query}".', 'Nada corresponde a "{query}".', 'Нет совпадений для «{query}».', '没有与“{query}”匹配的项。', '「{query}」に一致するものがありません。', 'لا شيء يطابق "{query}".'],
 };
 
 LANGS.forEach((code, column) => {

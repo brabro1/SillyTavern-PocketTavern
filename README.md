@@ -79,6 +79,8 @@ It switches itself on and picks the right layout for each screen. Your character
 - Character cards with tabs for Description, First message and Notes.
 - Lorebook entries as cards with keyword chips, and a searchable picker.
 - − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.
+- Settings, Formatting and Extensions open on a short list: each section, or each extension, opens on its own page.
+- With Chat Completion, Presets has Parameters and Prompts tabs, so the prompt list is one tap away.
 
 **🎨 Make it yours**
 - 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
@@ -121,7 +123,7 @@ Then reload SillyTavern in your browser.
 
 </details>
 
-**Update:** **More → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). From version 2.21.0 on, the page reloads by itself once nothing is in progress (switch **Reload after updates** off to reload by hand). A short **What's new** list shows once.
+**Update:** **More → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). Once nothing is in progress, the page reloads automatically (switch **Reload after updates** off to reload by hand) and shows a short **What's new** list once.
 
 **Remove:** **Extensions → Manage extensions**, then delete Pocket Tavern.
 
@@ -160,10 +162,10 @@ There are also **Update SillyTavern** (updates SillyTavern and starts it again) 
 Yes. Pocket Tavern runs in your browser, so install it on that SillyTavern and open its address on any device. Your phone gets the phone layout and your computer gets the desktop layout, with the same chats on both.
 
 **Everything feels too big.**
-Pick **Compact** under **More → Themes → Size**, and a smaller text size under **More → Phone features**.
+Pick **Compact** under **More → Themes → Size**, and a smaller text size under **More → Phone features** (**Features** on a computer).
 
 **Where did the tabs go?**
-In a chat they tuck away so you don't tap them by accident. Tap the arrow in the message box to bring them back, or turn off **Hide tabs in a chat** under **More → Phone features**.
+In a chat they tuck away on a phone so you don't tap them by accident. Tap the arrow in the message box to bring them back, or turn off **Hide tabs in a chat** under **More → Phone features**.
 
 **The page beside the chat is too narrow on my computer.**
 Drag its right edge to make it wider; double-click the edge to reset it. For long prompts, the prompt editor has a full-screen button next to Save.
@@ -172,7 +174,7 @@ Drag its right edge to make it wider; double-click the edge to reset it. For lon
 Most of them. Their panels show up under **More**, and their buttons fit into the message box. Some get special care, listed under [Compatibility](#compatibility). If one doesn't work, [tell me](#feedback).
 
 **I use Guided Generations. Where did its buttons go?**
-They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **More → Phone features**.
+They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **More → Phone features** (**Features** on a computer).
 
 **Does it work on iPhone and iPad?**
 Yes, they're supported just like Android. Safari's keyboard gets its own handling, so the bars, chat and editors stay in view while you type. An iPad held upright gets the phone layout, and held sideways the desktop layout; set the chat width under **More → Themes → Chat width**. To use it like an app, tap **Share → Add to Home Screen** in Safari.
@@ -196,9 +198,10 @@ In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
 | Computers (Windows, macOS, Linux) | ✅ Desktop layout, in any up-to-date browser |
 | Guided Generations | ✅ One guide button with a menu that explains every action |
 | Input History, Quick Replies | ✅ Input History sits in the text field; quick replies are slim chips |
-| Moonlit Echoes | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style** |
+| Moonlit Echoes | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style**. Switches and page layouts keep Pocket Tavern's shape |
 | ScenePulse | ✅ Opens from the wand (**Tools**) on a phone |
-| Chat Completion Tabs | ✅ Its tabs match Pocket Tavern's |
+| Chat Completion Tabs | ✅ Its tabs match Pocket Tavern's and stay at the top of Presets as you scroll |
+| Character Library | ✅ Its embedded panel opens from **More** and fits between Pocket Tavern's bars; Back closes it |
 | Other extensions | Work alongside it |
 
 ## Privacy

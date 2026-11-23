@@ -4,7 +4,7 @@ Thanks for wanting to help! Pocket Tavern is in alpha, so bug reports, ideas and
 
 ## Reporting bugs and ideas
 
-Use the [issue forms](https://github.com/brabro1/SillyTavern-PocketTavern/issues/new/choose). A screenshot, your device and browser, and your SillyTavern version help the most. Please never share private chats, API keys or other personal data.
+Use the [issue forms](https://github.com/brabro1/SillyTavern-PocketTavern/issues/new/choose). A screenshot, your layout (Phone or Desktop), device/browser, theme, and SillyTavern version help the most. Please never share private chats, API keys or other personal data.
 
 ## How the code is laid out
 
@@ -12,39 +12,42 @@ Pocket Tavern is a plain SillyTavern extension with no build step:
 
 | File | What's in it |
 | --- | --- |
-| `index.js` | Everything Pocket Tavern does |
-| `style.css` | All styles. Everything is scoped under classes on `<html>` (like `stmui-on`), so turning it off brings SillyTavern back |
-| `themes.js`, `icons.js` | The themes and the icon set |
-| `locales.js`, `i18n.js` | Translations of Pocket Tavern's own labels |
-| `changelog.js`, `CHANGELOG.md` | The What's new list and the full history |
-| `termux/setup.sh` | The one-tap start shortcuts for Android |
-| `tests/` | The checks, the speed test, the audit and the screenshot script (not needed to use the extension) |
+| `index.js` | Extension logic, shell, sheets, gestures, and extension compatibility |
+| `style.css` | All styles, scoped under `html.stmui-on` and its state classes so turning it off restores native SillyTavern |
+| `themes.js`, `icons.js` | The 14 flat themes, SillyTavern theme conversion, and the SVG icon set |
+| `locales.js`, `i18n.js` | Translations of Pocket Tavern's own labels (`es`, `pt`, `ru`, `zh`, `ja`, `ar`) |
+| `changelog.js`, `CHANGELOG.md` | The in-app What's new list and full release history |
+| `manifest.json`, `app.webmanifest` | SillyTavern extension manifest and PWA home-screen manifest |
+| `termux/setup.sh` | One-tap start, update, and stop shortcuts for Android (Termux) |
+| `tests/` | Offline checks (`check.mjs`), end-to-end phone/desktop (`phone.mjs`), iOS/WebKit (`ios.mjs`), extension compatibility (`compat.mjs`), speed (`perf.mjs`), visual audit (`audit.mjs`), README screenshots (`screenshots.mjs`), and banner (`brand.mjs`) |
 
 The internal `stmui` names and the `mobileUI` settings key come from the project's old name, Mobile UI. They stay as they are so existing settings keep working.
 
 ## Before you open a pull request
 
-1. Run the quick checks (Node 20 or newer):
+1. **Read [`DESIGN.md`](DESIGN.md)** before making any visual, layout, or CSS change, and decide whether the change is for **Phone**, **Desktop**, or **Both**.
+2. **Run the offline checks (Node 20+):**
    ```bash
    node tests/check.mjs
    ```
-2. If you can, run the phone test against a SillyTavern with Pocket Tavern installed:
+3. **Run the end-to-end suite** against a test SillyTavern with Pocket Tavern installed:
    ```bash
    cd tests && npm install && ST_URL=http://127.0.0.1:8000 CHROME_CHANNEL=chrome node phone.mjs
    ```
-3. New labels go through `t()` and get a row in `locales.js`.
-4. If you changed something that runs often (scrolling, typing, streaming, opening pages), compare the speed with Pocket Tavern on and off:
+4. **Check iPhone & iPad** whenever you touch phone layout, fixed elements, keyboard handling, or wide breakpoints (both Chrome and WebKit after `npx playwright install webkit`):
    ```bash
-   cd tests && ST_URL=http://127.0.0.1:8000 CHROME_CHANNEL=chrome node perf.mjs
+   cd tests && ST_URL=http://127.0.0.1:8000 CHROME_CHANNEL=chrome node ios.mjs
+   cd tests && ST_URL=http://127.0.0.1:8000 ENGINE=webkit node ios.mjs
    ```
-   `PROFILE="type"` (any part of a scenario name, here "type a message") shows the busiest functions and what made the page restyle.
-5. For a user-facing change, add a line to `CHANGELOG.md` and `changelog.js`, and update the README.
-6. If you changed how Pocket Tavern treats another extension (Guided Generations, Input History), install those in your test SillyTavern and run `node compat.mjs` (same `ST_URL` and `CHROME_CHANNEL`). It blocks requests to the AI, so nothing is generated.
-7. If you changed the phone layout, anything fixed to the screen, the keyboard handling or wide layouts, run `node ios.mjs` too (iPhone and iPad sizes, Safari's keyboard faked). `ENGINE=webkit node ios.mjs` runs it in WebKit, Safari's engine, after `npx playwright install webkit`. iPhone and iPad are core devices, so please check them like Android.
-8. For a polish pass, `node audit.mjs results/audit` (same `ST_URL` and `CHROME_CHANNEL`) walks every screen at three sizes and with the keyboard up, and saves a picture of each.
-9. If the look changed, retake the screenshots with test data only (never your own chats), then redraw the banner from `docs/brand/banner.html`:
+5. **Check compatibility & speed when relevant:**
+   - Extension patches (Guided Generations, Input History, Quick Replies, Moonlit Echoes, ScenePulse, Chat Completion Tabs): `node compat.mjs` (AI requests are blocked).
+   - Hot paths (scrolling, typing, streaming, opening pages): `node perf.mjs` (`PROFILE="type"` profiles a matching scenario).
+   - Visual polish pass across viewports & keyboard states: `node audit.mjs results/audit`.
+6. **Keep translations complete:** Every new UI label goes through `t()` with a row in `locales.js` across all 6 languages (`es`, `pt`, `ru`, `zh`, `ja`, `ar`). Never run user data (character names, chat text, lorebook entries) through `t()`.
+7. **Update docs & visuals for user-facing changes:** Add entries to `CHANGELOG.md` and `changelog.js`, and update `README.md`. If the look changed, retake screenshots with test data only and redraw the banner:
    ```bash
    cd tests && ST_URL=http://127.0.0.1:8000 CHROME_CHANNEL=chrome node screenshots.mjs
+   cd tests && CHROME_CHANNEL=chrome node brand.mjs
    ```
 
 Keep changes small and focused, and write texts people see in plain, friendly words.

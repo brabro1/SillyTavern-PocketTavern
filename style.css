@@ -23,8 +23,12 @@
     --pt-accent: var(--SmartThemeQuoteColor, #5b8def);
     --pt-accent-soft: color-mix(in srgb, var(--pt-accent) 16%, transparent);
     --pt-on-accent: #fff;
-    /* Destructive actions. Mixed toward the text colour so it stays readable on light and dark themes. */
+    /* Semantic status colors. Pocket Tavern themes override these with contrast-checked values in themes.js. */
     --pt-danger: color-mix(in srgb, #e55353 78%, var(--pt-text-primary));
+    --pt-warn: color-mix(in srgb, #d98218 78%, var(--pt-text-primary));
+    --pt-ok: color-mix(in srgb, #2ea063 78%, var(--pt-text-primary));
+    --pt-info: color-mix(in srgb, #2e84d6 78%, var(--pt-text-primary));
+    --pt-gold: color-mix(in srgb, #c99200 78%, var(--pt-text-primary));
     /* Message cards: the only see-through surfaces (over a chat background). */
     --pt-card-user: color-mix(in srgb, var(--pt-accent) 9%, transparent);
     --pt-card-bot: color-mix(in srgb, var(--pt-text-primary) 5%, transparent);
@@ -41,12 +45,15 @@
     --pt-ease: cubic-bezier(0.2, 0, 0, 1);
     --pt-dur-fast: 150ms;
     --pt-dur: 220ms;
-    /* Layers, lowest first. SillyTavern's own popups and toasts open in the top layer
-       (dialogs) above all of these. */
+    /* Layers, lowest first (DESIGN.md, section 2). SillyTavern's own popups and toasts
+       open in the browser top layer (<dialog>) above all of these. */
     --pt-z-chat: 30;
     --pt-z-page: 3005;
     --pt-z-panel: 3050;
+    --pt-z-finder: 3150;
+    --pt-z-edge: 3250;
     --pt-z-editor: 3300;
+    --pt-z-drag: 3500;
     --pt-z-bars: 4010;
     --pt-z-banner: 4030;
     --pt-z-popup: 5000;
@@ -144,7 +151,7 @@ html.stmui-on.stmui-glass:not(.stmui-themed) {
 
 /* The first message of a chat that is not drawn as a card (system notes) gets a tinted backing too. */
 html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_system='true'] {
-    background: var(--pt-card-bot);
+    background-color: var(--pt-card-bot) !important;
 }
 
 /* ---- Settings panel (visible on every device) --------------------------- */
@@ -296,7 +303,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 }
 
 .stmui-open .stmui-count {
-    margin-left: auto;
+    margin-inline-start: auto;
     padding: 2px 10px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--stmui-text) 14%, transparent);
@@ -305,7 +312,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 }
 
 .stmui-open .stmui-open-label {
-    margin-right: auto;
+    margin-inline-end: auto;
 }
 
 .stmui-picker-single {
@@ -322,7 +329,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
     min-height: var(--stmui-tap);
     margin: 0;
     padding: 8px 14px;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
     box-sizing: border-box;
 }
@@ -406,7 +413,7 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
     border: 1px solid var(--stmui-line);
     border-bottom: 0;
     border-radius: 16px 16px 0 0;
-    background: linear-gradient(var(--stmui-surface), var(--stmui-surface)), #101010;
+    background: var(--pt-bg);
     box-shadow: none;
     outline: none;
     transform: translateY(100%);
@@ -468,7 +475,7 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
     flex: 0 0 auto;
     min-height: 44px;
     min-width: 64px;
-    margin: 0 -8px 0 0;
+    margin-inline-end: -8px;
     padding: 0 12px;
     border: 0;
     border-radius: 12px;
@@ -490,7 +497,7 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
 
 .stmui-search-icon {
     position: absolute;
-    left: 14px;
+    inset-inline-start: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--stmui-muted);
@@ -501,7 +508,8 @@ input[type='search'].stmui-search-input {
     width: 100%;
     min-height: 46px;
     margin: 0;
-    padding: 8px 46px 8px 40px;
+    padding-block: 8px;
+    padding-inline: 40px 46px;
     border: 1px solid var(--stmui-line);
     border-radius: 12px;
     background: var(--stmui-raised);
@@ -528,7 +536,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 
 .stmui-search-clear {
     position: absolute;
-    right: 2px;
+    inset-inline-end: 2px;
     top: 50%;
     width: 44px;
     height: 44px;
@@ -644,13 +652,14 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     gap: 14px;
     min-width: 0;
     min-height: 54px;
-    padding: 8px 10px 8px 12px;
+    padding-block: 8px;
+    padding-inline: 12px 10px;
     border: 0;
     border-radius: 12px;
     background: transparent;
     color: inherit;
     font: inherit;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
@@ -871,7 +880,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 }
 
 .stmui-tile-warn .stmui-tile-note {
-    color: #e57373;
+    color: var(--pt-danger);
 }
 
 .stmui-menu-list {
@@ -895,7 +904,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     background: transparent;
     color: var(--stmui-text);
     font: inherit;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -1232,9 +1241,9 @@ html.stmui-shell .stmui-appbar {
     display: inline-block;
     width: 7px;
     height: 7px;
-    margin-right: 6px;
+    margin-inline-end: 6px;
     border-radius: 50%;
-    background: #e57373;
+    background: var(--pt-danger);
     vertical-align: 1px;
 }
 
@@ -1509,16 +1518,20 @@ html.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperst
     padding: 12px 14px 10px;
     border: 1px solid var(--stmui-line);
     border-radius: 16px;
+    /* !important: Moonlit Echoes unsets message backgrounds with !important and paints an inner box
+       that this layout flattens, so cards lost their colour and text vanished over a light picture. */
     background: var(--stmui-bot-tint);
+    background-color: var(--stmui-bot-tint) !important;
 }
 
 html.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user='true'] {
     border-color: color-mix(in srgb, var(--stmui-accent) 28%, transparent);
     background: var(--stmui-user-tint);
+    background-color: var(--stmui-user-tint) !important;
 }
 
 html.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_system='true'] {
-    background: transparent;
+    background-color: transparent !important;
     border-style: dashed;
 }
 
@@ -1532,6 +1545,39 @@ html.stmui-chat #chat .mes .mesAvatarWrapper .avatar img {
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+/* A picture that failed to load: SillyTavern's 50px "no picture" icon becomes a circle with
+   the name's initials (set by index.js) in a soft tint of a colour made from the name. */
+html.stmui-chat #chat .mes .avatar > .missing-avatar[data-stmui-initials] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: color-mix(in oklab, hsl(var(--stmui-hue, 220) 65% 55%) 32%, var(--pt-surface));
+    box-shadow: inset 0 0 0 1px var(--pt-border);
+    color: var(--pt-text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+html.stmui-chat #chat .mes .avatar > .missing-avatar[data-stmui-initials]::before {
+    content: attr(data-stmui-initials);
+    font-family: inherit;
+    font-weight: inherit;
+}
+
+html.stmui-chat.stmui-compact #chat .mes .avatar > .missing-avatar[data-stmui-initials] {
+    font-size: 12px;
+}
+
+html.stmui-chat body:is(.square-avatars, .rounded-avatars, .big-avatars) #chat .mes .avatar > .missing-avatar[data-stmui-initials] {
+    border-radius: inherit;
 }
 
 html.stmui-chat #chat .mes_block {
@@ -1577,6 +1623,33 @@ html.stmui-chat #chat .mes_text p:first-child {
 }
 
 html.stmui-chat #chat .mes_text p:last-child {
+    margin-bottom: 0;
+}
+
+/* Quote blocks and code blocks get room above and below, so the text around them reads
+   apart; SillyTavern gives quotes no margin at all (Kahvana's feedback, as Moonlit Echoes does). */
+html.stmui-chat #chat :is(.mes_text, .mes_reasoning) :is(blockquote, pre) {
+    margin: 0.75em 0;
+}
+
+html.stmui-chat #chat :is(.mes_text, .mes_reasoning) blockquote {
+    padding: 0.35em 0.85em;
+    border-radius: 0 var(--pt-radius-sm) var(--pt-radius-sm) 0;
+}
+
+html.stmui-chat.stmui-rtl #chat :is(.mes_text, .mes_reasoning) blockquote {
+    border-radius: var(--pt-radius-sm) 0 0 var(--pt-radius-sm);
+}
+
+html.stmui-chat.stmui-compact #chat :is(.mes_text, .mes_reasoning) :is(blockquote, pre) {
+    margin: 0.5em 0;
+}
+
+html.stmui-chat #chat :is(.mes_text, .mes_reasoning) > :is(blockquote, pre):first-child {
+    margin-top: 0;
+}
+
+html.stmui-chat #chat :is(.mes_text, .mes_reasoning) > :is(blockquote, pre):last-child {
     margin-bottom: 0;
 }
 
@@ -1874,9 +1947,16 @@ html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
 
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left,
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
-    position: relative;
     /* Moonlit Echoes scales the arrows to 80%; the :active nudges below still win. */
     transform: none;
+}
+
+/* In the pill the arrows sit in the row. With SillyTavern's own Bubbles or Document style
+   (a theme such as Cappuccino turns Bubbles on) SillyTavern places ‹ itself, absolutely:
+   made relative there, it became a column of its own beside the text (Kahvana's report). */
+html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
+html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
+    position: relative;
 }
 
 /*
@@ -2120,9 +2200,7 @@ html.stmui-chat #send_form {
        above the chat. Mostly around the box rather than under it, because the
        box sits 8px from the bottom edge, which would cut a dropped shadow off. */
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.12);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
 }
 
 html.stmui-chat #send_form:focus-within {
@@ -2233,11 +2311,11 @@ html.stmui-chat #send_textarea {
     resize: none;
 }
 
-/* One clean circle, the same 5px from the pill's edge on every side. */
+/* One clean circle, at least 44×44px for touch targets. */
 html.stmui-chat #rightSendForm > #send_but {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     padding: 0;
     border-radius: 50%;
@@ -2265,8 +2343,8 @@ html.stmui-chat #send_form #rightSendForm > .mes_stop {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     padding: 0;
     border-radius: 50%;
@@ -2455,6 +2533,20 @@ html.stmui-touch #extensions_settings2 {
 
 html.stmui-touch #rm_extensions_block .extension_container {
     margin: 0;
+}
+
+/* Page titles SillyTavern repeats at the top of its own screens. The app bar already names
+   the page (Kahvana's report), so the words go; the docs "?" link and the pin stay. */
+html.stmui-shell #WorldInfo h3 > span[data-i18n='Worlds/Lorebooks'],
+html.stmui-shell #AdvancedFormatting h3 > span[data-i18n='Advanced Formatting'],
+html.stmui-shell #rm_extensions_block .extensions_block > .flex-container > h3[data-i18n='Extensions'] {
+    display: none;
+}
+
+/* Without its words the heading is just the "?" link: no heading accent beside it (Moonlit Echoes draws a bar). */
+html.stmui-shell :is(#WorldInfo, #AdvancedFormatting) h3:has(> span:is([data-i18n='Worlds/Lorebooks'], [data-i18n='Advanced Formatting'])) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
 }
 
 /* -- Sliders with a number: label and value on one line, slider below ----- */
@@ -3316,11 +3408,11 @@ html.stmui-on .mes_text video {
 }
 
 .stmui-ctx-warn .stmui-ctx-fill {
-    stroke: #f0a030;
+    stroke: var(--pt-warn);
 }
 
 .stmui-ctx-full .stmui-ctx-fill {
-    stroke: #e5484d;
+    stroke: var(--pt-danger);
 }
 
 /* Before the first reply: a dotted ring. */
@@ -3342,11 +3434,11 @@ html.stmui-on .mes_text video {
 }
 
 .stmui-ctx-warn .stmui-ctx-num {
-    color: #f0a030;
+    color: var(--pt-warn);
 }
 
 .stmui-ctx-full .stmui-ctx-num {
-    color: #e5484d;
+    color: var(--pt-danger);
 }
 
 /* -- The Context sheet ----------------------------------------------------- */
@@ -3722,7 +3814,15 @@ html.stmui-touch input[type='checkbox']:not(.stmui-switch):not(.del_checkbox):ch
     background-color: var(--stmui-accent);
 }
 
-/* On settings pages a checkbox with a label is a pill toggle, the same as Pocket Tavern's own switches. */
+html.stmui-touch input[type='checkbox']:not(.stmui-switch):not(.del_checkbox):focus-visible,
+html input[type='checkbox'].stmui-switch:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: 2px;
+}
+
+/* On settings pages a checkbox with a label is a pill toggle, the same as Pocket Tavern's own switches.
+   Shape, edge and colours are pinned: Moonlit Echoes sets every checkbox round with no border and
+   its own colour, all with !important, which turned the pill into a squashed oval (Kahvana's report). */
 html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.stmui-switch) {
     position: relative;
     flex: 0 0 auto;
@@ -3730,9 +3830,9 @@ html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:n
     height: 24px !important;
     min-width: 40px;
     margin: 0;
-    border: 1px solid color-mix(in srgb, var(--stmui-muted) 55%, transparent);
-    border-radius: 999px;
-    background-color: var(--stmui-raised-2);
+    border: 1px solid color-mix(in srgb, var(--stmui-muted) 55%, transparent) !important;
+    border-radius: 999px !important;
+    background-color: var(--stmui-raised-2) !important;
 }
 
 /* Off: a muted knob, so the switch reads on light themes too. On: the accent's own text colour. */
@@ -3752,8 +3852,8 @@ html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:n
 }
 
 html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.stmui-switch):checked {
-    border-color: var(--stmui-accent);
-    background-color: var(--stmui-accent);
+    border-color: var(--stmui-accent) !important;
+    background-color: var(--stmui-accent) !important;
 }
 
 html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.stmui-switch):checked::before {
@@ -3877,7 +3977,7 @@ html.stmui-touch #rm_button_selected_ch h2 {
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -4040,9 +4140,11 @@ html input[type='checkbox'].stmui-switch {
     width: 50px !important;
     height: 30px !important;
     margin: 0;
-    border: 1px solid color-mix(in srgb, var(--stmui-muted) 55%, transparent);
+    /* Pinned against Moonlit Echoes' round, borderless checkboxes (see the settings toggle). */
+    border: 1px solid color-mix(in srgb, var(--stmui-muted) 55%, transparent) !important;
     border-radius: 999px !important;
     background: var(--stmui-raised-2);
+    background-color: var(--stmui-raised-2) !important;
     outline: none;
     box-shadow: none;
     filter: none;
@@ -4067,8 +4169,8 @@ html input[type='checkbox'].stmui-switch::before {
 }
 
 html input[type='checkbox'].stmui-switch:checked {
-    border-color: transparent;
-    background: var(--stmui-accent);
+    border-color: transparent !important;
+    background-color: var(--stmui-accent) !important;
 }
 
 html input[type='checkbox'].stmui-switch:checked::before {
@@ -4161,7 +4263,7 @@ html.stmui-motion-full .stmui-tab-label {
 }
 
 html.stmui-motion-full :is(.stmui-tab, .stmui-tile, .stmui-menu-row, .stmui-ab-btn, .stmui-ab-who, .stmui-theme-card, .stmui-row-btn, .stmui-done, .stmui-seg, .stmui-open, .stmui-single, #send_but, #options_button, #extensionsMenuButton) {
-    transition: transform 0.18s var(--stmui-ease), background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    transition: transform 0.15s var(--pt-ease), background-color 0.15s ease, border-color 0.15s ease;
 }
 
 html.stmui-motion-full :is(.stmui-tab, .stmui-tile, .stmui-menu-row, .stmui-ab-btn, .stmui-theme-card, .stmui-row-btn, .stmui-done, .stmui-seg, .stmui-open, .stmui-single, #options_button, #extensionsMenuButton):active {
@@ -4275,15 +4377,21 @@ html.stmui-motion-off *:not(.fa-spin):not(.fa-spinner),
 html.stmui-motion-off *::before,
 html.stmui-motion-off *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    html.stmui-on *:not(.fa-spin):not(.fa-spinner) {
+    html.stmui-on *:not(.fa-spin):not(.fa-spinner),
+    html.stmui-on *::before,
+    html.stmui-on *::after {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0s !important;
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
     }
 }
 
@@ -4611,8 +4719,7 @@ html.stmui-touch #completion_prompt_manager .prompt_manager_prompt_tokens {
     width: 22px;
     height: 22px;
     color: var(--stmui-on-accent);
-    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--stmui-accent) 70%, transparent));
-    animation: stmui-send-plane 0.7s linear both;
+    animation: stmui-send-plane 0.55s var(--pt-ease) both;
 }
 
 .stmui-send-plane .stmui-svg {
@@ -4920,7 +5027,9 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat {
     gap: 2px 12px;
     margin: 0;
     padding: 12px 10px 8px 12px;
-    border: 1px solid var(--stmui-line);
+    /* A clearer edge than the usual hairline: the cards sit close to the page colour in soft themes
+       and blended into it for readers with low vision (Kahvana's report). */
+    border: 1px solid color-mix(in srgb, var(--pt-text-primary) 16%, transparent);
     border-radius: 16px;
     background: var(--stmui-raised);
     -webkit-tap-highlight-color: transparent;
@@ -4984,7 +5093,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatName > span:first-of-type {
 }
 
 html.stmui-chat .welcomeRecent .recentChat .chatName > span:last-of-type {
-    color: var(--stmui-muted);
+    color: var(--pt-text-secondary);
     font-size: 14px;
 }
 
@@ -4992,7 +5101,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatDate {
     grid-area: date;
     align-self: start;
     padding-top: 2px;
-    color: var(--stmui-muted);
+    color: var(--pt-text-secondary);
     font-size: 12px;
     white-space: nowrap;
 }
@@ -5000,7 +5109,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatDate {
 html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatMessageContainer .chatMessage {
     grid-area: msg;
     margin-top: 5px;
-    color: color-mix(in srgb, var(--stmui-text) 82%, transparent);
+    color: var(--pt-text-primary);
     font-size: 14px;
     line-height: 1.4;
     white-space: normal;
@@ -5053,7 +5162,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatActions .pinChat.active {
 }
 
 html.stmui-chat .welcomeRecent .recentChat .chatActions .deleteChat:active {
-    color: #ef6f6f;
+    color: var(--pt-danger);
 }
 
 /* Pinned chats get a small badge on the avatar. */
@@ -5309,6 +5418,18 @@ html.stmui-shell.stmui-personapage #persona-management-button h3:has(a[href*="pe
     display: none;
 }
 
+/* The title's box goes too, and the three buttons share the whole row. Left in, the
+   empty box still took its share (flex: 1) and pushed the buttons to the end with
+   Moonlit Echoes on (Kahvana's report). */
+html.stmui-shell.stmui-personapage #persona-management-button .flex1:has(> h3 a[href*="personas"]) {
+    display: none;
+}
+
+html.stmui-shell.stmui-personapage #persona-management-button .flex-container:has(> .user_stats_button) {
+    flex: 1 1 auto;
+    gap: 8px;
+}
+
 html.stmui-personapage #persona-management-button :is(.user_stats_button, #personas_backup, #personas_restore) {
     flex: 1 1 auto;
     padding-inline: 8px;
@@ -5448,6 +5569,7 @@ html.stmui-personapage #user_avatar_block:not(.gridView) .stmui-default-badge {
     flex: 0 0 auto;
     order: 3;
     background: var(--stmui-raised-2);
+    color: var(--pt-gold);
 }
 
 /* List view: quiet rows like the Characters list. */
@@ -5744,7 +5866,7 @@ html.stmui-on #UI-presets-block > .stmui-inline-note {
 
 /* The shortcut for Search everything, shown on a computer. */
 .stmui-kbd {
-    margin-left: auto;
+    margin-inline-start: auto;
     padding: 2px 8px;
     border: 1px solid var(--stmui-line);
     border-radius: 8px;
@@ -5755,8 +5877,8 @@ html.stmui-on #UI-presets-block > .stmui-inline-note {
 }
 
 /* Keyboard focus: an accent ring on Pocket Tavern's own controls (SillyTavern rings only its fields). */
-html.stmui-on :is(.stmui-tab, .stmui-ab-btn, .stmui-ab-who, .stmui-menu-row, .stmui-tile, .stmui-seg, .stmui-step, .stmui-done, .stmui-theme-card, .stmui-search-field, .stmui-trigger-chip, .stmui-prompt-full-btn, .openai-tab-button):focus-visible {
-    outline: 2px solid var(--stmui-accent);
+html.stmui-on :is(.stmui-tab, .stmui-ab-btn, .stmui-ab-who, .stmui-menu-row, .stmui-tile, .stmui-seg, .stmui-step, .stmui-done, .stmui-theme-card, .stmui-search-field, .stmui-trigger-chip, .stmui-prompt-full-btn, .openai-tab-button, .stmui-chip-x, .stmui-chip-more, .stmui-single, .stmui-open, .stmui-search-clear, .stmui-row-btn, .stmui-edit, .stmui-persona-chip, .stmui-ctx-ring, .stmui-ctx-btn, .stmui-jump, .stmui-home-box, .stmui-command-copy, .stmui-viewer-btn, .stmui-banner-btn, .stmui-group-main, .stmui-group-toggle, .stmui-group-action, .stmui-persona-card-edit, .stmui-pe-btn, .stmui-ctool, .stmui-more-btn, .stmui-find-btn, .stmui-gg-instruction, .stmui-panel-edge):focus-visible {
+    outline: 2px solid var(--pt-accent);
     outline-offset: -2px;
 }
 
@@ -5802,10 +5924,10 @@ html.stmui-toasts body #toast-container > div.toast {
     touch-action: pan-y;
 }
 
-html.stmui-toasts body #toast-container > div.toast.toast-success { --stmui-t-color: #4fb37a; }
-html.stmui-toasts body #toast-container > div.toast.toast-info { --stmui-t-color: #56a3e0; }
-html.stmui-toasts body #toast-container > div.toast.toast-warning { --stmui-t-color: #e6a23c; }
-html.stmui-toasts body #toast-container > div.toast.toast-error { --stmui-t-color: #e5574f; }
+html.stmui-toasts body #toast-container > div.toast.toast-success { --stmui-t-color: var(--pt-ok); }
+html.stmui-toasts body #toast-container > div.toast.toast-info { --stmui-t-color: var(--pt-info); }
+html.stmui-toasts body #toast-container > div.toast.toast-warning { --stmui-t-color: var(--pt-warn); }
+html.stmui-toasts body #toast-container > div.toast.toast-error { --stmui-t-color: var(--pt-danger); }
 
 /* Icon in a soft tile on the left. */
 html.stmui-toasts body #toast-container > .toast::before {
@@ -5849,10 +5971,10 @@ html.stmui-toasts body #toast-container > .toast .toast-message a {
 
 html.stmui-toasts body #toast-container > .toast .toast-close-button {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 30px;
-    height: 30px;
+    top: 4px;
+    right: 4px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     color: var(--stmui-muted);
     font-size: 20px;
@@ -6045,8 +6167,8 @@ html.stmui-motion-off .stmui-viewer-img {
 
 html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) {
     position: fixed !important;
-    inset: var(--topBarBlockSize) 0 var(--stmui-bottom) 0;
-    z-index: 3300;
+    inset: var(--topBarBlockSize, 0px) 0 var(--stmui-bottom, 0px) 0;
+    z-index: var(--pt-z-editor);
     /* The Bubbles look aligns your messages right and the AI's left; newer browsers
        apply that to a fixed box too, which shrank the editor to its text and pushed
        it to one edge of the screen. The editor always fills the page. */
@@ -6240,7 +6362,7 @@ html.stmui-chat.stmui-editing #chat .mes_edit_buttons .mes_edit_cancel::after {
 }
 
 html.stmui-chat.stmui-editing #chat .mes_edit_buttons .mes_edit_delete {
-    color: #ef6f6f;
+    color: var(--pt-danger);
 }
 
 /* ==========================================================================
@@ -6282,23 +6404,23 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     top: calc(var(--topBarBlockSize, 56px) + 8px);
     left: calc(10px + var(--stmui-safe-left, 0px));
     right: calc(10px + var(--stmui-safe-right, 0px));
-    z-index: 4030;
+    z-index: var(--pt-z-banner);
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 12px 12px 14px;
-    border: 1px solid color-mix(in srgb, #e5574f 45%, var(--stmui-line));
+    border: 1px solid color-mix(in srgb, var(--pt-danger) 45%, var(--stmui-line));
     border-radius: 16px;
-    background: color-mix(in srgb, #e5574f 14%, var(--stmui-solid));
+    background: color-mix(in srgb, var(--pt-danger) 14%, var(--stmui-solid));
     color: var(--stmui-text);
     box-shadow: none;
     outline: 1px solid var(--stmui-line);
-    animation: stmui-toast-in 0.3s var(--stmui-ease-pop);
+    animation: stmui-toast-in 0.24s var(--pt-ease);
 }
 
 .stmui-banner-ok {
-    border-color: color-mix(in srgb, #4fb37a 45%, var(--stmui-line));
-    background: color-mix(in srgb, #4fb37a 14%, var(--stmui-solid));
+    border-color: color-mix(in srgb, var(--pt-ok) 45%, var(--stmui-line));
+    background: color-mix(in srgb, var(--pt-ok) 14%, var(--stmui-solid));
 }
 
 .stmui-banner-out {
@@ -6311,11 +6433,11 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     flex: 0 0 auto;
     width: 22px;
     height: 22px;
-    color: #ef7a72;
+    color: var(--pt-danger);
 }
 
 .stmui-banner-ok .stmui-banner-icon {
-    color: #4fb37a;
+    color: var(--pt-ok);
 }
 
 .stmui-banner-text {
@@ -6359,6 +6481,14 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     font-size: 16px;
 }
 
+/* A search box that is the sheet's header, beside Close (Find a setting). */
+.stmui-head-row > .stmui-choice-search.stmui-head-search {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    margin: 0 !important;
+}
+
 .stmui-choice-img {
     flex: 0 0 auto;
     width: 40px;
@@ -6384,8 +6514,8 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
 @keyframes stmui-flash {
     0%,
     30% {
-        background-color: color-mix(in srgb, var(--stmui-accent) 30%, transparent);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--stmui-accent) 60%, transparent);
+        background-color: color-mix(in srgb, var(--pt-accent) 26%, transparent);
+        outline: 2px solid color-mix(in srgb, var(--pt-accent) 65%, transparent);
     }
 }
 
@@ -6419,11 +6549,11 @@ html.stmui-standalone {
     --stmui-safe-top: env(safe-area-inset-top, 0px);
 }
 
-html.stmui-rtl :is(.stmui-appbar, .stmui-tabbar, .stmui-panel, .stmui-banner, .stmui-viewer-top, .stmui-viewer-bar) {
+html.stmui-rtl :is(.stmui-appbar, .stmui-tabbar, .stmui-panel, .stmui-banner, .stmui-viewer-top, .stmui-viewer-bar, .stmui-chat-finder) {
     direction: rtl;
 }
 
-html.stmui-rtl .stmui-tab-indicator {
+html.stmui-rtl:not(.stmui-wide) .stmui-tab-indicator {
     left: auto;
     right: var(--stmui-safe-right);
     transform: translateX(calc(var(--stmui-tab-index, 0) * -100%));
@@ -6449,21 +6579,21 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons
    ========================================================================== */
 
 .stmui-banner.stmui-banner-info {
-    border-color: color-mix(in srgb, #56a3e0 45%, var(--stmui-line));
-    background: color-mix(in srgb, #56a3e0 14%, var(--stmui-solid));
+    border-color: color-mix(in srgb, var(--pt-info) 45%, var(--stmui-line));
+    background: color-mix(in srgb, var(--pt-info) 14%, var(--stmui-solid));
 }
 
 .stmui-banner-info .stmui-banner-icon {
-    color: #56a3e0;
+    color: var(--pt-info);
 }
 
 .stmui-banner.stmui-banner-info.stmui-banner-ok {
-    border-color: color-mix(in srgb, #4fb37a 45%, var(--stmui-line));
-    background: color-mix(in srgb, #4fb37a 14%, var(--stmui-solid));
+    border-color: color-mix(in srgb, var(--pt-ok) 45%, var(--stmui-line));
+    background: color-mix(in srgb, var(--pt-ok) 14%, var(--stmui-solid));
 }
 
 .stmui-banner-info.stmui-banner-ok .stmui-banner-icon {
-    color: #4fb37a;
+    color: var(--pt-ok);
 }
 
 .stmui-banner-text small[hidden],
@@ -6734,17 +6864,19 @@ html.stmui-charpage #avatar-and-name-block {
     align-items: stretch;
 }
 
+/* Pinned (!important): Moonlit Echoes lays this area out its own way with !important sizes,
+   which squeezed the card tools into a sliver at the left (Kahvana's report). */
 html.stmui-charpage #avatar_div {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: column !important;
+    align-items: center !important;
     gap: 6px;
 }
 
 html.stmui-charpage #avatar_div_div,
 html.stmui-charpage #avatar_div_div img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
+    width: 120px !important;
+    height: 120px !important;
+    border-radius: 50% !important;
 }
 
 html.stmui-charpage #avatar_div_div {
@@ -6773,9 +6905,12 @@ html.stmui-charpage #right-nav-panel:has(#rm_ch_create_block:not([style*="none"]
 }
 
 html.stmui-charpage #avatar_controls {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
+    flex: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
     gap: 8px;
 }
 
@@ -6866,7 +7001,7 @@ html.stmui-chat .stmui-recent-search {
 
 html.stmui-chat .stmui-recent-heading {
     margin: 6px 4px 0;
-    color: var(--stmui-muted);
+    color: var(--pt-text-secondary);
     font-size: 14px;
     font-weight: 700;
 }
@@ -7456,7 +7591,7 @@ html.stmui-touch #select_chat_search {
     color: var(--stmui-muted);
     font: inherit;
     font-size: 16px;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -7773,7 +7908,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .avatar {
 }
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .ch_fav_icon {
-    color: #ffd54f;
+    color: var(--pt-gold);
     font-size: 14px;
 }
 
@@ -7996,9 +8131,9 @@ html.stmui-chat #chat .mes.stmui-long:not(.stmui-long-open) .mes_text {
 html.stmui-chat #chat .mes.stmui-long .stmui-more-btn {
     display: inline-flex;
     align-items: center;
-    height: 32px;
+    min-height: 44px;
     margin: 6px 0 2px;
-    padding: 0 14px;
+    padding: 0 16px;
     border: 1px solid var(--stmui-line);
     border-radius: 999px;
     background: var(--stmui-raised-2);
@@ -8038,7 +8173,7 @@ html.stmui-on .stmui-jump.stmui-jump-new .stmui-jump-label {
     top: var(--topBarBlockSize, 56px);
     left: 0;
     right: 0;
-    z-index: 3400;
+    z-index: var(--pt-z-finder);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -8054,7 +8189,7 @@ html.stmui-on .stmui-jump.stmui-jump-new .stmui-jump-label {
 .stmui-chat-finder input {
     flex: 1 1 auto;
     min-width: 0;
-    height: 42px;
+    height: 44px;
     margin: 0;
     border-radius: 999px;
     font-size: 16px;
@@ -8073,8 +8208,8 @@ html.stmui-on .stmui-jump.stmui-jump-new .stmui-jump-label {
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -8282,8 +8417,8 @@ html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_en
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     font-size: 16px;
     color: var(--stmui-muted);
     cursor: pointer;
@@ -8397,8 +8532,8 @@ html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_en
 /* An opened entry fills the page between the bars. */
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open {
     position: fixed;
-    inset: var(--topBarBlockSize) 0 var(--stmui-bottom) 0;
-    z-index: 3300;
+    inset: var(--topBarBlockSize, 0px) 0 var(--stmui-bottom, 0px) 0;
+    z-index: var(--pt-z-editor);
     margin: 0;
     padding: 0 calc(14px + var(--stmui-safe-right, 0px)) 24px calc(14px + var(--stmui-safe-left, 0px));
     border: 0;
@@ -8444,7 +8579,7 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .
 }
 
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > i.delete_entry_button {
-    color: #ef6f6f;
+    color: var(--pt-danger);
 }
 
 /* Fields stack instead of squeezing side by side. */
@@ -8713,6 +8848,141 @@ html.stmui-setnav #user-settings-block-content > div {
     gap: 0;
 }
 
+/* -- Formatting in sections (html.stmui-afnav), like Settings -------------
+   The list of sections first (under Master Import / Export and the Chat
+   Completion note); inside a section only its own blocks, with the same quiet
+   headings and full-width toggle rows as Settings (Kahvana's feedback). */
+
+html.stmui-afnav #AdvancedFormatting[data-stmui-view='home'] > .flex-container.spaceEvenly,
+html.stmui-afnav #AdvancedFormatting:not([data-stmui-view='home']) > :not(.flex-container.spaceEvenly) {
+    display: none !important;
+}
+
+html.stmui-afnav #AdvancedFormatting > .stmui-set-home {
+    margin: 8px 0 24px;
+}
+
+html.stmui-afnav #AdvancedFormatting > .flex-container.spaceEvenly {
+    display: block;
+    padding-bottom: 24px;
+}
+
+html.stmui-afnav #AdvancedFormatting > .flex-container.spaceEvenly > *,
+html.stmui-afnav #AdvancedFormatting #SystemPromptColumn {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+html.stmui-afnav #AdvancedFormatting h4.standoutHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 0;
+    margin: 24px 0 8px;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background: none !important;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: start;
+}
+
+html.stmui-afnav #AdvancedFormatting h4.standoutHeader b {
+    font-weight: inherit;
+}
+
+/* A heading that only repeats the section's name in the top bar. */
+html.stmui-afnav #AdvancedFormatting [data-stmui-sec] > h4.standoutHeader:first-child:not(:has(input, select, label, a, .menu_button)) {
+    display: none;
+}
+
+/* The first heading of a section sits at the top of the page. */
+html.stmui-afnav #AdvancedFormatting [data-stmui-sec]:not(.stmui-sec-off) h4.standoutHeader:first-child,
+html.stmui-afnav #AdvancedFormatting h4.standoutHeader[data-stmui-sec] {
+    margin-top: 8px;
+}
+
+/* Reasoning (and any other row of toggles): one toggle per row, the switch at the end,
+   instead of three squeezed side by side with their explanations out of line. */
+html.stmui-afnav #AdvancedFormatting .flex-container:has(> label.checkbox_label.stmui-setrow) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+}
+
+html.stmui-afnav #AdvancedFormatting .flex-container > label.checkbox_label.stmui-setrow {
+    flex: none;
+    width: 100%;
+}
+
+/* "Max" reasoning blocks: a row with the label first and the number at the end. */
+html.stmui-afnav #AdvancedFormatting .flex-container:has(> #reasoning_max_additions) {
+    flex: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: var(--stmui-tap);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+html.stmui-afnav #AdvancedFormatting .flex-container:has(> #reasoning_max_additions) > small {
+    order: -1;
+    color: var(--pt-text-primary);
+    font-size: 16px;
+}
+
+html.stmui-afnav #AdvancedFormatting #reasoning_max_additions {
+    width: 96px;
+    margin: 0;
+}
+
+/* Folded parts (Reasoning Formatting, the instruct sequences): a 44px row to open. */
+html.stmui-afnav #AdvancedFormatting details > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--stmui-tap);
+    color: var(--pt-text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+html.stmui-afnav #AdvancedFormatting details > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* A chevron drawn with two borders: pointing to the end when folded, down when open. */
+html.stmui-afnav #AdvancedFormatting details > summary::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin: 0 4px;
+    border-right: 2px solid var(--pt-text-secondary);
+    border-bottom: 2px solid var(--pt-text-secondary);
+    transform: rotate(-45deg);
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.stmui-afnav.stmui-rtl #AdvancedFormatting details > summary::before {
+    transform: rotate(135deg);
+}
+
+html.stmui-afnav #AdvancedFormatting details[open] > summary::before {
+    transform: rotate(45deg);
+}
+
 /* -- Toggle rows: label and explanation on the left, the switch on the right -- */
 
 html.stmui-touch .drawer-content label.checkbox_label.stmui-setrow {
@@ -8919,6 +9189,109 @@ html.stmui-touch .inline-drawer-header > .stmui-ext-note {
     font-weight: 400;
     line-height: 1.35;
     text-align: start;
+}
+
+/* In the list the row keeps room for its chevron itself. */
+html.stmui-extnav #rm_extensions_block .stmui-ext-row > .inline-drawer-header > .stmui-ext-note {
+    padding-inline-end: 0;
+}
+
+/* -- Extensions as a list, each opening as its own page (html.stmui-extnav) --
+   Kahvana's feedback: the fold-out cards felt unlike the rest of Pocket
+   Tavern's lists. Each extension is a row in a grouped list, like Settings;
+   opening one hides everything beside it (index.js marks the open fold-out
+   .stmui-ext-open and the boxes around it .stmui-ext-path), and the top bar
+   shows its name with Back to the list. */
+
+html.stmui-extnav #rm_extensions_block :is(#extensions_settings, #extensions_settings2).stmui-ext-list {
+    display: flex;
+    flex-direction: column;
+    margin: 16px 0 0;
+    border: 1px solid var(--stmui-line);
+    border-radius: 16px;
+    background: var(--stmui-raised);
+    overflow: hidden;
+}
+
+html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .inline-drawer.stmui-ext-row {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    /* The line above each row; the list's own edge hides the first one. */
+    box-shadow: 0 -1px 0 var(--stmui-line);
+}
+
+/* Pinned: themes (Moonlit Echoes) give each header its own card with !important. */
+html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle) {
+    position: relative;
+    gap: 4px 12px;
+    min-height: 56px;
+    margin: 0 !important;
+    padding-block: 8px !important;
+    padding-inline: 16px 40px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    filter: none !important;
+}
+
+html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle) > .inline-drawer-icon {
+    display: none;
+}
+
+/* A chevron pointing to the page it opens, drawn with two borders, centred on the row. */
+html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle)::after {
+    content: '';
+    position: absolute;
+    top: calc(50% - 4px);
+    inset-inline-end: 20px;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--pt-text-muted);
+    border-bottom: 2px solid var(--pt-text-muted);
+    transform: rotate(-45deg);
+}
+
+html.stmui-extnav.stmui-rtl #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle)::after {
+    transform: rotate(135deg);
+}
+
+html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle):active {
+    background: var(--stmui-raised-2) !important;
+}
+
+@media (hover: hover) {
+    html.stmui-extnav #rm_extensions_block[data-stmui-view='home'] .stmui-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle):hover {
+        background: var(--pt-surface-elevated) !important;
+    }
+}
+
+/* One extension open: only its settings, with no card around them and no name row
+   (the top bar shows the name). */
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .extensions_block > :not(.stmui-ext-path),
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .stmui-ext-path > :not(.stmui-ext-path, .stmui-ext-open),
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .stmui-ext-open > :is(.inline-drawer-header, .inline-drawer-toggle) {
+    display: none !important;
+}
+
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .stmui-ext-path,
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] :is(#extensions_settings, #extensions_settings2).stmui-ext-path {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+}
+
+html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .inline-drawer.stmui-ext-open {
+    margin: 0;
+    padding: 4px 0 24px;
+    border: 0;
+    border-radius: 0;
+    background: none;
 }
 
 /* -- Chat options and Tools sheets ---------------------------------------- */
@@ -9855,7 +10228,7 @@ html.stmui-chat.stmui-docked #nonQRFormItems > .stih--buttons:not(.stih--hidden)
 html.stmui-chat #nonQRFormItems > .stih--history {
     left: 0;
     right: 0;
-    z-index: 30000;
+    z-index: var(--pt-z-chat);
     box-sizing: border-box;
     width: auto;
     max-height: 50dvh;
@@ -9940,13 +10313,24 @@ html.stmui-chat #nonQRFormItems #options_button {
    the top, and no lift on hover.
    ========================================================================== */
 
+/* The page's scroll box has top padding (SillyTavern's 0.5em), and a sticky bar stops that far
+   below the top, so settings scrolled past in a strip above the tabs (Kahvana's report). Fix the
+   padding at 8px and stick the bar 8px higher, flush with the top of the scroll box. */
+html.stmui-touch #ai-config-button #left-nav-panel .scrollableInner:has(.openai-tab-buttons, .stmui-ptabs) {
+    /* !important: a phone stylesheet (Moonlit Echoes) zeroes this box's padding with !important. */
+    padding-top: 8px !important;
+}
+
 html.stmui-touch #ai-config-button .openai-tab-buttons {
+    top: -8px;
     gap: 4px;
     margin: 8px 0 0;
     padding: 4px;
     border: 1px solid var(--stmui-line);
     border-radius: 12px;
     background: var(--stmui-opaque);
+    /* A ring in the page's own colour covers the rounded corners while settings scroll under. */
+    outline: 6px solid var(--pt-bg);
     box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -9981,6 +10365,42 @@ html.stmui-touch #ai-config-button .openai-tab-button.active {
     }
 }
 
+/* Pocket Tavern's own Parameters / Prompts tabs (html.stmui-ptabs, Chat Completion without
+   Chat Completion Tabs): the same 44px bar, sticking to the top of the page as you scroll. The
+   half that is not chosen is hidden (index.js marks the prompt list's block and the boxes around it). */
+html.stmui-ptabs #left-nav-panel .stmui-segmented.stmui-ptabs {
+    position: sticky;
+    top: -8px;
+    z-index: 5;
+    display: flex;
+    width: 100%;
+    margin: 8px 0;
+    padding: 4px;
+    outline: 6px solid var(--pt-bg);
+}
+
+html.stmui-ptabs #left-nav-panel .stmui-ptabs > .stmui-seg {
+    min-height: 44px;
+    font-size: 14px;
+}
+
+html.stmui-ptabs #left-nav-panel .stmui-ptabs > .stmui-seg:not(.stmui-seg-on) {
+    color: var(--pt-text-secondary);
+}
+
+@media (hover: hover) {
+    html.stmui-ptabs #left-nav-panel .stmui-ptabs > .stmui-seg:not(.stmui-seg-on):hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+html.stmui-ptabs #left-nav-panel[data-stmui-ptab='params'] .stmui-ptab-prompts,
+html.stmui-ptabs #left-nav-panel[data-stmui-ptab='prompts'] #ai_response_configuration > :not(.stmui-ptab-path, #respective-presets-block),
+html.stmui-ptabs #left-nav-panel[data-stmui-ptab='prompts'] .stmui-ptab-path > :not(.stmui-ptab-path, .stmui-ptab-prompts) {
+    display: none !important;
+}
+
 /* ==========================================================================
    iPhone and iPad (html.stmui-ios). Safari does not shrink the page for the
    keyboard; it covers the bottom and pans the visible part. While the keyboard
@@ -10013,14 +10433,29 @@ html.stmui-shell.stmui-ios-kb #sheld {
 }
 
 html.stmui-shell.stmui-ios-kb #top-settings-holder .drawer-content.openDrawer,
-html.stmui-shell.stmui-ios-kb #completion_prompt_manager_popup {
+html.stmui-shell.stmui-ios-kb #completion_prompt_manager_popup,
+html.stmui-shell.stmui-ios-kb #character_popup,
+html.stmui-shell.stmui-ios-kb .stmui-chat-finder {
     top: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize)) !important;
 }
 
-html.stmui-chat.stmui-ios-kb.stmui-editing #chat .mes:has(#curEditTextarea),
-html.stmui-lorecards.stmui-ios-kb #world_popup_entries_list .world_entry.stmui-entry-open {
-    inset: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize)) 0 auto 0 !important;
-    height: var(--stmui-page-h);
+html.stmui-shell.stmui-ios-kb .stmui-banner,
+html.stmui-shell.stmui-ios-kb body #toast-container {
+    top: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize) + 8px) !important;
+}
+
+html.stmui-chat.stmui-ios-kb.stmui-editing:not(.stmui-wide) #chat .mes:has(#curEditTextarea),
+html.stmui-lorecards.stmui-ios-kb:not(.stmui-wide) #world_popup_entries_list .world_entry.stmui-entry-open {
+    inset: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize, 0px)) 0 auto 0 !important;
+    height: var(--stmui-page-h, calc(var(--stmui-ios-h, 100dvh) - var(--topBarBlockSize, 0px)));
+}
+
+/* On iPad landscape keep the desktop rail/column horizontal offsets while shifting top/height for Safari's keyboard. */
+html.stmui-wide.stmui-chat.stmui-ios-kb.stmui-editing #chat .mes:has(#curEditTextarea),
+html.stmui-wide.stmui-lorecards.stmui-ios-kb #world_popup_entries_list .world_entry.stmui-entry-open {
+    top: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize, 0px)) !important;
+    bottom: auto !important;
+    height: var(--stmui-page-h, calc(var(--stmui-ios-h, 100dvh) - var(--topBarBlockSize, 0px))) !important;
 }
 
 /* Chat width on wide screens (Themes sheet): a slider and its value. */
@@ -10276,10 +10711,16 @@ html.stmui-touch #bg_tabs .bg_tabs_list .bg_tab_button {
     min-height: 44px;
 }
 
+/* The link inside is what switches the tab. SillyTavern gives it height: 100% of a box
+   with only a min-height, so it stayed 25px tall in the 44px tab and clicks near the top
+   or bottom edge did nothing (Kahvana's report). Stretch it over the whole tab. */
 html.stmui-touch #bg_tabs .bg_tabs_list .bg_tab_button a {
     display: flex;
+    align-self: stretch;
     align-items: center;
     justify-content: center;
+    height: auto;
+    min-height: 42px;
 }
 
 html.stmui-touch #bg_tabs .heading-controls {
@@ -10292,6 +10733,12 @@ html.stmui-touch #bg_tabs .heading-controls > .menu_button {
     min-width: 44px;
     min-height: 44px;
     margin: 0;
+}
+
+/* SillyTavern's "scroll backgrounds to top" button: a lone floating button over the pictures that
+   no other page has (Kahvana's feedback); the list is short enough to scroll. Hidden. */
+html.stmui-touch #Backgrounds #bg-scroll-top {
+    display: none !important;
 }
 
 html.stmui-touch #Backgrounds #bg_menu_content .bg_example {
@@ -10335,9 +10782,19 @@ html.stmui-wide.stmui-page-open {
 }
 
 /* A width dragged by hand (the panel's edge): never under 360px, and never so
-   wide that the chat gets less than 480px. */
+   wide that the chat gets less than 420px (accounting for any open right-hand tool panel). */
 html.stmui-wide.stmui-panel-sized {
-    --stmui-panel-w: clamp(360px, var(--stmui-panel-saved), max(360px, min(760px, 100vw - var(--stmui-rail-w) - 480px)));
+    --stmui-panel-w: clamp(360px, var(--stmui-panel-saved), max(360px, min(760px, 100vw - var(--stmui-rail-w) - var(--stmui-right) - 420px)));
+}
+
+/* When both a left page panel and right tool panel are open on narrower wide screens, slim both side columns so the chat stays >= 360px. */
+html.stmui-wide.stmui-page-open.stmui-tools-open {
+    --stmui-tool-w: clamp(240px, 23vw, 380px);
+    --stmui-col: min(max(var(--sheldWidth, 50vw), 360px), calc(var(--stmui-avail) - 24px));
+}
+
+html.stmui-wide.stmui-page-open.stmui-tools-open:not(.stmui-panel-sized) {
+    --stmui-panel-w: clamp(260px, 26vw, 420px);
 }
 
 /* -- The rail ------------------------------------------------------------- */
@@ -10522,7 +10979,7 @@ html.stmui-wide.stmui-page-open:not(.stmui-prompt-full) .stmui-panel-edge {
     top: var(--topBarBlockSize);
     bottom: 0;
     left: calc(var(--stmui-rail-w) + var(--stmui-panel-w) - 4px);
-    z-index: 3200;
+    z-index: var(--pt-z-edge);
     display: block;
     width: 12px;
     cursor: col-resize;
@@ -10613,6 +11070,27 @@ html.stmui-wide #character_popup {
     right: 0 !important;
     width: auto !important;
     max-width: none !important;
+}
+
+/* Character Library (another extension) in its Embedded Panel mode: a fixed panel from
+   SillyTavern's top bar to the bottom of the screen, under Pocket Tavern's bars (issue #1: the
+   tab bar and the rail covered it). It takes a page's place: between the top bar and the tab bar
+   on a phone, beside the rail on a computer. Pinned over its own inline sizes and phone rule. */
+html.stmui-shell #charlib-embedded-container {
+    top: var(--topBarBlockSize) !important;
+    bottom: auto !important;
+    height: var(--stmui-page-h) !important;
+    z-index: var(--pt-z-page) !important;
+}
+
+html.stmui-shell.stmui-wide #charlib-embedded-container {
+    left: var(--stmui-rail-w) !important;
+    right: 0 !important;
+    width: auto !important;
+}
+
+html.stmui-shell.stmui-ios-kb #charlib-embedded-container {
+    top: calc(var(--stmui-ios-top, 0px) + var(--topBarBlockSize)) !important;
 }
 
 /* -- Tool panels (Author's Note, CFG, token probabilities, extension pop-outs):
