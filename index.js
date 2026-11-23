@@ -115,10 +115,13 @@ const EXTRAS = [
     { key: 'keepAwake', id: 'stmui_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
     { key: 'imageViewer', id: 'stmui_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
     { key: 'niceToasts', id: 'stmui_toasts', label: 'Nicer notifications', hint: 'Cards with an icon and color; swipe one sideways to dismiss it.' },
-    { key: 'sendEffect', id: 'stmui_sendfx', label: 'Send animation', hint: 'A little launch effect when you send.' },
+    { key: 'sendEffect', id: 'stmui_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
     { key: 'haptics', id: 'stmui_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
     { key: 'autoReload', id: 'stmui_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
 ];
+
+/** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */
+const EASE = 'cubic-bezier(0.2, 0, 0, 1)';
 
 const MOTION_LABELS = {
     full: 'Smooth: all animations',
@@ -1048,7 +1051,7 @@ function closeSheet(immediate = false) {
         current.dialog.setAttribute('closing', '');
         syncToasts();
         current.dialog.classList.remove('stmui-sheet-open');
-        setTimeout(finish, 210);
+        setTimeout(finish, 230);
     }
     scheduleHistorySync();
 }
@@ -1810,12 +1813,12 @@ class Shell {
         if (atBottom) chat.scrollTop = chat.scrollHeight;
         if (!glide) return;
         // Coming back it slides up from the bottom edge (going away, CSS slides it down).
-        if (!on) this.tabbar.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 200, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+        if (!on) this.tabbar.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 220, easing: EASE });
         // The message box (and the newest message above it) glide to their new place with the tabs.
         const shift = form.getBoundingClientRect().top - before;
         if (Math.abs(shift) < 4) return;
         const frames = [{ transform: `translate3d(0, ${-shift}px, 0)` }, { transform: 'none' }];
-        const timing = { duration: 200, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+        const timing = { duration: 220, easing: EASE };
         form.animate(frames, timing);
         if (atBottom) chat.animate(frames, timing);
     }
@@ -1907,7 +1910,7 @@ class Shell {
         const glide = Math.abs(shift) >= 8 && motionAllowed() && !IS_IOS
             && !root.classList.contains('stmui-editing') && !currentPageId() && !sheet;
         if (!glide) return;
-        const timing = { duration: 240, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+        const timing = { duration: 240, easing: EASE };
         if (shift < 0) {
             // Opening: the chat keeps its old height while it slides up (the top
             // goes under the top bar), then takes its new height when it lands.
@@ -2498,7 +2501,7 @@ function revealChange(origin, change) {
     transition.ready.then(() => {
         root.animate(
             { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-            { duration: 560, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', pseudoElement: '::view-transition-new(root)' },
+            { duration: 240, easing: EASE, pseudoElement: '::view-transition-new(root)' },
         );
     }).catch(() => {});
     transition.finished.catch(() => {}).finally(() => root.classList.remove('stmui-vt'));
@@ -2968,31 +2971,14 @@ function buzz(pattern = 10) {
     }
 }
 
-/**
- * The send animation runs on its own layer above the button: SillyTavern hides
- * the button as soon as the reply starts, which would cut an animation on it short.
- */
+/** A short press on the send button when you send (Light motion and Smooth alike). */
 function playSendFx(button) {
     if (!active || !settings.sendEffect || !settings.chatStyle || !motionAllowed()) return;
-    const rect = button.getBoundingClientRect();
-    if (!rect.width) return;
-    const light = settings.motion === 'light';
-    const fx = h('div', { class: `stmui-send-fx${light ? ' stmui-send-fx-light' : ''}`, 'aria-hidden': 'true' }, [
-        h('span', { class: 'stmui-send-ring' }),
-        light ? null : h('span', { class: 'stmui-send-ring stmui-send-ring-2' }),
-        ...(light ? [] : Array.from({ length: 6 }, (_, i) => h('span', { class: 'stmui-send-spark', style: `--i: ${i}` }))),
-        h('span', { class: 'stmui-send-plane' }, [svgIcon('send')]),
-    ]);
-    fx.style.left = `${rect.left + rect.width / 2}px`;
-    fx.style.top = `${rect.top + rect.height / 2}px`;
-    document.body.append(fx);
     button.classList.remove('stmui-launch');
     void button.offsetWidth;
     button.classList.add('stmui-launch');
-    setTimeout(() => {
-        fx.remove();
-        button.classList.remove('stmui-launch');
-    }, 900);
+    window.clearTimeout(playSendFx.timer);
+    playSendFx.timer = window.setTimeout(() => button.classList.remove('stmui-launch'), 300);
 }
 
 function onSendPointerDown(event) {
@@ -5019,7 +5005,7 @@ function buildChatGroup(chats) {
         else openChatGroups.delete(key);
         if (!below.length && !(animate && motionAllowed())) return;
         const quick = settings.motion === 'light';
-        const timing = { duration: quick ? 160 : 280, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+        const timing = { duration: quick ? 150 : 220, easing: EASE };
         below.forEach((card, index) => {
             const shift = before[index] - card.getBoundingClientRect().top;
             if (Math.abs(shift) > 1) card.animate([{ transform: `translateY(${shift}px)` }, { transform: 'none' }], timing);
@@ -6717,7 +6703,10 @@ function openChatFinder() {
 
 // -- chat: how full is the context?
 
-const meter = { used: 0, max: 0, breakdown: null, chatId: null };
+// `live` is on while a reply of yours is being prepared: only that prompt is counted. Extensions
+// and SillyTavern features send small background prompts through the same events (generateRaw,
+// quiet prompts), and one of those used to replace the count ("always 64 tokens", issue #3).
+const meter = { used: 0, max: 0, breakdown: null, chatId: null, live: false, timer: 0 };
 
 function contextMax() {
     const context = ctx();
@@ -6871,7 +6860,8 @@ function paintRing(ring, share, empty) {
 }
 
 function onPromptReady(data) {
-    if (!active || !settings.contextMeter || data?.dryRun) return;
+    if (!active || !settings.contextMeter || data?.dryRun || !meter.live) return;
+    meter.live = false;
     if (Array.isArray(data?.chat)) measurePrompt(data.chat.map(item => (typeof item.content === 'string' ? item.content : JSON.stringify(item.content ?? ''))).join('\n'));
     else if (typeof data?.prompt === 'string') measurePrompt(data.prompt);
 }
@@ -8899,6 +8889,8 @@ function syncExtras() {
         window.clearTimeout(autoTimer);
         autoTimer = 0;
         autoQueue.clear();
+        window.clearTimeout(meter.timer);
+        meter.timer = 0;
         extras.promptObserver?.disconnect();
         extras.promptObserver = null;
     } else if (!extras.promptObserver) {
@@ -9882,6 +9874,22 @@ function init() {
     }
     for (const name of ['CHAT_COMPLETION_PROMPT_READY', 'GENERATE_AFTER_COMBINE_PROMPTS']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], onPromptReady);
+    }
+    if (event_types.GENERATION_STARTED) {
+        eventSource?.on?.(event_types.GENERATION_STARTED, (type, _params, dryRun) => {
+            meter.live = !dryRun && type !== 'quiet';
+        });
+    }
+    // When a reply is done (or a message goes away), read the ring again from SillyTavern's own
+    // record of the last prompt: the same numbers as its Prompt popup, with the breakdown.
+    for (const name of ['GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED']) {
+        if (!event_types[name]) continue;
+        eventSource?.on?.(event_types[name], () => {
+            meter.live = false;
+            if (!active || !settings.contextMeter) return;
+            clearTimeout(meter.timer);
+            meter.timer = window.setTimeout(loadMeterFromHistory, 400);
+        });
     }
     if (event_types.CHAT_CHANGED) {
         eventSource?.on?.(event_types.CHAT_CHANGED, () => {

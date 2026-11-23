@@ -2,7 +2,7 @@
 
 This document is the single source of truth for Pocket Tavern's visual design, tokens, layout rules, and component behavior across **Phone** and **Desktop**.
 
-Rules marked **Target** are agreed goals the code does not meet yet. They are scheduled in the redesign (Phase 2 for type, radius, spacing and motion; Phase 3 for components) and listed together in §7. Build toward them; never write them out of this document because today's code differs.
+Rules marked **Target** are agreed goals the code does not meet yet. They are scheduled in the redesign (Phase 2, type, radius, spacing and motion, was built in 2.28.0; Phase 3 is components) and listed together in §7. Build toward them; never write them out of this document because today's code differs.
 
 ---
 
@@ -45,10 +45,12 @@ All styles are scoped under `html.stmui-on` (plus state classes on `<html>`). **
 | `--pt-card-user` / `--pt-card-bot` | subtle surface tint | subtle surface tint | Message card backgrounds (the only translucent surfaces over chat backgrounds) |
 | `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat backdrop behind the chat (no gradients) |
 
-### Spacing, Radii & Motion Tokens
-- **Spacing (4px scale):** `--pt-space-1` (`4px`), `--pt-space-2` (`8px`), `--pt-space-3` (`12px`), `--pt-space-4` (`16px`), `--pt-space-5` (`20px`), `--pt-space-6` (`24px`), `--pt-space-8` (`32px`).
-- **Radii:** `--pt-radius-sm` (`10px`, controls/inputs), `--pt-radius` (`14px`, message cards/panels).
-- **Motion:** `--pt-dur-fast` (`150ms`), `--pt-dur` (`220ms`), `--pt-ease` (`cubic-bezier(0.2, 0, 0, 1)`).
+### Type, Spacing, Radii & Motion Tokens
+- **Type scale:** every font size is one of `--pt-text-xs` (`12px`), `--pt-text-sm` (`14px`), `--pt-text-body` (`15px`), `--pt-text-md` (`16px`), `--pt-text-lg` (`20px`), `--pt-text-xl` (`24px`). Icon glyphs sized with `font-size` use the same steps (`20px` tools, `24px` close crosses). Sizes in `em` inside a message (timestamps, code) follow the message text, so the Chat text size scales them too.
+- **Message text:** `--pt-text-chat` is `15px` on phones and `16px` on the desktop layout, multiplied by SillyTavern's Font scale and Pocket Tavern's Chat text size.
+- **Spacing (4px scale):** `--pt-space-1` (`4px`), `--pt-space-2` (`8px`), `--pt-space-3` (`12px`), `--pt-space-4` (`16px`), `--pt-space-5` (`20px`), `--pt-space-6` (`24px`), `--pt-space-8` (`32px`). Every padding, margin and gap is on this scale. Exceptions: `1px` hairline offsets, and the quick reply chips' `6px` margin (`(44px tap row − 32px chip) / 2`).
+- **Radii:** `--pt-radius-sm` (`10px`, controls: buttons, inputs, menu rows, chips that are not round), `--pt-radius` (`14px`, containers: message cards, sheets, panels, lists, toasts). A control inside a container with `4px` padding gets the next step down so the corners stay concentric (the segmented control: `14px` outside, `10px` tabs). Round things (avatars, icon buttons, pills) stay `50%` / `999px`. Marks smaller than a control (checkboxes, key caps, badges, search highlights, theme-card miniatures) keep a small radius.
+- **Motion:** `--pt-dur-fast` (`150ms`, presses, hovers, fades), `--pt-dur` (`220ms`, sheets, panels, dialogs), `--pt-dur-slow` (`240ms`, the longest: page slides and the context ring), all with `--pt-ease` (`cubic-bezier(0.2, 0, 0, 1)`). Pocket Tavern's JavaScript animations use the same values.
 
 ### Z-Index Scale
 Every layered element must sit on this documented scale (never invent ad-hoc `9999`/`30000` values):
@@ -147,8 +149,9 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 ## 6. Motion & Writing
 
 ### Motion
-- **Durations:** `150ms` micro-interactions, `200ms–240ms` sheets/panels/dialogs.
-- **Easing:** `cubic-bezier(0.2, 0, 0, 1)` (snappy, native ease-out—avoid bouncy overshoot curves).
+- **Durations:** `150ms` micro-interactions, `220ms` sheets/panels/dialogs, never more than `240ms`. Looping indicators (a reply being written, Stop's pulse) are the only longer animations.
+- **Easing:** `cubic-bezier(0.2, 0, 0, 1)` (snappy, native ease-out—no bouncy overshoot curves). The older `--stmui-ease*` names point at it.
+- **No show pieces:** Send gives a short press (scale `0.9` to `1`, `220ms`); nothing flies off. A message or setting you jump to is outlined for a moment (a still highlight, not an animated colour). Only `transform` and `opacity` animate.
 - **Reduced Motion:** Both `html.stmui-motion-off` and `@media (prefers-reduced-motion: reduce)` must neutralize animations **and** pseudo-elements (`*::before`, `*::after`) with `animation-iteration-count: 1 !important` and `0s` delays so infinite indicators never strobe.
 
 ### Writing & Localization
@@ -162,17 +165,13 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - **Root and tokens:** the root selector is `html.stmui-on` (see CLAUDE.md). The `--pt-*` tokens are the source of truth; the older `--stmui-*` tokens are aliases of them and are not used in new code. Nothing is renamed from `stmui` to `pt`: that would break saved settings, drafts, character and chat data, and users' custom CSS.
 - **Themes:** the palette in §2 is the default theme, **Pocket**, with a matching light version. The other Pocket Tavern themes stay, built from the same roles (`--pt-bg`, `--pt-surface`, `--pt-surface-elevated`, `--pt-border`, the three text levels, one accent, danger), flat (no glows, no gradients) and meeting the contrast rule. SillyTavern UI themes are offered too, converted to these roles with the contrast rule enforced.
 - **Chat backgrounds:** no `backdrop-filter` anywhere. Over a chat background, bars, pages, sheets, dialogs and the composer stay solid; only message cards are a translucent tint, so the picture shows through them and between them. Card text is checked against the tint over mid grey and lifted until it meets the contrast rule. SillyTavern's own blur on `#chat` and its drawers is switched off while the shell is on (2.25.1: a blurred container put the full-screen message editor thousands of pixels off screen).
-- **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6, 0.75em between paragraphs. The Chat text size setting scales up from there.
+- **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6 (Compact 1.5), 0.75em between paragraphs (Compact 0.5em). The Chat text size setting scales up from there.
+- **SillyTavern themes' message cards:** a converted theme keeps its own **User Message** and **AI Message** colours, even when they are the same (GitHub issue #5); they are only made darker or lighter until the text meets the contrast rule. A theme without message tints gets Pocket Tavern's faint cards.
+- **Scrollbars:** Pocket Tavern's own scrolling areas (sheets, lists, the rail) never show one. On the phone layout the chat and the pages don't either (they scroll by touch, and SillyTavern's 11px bar would take room from the text). On the desktop layout SillyTavern's own lists, pages and the chat keep their scrollbars for the mouse. Never hide scrollbars on every element.
 - **SillyTavern's own screens** stay SillyTavern's: marked, restyled with tokens and placed with CSS, never moved or rebuilt. Where a screen is a long list of settings, Pocket Tavern may show it in steps (a list of sections that each open their own page, like Settings) by hiding the other sections, not by moving them.
 
 ### Targets not built yet
-**Phase 2 (type, radius, spacing, motion):**
-- Message text at 15px on phones and 16px on desktop, line-height 1.6 (Compact 1.5), 0.75em between paragraphs (Compact 0.5em).
-- Font sizes folded into 12 / 14 / 15 / 16 / 20 / 24.
-- Radii from the tokens: 14px containers, 10px controls; round icon buttons and avatars stay round.
-- Every spacing value on the 4px scale.
-- Every duration 150–240ms with `--pt-ease`; no overshooting easing, no theatrical send animation, no `box-shadow` animation; Full motion follows `prefers-reduced-motion`.
-- Hidden scrollbars only inside Pocket Tavern's own scrolling areas, never on every element.
+**Phase 2 (type, radius, spacing, motion): built in 2.28.0.** The rules are in §2, §3, §6 and above; `tests/check.mjs` fails when `style.css` leaves the scales.
 
 **Phase 3 (components):**
 - Top bar 52px (48px in Compact) with the one-tap SillyTavern toggle (§5 Top Bar).

@@ -1,6 +1,15 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.28.0',
+        items: [
+            "A calmer look, second step: one set of text sizes, corners in two sizes, even spacing and shorter, smoother animations everywhere. Messages are 15px on a phone and 16px on a computer, with a little more room between paragraphs. Send gives a short press instead of a flying plane.",
+            "SillyTavern themes keep your own User Message and AI Message colours for the message cards (your messages were tinted with the quote colour).",
+            "Fixed: the context ring could stay on a tiny number such as 64 tokens. Small background prompts from extensions no longer replace the count, and after each reply the ring shows the same numbers as SillyTavern's Prompt view.",
+            "Fixed: on a character card, More… slid under the Description tabs. On a computer, SillyTavern's own lists and the chat show their scrollbars again.",
+        ],
+    },
+    {
         version: '2.27.0',
         items: [
             "Easier to find your way: Formatting and Extensions open on a short list like Settings, each section or extension on its own page. With Chat Completion, Presets has Parameters and Prompts tabs. Export on a character card opens a clear PNG or JSON choice.",

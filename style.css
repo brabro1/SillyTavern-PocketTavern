@@ -33,6 +33,17 @@
     --pt-card-user: color-mix(in srgb, var(--pt-accent) 9%, transparent);
     --pt-card-bot: color-mix(in srgb, var(--pt-text-primary) 5%, transparent);
     --pt-backdrop: var(--pt-bg);
+    /* Type scale (DESIGN.md, section 2): every font size is one of these. */
+    --pt-text-xs: 12px;
+    --pt-text-sm: 14px;
+    --pt-text-body: 15px;
+    --pt-text-md: 16px;
+    --pt-text-lg: 20px;
+    --pt-text-xl: 24px;
+    /* Message text: 15px on phones, 16px on the desktop layout; the Chat text size and
+       SillyTavern's Font scale multiply it. */
+    --pt-text-chat: 15px;
+    /* Radii: 10px controls, 14px containers; round things stay round. */
     --pt-radius-sm: 10px;
     --pt-radius: 14px;
     --pt-space-1: 4px;
@@ -45,6 +56,7 @@
     --pt-ease: cubic-bezier(0.2, 0, 0, 1);
     --pt-dur-fast: 150ms;
     --pt-dur: 220ms;
+    --pt-dur-slow: 240ms;
     /* Layers, lowest first (DESIGN.md, section 2). SillyTavern's own popups and toasts
        open in the browser top layer (<dialog>) above all of these. */
     --pt-z-chat: 30;
@@ -76,29 +88,30 @@
     --stmui-bot-tint: var(--pt-card-bot);
     --stmui-backdrop: var(--pt-backdrop);
     --stmui-tap: 48px;
-    --stmui-radius: 16px;
-    --stmui-radius-sm: 12px;
+    --stmui-radius: var(--pt-radius);
+    --stmui-radius-sm: var(--pt-radius-sm);
     --stmui-safe-top: env(safe-area-inset-top, 0px);
     --stmui-safe-bottom: env(safe-area-inset-bottom, 0px);
     --stmui-safe-left: env(safe-area-inset-left, 0px);
     --stmui-safe-right: env(safe-area-inset-right, 0px);
-    --stmui-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-    /* iOS-style sheet curve and a gentle overshoot for small things that pop. */
-    --stmui-ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
-    --stmui-ease-pop: cubic-bezier(0.34, 1.4, 0.5, 1);
+    /* One curve for every movement, never overshooting (kept under the old names for custom CSS). */
+    --stmui-ease: var(--pt-ease);
+    --stmui-ease-sheet: var(--pt-ease);
+    --stmui-ease-pop: var(--pt-ease);
 }
 
-/* No scrollbars anywhere, like a phone app: content still scrolls by touch. */
-html.stmui-on,
-html.stmui-on * {
-    scrollbar-width: none !important;
+/* Scrollbars (DESIGN.md, section 7). Pocket Tavern's own scrolling areas (sheets, lists, the
+   rail) scroll without a bar, like an app. On a phone the chat and the pages do too: they scroll
+   by touch, and SillyTavern's 11px bar would take room from the text. On the desktop layout
+   SillyTavern's own lists, pages and the chat keep their scrollbars for the mouse. */
+html.stmui-on :is(.stmui-list, .stmui-menu-body, .stmui-panel, .stmui-tabbar, .stmui-segmented),
+html.stmui-on:not(.stmui-wide) :is(#chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div) {
+    scrollbar-width: none;
 }
 
-html.stmui-on ::-webkit-scrollbar,
-html.stmui-on *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+html.stmui-on :is(.stmui-list, .stmui-menu-body, .stmui-panel, .stmui-tabbar, .stmui-segmented)::-webkit-scrollbar,
+html.stmui-on:not(.stmui-wide) :is(#chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div)::-webkit-scrollbar {
+    display: none;
 }
 
 .stmui-svg {
@@ -157,9 +170,9 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 /* ---- Settings panel (visible on every device) --------------------------- */
 
 .stmui-settings .stmui-status-line {
-    margin: 6px 0 10px;
+    margin: 8px 0 12px;
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     font-size: 0.9em;
 }
@@ -172,7 +185,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin: 6px 0;
+    margin: 8px 0;
 }
 
 .stmui-settings .stmui-field-label {
@@ -192,7 +205,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 }
 
 .stmui-settings .stmui-check input {
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .stmui-settings .stmui-check-text {
@@ -228,12 +241,12 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 .stmui-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
 }
 
 .stmui-chips-empty {
-    padding: 4px 2px;
+    padding: 4px 4px;
     color: var(--stmui-muted);
     font-style: italic;
 }
@@ -261,7 +274,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 .stmui-chip-text {
     align-self: center;
     min-width: 0;
-    padding: 8px 4px 8px 14px;
+    padding: 8px 4px 8px 16px;
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
@@ -282,7 +295,7 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
 
 .stmui-chip-more {
     align-items: center;
-    padding: 8px 14px;
+    padding: 8px 16px;
     border-style: dashed;
     font: inherit;
     cursor: pointer;
@@ -297,14 +310,14 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     box-sizing: border-box;
 }
 
 .stmui-open .stmui-count {
     margin-inline-start: auto;
-    padding: 2px 10px;
+    padding: 4px 12px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--stmui-text) 14%, transparent);
     font-size: 0.85em;
@@ -324,11 +337,11 @@ html.stmui-glass.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle
     display: flex;
     flex: 1 1 auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     min-height: var(--stmui-tap);
     margin: 0;
-    padding: 8px 14px;
+    padding: 8px 16px;
     text-align: start;
     cursor: pointer;
     box-sizing: border-box;
@@ -387,7 +400,7 @@ dialog.stmui-sheet:not([open]) {
 
 dialog.stmui-sheet::backdrop {
     background: rgba(0, 0, 0, 0);
-    transition: background 0.2s ease;
+    transition: background var(--pt-dur) var(--pt-ease);
 }
 
 dialog.stmui-sheet.stmui-sheet-open::backdrop {
@@ -412,31 +425,31 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
     padding-right: var(--stmui-safe-right);
     border: 1px solid var(--stmui-line);
     border-bottom: 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     background: var(--pt-bg);
     box-shadow: none;
     outline: none;
     transform: translateY(100%);
-    transition: transform 0.2s ease-in;
+    transition: transform var(--pt-dur) var(--pt-ease);
     box-sizing: border-box;
     overscroll-behavior: contain;
 }
 
 .stmui-sheet-open .stmui-panel {
     transform: translateY(0);
-    transition: transform 0.3s var(--stmui-ease-sheet);
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
 .stmui-head {
     flex: 0 0 auto;
-    padding: 6px 16px 4px;
+    padding: 8px 16px 4px;
     touch-action: none;
 }
 
 .stmui-grab {
     width: 40px;
     height: 5px;
-    margin: 2px auto 10px;
+    margin: 4px auto 12px;
     border-radius: 3px;
     background: var(--stmui-faint);
 }
@@ -461,7 +474,7 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
 }
 
 .stmui-subtitle {
-    margin: 2px 0 0;
+    margin: 4px 0 0;
     color: var(--stmui-muted);
     font-size: 0.85em;
     line-height: 1.3;
@@ -478,7 +491,7 @@ dialog.stmui-sheet.stmui-sheet-open::backdrop {
     margin-inline-end: -8px;
     padding: 0 12px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-text);
     font-size: 16px;
@@ -509,9 +522,9 @@ input[type='search'].stmui-search-input {
     min-height: 46px;
     margin: 0;
     padding-block: 8px;
-    padding-inline: 40px 46px;
+    padding-inline: 40px 48px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font-size: 16px;
@@ -561,8 +574,8 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 6px 16px 2px;
+    gap: 12px;
+    margin: 8px 16px 4px;
 }
 
 .stmui-tools:empty {
@@ -572,9 +585,9 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-segmented {
     display: inline-flex;
     flex: 1 1 auto;
-    padding: 3px;
+    padding: 4px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
 }
 
@@ -586,7 +599,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     gap: 8px;
     min-height: 40px;
     border: 0;
-    border-radius: 11px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-text);
     font: inherit;
@@ -601,7 +614,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 
 .stmui-seg-count {
     min-width: 1.6em;
-    padding: 0 6px;
+    padding: 0 8px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--stmui-text) 14%, transparent);
     font-size: 0.8em;
@@ -617,7 +630,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     gap: 8px;
     min-height: 46px;
     margin: 0;
-    padding: 0 14px;
+    padding: 0 16px;
 }
 
 .stmui-clear-all[disabled] {
@@ -628,8 +641,8 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-list {
     flex: 1 1 auto;
     min-height: 120px;
-    margin: 6px 0 0;
-    padding: 4px 10px 8px;
+    margin: 8px 0 0;
+    padding: 4px 12px 8px;
     list-style: none;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -640,22 +653,22 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-row {
     display: flex;
     align-items: stretch;
-    margin: 2px 0;
-    border-radius: 12px;
-    transition: background 0.12s ease;
+    margin: 4px 0;
+    border-radius: var(--pt-radius);
+    transition: background var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-row-btn {
     display: flex;
     flex: 1 1 auto;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     min-width: 0;
     min-height: 54px;
     padding-block: 8px;
-    padding-inline: 12px 10px;
+    padding-inline: 12px 12px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: inherit;
     font: inherit;
@@ -688,7 +701,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     border-radius: 8px;
     color: transparent;
     font-size: 14px;
-    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    transition: background var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
 }
 
 #stmui-sheet [aria-multiselectable='false'] .stmui-mark {
@@ -709,7 +722,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
 }
 
@@ -733,7 +746,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
 }
 
 .stmui-badge {
@@ -747,7 +760,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-edit {
     flex: 0 0 52px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-muted);
     cursor: pointer;
@@ -770,7 +783,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     align-items: baseline;
     justify-content: space-between;
     gap: 4px 12px;
-    padding: 8px 18px 10px;
+    padding: 8px 16px 12px;
     border-top: 1px solid var(--stmui-line);
     font-size: 0.85em;
 }
@@ -798,7 +811,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-menu-body {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 6px 14px 14px;
+    padding: 8px 16px 16px;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -806,7 +819,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-tiles {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
 }
 
 .stmui-tile {
@@ -814,18 +827,18 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
     min-height: 108px;
-    padding: 14px 6px 10px;
+    padding: 16px 8px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-tile:active {
@@ -844,7 +857,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised-2);
     color: var(--stmui-text);
     font-size: 20px;
@@ -886,9 +899,9 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-menu-list {
     display: flex;
     flex-direction: column;
-    margin-top: 14px;
+    margin-top: 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     overflow: hidden;
 }
@@ -896,7 +909,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
 .stmui-menu-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     min-height: 54px;
     padding: 0 16px;
     border: 0;
@@ -952,7 +965,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     .stmui-panel {
         max-height: 100%;
         max-width: 560px;
-        border-radius: 16px 16px 0 0;
+        border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     }
 
     .stmui-grab {
@@ -960,7 +973,7 @@ input[type='search'].stmui-search-input::-webkit-search-cancel-button {
     }
 
     .stmui-head {
-        padding-top: 10px;
+        padding-top: 12px;
     }
 
     .stmui-list {
@@ -1005,7 +1018,7 @@ dialog.stmui-compact .stmui-done {
 }
 
 dialog.stmui-compact .stmui-search {
-    margin: 6px 12px 2px;
+    margin: 8px 12px 4px;
 }
 
 dialog.stmui-compact input[type='search'].stmui-search-input {
@@ -1034,7 +1047,7 @@ dialog.stmui-compact .stmui-row-btn {
 }
 
 dialog.stmui-compact .stmui-foot {
-    padding: 4px 14px 6px;
+    padding: 4px 16px 8px;
 }
 
 /* While typing in a cramped viewport, give the list the space the segmented control used. */
@@ -1047,8 +1060,8 @@ dialog.stmui-compact .stmui-panel:has(.stmui-search-input:focus) .stmui-tools {
     dialog.stmui-compact .stmui-controls {
         flex-direction: row;
         align-items: center;
-        gap: 10px;
-        margin: 6px 12px 0;
+        gap: 12px;
+        margin: 8px 12px 0;
     }
 
     dialog.stmui-compact .stmui-controls .stmui-search {
@@ -1115,7 +1128,7 @@ html.stmui-shell .stmui-appbar {
     align-items: center;
     gap: 4px;
     height: var(--topBarBlockSize);
-    padding: var(--stmui-safe-top) calc(6px + var(--stmui-safe-right)) 0 calc(6px + var(--stmui-safe-left));
+    padding: var(--stmui-safe-top) calc(8px + var(--stmui-safe-right)) 0 calc(8px + var(--stmui-safe-left));
     box-sizing: border-box;
     border-bottom: 1px solid var(--stmui-line);
     /* Nearly solid instead of live blur: blurring the chat behind on every scroll frame is heavy for phones. */
@@ -1139,7 +1152,7 @@ html.stmui-shell .stmui-appbar {
     border-radius: 50%;
     background: transparent;
     color: var(--stmui-text);
-    font-size: 19px;
+    font-size: 20px;
     cursor: pointer;
 }
 
@@ -1159,12 +1172,12 @@ html.stmui-shell .stmui-appbar {
     display: flex;
     flex: 1 1 auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     height: 48px;
     padding: 0 8px 0 4px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: inherit;
     font: inherit;
@@ -1203,7 +1216,7 @@ html.stmui-shell .stmui-appbar {
 }
 
 .stmui-ab-avatar-icon {
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised-2);
     color: var(--stmui-text);
 }
@@ -1241,7 +1254,7 @@ html.stmui-shell .stmui-appbar {
     display: inline-block;
     width: 7px;
     height: 7px;
-    margin-inline-end: 6px;
+    margin-inline-end: 8px;
     border-radius: 50%;
     background: var(--pt-danger);
     vertical-align: 1px;
@@ -1256,7 +1269,7 @@ html.stmui-shell .stmui-appbar {
 @media (max-width: 400px) {
     .stmui-ab-btn {
         width: 44px;
-        margin: 0 -2px;
+        margin: 0 -4px;
     }
 }
 
@@ -1279,7 +1292,7 @@ html.stmui-shell .stmui-tabbar {
     border-top: 1px solid var(--stmui-line);
     background: var(--pt-bg);
     text-shadow: none;
-    transition: transform 0.18s ease;
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-shell.stmui-keyboard .stmui-tabbar {
@@ -1298,9 +1311,9 @@ html.stmui-shell.stmui-keyboard.stmui-tabs-tucked .stmui-tabbar {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
-    padding: 6px 2px 4px;
+    padding: 8px 4px 4px;
     border: 0;
     background: transparent;
     color: var(--stmui-muted);
@@ -1316,8 +1329,8 @@ html.stmui-shell.stmui-keyboard.stmui-tabs-tucked .stmui-tabbar {
     width: 56px;
     height: 30px;
     border-radius: 999px;
-    font-size: 18px;
-    transition: background 0.18s ease, color 0.18s ease;
+    font-size: 20px;
+    transition: background var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-tab-label {
@@ -1414,7 +1427,7 @@ html.stmui-shell #top-settings-holder .drawer-content.openDrawer {
     background-color: var(--stmui-solid);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    animation: stmui-page-in 0.22s var(--stmui-ease);
+    animation: stmui-page-in var(--pt-dur) var(--pt-ease);
 }
 
 @keyframes stmui-page-in {
@@ -1464,7 +1477,7 @@ html.stmui-on body #toast-container > div {
     width: 100% !important;
     max-width: none;
     margin: 0 0 8px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
     box-shadow: none;
 }
 
@@ -1477,7 +1490,7 @@ html.stmui-on body #toast-container > div {
 
     .stmui-tab {
         flex-direction: row;
-        gap: 6px;
+        gap: 8px;
         padding: 0 4px;
     }
 
@@ -1504,7 +1517,7 @@ html.stmui-on body #toast-container > div {
    ========================================================================== */
 
 html.stmui-chat #chat {
-    padding: 6px 0 10px;
+    padding: 8px 0 12px;
     border: 0 !important;
     overscroll-behavior: contain;
 }
@@ -1512,12 +1525,12 @@ html.stmui-chat #chat {
 html.stmui-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
     align-self: stretch;
     width: auto;
-    max-width: calc(100% - 12px);
+    max-width: calc(100% - 16px);
     min-width: 0;
-    margin: 5px 6px;
-    padding: 12px 14px 10px;
+    margin: 4px 8px;
+    padding: 12px 16px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     /* !important: Moonlit Echoes unsets message backgrounds with !important and paints an inner box
        that this layout flattens, so cards lost their colour and text vanished over a light picture. */
     background: var(--stmui-bot-tint);
@@ -1582,7 +1595,7 @@ html.stmui-chat body:is(.square-avatars, .rounded-avatars, .big-avatars) #chat .
 
 html.stmui-chat #chat .mes_block {
     min-width: 0;
-    padding-left: 10px;
+    padding-left: 12px;
 }
 
 html.stmui-chat #chat .ch_name {
@@ -1609,13 +1622,21 @@ html.stmui-chat #chat .ch_name .timestamp {
 }
 
 html.stmui-chat #chat .mes_text {
-    padding-top: 2px;
-    font-size: calc(var(--mainFontSize) * var(--stmui-text-scale, 1.07));
+    padding-top: 4px;
+    font-size: calc(var(--pt-text-chat) * var(--fontScale, 1) * var(--stmui-text-scale, 1));
     line-height: 1.6;
 }
 
 html.stmui-chat #chat .mes_text p {
-    margin: 0.45em 0;
+    margin: 0.75em 0;
+}
+
+html.stmui-chat.stmui-compact #chat .mes_text {
+    line-height: 1.5;
+}
+
+html.stmui-chat.stmui-compact #chat .mes_text p {
+    margin: 0.5em 0;
 }
 
 html.stmui-chat #chat .mes_text p:first-child {
@@ -1656,7 +1677,7 @@ html.stmui-chat #chat :is(.mes_text, .mes_reasoning) > :is(blockquote, pre):last
 /* Message action buttons: quiet, round, finger-sized. */
 html.stmui-chat #chat .mes_buttons {
     align-items: center;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-chat #chat .mes_buttons .mes_button,
@@ -1702,8 +1723,8 @@ html.stmui-chat #chat .swipe_right {
 /* Message editor: a roomy text area and big confirm/cancel. */
 html.stmui-chat #chat #curEditTextarea {
     min-height: 120px;
-    padding: 10px 12px;
-    border-radius: 12px;
+    padding: 12px 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
     line-height: 1.5;
 }
@@ -1724,7 +1745,7 @@ html.stmui-chat #chat .mes_edit_buttons .menu_button {
     height: 40px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 /* -- Messages: picture, name and date in a header; text across the whole card --
@@ -1765,7 +1786,7 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
     align-self: center;
     width: 36px;
     height: 36px;
-    margin: 0 10px 0 0;
+    margin: 0 12px 0 0;
 }
 
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar img {
@@ -1777,7 +1798,7 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .ch_name {
     grid-area: head;
     min-height: 36px;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-chat:not(.stmui-editing) #chat .mes .ch_name > .flex-container.flex1 {
@@ -1789,7 +1810,7 @@ html.stmui-chat:not(.stmui-editing) #chat .mes .ch_name .alignItemsBaseline {
     grid-template-columns: minmax(0, auto) auto;
     justify-content: start;
     align-items: center;
-    column-gap: 6px;
+    column-gap: 8px;
     row-gap: 1px;
     min-width: 0;
 }
@@ -1881,7 +1902,7 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
     position: relative;
     /* SillyTavern places it with bottom/left offsets meant for absolute positioning; they would shift it now. */
     inset: auto;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
@@ -1890,7 +1911,7 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 8px;
     pointer-events: auto;
 }
 
@@ -1991,7 +2012,7 @@ html.stmui-chat:not(.stmui-editing) #chat .mes .swipes-counter {
     height: auto;
     margin: 0 !important;
     letter-spacing: normal;
-    padding: 0 2px;
+    padding: 0 4px;
     background: transparent;
     color: var(--stmui-muted);
     font-size: 12px;
@@ -2019,7 +2040,7 @@ html.stmui-chat:not(.stmui-editing) #chat .mes.last_swipe > .swipeRightBlock .sw
 
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right,
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left {
-    transition: background-color 0.15s ease, transform 0.18s var(--stmui-ease);
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right:active {
@@ -2064,10 +2085,10 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
 
 html.stmui-chat #chat .mes .mes_reasoning_details {
     grid-area: think;
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     overflow: hidden;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
 }
 
@@ -2079,7 +2100,7 @@ html.stmui-chat #chat .mes .mes_reasoning_details .mes_reasoning_summary {
 html.stmui-chat #chat .mes .mes_reasoning_header {
     gap: 8px;
     margin: 0;
-    padding: 9px 34px 9px 12px;
+    padding: 8px 32px 8px 12px;
     border-radius: 0;
     background: transparent;
     color: var(--stmui-muted);
@@ -2103,8 +2124,8 @@ html.stmui-chat #chat .mes .mes_reasoning_details .mes_reasoning_arrow {
 }
 
 html.stmui-chat #chat .mes .mes_reasoning_actions {
-    gap: 2px;
-    padding-right: 6px;
+    gap: 4px;
+    padding-right: 8px;
 }
 
 html.stmui-chat #chat .mes .mes_reasoning_actions .mes_button {
@@ -2116,7 +2137,7 @@ html.stmui-chat #chat .mes .mes_reasoning_actions .mes_button {
 html.stmui-chat #chat .mes .mes_reasoning {
     max-height: 45vh;
     margin: 0;
-    padding: 10px 12px 12px;
+    padding: 12px 12px 12px;
     overflow-y: auto;
     border-top: 1px solid var(--stmui-line);
     color: var(--stmui-muted);
@@ -2150,7 +2171,8 @@ html.stmui-chat #form_sheld {
     right: 0;
     bottom: 0;
     margin: 0;
-    padding: 18px 10px 8px;
+    /* 8px at the sides, like the message cards. */
+    padding: 16px 8px 8px;
     box-sizing: border-box;
     border: 0;
     background: none !important;
@@ -2191,16 +2213,16 @@ html.stmui-chat:not(.stmui-shell) #form_sheld {
 
 html.stmui-chat #send_form {
     min-height: 0;
-    padding: 4px 6px 6px;
+    padding: 4px 4px 8px;
     box-sizing: border-box;
     border: 1px solid var(--stmui-line) !important;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised) !important;
     /* The one shadow in Pocket Tavern: a soft, even lift so the box sits clearly
        above the chat. Mostly around the box rather than under it, because the
        box sits 8px from the bottom edge, which would cut a dropped shadow off. */
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.12);
-    transition: border-color 0.15s ease;
+    transition: border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-chat #send_form:focus-within {
@@ -2240,13 +2262,13 @@ html.stmui-chat #nonQRFormItems > #send_textarea {
 html.stmui-chat #nonQRFormItems > #leftSendForm {
     grid-area: left !important;
     order: 0 !important;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-chat #nonQRFormItems > #rightSendForm {
     grid-area: right !important;
     order: 0 !important;
-    gap: 6px;
+    gap: 4px;
 }
 
 /* Anything an extension puts straight into the box gets a row of its own
@@ -2283,7 +2305,7 @@ html.stmui-chat #options_button {
     height: 44px;
     margin: 0;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 20px;
     opacity: 0.8;
 }
 
@@ -2299,11 +2321,11 @@ html.stmui-chat #send_textarea {
     min-height: 40px;
     max-height: 40dvh;
     margin: 0;
-    padding: 9px 10px 5px;
+    padding: 8px 12px 4px;
     border: 0;
     background: transparent;
     /* Follows the Chat text size: Large and Extra large make your own typing bigger too (never under 16px). */
-    font-size: max(16px, calc(15px * var(--stmui-text-scale, 1.07)));
+    font-size: max(16px, calc(15px * var(--stmui-text-scale, 1)));
     line-height: 1.4;
     box-shadow: none;
     outline: none;
@@ -2321,7 +2343,7 @@ html.stmui-chat #rightSendForm > #send_but {
     border-radius: 50%;
     background: var(--stmui-accent);
     color: var(--stmui-on-accent);
-    font-size: 18px !important;
+    font-size: 20px !important;
     opacity: 1 !important;
     text-shadow: none;
     filter: none;
@@ -2455,7 +2477,7 @@ html.stmui-touch .drawer-content {
 }
 
 html.stmui-touch #top-settings-holder .drawer-content.openDrawer:not(.fillLeft):not(.fillRight) {
-    padding: 10px 12px 24px;
+    padding: 12px 12px 24px;
 }
 
 html.stmui-touch #left-nav-panel .scrollableInner,
@@ -2466,7 +2488,7 @@ html.stmui-touch #rm_api_block > div {
 
 html.stmui-touch .drawer-content h3,
 html.stmui-touch .drawer-content h4 {
-    margin: 14px 0 8px;
+    margin: 16px 0 8px;
     font-weight: 700;
     letter-spacing: 0.01em;
 }
@@ -2487,18 +2509,18 @@ html.stmui-touch .drawer-content .toggle-description {
 /* Collapsible sections become cards. */
 html.stmui-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer),
 html.stmui-touch #character_popup .inline-drawer:not(.inline-drawer .inline-drawer) {
-    margin: 10px 0;
-    padding: 2px 12px;
+    margin: 12px 0;
+    padding: 4px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: var(--stmui-radius);
+    border-radius: var(--pt-radius);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
 }
 
 html.stmui-touch .inline-drawer-toggle,
 html.stmui-touch .inline-drawer-header {
     min-height: 52px;
-    padding-top: 6px;
-    padding-bottom: 6px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     align-items: center;
     cursor: pointer;
 }
@@ -2507,8 +2529,8 @@ html.stmui-touch .inline-drawer-header {
 html.stmui-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer) > .inline-drawer-header,
 html.stmui-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer) > .inline-drawer-toggle {
     margin: 0;
-    padding-left: 2px;
-    padding-right: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
     border: 0 !important;
     border-radius: 0;
     background: none !important;
@@ -2555,10 +2577,10 @@ html.stmui-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 2px 10px;
+    gap: 4px 12px;
     flex-basis: 100% !important;
     width: 100%;
-    padding: 6px 0;
+    padding: 8px 0;
     border-bottom: 1px solid var(--stmui-line);
 }
 
@@ -2605,7 +2627,7 @@ html.stmui-touch .drawer-content .flexFlowColumn:has(> .neo-range-slider) .stmui
     flex: 0 0 auto;
     width: 4.6em !important;
     min-width: 4.6em;
-    padding-inline: 2px !important;
+    padding-inline: 4px !important;
     text-align: center;
 }
 
@@ -2624,7 +2646,7 @@ html.stmui-touch #clickSlidersTips {
 html.stmui-touch .drawer-content .range-block {
     width: 100%;
     flex-basis: 100% !important;
-    padding: 6px 0;
+    padding: 8px 0;
 }
 
 html.stmui-touch .drawer-content .range-block-title {
@@ -2634,7 +2656,7 @@ html.stmui-touch .drawer-content .range-block-title {
 }
 
 html.stmui-touch .drawer-content .range-block-range-and-counter {
-    gap: 10px;
+    gap: 12px;
     align-items: center;
 }
 
@@ -2662,7 +2684,7 @@ html.stmui-touch .drawer-content input.text_pole:not([type='checkbox']):not([typ
 html.stmui-touch .drawer-content textarea.text_pole,
 html.stmui-touch .popup select,
 html.stmui-touch .popup .text_pole {
-    border-radius: var(--stmui-radius-sm);
+    border-radius: var(--pt-radius-sm);
 }
 
 /* A dropdown followed by a row of icon buttons: dropdown on its own line, buttons below. */
@@ -2683,8 +2705,8 @@ html.stmui-touch textarea.text_pole {
 }
 
 html.stmui-touch select {
-    padding-top: 6px;
-    padding-bottom: 6px;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 html.stmui-touch .menu_button,
@@ -2692,7 +2714,7 @@ html.stmui-touch .menu_button_icon {
     box-sizing: border-box;
     min-height: 44px;
     padding: 8px 12px;
-    border-radius: var(--stmui-radius-sm);
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch .menu_button.fa-fw,
@@ -2705,7 +2727,7 @@ html.stmui-touch .checkbox_label,
 html.stmui-touch label.checkbox_label {
     min-height: 40px;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 html.stmui-touch input[type='checkbox'],
@@ -2729,7 +2751,7 @@ html.stmui-touch input[type='checkbox']::before {
 html.stmui-touch input[type='range'] {
     box-sizing: content-box;
     margin-top: 0 !important;
-    padding: 15px 0 !important;
+    padding: 16px 0 !important;
     background-clip: content-box !important;
     background-origin: content-box !important;
     touch-action: pan-y;
@@ -2753,7 +2775,7 @@ html.stmui-touch .neo-range-input {
 /* -- Characters page ------------------------------------------------------ */
 
 html.stmui-touch #right-nav-panel {
-    padding: 6px 10px 0;
+    padding: 8px 12px 0;
 }
 
 html.stmui-touch #CharListButtonAndHotSwaps {
@@ -2767,15 +2789,15 @@ html.stmui-touch #rm_button_characters {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 20px;
 }
 
 html.stmui-touch #rm_button_bar {
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 html.stmui-touch #rm_button_bar > .menu_button,
@@ -2788,14 +2810,14 @@ html.stmui-touch #rm_button_search {
     height: 44px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
 html.stmui-touch #character_sort_order {
     flex: 1 1 110px;
     min-width: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch #rm_print_characters_pagination {
@@ -2826,13 +2848,13 @@ html.stmui-touch #rm_print_characters_block .group_select_container {
 }
 
 html.stmui-touch #form_character_search_form {
-    margin: 4px 0 6px;
+    margin: 4px 0 8px;
 }
 
 html.stmui-touch #character_search_bar {
     min-height: 46px;
-    padding-left: 14px;
-    border-radius: 12px;
+    padding-left: 16px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch .rm_tag_controls .tags {
@@ -2856,7 +2878,7 @@ html.stmui-touch .rm_tag_filter .tag {
 }
 
 html.stmui-touch #rm_print_characters_pagination {
-    gap: 6px;
+    gap: 8px;
     min-height: 44px;
 }
 
@@ -2871,9 +2893,9 @@ html.stmui-touch #rm_print_characters_block .bogus_folder_select {
     gap: 12px;
     min-height: 72px;
     margin: 0;
-    padding: 10px 12px;
+    padding: 12px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
 }
 
@@ -2902,7 +2924,7 @@ html.stmui-touch #rm_print_characters_block .ch_description {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    margin-top: 2px;
+    margin-top: 4px;
     color: var(--stmui-muted);
     font-size: 0.86em;
     line-height: 1.35;
@@ -2936,7 +2958,7 @@ html.stmui-touch #avatar_controls .menu_button {
 }
 
 html.stmui-touch #rm_ch_create_block textarea {
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 /* -- Message actions without the chat style ------------------------------- */
@@ -2968,7 +2990,7 @@ html.stmui-touch:not(.stmui-chat) #rightSendForm {
 
 html.stmui-touch:not(.stmui-chat) #send_textarea {
     min-height: 44px;
-    padding: 10px 8px;
+    padding: 12px 8px;
     font-size: 16px;
 }
 
@@ -2982,9 +3004,9 @@ html.stmui-touch #extensionsMenu {
     width: auto !important;
     max-width: 560px;
     margin: 0 auto;
-    padding: 6px;
+    padding: 8px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-solid);
     box-shadow: none;
 }
@@ -2999,7 +3021,7 @@ html.stmui-touch #extensionsMenu {
 html.stmui-touch #options .options-content {
     padding: 0;
     border: 0;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: transparent;
 }
 
@@ -3009,10 +3031,10 @@ html.stmui-touch #extensionsMenu > .extension_container > div,
 html.stmui-touch #extensionsMenu > div:not(.extension_container) {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     min-height: 50px;
-    padding: 0 14px;
-    border-radius: 12px;
+    padding: 0 16px;
+    border-radius: var(--pt-radius-sm);
     opacity: 1;
     font-size: 16px;
 }
@@ -3032,11 +3054,11 @@ html.stmui-touch #extensionsMenu .extensionsMenuExtensionButton {
     width: 24px;
     min-width: 24px;
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
 }
 
 html.stmui-touch #options .options-content hr {
-    margin: 4px 10px;
+    margin: 4px 12px;
     border-color: var(--stmui-line);
 }
 
@@ -3053,14 +3075,14 @@ html.stmui-touch #select_chat_popup {
     max-width: 100%;
     max-height: calc(100% - var(--topBarBlockSize) - 8px);
     margin: 0;
-    padding: 14px 14px calc(14px + var(--stmui-safe-bottom));
-    gap: 10px;
+    padding: 16px 16px calc(16px + var(--stmui-safe-bottom));
+    gap: 12px;
     border: 1px solid var(--stmui-line);
     border-bottom: 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     background: var(--stmui-solid);
     box-shadow: none;
-    animation: stmui-sheet-up 0.25s var(--stmui-ease);
+    animation: stmui-sheet-up var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-touch #select_chat_popup > div[name='selectChatPopupHeader'] {
@@ -3084,13 +3106,13 @@ html.stmui-touch #select_chat_cross {
     justify-content: center;
     width: 40px;
     height: 40px;
-    font-size: 22px;
+    font-size: 24px;
 }
 
 html.stmui-touch #select_chat_popup .select_chat_block {
     margin-top: 8px;
-    padding: 10px 12px;
-    border-radius: 12px;
+    padding: 12px 12px;
+    border-radius: var(--pt-radius);
     border-color: var(--stmui-line);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
     line-height: 1.4;
@@ -3123,11 +3145,11 @@ html.stmui-touch dialog.popup:not(.transparent_dialogue_popup) {
     max-width: 100vw !important;
     max-height: calc(100dvh - var(--stmui-safe-top) - 16px) !important;
     margin: auto 0 0 0 !important;
-    padding: 10px 16px calc(14px + var(--stmui-safe-bottom));
+    padding: 12px 16px calc(16px + var(--stmui-safe-bottom));
     box-sizing: border-box;
     border: 1px solid var(--stmui-line);
     border-bottom: 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     background: var(--stmui-solid);
     box-shadow: none;
 }
@@ -3138,7 +3160,7 @@ html.stmui-touch dialog.popup:not(.transparent_dialogue_popup)::before {
     flex: 0 0 auto;
     width: 40px;
     height: 5px;
-    margin: 0 auto 6px;
+    margin: 0 auto 8px;
     border-radius: 3px;
     background: var(--stmui-faint);
 }
@@ -3149,11 +3171,11 @@ html.stmui-touch dialog.popup.large_dialogue_popup {
 }
 
 html.stmui-touch dialog.popup[opening] {
-    animation: stmui-sheet-up var(--popup-animation-speed, 0.25s) var(--stmui-ease);
+    animation: stmui-sheet-up var(--popup-animation-speed, var(--pt-dur-slow)) var(--pt-ease);
 }
 
 html.stmui-touch dialog.popup[closing] {
-    animation: stmui-sheet-down var(--popup-animation-speed, 0.2s) ease-in;
+    animation: stmui-sheet-down var(--popup-animation-speed, var(--pt-dur)) var(--pt-ease);
 }
 
 @keyframes stmui-sheet-up {
@@ -3184,15 +3206,15 @@ html.stmui-touch .popup .popup-content {
 html.stmui-touch .popup-controls {
     align-self: stretch;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
+    gap: 12px;
+    margin-top: 16px;
 }
 
 html.stmui-touch .popup-controls .menu_button {
     flex: 1 1 0;
     min-height: 50px;
     margin: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
     font-weight: 600;
 }
@@ -3280,12 +3302,12 @@ html.stmui-on .mes_text video {
     }
 
     html.stmui-chat #form_sheld {
-        padding-top: 10px;
-        padding-bottom: 6px;
+        padding-top: 12px;
+        padding-bottom: 8px;
     }
 
     html.stmui-chat #send_form {
-        padding: 3px 5px;
+        padding: 4px 4px;
     }
 }
 
@@ -3295,7 +3317,7 @@ html.stmui-on .mes_text video {
     display: inline-flex;
     flex: 0 1 auto;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     min-width: 0;
     max-width: 128px;
     height: 40px;
@@ -3347,7 +3369,7 @@ html.stmui-on .mes_text video {
 }
 
 .stmui-persona-chip:has(.stmui-persona-name:empty) {
-    padding-right: 3px;
+    padding-right: 4px;
 }
 
 /* Never squeezed under its picture, and never narrower than a 44px tap target. */
@@ -3398,7 +3420,7 @@ html.stmui-on .mes_text video {
     stroke-width: 3.4;
     stroke-linecap: round;
     stroke-dasharray: 0 100;
-    transition: stroke-dasharray 0.6s var(--stmui-ease), stroke 0.3s ease;
+    transition: stroke-dasharray var(--pt-dur-slow) var(--pt-ease), stroke var(--pt-dur-slow) var(--pt-ease);
 }
 
 .stmui-ctx-ring svg {
@@ -3446,8 +3468,8 @@ html.stmui-on .mes_text video {
 .stmui-ctx-hero {
     display: flex;
     align-items: center;
-    gap: 18px;
-    padding: 8px 18px 16px;
+    gap: 16px;
+    padding: 8px 16px 16px;
 }
 
 .stmui-ctx-big {
@@ -3466,7 +3488,7 @@ html.stmui-on .mes_text video {
 }
 
 .stmui-ctx-big .stmui-ctx-num {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1;
 }
 
@@ -3484,7 +3506,7 @@ html.stmui-on .mes_text video {
 
 .stmui-ctx-unit {
     position: relative;
-    margin-top: 3px;
+    margin-top: 4px;
     color: var(--stmui-muted);
     font-size: 12px;
 }
@@ -3516,9 +3538,9 @@ html.stmui-on .mes_text video {
 
 .stmui-ctx-bar {
     display: flex;
-    gap: 2px;
+    gap: 4px;
     height: 12px;
-    margin: 0 16px 14px;
+    margin: 0 16px 16px;
     overflow: hidden;
     border-radius: 999px;
     background: color-mix(in srgb, var(--stmui-line) 70%, transparent);
@@ -3532,7 +3554,7 @@ html.stmui-on .mes_text video {
 }
 
 html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
-    animation: stmui-ctx-grow 0.6s var(--stmui-ease) backwards;
+    animation: stmui-ctx-grow var(--pt-dur-slow) var(--pt-ease) backwards;
     transform-origin: left;
 }
 
@@ -3544,7 +3566,7 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
     margin: 0 12px;
     overflow: hidden;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
 }
 
@@ -3553,7 +3575,7 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
     grid-template-columns: 10px minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    padding: 11px 14px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--stmui-line);
 }
 
@@ -3576,7 +3598,7 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
 .stmui-ctx-name {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     min-width: 0;
     color: var(--stmui-text);
     font-size: 14px;
@@ -3614,9 +3636,9 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
 }
 
 .stmui-ctx-note {
-    margin: 12px 14px 0;
-    padding: 10px 12px;
-    border-radius: 12px;
+    margin: 12px 16px 0;
+    padding: 12px 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font-size: 14px;
@@ -3637,11 +3659,11 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
 .stmui-ctx-fact {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
-    padding: 10px 12px;
+    padding: 12px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
 }
 
@@ -3663,7 +3685,7 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 14px 12px 4px;
+    margin: 16px 12px 4px;
 }
 
 .stmui-ctx-btn {
@@ -3673,7 +3695,7 @@ html.stmui-motion-full .stmui-sheet-open .stmui-ctx-bar > span {
     justify-content: center;
     gap: 8px;
     min-height: 44px;
-    padding: 0 14px;
+    padding: 0 16px;
     border: 1px solid var(--stmui-line);
     border-radius: 999px;
     background: var(--stmui-raised);
@@ -3760,7 +3782,7 @@ html.stmui-themed.stmui-backdrop #chat {
 
 html.stmui-touch :is(.drawer-content, .popup, #character_popup, #select_chat_popup) .menu_button {
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background-color: var(--stmui-raised);
     color: var(--stmui-text);
     font-weight: 600;
@@ -3806,7 +3828,7 @@ html.stmui-touch input[type='checkbox']:not(.stmui-switch):not(.del_checkbox) {
     outline: none;
     box-shadow: none;
     filter: none;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-touch input[type='checkbox']:not(.stmui-switch):not(.del_checkbox):checked {
@@ -3848,7 +3870,7 @@ html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:n
     box-shadow: none;
     clip-path: none;
     transform: none;
-    transition: transform 0.2s var(--stmui-ease);
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.stmui-switch):checked {
@@ -3901,7 +3923,7 @@ html.stmui-touch input[type='range']:hover {
 
 html.stmui-touch .drawer-content .standoutHeader {
     border: 1px solid var(--stmui-line) !important;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised) !important;
     box-shadow: none !important;
 }
@@ -3945,7 +3967,7 @@ html.stmui-touch #HotSwapWrapper .hotswap::before {
 }
 
 html.stmui-touch #rm_button_selected_ch h2 {
-    margin: 4px 2px 8px;
+    margin: 4px 4px 8px;
     font-size: 1.25em;
     font-weight: 800;
 }
@@ -3969,11 +3991,11 @@ html.stmui-touch #rm_button_selected_ch h2 {
 .stmui-theme-card {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
     padding: 8px 8px 12px;
     border: 1.5px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
@@ -3989,10 +4011,10 @@ html.stmui-touch #rm_button_selected_ch h2 {
 .stmui-theme-preview {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     height: 116px;
-    padding: 9px;
-    border-radius: 12px;
+    padding: 8px;
+    border-radius: var(--pt-radius-sm);
     background: var(--p-backdrop);
     box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.18);
     overflow: hidden;
@@ -4001,7 +4023,7 @@ html.stmui-touch #rm_button_selected_ch h2 {
 .stmui-tp-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     height: 14px;
 }
 
@@ -4057,9 +4079,9 @@ html.stmui-touch #rm_button_selected_ch h2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 8px;
     min-height: 24px;
-    padding: 2px 4px 0;
+    padding: 4px 4px 0;
     font-weight: 700;
 }
 
@@ -4109,7 +4131,7 @@ html.stmui-touch #rm_button_selected_ch h2 {
 .stmui-switch-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     min-height: 62px;
     padding: 8px 16px;
     border-bottom: 1px solid var(--stmui-line);
@@ -4124,7 +4146,7 @@ html.stmui-touch #rm_button_selected_ch h2 {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     min-width: 0;
 }
 
@@ -4150,7 +4172,7 @@ html input[type='checkbox'].stmui-switch {
     filter: none;
     transform: none;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--pt-dur) var(--pt-ease);
 }
 
 html input[type='checkbox'].stmui-switch::before {
@@ -4165,7 +4187,7 @@ html input[type='checkbox'].stmui-switch::before {
     box-shadow: none;
     clip-path: none;
     transform: none;
-    transition: transform 0.28s var(--stmui-ease-pop);
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
 html input[type='checkbox'].stmui-switch:checked {
@@ -4251,19 +4273,19 @@ html input[type='checkbox'].stmui-switch:checked::before {
 /* -- Smooth (default) ------------------------------------------------------ */
 
 html.stmui-motion-full .stmui-tab-indicator {
-    transition: transform 0.45s var(--stmui-ease-pop);
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full .stmui-tab-on .stmui-tab-icon .stmui-svg {
-    animation: stmui-pop 0.45s var(--stmui-ease-pop);
+    animation: stmui-pop var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full .stmui-tab-label {
-    transition: color 0.2s ease;
+    transition: color var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-motion-full :is(.stmui-tab, .stmui-tile, .stmui-menu-row, .stmui-ab-btn, .stmui-ab-who, .stmui-theme-card, .stmui-row-btn, .stmui-done, .stmui-seg, .stmui-open, .stmui-single, #send_but, #options_button, #extensionsMenuButton) {
-    transition: transform 0.15s var(--pt-ease), background-color 0.15s ease, border-color 0.15s ease;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-motion-full :is(.stmui-tab, .stmui-tile, .stmui-menu-row, .stmui-ab-btn, .stmui-theme-card, .stmui-row-btn, .stmui-done, .stmui-seg, .stmui-open, .stmui-single, #options_button, #extensionsMenuButton):active {
@@ -4280,7 +4302,7 @@ html.stmui-motion-full #send_but:active {
 
 /* The stop button and the send button pop back in when they swap places. */
 html.stmui-motion-full.stmui-chat #rightSendForm > :is(#mes_stop, #send_but) {
-    animation: stmui-pop-in 0.34s var(--stmui-ease-pop);
+    animation: stmui-pop-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 @keyframes stmui-pop-in {
@@ -4291,7 +4313,7 @@ html.stmui-motion-full.stmui-chat #rightSendForm > :is(#mes_stop, #send_but) {
 }
 
 html.stmui-motion-full.stmui-touch :is(.drawer-content, .popup, #character_popup) .menu_button {
-    transition: transform 0.16s var(--stmui-ease), background-color 0.16s ease;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-motion-full.stmui-touch :is(.drawer-content, .popup, #character_popup) .menu_button:active {
@@ -4299,61 +4321,61 @@ html.stmui-motion-full.stmui-touch :is(.drawer-content, .popup, #character_popup
 }
 
 html.stmui-motion-full.stmui-shell #top-settings-holder .drawer-content.openDrawer {
-    animation: stmui-slide-in 0.34s var(--stmui-ease);
+    animation: stmui-slide-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full .stmui-ab-swap :is(.stmui-ab-text, .stmui-ab-avatar) {
-    animation: stmui-swap 0.32s var(--stmui-ease);
+    animation: stmui-swap var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full .stmui-ab-swap-b :is(.stmui-ab-text, .stmui-ab-avatar) {
-    animation: stmui-swap-b 0.32s var(--stmui-ease);
+    animation: stmui-swap-b var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full.stmui-chat #chat .mes.last_mes {
-    animation: stmui-mes-in 0.4s var(--stmui-ease);
+    animation: stmui-mes-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 /* Sheets slide all the way up from the bottom edge, and quickly back down when closed. */
 html.stmui-motion-full .stmui-panel {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1);
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-motion-full .stmui-sheet-open .stmui-panel {
-    transition: transform 0.38s var(--stmui-ease-sheet);
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full.stmui-touch :is(#options, #extensionsMenu) {
-    animation: stmui-menu-in 0.32s var(--stmui-ease-sheet);
+    animation: stmui-menu-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full.stmui-touch dialog.popup[opening] {
-    animation: stmui-sheet-up 0.4s var(--stmui-ease-sheet);
+    animation: stmui-sheet-up var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-motion-full body #toast-container > div {
-    animation: stmui-toast-in 0.34s var(--stmui-ease-pop);
+    animation: stmui-toast-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 /* -- Light ------------------------------------------------------------------- */
 
 html.stmui-motion-light .stmui-tab-indicator {
-    transition: transform 0.18s ease-out;
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-motion-light.stmui-shell #top-settings-holder .drawer-content.openDrawer,
 html.stmui-motion-light .stmui-ab-swap-b :is(.stmui-ab-text, .stmui-ab-avatar) {
-    animation: stmui-fade-b 0.14s ease-out;
+    animation: stmui-fade-b var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-motion-light .stmui-ab-swap :is(.stmui-ab-text, .stmui-ab-avatar),
 html.stmui-motion-light.stmui-touch :is(#options, #extensionsMenu),
 html.stmui-motion-light.stmui-touch dialog.popup[opening] {
-    animation: stmui-fade 0.14s ease-out;
+    animation: stmui-fade var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-motion-light .stmui-panel {
-    transition: transform 0.18s ease-out, opacity 0.14s ease-out;
+    transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
 }
 
 /* No glass in Light and Off: blur is the most expensive effect on phones. */
@@ -4434,7 +4456,7 @@ html.stmui-touch #completion_prompt_manager_popup :is(#completion_prompt_manager
     box-sizing: border-box;
     height: auto;
     min-height: 100%;
-    padding: 4px 14px 0;
+    padding: 4px 16px 0;
 }
 
 /* The app bar already says "Edit prompt". */
@@ -4464,7 +4486,7 @@ html.stmui-touch #completion_prompt_manager_popup_edit .completion_prompt_manage
 
 html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_popup_entry_form_control {
     min-width: 0;
-    margin-top: 14px;
+    margin-top: 16px;
 }
 
 /* Depth and Order are only made invisible for "Relative"; on a phone, drop the empty gap. */
@@ -4476,8 +4498,8 @@ html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_pop
 html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_popup_entry_form_control label[for="completion_prompt_manager_popup_entry_form_prompt"] {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 8px;
     color: var(--stmui-muted);
     font-size: 14px;
     font-weight: 600;
@@ -4485,7 +4507,7 @@ html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_pop
 }
 
 html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_popup_entry_form_control > .text_muted {
-    margin-top: 6px;
+    margin-top: 8px;
     font-size: 14px;
     line-height: 1.35;
 }
@@ -4502,7 +4524,7 @@ html.stmui-touch .stmui-prompt-name {
     width: 100%;
     min-height: 50px;
     margin: 0;
-    padding: 12px 14px;
+    padding: 12px 16px;
     overflow: hidden;
     field-sizing: content;
     resize: none;
@@ -4526,9 +4548,9 @@ html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_pop
     bottom: 0;
     z-index: 2;
     display: flex;
-    gap: 10px;
-    margin: 16px -14px 0;
-    padding: 10px 14px 12px;
+    gap: 12px;
+    margin: 16px -16px 0;
+    padding: 12px 16px 12px;
     border-top: 1px solid var(--stmui-line);
     background: var(--stmui-opaque);
 }
@@ -4547,8 +4569,8 @@ html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_pop
     height: 50px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
-    font-size: 19px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 20px;
 }
 
 html.stmui-touch #completion_prompt_manager_popup .completion_prompt_manager_popup_entry_form_footer > #completion_prompt_manager_popup_entry_form_save {
@@ -4570,7 +4592,7 @@ html.stmui-touch #completion_prompt_manager_popup #completion_prompt_manager_pop
     width: 44px;
     height: 44px;
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
 }
 
 /* Full screen (the button beside Save): the prompt text fills the editor and
@@ -4628,10 +4650,10 @@ html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list > li
 
 html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list li.completion_prompt_manager_prompt {
     min-height: 52px;
-    margin-bottom: 6px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    border-radius: 12px;
+    margin-bottom: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list .completion_prompt_manager_prompt_name {
@@ -4648,7 +4670,7 @@ html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list .com
 html.stmui-touch #completion_prompt_manager .prompt_manager_prompt_controls {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-touch #completion_prompt_manager .prompt_manager_prompt_controls > span[class*='prompt-manager-'] {
@@ -4672,150 +4694,20 @@ html.stmui-touch #completion_prompt_manager .prompt_manager_prompt_tokens {
 }
 
 /* ==========================================================================
-   Send button: launch effect
+   Send button: a short press when you send (no flying plane: DESIGN.md, motion)
    ========================================================================== */
 
-.stmui-send-fx {
-    position: fixed;
-    z-index: 4020;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-}
-
-.stmui-send-ring {
-    position: absolute;
-    top: -21px;
-    left: -21px;
-    box-sizing: border-box;
-    width: 42px;
-    height: 42px;
-    border: 2px solid var(--stmui-line);
-    border-radius: 50%;
-    animation: stmui-send-ring 0.6s var(--stmui-ease) both;
-}
-
-.stmui-send-ring-2 {
-    border-width: 1.5px;
-    animation-delay: 0.09s;
-}
-
-.stmui-send-spark {
-    --a: calc(var(--i) * 60deg - 30deg);
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--stmui-accent);
-    animation: stmui-send-spark 0.55s var(--stmui-ease) both;
-}
-
-.stmui-send-plane {
-    position: absolute;
-    top: -11px;
-    left: -11px;
-    width: 22px;
-    height: 22px;
-    color: var(--stmui-on-accent);
-    animation: stmui-send-plane 0.55s var(--pt-ease) both;
-}
-
-.stmui-send-plane .stmui-svg {
-    width: 22px;
-    height: 22px;
-}
-
-/* The button's own plane steps out while the flying one leaves, then lands again. */
 html.stmui-chat #send_but.stmui-launch {
-    animation: stmui-send-squish 0.5s var(--stmui-ease-pop);
+    animation: stmui-send-press var(--pt-dur) var(--pt-ease);
 }
 
-html.stmui-chat #send_but.stmui-launch::before {
-    animation: stmui-plane-return 0.7s var(--stmui-ease) both;
-}
-
-.stmui-send-fx-light .stmui-send-ring {
-    animation-duration: 0.35s;
-}
-
-.stmui-send-fx-light .stmui-send-plane {
-    animation-duration: 0.4s;
-}
-
-@keyframes stmui-send-ring {
+@keyframes stmui-send-press {
     from {
-        opacity: 0.9;
-        transform: scale(1);
+        transform: scale(0.9);
     }
 
     to {
-        opacity: 0;
-        transform: scale(2.2);
-    }
-}
-
-@keyframes stmui-send-spark {
-    from {
-        opacity: 1;
-        transform: rotate(var(--a)) translateX(16px) scale(1);
-    }
-
-    to {
-        opacity: 0;
-        transform: rotate(var(--a)) translateX(40px) scale(0.2);
-    }
-}
-
-/* A short wind-up, then the plane shoots up and away over the chat. */
-@keyframes stmui-send-plane {
-    0% {
-        opacity: 1;
-        transform: translate(0, 0) rotate(0deg) scale(1);
-        animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
-    }
-
-    18% {
-        opacity: 1;
-        color: var(--stmui-on-accent);
-        transform: translate(-4px, 4px) rotate(-8deg) scale(0.9);
-        animation-timing-function: cubic-bezier(0.3, 0.15, 0.6, 1);
-    }
-
-    28% {
-        color: var(--stmui-accent);
-    }
-
-    100% {
-        opacity: 0;
-        color: var(--stmui-accent);
-        transform: translate(50px, -180px) rotate(12deg) scale(0.7);
-    }
-}
-
-@keyframes stmui-send-squish {
-    0% {
-        transform: scale(0.84);
-    }
-
-    100% {
         transform: scale(1);
-    }
-}
-
-@keyframes stmui-plane-return {
-    0%,
-    45% {
-        opacity: 0;
-        scale: 0.3;
-        translate: -10px 10px;
-    }
-
-    100% {
-        opacity: 1;
-        scale: 1;
-        translate: -1px 1px;
     }
 }
 
@@ -4848,7 +4740,7 @@ html.stmui-on .stmui-jump {
     opacity: 0;
     transform: translateY(14px) scale(0.8);
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.28s var(--stmui-ease-pop);
+    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur-slow) var(--pt-ease);
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -4870,9 +4762,13 @@ html.stmui-page-open .stmui-jump {
     height: 22px;
 }
 
-/* Chat text size. */
+/* Chat text size: a multiple of the message text (15px on phones, 16px on the desktop layout). */
+html.stmui-on.stmui-wide {
+    --pt-text-chat: 16px;
+}
+
 html[data-stmui-text='small'] {
-    --stmui-text-scale: 0.95;
+    --stmui-text-scale: 0.93;
 }
 
 html[data-stmui-text='large'] {
@@ -4893,10 +4789,10 @@ html[data-stmui-text='xl'] {
     line-height: 1;
 }
 
-.stmui-aa-small { font-size: 13px; }
+.stmui-aa-small { font-size: 12px; }
 .stmui-aa-normal { font-size: 16px; }
-.stmui-aa-large { font-size: 19px; }
-.stmui-aa-xl { font-size: 23px; }
+.stmui-aa-large { font-size: 20px; }
+.stmui-aa-xl { font-size: 24px; }
 
 /* Message menu: a destructive action at the end, in red. */
 .stmui-menu-row-danger,
@@ -4916,7 +4812,7 @@ html.stmui-chat .welcomePanel .welcomeHeaderTitle {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     margin: 0;
 }
 
@@ -4955,7 +4851,7 @@ html.stmui-chat .welcomePanel .welcomeHeaderTitle .mes_button {
     height: 44px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
     opacity: 0.8;
 }
@@ -4964,8 +4860,8 @@ html.stmui-chat .welcomePanel .welcomeHeader {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
-    margin: 4px 0 2px;
+    gap: 12px;
+    margin: 4px 0 4px;
 }
 
 html.stmui-chat .welcomePanel .recentChatsTitle {
@@ -4980,7 +4876,7 @@ html.stmui-chat .welcomePanel .welcomeShortcuts {
     justify-content: flex-start;
     gap: 8px;
     margin: 0 -4px;
-    padding: 0 4px 2px;
+    padding: 0 4px 4px;
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -4995,11 +4891,11 @@ html.stmui-chat .welcomePanel .welcomeShortcuts .welcomeShortcutsSeparator {
 
 html.stmui-chat .welcomePanel .welcomeShortcuts .menu_button {
     flex: 0 0 auto;
-    gap: 7px;
+    gap: 8px;
     min-width: 0;
     height: 44px;
     margin: 0;
-    padding: 0 14px;
+    padding: 0 16px;
     border-radius: 999px;
     font-size: 14px;
     white-space: nowrap;
@@ -5024,13 +4920,13 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat {
         'avatar stats actions';
     grid-template-columns: 52px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 2px 12px;
+    gap: 4px 12px;
     margin: 0;
-    padding: 12px 10px 8px 12px;
+    padding: 12px 12px 8px 12px;
     /* A clearer edge than the usual hairline: the cards sit close to the page colour in soft themes
        and blended into it for readers with low vision (Kahvana's report). */
     border: 1px solid color-mix(in srgb, var(--pt-text-primary) 16%, transparent);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     -webkit-tap-highlight-color: transparent;
 }
@@ -5100,7 +4996,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatName > span:last-of-type {
 html.stmui-chat .welcomeRecent .recentChat .chatDate {
     grid-area: date;
     align-self: start;
-    padding-top: 2px;
+    padding-top: 4px;
     color: var(--pt-text-secondary);
     font-size: 12px;
     white-space: nowrap;
@@ -5108,7 +5004,7 @@ html.stmui-chat .welcomeRecent .recentChat .chatDate {
 
 html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatMessageContainer .chatMessage {
     grid-area: msg;
-    margin-top: 5px;
+    margin-top: 4px;
     color: var(--pt-text-primary);
     font-size: 14px;
     line-height: 1.4;
@@ -5121,7 +5017,7 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatStats {
     align-self: center;
     justify-content: flex-start;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-top: 4px;
     color: var(--stmui-muted);
     font-size: 12px;
@@ -5133,7 +5029,7 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatStats .counterBl
 
 html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatActions {
     grid-area: actions;
-    gap: 2px;
+    gap: 4px;
     margin-top: 4px;
 }
 
@@ -5147,7 +5043,7 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat .chatActions button {
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-muted);
     font-size: 16px;
@@ -5186,8 +5082,8 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat .recentChatPinned {
 html.stmui-chat .welcomeRecent .recentChatList .showMoreChats {
     width: auto;
     height: 40px;
-    margin: 2px auto 0;
-    padding: 0 22px;
+    margin: 4px auto 0;
+    padding: 0 24px;
     border-radius: 999px;
 }
 
@@ -5204,7 +5100,7 @@ html.stmui-touch .stmui-persona-tabs {
 
 .stmui-persona-tabs .stmui-seg {
     min-width: 0;
-    padding: 0 10px;
+    padding: 0 12px;
 }
 
 .stmui-persona-tabs .stmui-seg-text {
@@ -5288,9 +5184,9 @@ html.stmui-touch #user_avatar_block:not(.gridView) .avatar-container {
     box-sizing: border-box;
     width: 100%;
     margin: 0 0 8px;
-    padding: 10px 12px;
+    padding: 12px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     -webkit-tap-highlight-color: transparent;
 }
@@ -5361,7 +5257,7 @@ html.stmui-touch #persona_controls #your_name {
     min-width: 0;
     margin: 0;
     color: var(--stmui-text);
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 750;
     line-height: 1.2;
     overflow-wrap: anywhere;
@@ -5372,7 +5268,7 @@ html.stmui-touch #persona_controls .persona_controls_buttons_block {
     display: grid;
     flex: 1 0 100%;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
 }
 
 html.stmui-touch #persona_controls .persona_controls_buttons_block .menu_button {
@@ -5466,7 +5362,7 @@ html.stmui-personapage #user_avatar_block.gridView {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
     gap: 8px;
-    padding: 2px 0 12px;
+    padding: 4px 0 12px;
 }
 
 html.stmui-personapage #user_avatar_block.gridView .avatar-container {
@@ -5479,7 +5375,7 @@ html.stmui-personapage #user_avatar_block.gridView .avatar-container {
     margin: 0;
     padding: 0 !important;
     border: 0 !important;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     overflow: hidden;
     cursor: pointer;
@@ -5576,15 +5472,15 @@ html.stmui-personapage #user_avatar_block:not(.gridView) .stmui-default-badge {
 html.stmui-personapage #user_avatar_block:not(.gridView) {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-personapage #user_avatar_block:not(.gridView) .avatar-container {
     min-height: 64px;
     margin: 0;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
 }
 
@@ -5605,10 +5501,10 @@ html.stmui-personapage #user_avatar_block .avatar_upload {
     min-height: 64px;
     margin: 0;
     border: 2px dashed var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: transparent;
     color: var(--stmui-muted);
-    font-size: 26px;
+    font-size: 24px;
 }
 
 html.stmui-personapage #user_avatar_block.gridView .avatar_upload {
@@ -5632,7 +5528,7 @@ html.stmui-personapage #persona_controls .stmui-persona-face {
 
 html.stmui-personapage #persona_controls #your_name {
     flex: 0 0 auto;
-    font-size: 26px;
+    font-size: 24px;
     text-align: center;
     white-space: normal;
 }
@@ -5649,8 +5545,8 @@ html.stmui-personapage #persona_controls .persona_controls_buttons_block .menu_b
     justify-content: center;
     gap: 4px;
     height: 60px;
-    border-radius: 12px;
-    font-size: 18px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 20px;
 }
 
 /* Delete is quiet like the character card's (SillyTavern fills it red with !important), and a
@@ -5730,7 +5626,7 @@ html.stmui-chat .welcomePanel .stmui-home-box {
     height: 44px;
     margin: 0;
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
     opacity: 1;
     cursor: pointer;
 }
@@ -5757,7 +5653,7 @@ html.stmui-chat .welcomePanel .stmui-home-box[data-on='true'] {
     margin: 0 0 12px;
     padding: 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     text-align: start;
@@ -5825,7 +5721,7 @@ html.stmui-on #UI-presets-block > .stmui-inline-note {
     margin: 0 16px 8px;
     padding: 0 0 0 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
 }
 
@@ -5852,10 +5748,10 @@ html.stmui-on #UI-presets-block > .stmui-inline-note {
     width: 44px;
     height: 44px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
 }
 
@@ -5867,7 +5763,7 @@ html.stmui-on #UI-presets-block > .stmui-inline-note {
 /* The shortcut for Search everything, shown on a computer. */
 .stmui-kbd {
     margin-inline-start: auto;
-    padding: 2px 8px;
+    padding: 4px 8px;
     border: 1px solid var(--stmui-line);
     border-radius: 8px;
     background: var(--stmui-raised-2);
@@ -5892,7 +5788,7 @@ html.stmui-on :is(.stmui-tab, .stmui-ab-btn, .stmui-ab-who, .stmui-menu-row, .st
 }
 
 .stmui-ab-home {
-    margin-right: -6px;
+    margin-right: -8px;
 }
 
 /* ==========================================================================
@@ -5910,7 +5806,7 @@ html.stmui-toasts body #toast-container > div.toast {
     min-height: 56px;
     padding: 12px 40px 12px 56px !important;
     border: 1px solid color-mix(in srgb, var(--stmui-t-color) 35%, var(--stmui-line));
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: color-mix(in srgb, var(--stmui-t-color) 10%, var(--stmui-solid)) !important;
     background-image: none !important;
     color: var(--stmui-text) !important;
@@ -5937,7 +5833,7 @@ html.stmui-toasts body #toast-container > .toast::before {
     left: 12px;
     width: 32px;
     height: 32px;
-    border-radius: 10px;
+    border-radius: var(--pt-radius-sm);
     background: color-mix(in srgb, var(--stmui-t-color) 22%, transparent);
 }
 
@@ -5954,7 +5850,7 @@ html.stmui-toasts body #toast-container > .toast::after {
 }
 
 html.stmui-toasts body #toast-container > .toast .toast-title {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     color: var(--stmui-text);
     font-size: 16px;
     font-weight: 700;
@@ -6008,7 +5904,7 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
     color: #fff;
     overflow: hidden;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-viewer::backdrop {
@@ -6049,7 +5945,7 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
 }
 
 .stmui-viewer-open .stmui-viewer-img {
-    animation: stmui-viewer-in 0.32s var(--stmui-ease);
+    animation: stmui-viewer-in var(--pt-dur-slow) var(--pt-ease);
 }
 
 @keyframes stmui-viewer-in {
@@ -6069,19 +5965,19 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
     align-items: center;
     gap: 8px;
     box-sizing: border-box;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-viewer-top {
     top: 0;
-    padding: calc(10px + var(--stmui-safe-top, 0px)) 10px 24px 18px;
+    padding: calc(12px + var(--stmui-safe-top, 0px)) 12px 24px 16px;
     background: linear-gradient(rgba(0, 0, 0, 0.6), transparent);
 }
 
 .stmui-viewer-bar {
     bottom: 0;
     justify-content: center;
-    padding: 24px 10px calc(14px + var(--stmui-safe-bottom, 0px));
+    padding: 24px 12px calc(16px + var(--stmui-safe-bottom, 0px));
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
 }
 
@@ -6129,7 +6025,7 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
 }
 
 .stmui-viewer-bar .stmui-viewer-btn {
-    margin: 0 6px;
+    margin: 0 8px;
 }
 
 .stmui-viewer-btn .stmui-svg {
@@ -6147,8 +6043,8 @@ html.stmui-motion-off .stmui-viewer-img {
 .stmui-menu-row .stmui-row-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 10px 0;
+    gap: 4px;
+    padding: 12px 0;
 }
 
 .stmui-menu-row .stmui-row-text > span {
@@ -6180,14 +6076,14 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) {
     width: auto;
     max-width: none !important;
     margin: 0 !important;
-    padding: 10px calc(12px + var(--stmui-safe-right)) 0 calc(12px + var(--stmui-safe-left)) !important;
+    padding: 12px calc(12px + var(--stmui-safe-right)) 0 calc(12px + var(--stmui-safe-left)) !important;
     border: 0 !important;
     border-radius: 0 !important;
     /* Opaque: the chat it covers must not show through (DESIGN.md, section 8). */
     background: var(--pt-bg) !important;
     box-shadow: none !important;
     content-visibility: visible;
-    animation: stmui-fade 0.18s ease-out;
+    animation: stmui-fade var(--pt-dur) var(--pt-ease);
 }
 
 
@@ -6279,11 +6175,11 @@ html.stmui-chat.stmui-editing #chat #curEditTextarea {
     min-height: 0;
     max-height: none !important;
     margin: 0;
-    padding: 14px;
+    padding: 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
-    font-size: calc(var(--mainFontSize) * var(--stmui-text-scale, 1.07));
+    font-size: calc(var(--pt-text-chat) * var(--fontScale, 1) * var(--stmui-text-scale, 1));
     line-height: 1.6;
     resize: none;
     field-sizing: fixed;
@@ -6303,16 +6199,16 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons
     flex: 0 0 auto;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 6px;
-    margin: 10px calc(-12px - var(--stmui-safe-right)) 0 calc(-12px - var(--stmui-safe-left));
-    padding: 10px calc(12px + var(--stmui-safe-right)) 10px calc(12px + var(--stmui-safe-left));
+    gap: 8px 8px;
+    margin: 12px calc(-12px - var(--stmui-safe-right)) 0 calc(-12px - var(--stmui-safe-left));
+    padding: 12px calc(12px + var(--stmui-safe-right)) 12px calc(12px + var(--stmui-safe-left));
     border-top: 1px solid var(--stmui-line);
     background: var(--stmui-solid);
 }
 
 /* Tools share the first row; Cancel and Save share the second. */
 html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu_button {
-    flex: 1 1 calc(20% - 6px);
+    flex: 1 1 calc(20% - 8px);
     /* SillyTavern dims these to half strength; on the editor page they are the main controls. */
     opacity: 1;
     filter: none;
@@ -6321,7 +6217,7 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons
     min-width: 0;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
@@ -6329,7 +6225,7 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons
     order: 50;
     flex: 1 1 40%;
     height: 48px;
-    gap: 6px;
+    gap: 8px;
     /* Cancel is never filled (SillyTavern paints it red): a plain button beside the accent Save. */
     border-color: var(--stmui-line) !important;
     background: var(--stmui-raised) !important;
@@ -6408,14 +6304,14 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 12px 12px 14px;
+    padding: 12px 12px 12px 16px;
     border: 1px solid color-mix(in srgb, var(--pt-danger) 45%, var(--stmui-line));
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: color-mix(in srgb, var(--pt-danger) 14%, var(--stmui-solid));
     color: var(--stmui-text);
     box-shadow: none;
     outline: 1px solid var(--stmui-line);
-    animation: stmui-toast-in 0.24s var(--pt-ease);
+    animation: stmui-toast-in var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-banner-ok {
@@ -6426,7 +6322,7 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
 .stmui-banner-out {
     opacity: 0;
     transform: translateY(-10px);
-    transition: opacity 0.22s ease, transform 0.22s ease;
+    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-banner-icon {
@@ -6444,7 +6340,7 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     min-width: 0;
     font-size: 14px;
     line-height: 1.35;
@@ -6476,8 +6372,8 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     box-sizing: border-box;
     width: calc(100% - 8px);
     height: 46px;
-    margin: 0 4px 10px !important;
-    border-radius: 12px;
+    margin: 0 4px 12px !important;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
@@ -6506,38 +6402,33 @@ html.stmui-on.stmui-fast-chat #chat.stmui-fast-prime > .mes:not(.last_mes):not(:
     display: none;
 }
 
+/* "Here it is": a message or setting you jumped to is outlined for a moment, then the class
+   comes off. A still highlight: only transform and opacity are ever animated. */
 .stmui-flash {
-    border-radius: 12px;
-    animation: stmui-flash 1.8s ease-out;
-}
-
-@keyframes stmui-flash {
-    0%,
-    30% {
-        background-color: color-mix(in srgb, var(--pt-accent) 26%, transparent);
-        outline: 2px solid color-mix(in srgb, var(--pt-accent) 65%, transparent);
-    }
+    border-radius: var(--pt-radius);
+    outline: 2px solid color-mix(in srgb, var(--pt-accent) 65%, transparent);
+    background-color: color-mix(in srgb, var(--pt-accent) 16%, transparent);
 }
 
 .stmui-steps {
-    padding: 0 6px;
+    padding: 0 8px;
     font-size: 16px;
     line-height: 1.5;
 }
 
 .stmui-steps p {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
 }
 
 .stmui-news {
-    margin: 0 4px 6px;
-    padding-left: 22px;
+    margin: 0 4px 8px;
+    padding-left: 24px;
     font-size: 14px;
     line-height: 1.5;
 }
 
 .stmui-news li {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 /* ==========================================================================
@@ -6566,7 +6457,7 @@ html.stmui-rtl .stmui-ab-back .stmui-svg {
 }
 
 html.stmui-rtl .stmui-news {
-    padding-right: 22px;
+    padding-right: 24px;
     padding-left: 0;
 }
 
@@ -6617,7 +6508,7 @@ html.stmui-chat.stmui-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons
     right: 1px;
     bottom: 3px;
     min-width: 16px;
-    padding: 0 3px;
+    padding: 0 4px;
     border-radius: 6px;
     background: var(--stmui-opaque);
     border: 1px solid var(--stmui-line);
@@ -6651,7 +6542,7 @@ html.stmui-charpage #character_search_bar {
     box-sizing: border-box;
     width: 100%;
     height: 46px;
-    padding-left: 42px;
+    padding-left: 40px;
     background-image: var(--stmui-search-icon);
     background-repeat: no-repeat;
     background-position: 14px center;
@@ -6672,7 +6563,7 @@ html.stmui-charpage #HotSwapWrapper .hotswap {
     max-height: none !important;
     flex-wrap: nowrap;
     gap: 12px;
-    padding: 2px 2px 6px;
+    padding: 4px 4px 8px;
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -6739,8 +6630,8 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
-    gap: 10px;
-    padding-right: 22px;
+    gap: 12px;
+    padding-right: 24px;
 }
 
 html.stmui-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {
@@ -6750,8 +6641,8 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block > :is(.characte
     max-width: none;
     min-height: 0;
     margin: 0;
-    padding: 8px 6px 10px;
-    border-radius: 16px;
+    padding: 8px 8px 12px;
+    border-radius: var(--pt-radius);
     text-align: center;
 }
 
@@ -6760,14 +6651,14 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block .avatar {
     height: auto !important;
     aspect-ratio: 1;
     margin: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     overflow: hidden;
 }
 
 html.stmui-charpage body.charListGrid #rm_print_characters_block .avatar img {
     width: 100%;
     height: 100%;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     object-fit: cover;
 }
 
@@ -6775,7 +6666,7 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block .character_sele
 html.stmui-charpage body.charListGrid #rm_print_characters_block .group_select_container {
     align-self: stretch;
     width: 100%;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 html.stmui-charpage body.charListGrid #rm_print_characters_block .ch_name {
@@ -6809,7 +6700,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block {
     align-items: center;
     justify-content: space-between;
     max-height: 62%;
-    padding: 6px 2px;
+    padding: 8px 4px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--stmui-surface) 70%, transparent);
     transform: translateY(-40%);
@@ -6821,7 +6712,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block {
 .stmui-az span {
     display: block;
     min-width: 16px;
-    padding: 1px 2px;
+    padding: 1px 4px;
     color: var(--stmui-muted);
     font-size: 12px;
     font-weight: 700;
@@ -6839,14 +6730,14 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block {
     justify-content: center;
     width: 72px;
     height: 72px;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-accent);
     color: var(--stmui-on-accent);
-    font-size: 34px;
+    font-size: 24px;
     font-weight: 800;
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.7);
-    transition: opacity 0.15s ease, transform 0.2s var(--stmui-ease-pop);
+    transition: opacity var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
     pointer-events: none;
 }
 
@@ -6869,7 +6760,7 @@ html.stmui-charpage #avatar-and-name-block {
 html.stmui-charpage #avatar_div {
     flex-direction: column !important;
     align-items: center !important;
-    gap: 6px;
+    gap: 8px;
 }
 
 html.stmui-charpage #avatar_div_div,
@@ -6906,6 +6797,9 @@ html.stmui-charpage #right-nav-panel:has(#rm_ch_create_block:not([style*="none"]
 
 html.stmui-charpage #avatar_controls {
     flex: none !important;
+    /* SillyTavern's height: 100% (of a header that was side by side) held the tools to the header's
+       height once they sit under the picture, and More… spilled under the Description tabs (issue #4). */
+    height: auto !important;
     flex-direction: column !important;
     align-items: stretch !important;
     align-self: stretch !important;
@@ -6927,8 +6821,8 @@ html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > .menu_b
     width: auto;
     height: 60px;
     margin: 0;
-    border-radius: 12px;
-    font-size: 18px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 20px;
 }
 
 html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > .menu_button[style*="none"],
@@ -6945,7 +6839,16 @@ html.stmui-charpage .stmui-btn-label {
 }
 
 html.stmui-charpage #avatar_controls > label {
+    flex: 0 0 auto;
     width: 100%;
+    height: auto;
+}
+
+/* The card's header (picture, name, tools, More…) never shrinks. In a page shorter than the
+   form (a computer at 1080px), the description box took the room and the header was squeezed
+   under its content, so More… slid under the Description tabs (issue #4). */
+html.stmui-charpage #avatar-and-name-block {
+    flex-shrink: 0;
 }
 
 html.stmui-charpage .stmui-card-tabs {
@@ -6959,7 +6862,7 @@ html.stmui-charpage .stmui-card-tabs {
 
 html.stmui-charpage .stmui-card-tabs .stmui-seg {
     min-width: 0;
-    padding: 0 6px;
+    padding: 0 8px;
     font-size: 14px;
     white-space: nowrap;
 }
@@ -6990,8 +6893,8 @@ html.stmui-chat .stmui-recent-search {
     width: 100%;
     height: 44px;
     margin: 0 0 8px;
-    padding-left: 42px;
-    border-radius: 12px;
+    padding-left: 40px;
+    border-radius: var(--pt-radius-sm);
     background-image: var(--stmui-search-icon);
     background-repeat: no-repeat;
     background-position: 14px center;
@@ -7000,7 +6903,7 @@ html.stmui-chat .stmui-recent-search {
 }
 
 html.stmui-chat .stmui-recent-heading {
-    margin: 6px 4px 0;
+    margin: 8px 4px 0;
     color: var(--pt-text-secondary);
     font-size: 14px;
     font-weight: 700;
@@ -7022,7 +6925,7 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat.stmui-nomatch {
 }
 
 html.stmui-chat .stmui-recent-empty {
-    margin: 10px 4px;
+    margin: 12px 4px;
     color: var(--stmui-muted);
     text-align: center;
 }
@@ -7048,12 +6951,12 @@ html.stmui-chat .welcomeRecent .recentChatList .recentChat {
     align-items: center;
     gap: 8px;
     box-sizing: border-box;
-    padding: 0 22px;
-    border-radius: 16px;
+    padding: 0 24px;
+    border-radius: var(--pt-radius);
     color: #fff;
     font-weight: 700;
     opacity: 0.55;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-swipe-hint.stmui-swipe-ready {
@@ -7082,9 +6985,9 @@ html.stmui-chat .stmui-chat-group {
     flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
-    transition: border-color 0.2s ease;
+    transition: border-color var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-chat .stmui-chat-group[hidden] {
@@ -7151,7 +7054,7 @@ html.stmui-chat .stmui-group-badge {
     bottom: -2px;
     min-width: 20px;
     height: 20px;
-    padding: 0 5px;
+    padding: 0 4px;
     box-sizing: border-box;
     border: 2px solid var(--stmui-raised);
     border-radius: 999px;
@@ -7224,7 +7127,7 @@ html.stmui-chat .stmui-group-toggle {
 html.stmui-chat .stmui-group-toggle .stmui-svg {
     width: 22px;
     height: 22px;
-    transition: transform 0.25s var(--stmui-ease);
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
 html.stmui-chat .stmui-group-open .stmui-group-toggle {
@@ -7257,11 +7160,11 @@ html.stmui-chat .stmui-group-toggle:active .stmui-svg {
 html.stmui-chat .stmui-group-actions {
     display: flex;
     gap: 8px;
-    padding: 2px 12px 10px;
+    padding: 4px 12px 12px;
     overflow-x: auto;
     scrollbar-width: none;
     border-top: 1px solid var(--stmui-line);
-    padding-top: 10px;
+    padding-top: 12px;
 }
 
 html.stmui-chat .stmui-group-actions::-webkit-scrollbar {
@@ -7302,8 +7205,8 @@ html.stmui-chat .stmui-group-chats {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 0 10px 12px 10px;
+    gap: 8px;
+    padding: 0 12px 12px 12px;
 }
 
 html.stmui-chat .stmui-group-chats::before {
@@ -7324,10 +7227,10 @@ html.stmui-chat .welcomeRecent .recentChatList .stmui-group-chats .recentChat {
         'msg msg'
         'stats actions';
     grid-template-columns: minmax(0, 1fr) auto;
-    margin-left: 22px;
-    padding: 10px 8px 6px 12px;
+    margin-left: 24px;
+    padding: 12px 8px 8px 12px;
     overflow: visible;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: color-mix(in srgb, var(--stmui-text) 4%, transparent);
 }
 
@@ -7344,7 +7247,7 @@ html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat .chatName > span:l
 
 html.stmui-chat .welcomeRecent .stmui-group-chats .recentChat .chatMessage {
     display: -webkit-box;
-    margin-top: 3px;
+    margin-top: 4px;
     overflow: hidden;
     font-size: 14px;
     -webkit-box-orient: vertical;
@@ -7375,7 +7278,7 @@ html.stmui-chat .welcomeRecent .recentChatList .stmui-group-chats .recentChat.st
 
 html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
     left: 22px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 /* -- Your persona sheet and the quick editor --------------------------------- */
@@ -7384,11 +7287,11 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     margin: 4px 12px 8px;
-    padding: 14px;
+    padding: 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
 }
 
@@ -7429,9 +7332,9 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
 .stmui-persona-card-edit {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     height: 38px;
-    padding: 0 14px;
+    padding: 0 16px;
     border: 0;
     border-radius: 999px;
     background: var(--stmui-accent);
@@ -7454,21 +7357,21 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
 .stmui-pe {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 4px 14px 10px;
+    gap: 16px;
+    padding: 4px 16px 12px;
 }
 
 .stmui-pe-top {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .stmui-pe-field {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
 }
 
@@ -7494,20 +7397,20 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
     box-sizing: border-box;
     width: 100%;
     margin: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
 .stmui-pe-name {
     height: 46px;
-    padding: 0 14px;
+    padding: 0 16px;
     font-weight: 650;
 }
 
 .stmui-pe-text {
     min-height: 180px;
     max-height: 50dvh;
-    padding: 12px 14px;
+    padding: 12px 16px;
     line-height: 1.5;
     resize: none;
     field-sizing: content;
@@ -7515,7 +7418,7 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
 
 .stmui-pe-actions {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .stmui-pe-btn {
@@ -7523,10 +7426,10 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
     flex: 1 1 0;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 8px;
     height: 48px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
@@ -7556,19 +7459,19 @@ html.stmui-chat .stmui-group-chats .stmui-swipe-hint {
    ========================================================================== */
 
 html.stmui-touch #select_chat_div .stmui-date-heading {
-    margin: 10px 4px 4px;
+    margin: 12px 4px 4px;
     color: var(--stmui-muted);
     font-size: 14px;
     font-weight: 700;
 }
 
 html.stmui-touch #select_chat_div .stmui-date-heading:first-child {
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 html.stmui-touch #select_chat_search {
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
@@ -7579,14 +7482,14 @@ html.stmui-touch #select_chat_search {
 .stmui-search-field {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     box-sizing: border-box;
     width: calc(100% - 8px);
     height: 48px;
     margin: 0 4px 12px;
     padding: 0 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-muted);
     font: inherit;
@@ -7608,7 +7511,7 @@ html.stmui-touch #select_chat_search {
 }
 
 .stmui-search-results .stmui-menu-heading:first-child {
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 /* ==========================================================================
@@ -7650,7 +7553,7 @@ html.stmui-charpage .stmui-char-toolbar {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 2px 0 8px;
+    margin: 4px 0 8px;
 }
 
 html.stmui-charpage .stmui-ctool-search {
@@ -7698,20 +7601,20 @@ html.stmui-charpage .stmui-ctool-add {
 
 /* Filters: one slim row of small pills. */
 html.stmui-charpage .rm_tag_controls {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
 }
 
 html.stmui-charpage .rm_tag_filter .tag {
     min-height: 30px;
     height: 30px;
     margin: 0;
-    padding: 0 11px;
+    padding: 0 12px;
     border: 1px solid var(--stmui-line) !important;
     font-size: 14px;
 }
 
 html.stmui-charpage .rm_tag_controls .tags {
-    gap: 6px;
+    gap: 8px;
 }
 
 /* Page controls go under the list, and only when there is more than one page. */
@@ -7728,7 +7631,7 @@ html.stmui-charpage #rm_print_characters_pagination {
     order: 3;
     justify-content: center;
     min-height: 40px;
-    margin: 6px 0 2px;
+    margin: 8px 0 4px;
 }
 
 html.stmui-charpage #rm_characters_block.stmui-one-page #rm_print_characters_pagination {
@@ -7744,7 +7647,7 @@ html.stmui-charpage #rm_print_characters_block {
 html.stmui-charpage body.charListGrid #rm_print_characters_block {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    padding: 2px 22px 12px 0;
+    padding: 4px 24px 12px 0;
 }
 
 html.stmui-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {
@@ -7757,7 +7660,7 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block > :is(.characte
     margin: 0;
     padding: 0 !important;
     border: 0 !important;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     overflow: hidden;
     box-shadow: none;
@@ -7832,7 +7735,7 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block :is(.ch_descrip
 /* -- List: quiet rows ----------------------------------------------------- */
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block {
-    gap: 2px;
+    gap: 4px;
 }
 
 /* Rows never shrink: the list is a column of fixed height, and with a minimum height set
@@ -7842,9 +7745,9 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block > :is(.ch
     align-items: flex-start;
     min-height: 64px;
     margin: 0;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 0 !important;
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
     background: transparent;
 }
 
@@ -7867,7 +7770,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .ch_name 
 /* A tidy row: name, two lines of description, one line of small tags. */
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block :is(.character_select_container, .group_select_container) {
     min-width: 0;
-    gap: 2px;
+    gap: 4px;
 }
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .ch_description {
@@ -7893,7 +7796,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .tags {
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .tags .tag {
     margin: 0;
-    padding: 2px 8px;
+    padding: 4px 8px;
     border: 1px solid var(--stmui-line);
     border-radius: 999px;
     background: var(--stmui-raised-2);
@@ -7904,7 +7807,7 @@ html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .tags .ta
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .avatar {
     flex: 0 0 auto;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 html.stmui-charpage body:not(.charListGrid) #rm_print_characters_block .ch_fav_icon {
@@ -8023,12 +7926,12 @@ html.stmui-charpage body.charListGrid #rm_print_characters_block :is(.character_
 /* Eight card tools: two even rows of four. */
 html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
 }
 
 html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > .menu_button {
     height: 58px;
-    padding: 0 2px;
+    padding: 0 4px;
 }
 
 html.stmui-charpage .stmui-btn-label {
@@ -8081,8 +7984,8 @@ html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#wo
     z-index: 3500;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
+    gap: 8px;
+    padding: 8px 16px;
     border-radius: 999px;
     background: var(--pt-bg);
     color: var(--stmui-muted);
@@ -8092,7 +7995,7 @@ html.stmui-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#wo
     outline: 1px solid var(--stmui-line);
     transform: translateY(-50%);
     pointer-events: none;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    transition: color var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-drag-next {
@@ -8132,7 +8035,7 @@ html.stmui-chat #chat .mes.stmui-long .stmui-more-btn {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    margin: 6px 0 2px;
+    margin: 8px 0 4px;
     padding: 0 16px;
     border: 1px solid var(--stmui-line);
     border-radius: 999px;
@@ -8150,8 +8053,8 @@ html.stmui-chat #chat .mes.stmui-long .stmui-more-btn {
 
 html.stmui-on .stmui-jump.stmui-jump-new {
     width: auto;
-    padding: 0 14px 0 10px;
-    gap: 6px;
+    padding: 0 16px 0 12px;
+    gap: 8px;
     border-color: transparent;
     border-radius: 999px;
     background: var(--stmui-accent);
@@ -8178,12 +8081,12 @@ html.stmui-on .stmui-jump.stmui-jump-new .stmui-jump-label {
     align-items: center;
     gap: 4px;
     box-sizing: border-box;
-    padding: 8px calc(8px + var(--stmui-safe-right, 0px)) 8px calc(10px + var(--stmui-safe-left, 0px));
+    padding: 8px calc(8px + var(--stmui-safe-right, 0px)) 8px calc(12px + var(--stmui-safe-left, 0px));
     border-bottom: 1px solid var(--stmui-line);
     background: var(--stmui-solid);
     box-shadow: none;
     outline: 1px solid var(--stmui-line);
-    animation: stmui-fade 0.15s ease-out;
+    animation: stmui-fade var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-chat-finder input {
@@ -8240,7 +8143,7 @@ mark.stmui-find-mark {
 
 html.stmui-chat[data-stmui-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
     max-width: 92%;
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
 }
 
 html.stmui-chat[data-stmui-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
@@ -8309,6 +8212,7 @@ html.stmui-chat #qr--bar .qr--button {
     min-width: 44px;
     height: 32px;
     min-height: 32px;
+    /* Off the 4px scale on purpose: (44px tap row - 32px chip) / 2. */
     margin: 6px 0;
     padding: 0 12px;
     border: 0;
@@ -8354,10 +8258,10 @@ html.stmui-chat.stmui-compact #qr--bar .qr--button {
    ========================================================================== */
 
 html.stmui-lorecards #world_popup_entries_list .world_entry {
-    margin: 0 0 10px;
-    padding: 10px 12px;
+    margin: 0 0 12px;
+    padding: 12px 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
 }
 
@@ -8369,7 +8273,7 @@ html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_en
         "meta meta meta meta";
     grid-template-columns: 40px minmax(0, 1fr) auto 36px;
     align-items: center;
-    gap: 6px 8px;
+    gap: 8px 8px;
 }
 
 html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls > .flex-container,
@@ -8381,7 +8285,7 @@ html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_en
 html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls > .killSwitch {
     grid-area: kill;
     justify-self: center;
-    font-size: 26px;
+    font-size: 24px;
     cursor: pointer;
 }
 
@@ -8407,7 +8311,7 @@ html.stmui-lorecards #world_popup_entries_list .inline-drawer-header > .world_en
     min-width: 0;
     height: 34px;
     margin: 0;
-    padding: 0 22px 0 8px;
+    padding: 0 24px 0 8px;
     border-radius: 999px;
     font-size: 14px;
 }
@@ -8428,7 +8332,7 @@ html.stmui-lorecards #world_popup_entries_list .stmui-entry-keys {
     grid-area: keys;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 4px;
 }
 
 html.stmui-lorecards #world_popup_entries_list .stmui-entry-keys[hidden] {
@@ -8439,7 +8343,7 @@ html.stmui-lorecards #world_popup_entries_list .stmui-entry-keys[hidden] {
     display: inline-flex;
     align-items: center;
     height: 24px;
-    padding: 0 10px;
+    padding: 0 12px;
     border-radius: 999px;
     background: var(--stmui-raised-2);
     color: var(--stmui-text);
@@ -8457,7 +8361,7 @@ html.stmui-lorecards #world_popup_entries_list .WIEnteryHeaderControls {
     grid-area: meta;
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
     width: 100%;
 }
 
@@ -8481,7 +8385,7 @@ html.stmui-lorecards #world_popup_entries_list .WIEnteryHeaderControls > .world_
 
 html.stmui-lorecards #world_popup_entries_list .WIEnteryHeaderControls label {
     display: block !important;
-    margin: 0 0 2px;
+    margin: 0 0 4px;
     color: var(--stmui-muted);
     font-size: 12px;
     font-weight: 600;
@@ -8535,13 +8439,13 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open {
     inset: var(--topBarBlockSize, 0px) 0 var(--stmui-bottom, 0px) 0;
     z-index: var(--pt-z-editor);
     margin: 0;
-    padding: 0 calc(14px + var(--stmui-safe-right, 0px)) 24px calc(14px + var(--stmui-safe-left, 0px));
+    padding: 0 calc(16px + var(--stmui-safe-right, 0px)) 24px calc(16px + var(--stmui-safe-left, 0px));
     border: 0;
     border-radius: 0;
     background: var(--stmui-opaque);
     overflow-y: auto;
     overscroll-behavior: contain;
-    animation: stmui-fade 0.18s ease-out;
+    animation: stmui-fade var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > .world_entry_thin_controls {
@@ -8556,8 +8460,8 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header {
     position: relative;
     z-index: 2;
-    margin: 0 -14px 10px;
-    padding: 10px 14px !important;
+    margin: 0 -16px 12px;
+    padding: 12px 16px !important;
     border-bottom: 1px solid var(--stmui-line);
     background: var(--stmui-opaque) !important;
 }
@@ -8575,7 +8479,7 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .
     justify-content: center;
     height: 40px;
     margin: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > i.delete_entry_button {
@@ -8587,7 +8491,7 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open .wo
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open .world_entry_edit > .flex-container {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 12px;
 }
 
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open [name="perEntryOverridesBlock"] {
@@ -8624,13 +8528,13 @@ html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open [na
     display: grid !important;
     flex: 1 0 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px 10px;
-    margin: 4px 0 2px;
+    gap: 8px 12px;
+    margin: 4px 0 4px;
 }
 
 html.stmui-lorecards #world_popup_entries_list .world_entry.stmui-entry-open [name="contentAndCharFilterBlock"] label > small > .justifySpaceBetween > div.flex-container label.checkbox {
     flex-wrap: nowrap !important;
-    gap: 6px;
+    gap: 8px;
     line-height: 1.25;
 }
 
@@ -8646,7 +8550,7 @@ html.stmui-entry-editing #WorldInfo {
 html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list .completion_prompt_manager_prompt .drag-handle {
     min-width: 30px;
     justify-content: center;
-    padding: 0 6px;
+    padding: 0 8px;
     color: var(--stmui-muted);
     font-size: 20px;
     touch-action: none;
@@ -8659,7 +8563,7 @@ html.stmui-touch #completion_prompt_manager #completion_prompt_manager_list .com
 .stmui-trigger-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
 }
 
 .stmui-trigger-chip {
@@ -8707,7 +8611,7 @@ html.stmui-touch .range-block-counter.stmui-stepper input {
     flex: 0 0 auto;
     width: 4.6em !important;
     min-width: 4.6em;
-    padding-inline: 2px !important;
+    padding-inline: 4px !important;
     text-align: center;
 }
 
@@ -8738,7 +8642,7 @@ html.stmui-touch :is(.range-block-counter.stmui-stepper, .stmui-step-wrap) input
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
@@ -9152,7 +9056,7 @@ html.stmui-setnav #user-settings-block-content .flexBasis48p:has(> input[type='r
 }
 
 html.stmui-touch .drawer-content .range-block-title + .stmui-help {
-    margin: 2px 0 4px;
+    margin: 4px 0 4px;
 }
 
 /* Two lines at first; a tap shows the rest. */
@@ -9169,7 +9073,7 @@ html.stmui-touch .drawer-content .range-block-title + .stmui-help {
 
 html.stmui-touch .drawer-content .inline-drawer-header:has(> .stmui-ext-note) {
     flex-wrap: wrap;
-    row-gap: 2px;
+    row-gap: 4px;
 }
 
 html.stmui-touch .inline-drawer-header:has(> .stmui-ext-note) > * {
@@ -9208,7 +9112,7 @@ html.stmui-extnav #rm_extensions_block :is(#extensions_settings, #extensions_set
     flex-direction: column;
     margin: 16px 0 0;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-raised);
     overflow: hidden;
 }
@@ -9314,7 +9218,7 @@ html.stmui-extnav #rm_extensions_block[data-stmui-view='ext'] .inline-drawer.stm
     width: 24px;
     min-width: 24px;
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
     text-align: center;
 }
 
@@ -9341,7 +9245,7 @@ html.stmui-chat.stmui-shell #chat {
 }
 
 html.stmui-shell .stmui-tabbar {
-    transition: transform 0.2s var(--stmui-ease), display 0.2s allow-discrete;
+    transition: transform var(--pt-dur) var(--pt-ease), display var(--pt-dur) allow-discrete;
 }
 
 /* It slides down, then is taken out of the page (display: none). Left in place
@@ -9394,7 +9298,7 @@ html.stmui-chat.stmui-keyboard .stmui-tabs-btn {
 .stmui-tabs-btn .stmui-svg {
     width: 22px;
     height: 22px;
-    transition: transform 0.2s var(--stmui-ease);
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 .stmui-tabs-btn-out .stmui-svg {
@@ -9417,7 +9321,7 @@ html.stmui-chat.stmui-keyboard .stmui-tabs-btn {
     }
 
     html.stmui-chat.stmui-tabs-tuckable .stmui-persona-chip {
-        padding-right: 3px;
+        padding-right: 4px;
     }
 }
 
@@ -9428,7 +9332,7 @@ html.stmui-touch .paginationjs-pages li > a {
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch .paginationjs-pages li.disabled > a {
@@ -9454,8 +9358,8 @@ html.stmui-touch .paginationjs-pages li.disabled > a {
     }
 
     html.stmui-compact:not(.stmui-wide) .stmui-tab {
-        gap: 2px;
-        padding: 4px 2px;
+        gap: 4px;
+        padding: 4px 4px;
     }
 
     html.stmui-compact:not(.stmui-wide) .stmui-tab-icon {
@@ -9544,7 +9448,7 @@ html.stmui-chat.stmui-compact #form_sheld {
 }
 
 html.stmui-chat.stmui-compact #send_form {
-    padding: 2px 4px 4px;
+    padding: 4px 4px 4px;
 }
 
 html.stmui-chat.stmui-compact #send_textarea {
@@ -9589,7 +9493,7 @@ html.stmui-chat.stmui-compact .welcomePanel .welcomeShortcuts .menu_button {
     gap: 4px;
     height: 32px;
     min-height: 32px;
-    margin: 6px 0;
+    margin: 8px 0;
     padding: 0 12px;
     border: 0;
     background: var(--stmui-raised-2);
@@ -9609,7 +9513,7 @@ html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat {
     grid-template-columns: 40px minmax(0, 1fr) auto;
     gap: 0 8px;
     padding: 8px 4px 0 12px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
 }
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat > .avatar {
@@ -9625,7 +9529,7 @@ html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat .recent
 
 html.stmui-chat.stmui-compact .welcomeRecent .recentChatList .recentChat .chatMessageContainer .chatMessage {
     display: -webkit-box;
-    margin-top: 2px;
+    margin-top: 4px;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
@@ -9681,11 +9585,11 @@ html.stmui-chat.stmui-docked #send_form:focus-within {
 /* The text gets its own field; it shows the focus instead of the bar. */
 html.stmui-chat.stmui-docked #send_textarea {
     min-height: 44px;
-    padding: 11px 12px 9px;
+    padding: 12px 12px 8px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised) !important;
-    transition: border-color 0.2s ease;
+    transition: border-color var(--pt-dur) var(--pt-ease);
 }
 
 /* A clear focus edge, so it is obvious where your typing goes. */
@@ -9756,17 +9660,12 @@ html.stmui-chat.stmui-docked #send_textarea:focus {
 
 html.stmui-chat.stmui-docked.stmui-compact #send_form,
 html.stmui-chat.stmui-docked.stmui-compact #send_form:focus-within {
-    padding-top: 2px;
-    padding-bottom: 6px;
-}
-
-html.stmui-chat.stmui-docked.stmui-compact #send_form .stmui-persona-chip,
-html.stmui-chat.stmui-docked.stmui-compact #send_form #rightSendForm > :is(#send_but, .mes_stop) {
-    bottom: 6px;
+    padding-top: 4px;
+    padding-bottom: 8px;
 }
 
 html.stmui-chat.stmui-docked.stmui-compact #nonQRFormItems {
-    row-gap: 2px;
+    row-gap: 4px;
 }
 
 /* ==========================================================================
@@ -9815,10 +9714,10 @@ html.stmui-chat #gg-action-button-container :is(.gg-action-button, .gg-menu-butt
     padding: 0 8px;
     box-sizing: border-box;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
 }
 
 html.stmui-chat #gg-action-button-container :is(.gg-action-button, .gg-menu-button):active {
@@ -9913,7 +9812,7 @@ html.stmui-chat.stmui-gg .stmui-gg-btn {
     }
 
     html.stmui-chat.stmui-gg .stmui-persona-chip {
-        padding-right: 3px;
+        padding-right: 4px;
     }
 }
 
@@ -9944,7 +9843,7 @@ html.stmui-chat.stmui-gg .stmui-gg-btn {
     margin: 0 0 8px;
     padding: 12px 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     color: var(--stmui-text);
     font: inherit;
@@ -9992,7 +9891,7 @@ html.stmui-touch:not(.stmui-wide) .gg-tools-menu.shown {
     padding: 4px;
     overflow-y: auto;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-solid);
     transform: translateY(-50%);
 }
@@ -10003,7 +9902,7 @@ html.stmui-touch .gg-tools-menu > a.interactable {
     gap: 12px;
     min-height: 44px;
     padding: 0 12px !important;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
 }
 
@@ -10033,7 +9932,7 @@ html.stmui-touch body > .gg-popup > .gg-popup-content {
     overscroll-behavior: contain;
     border: 0;
     border-top: 1px solid var(--stmui-line);
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     background: var(--stmui-solid);
     color: var(--stmui-text);
     box-shadow: none;
@@ -10041,7 +9940,7 @@ html.stmui-touch body > .gg-popup > .gg-popup-content {
 }
 
 html.stmui-touch.stmui-motion-full body > .gg-popup > .gg-popup-content {
-    animation: stmui-gg-sheet-in 0.22s var(--stmui-ease-sheet);
+    animation: stmui-gg-sheet-in var(--pt-dur) var(--pt-ease);
 }
 
 @keyframes stmui-gg-sheet-in {
@@ -10074,7 +9973,7 @@ html.stmui-touch body > .gg-popup .gg-popup-close {
     width: 44px;
     height: 44px;
     margin-inline-end: -12px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 24px;
     line-height: 1;
 }
@@ -10104,7 +10003,7 @@ html.stmui-touch body > .gg-popup .gg-option {
     align-items: center;
     box-sizing: border-box;
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 /* Choices that only showed on hover (a phone cannot hover) are always shown, as chips. */
@@ -10141,7 +10040,7 @@ html.stmui-touch.stmui-wide body > .gg-popup > .gg-popup-content {
     max-height: min(86vh, 900px);
     padding: 0 16px 16px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     transform: translate(-50%, -50%);
 }
 
@@ -10188,7 +10087,7 @@ html.stmui-chat #nonQRFormItems > .stih--buttons .stih--button:not(.stih--hidden
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: transparent;
     color: var(--stmui-muted);
     font-size: 16px;
@@ -10221,7 +10120,7 @@ html.stmui-chat #nonQRFormItems:has(> .stih--buttons:not(.stih--hidden)) > #send
 
 /* Docked: the field sits between your persona and Send. */
 html.stmui-chat.stmui-docked #nonQRFormItems > .stih--buttons:not(.stih--hidden) {
-    margin-inline-end: 53px;
+    margin-inline-end: 52px;
     margin-bottom: 1px;
 }
 
@@ -10234,7 +10133,7 @@ html.stmui-chat #nonQRFormItems > .stih--history {
     max-height: 50dvh;
     padding: 4px;
     border: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-solid);
     filter: none;
     font-size: 16px;
@@ -10245,7 +10144,7 @@ html.stmui-chat #nonQRFormItems > .stih--history .stih--item {
     box-sizing: border-box;
     min-height: 44px;
     padding: 8px 12px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     opacity: 1;
 }
 
@@ -10327,7 +10226,7 @@ html.stmui-touch #ai-config-button .openai-tab-buttons {
     margin: 8px 0 0;
     padding: 4px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius);
     background: var(--stmui-opaque);
     /* A ring in the page's own colour covers the rounded corners while settings scroll under. */
     outline: 6px solid var(--pt-bg);
@@ -10342,14 +10241,14 @@ html.stmui-touch #ai-config-button .openai-tab-button {
     min-height: 44px;
     margin: 0;
     padding: 0 12px;
-    border-radius: 8px;
+    border-radius: var(--pt-radius-sm);
     color: var(--stmui-muted);
     font-size: 14px;
     font-weight: 600;
     opacity: 1;
     box-shadow: none;
     transform: none;
-    transition: background-color 0.16s var(--stmui-ease), color 0.16s var(--stmui-ease);
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-touch #ai-config-button .openai-tab-button.active {
@@ -10504,14 +10403,14 @@ html.stmui-on .stmui-width-row input.stmui-width-range[type='range']::-moz-range
 html.stmui-on .stmui-width-row input.stmui-width-range[type='range']::-webkit-slider-thumb {
     width: var(--stmui-knob) !important;
     height: var(--stmui-knob) !important;
-    margin-top: calc((6px - var(--stmui-knob)) / 2);
+    margin-top: calc((8px - var(--stmui-knob)) / 2);
     border: 3px solid var(--stmui-accent) !important;
     border-radius: 50%;
     background: var(--stmui-on-accent) !important;
     box-shadow: none !important;
     -webkit-appearance: none;
     appearance: none;
-    transition: transform 0.15s var(--stmui-ease);
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-on .stmui-width-row input.stmui-width-range[type='range']::-moz-range-thumb {
@@ -10608,7 +10507,7 @@ html.stmui-touch #token_counter_textarea {
     min-height: 120px;
     max-height: 40dvh;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     font-size: 16px;
     line-height: 1.5;
 }
@@ -10632,7 +10531,7 @@ html.stmui-touch #tokenized_chunks_display {
     min-height: 44px;
     padding: 12px;
     border: 1px solid var(--stmui-line);
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     background: var(--stmui-raised);
     line-height: 1.9;
     overflow-wrap: anywhere;
@@ -10640,14 +10539,14 @@ html.stmui-touch #tokenized_chunks_display {
 
 html.stmui-touch #tokenized_chunks_display > code {
     margin: 1px;
-    padding: 1px 3px;
+    padding: 1px 4px;
     font-size: 14px;
 }
 
 html.stmui-touch #token_counter_ids {
     box-sizing: border-box;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     color: var(--stmui-muted);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 14px;
@@ -10686,7 +10585,7 @@ html.stmui-touch #Backgrounds .bg-header-row-1 > .menu_button_icon {
     height: 44px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
 }
 
 html.stmui-touch #Backgrounds .bg-header-row-1 > .menu_button_icon > span {
@@ -10879,7 +10778,7 @@ html.stmui-wide .stmui-rail-rule {
     }
 
     html.stmui-wide .stmui-tab {
-        gap: 2px;
+        gap: 4px;
     }
 
     html.stmui-wide .stmui-tab-page {
@@ -10935,12 +10834,12 @@ html.stmui-wide #top-settings-holder .drawer-content.openDrawer {
     min-width: var(--stmui-panel-w) !important;
     max-width: var(--stmui-panel-w) !important;
     border-right: 1px solid var(--stmui-line);
-    animation: stmui-panel-in 0.2s var(--stmui-ease);
+    animation: stmui-panel-in var(--pt-dur) var(--pt-ease);
 }
 
 /* Slides in from the rail, under "Smooth" animations too. */
 html.stmui-wide.stmui-motion-full.stmui-shell #top-settings-holder .drawer-content.openDrawer {
-    animation: stmui-panel-in 0.24s var(--stmui-ease);
+    animation: stmui-panel-in var(--pt-dur) var(--pt-ease);
 }
 
 /* SillyTavern lays some pages out in two or three columns on a computer; the panel is one column. */
@@ -10994,7 +10893,7 @@ html.stmui-wide.stmui-page-open:not(.stmui-prompt-full) .stmui-panel-edge {
     left: 3px;
     width: 2px;
     background: transparent;
-    transition: background-color 0.15s ease;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 .stmui-panel-edge:hover::after {
@@ -11116,7 +11015,7 @@ html.stmui-wide body:not(.movingUI) #movingDivs > div:not(.maximized) {
     margin: 0 !important;
     padding: 56px 16px 16px !important;
     border: 1px solid var(--stmui-line) !important;
-    border-radius: 16px !important;
+    border-radius: var(--pt-radius) !important;
     background: var(--stmui-solid) !important;
     box-shadow: none !important;
     -webkit-backdrop-filter: none !important;
@@ -11159,9 +11058,9 @@ html.stmui-wide #movingDivs > div :is(.floating_panel_close, .inline-drawer-maxi
     height: 44px;
     margin: 0;
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     color: var(--stmui-muted);
-    font-size: 18px;
+    font-size: 20px;
     opacity: 1;
     cursor: pointer;
 }
@@ -11206,9 +11105,9 @@ html.stmui-wide #character_popup #character_cross {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     color: var(--stmui-muted);
-    font-size: 22px;
+    font-size: 24px;
     cursor: pointer;
 }
 
@@ -11254,16 +11153,16 @@ html.stmui-wide .stmui-panel {
     max-width: 560px;
     max-height: min(84vh, 760px);
     border-bottom: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
     opacity: 0;
     transform: translateY(12px) scale(0.98);
-    transition: transform 0.16s ease-in, opacity 0.16s ease-in;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.stmui-wide .stmui-sheet-open .stmui-panel {
     opacity: 1;
     transform: none;
-    transition: transform 0.22s var(--stmui-ease-sheet), opacity 0.18s ease-out;
+    transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur) var(--pt-ease);
 }
 
 html.stmui-wide .stmui-grab {
@@ -11281,7 +11180,7 @@ html.stmui-wide.stmui-touch dialog.popup:not(.transparent_dialogue_popup) {
     margin: auto !important;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
 }
 
 html.stmui-wide.stmui-touch dialog.popup:not(.transparent_dialogue_popup)::before {
@@ -11296,11 +11195,11 @@ html.stmui-wide.stmui-touch dialog.popup.large_dialogue_popup {
 }
 
 html.stmui-wide.stmui-touch dialog.popup[opening] {
-    animation: stmui-dialog-in var(--popup-animation-speed, 0.2s) var(--stmui-ease);
+    animation: stmui-dialog-in var(--popup-animation-speed, var(--pt-dur)) var(--pt-ease);
 }
 
 html.stmui-wide.stmui-touch dialog.popup[closing] {
-    animation: stmui-dialog-out var(--popup-animation-speed, 0.15s) ease-in;
+    animation: stmui-dialog-out var(--popup-animation-speed, var(--pt-dur-fast)) var(--pt-ease);
 }
 
 @keyframes stmui-dialog-in {
@@ -11326,7 +11225,7 @@ html.stmui-wide.stmui-touch #shadow_select_chat_popup #select_chat_popup {
     max-height: min(86vh, 900px) !important;
     margin: auto !important;
     border-bottom: 1px solid var(--stmui-line);
-    border-radius: 16px;
+    border-radius: var(--pt-radius);
 }
 
 /* -- Toasts and the server banner: top right, not across the screen -------- */
@@ -11370,8 +11269,8 @@ html.stmui-wide .stmui-banner {
    ========================================================================== */
 @media (pointer: fine) {
     html.stmui-wide.stmui-chat.stmui-compact body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
-        margin: 3px 4px;
-        padding: 8px 14px 8px;
+        margin: 4px 4px;
+        padding: 8px 16px 8px;
     }
 
     html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar,
@@ -11388,11 +11287,11 @@ html.stmui-wide .stmui-banner {
         min-width: 32px;
         min-height: 32px;
         margin: 0;
-        border-radius: 8px;
+        border-radius: var(--pt-radius-sm);
     }
 
     html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .mes_text {
-        margin-top: 2px;
+        margin-top: 4px;
     }
 
     html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > :is(.swipe_left, .swipeRightBlock) {
@@ -11408,15 +11307,15 @@ html.stmui-wide .stmui-banner {
 
     /* The message box: slim quick replies, 36px tools. */
     html.stmui-wide.stmui-chat.stmui-compact #form_sheld {
-        padding: 10px 8px 6px;
+        padding: 12px 8px 8px;
     }
 
     html.stmui-wide.stmui-chat.stmui-compact #qr--bar .qr--button {
         height: 28px;
         min-height: 28px;
-        margin: 3px 0;
-        padding: 0 10px;
-        font-size: 13px;
+        margin: 4px 0;
+        padding: 0 12px;
+        font-size: 12px;
         line-height: 28px;
     }
 
@@ -11434,7 +11333,7 @@ html.stmui-wide .stmui-banner {
 
     html.stmui-wide.stmui-chat.stmui-compact #send_textarea {
         min-height: 34px;
-        padding: 7px 8px 3px;
+        padding: 8px 8px 4px;
     }
 
     /* The top bar is a little lower. */
@@ -11454,7 +11353,7 @@ html.stmui-on body.square-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #cha
 }
 
 html.stmui-on body.rounded-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #chat .mes .mesAvatarWrapper .avatar img, .welcomeRecent .recentChat > .avatar, .welcomeRecent .recentChat > .avatar img, .stmui-ab-avatar, .stmui-ab-avatar img) {
-    border-radius: 12px !important;
+    border-radius: var(--pt-radius-sm) !important;
 }
 
 html.stmui-on body.big-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #chat .mes .mesAvatarWrapper .avatar img, .welcomeRecent .recentChat > .avatar, .welcomeRecent .recentChat > .avatar img, .stmui-ab-avatar, .stmui-ab-avatar img) {
@@ -11485,6 +11384,6 @@ html.stmui-touch #Backgrounds :is(#bg_menu_content, #bg_custom_content, .bg_fold
 }
 
 html.stmui-touch #Backgrounds #bg_menu_content .bg_example {
-    border-radius: 12px;
+    border-radius: var(--pt-radius-sm);
     overflow: hidden;
 }

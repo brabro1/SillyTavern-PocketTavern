@@ -1323,6 +1323,8 @@ await step('Export opens a sheet; the card tools fill their row and message card
 
 await step("Character Library's embedded panel sits between the top bar and the tabs", async () => {
     // A stand-in with the extension's own id and inline sizes (it is not installed on GitHub's check).
+    // Measured with the tabs showing: tucked away in a chat, the panel rightly reaches the bottom.
+    await showTabs();
     const fit = await page.evaluate(() => {
         const panel = document.createElement('div');
         panel.id = 'charlib-embedded-container';
@@ -2054,6 +2056,115 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
             await context.reloadCurrentChat();
         }, [noBlur, book]).catch(() => {});
         await page.waitForTimeout(1000);
+    }
+});
+
+await step("the context ring counts your reply's prompt, not small background prompts (issue #3)", async () => {
+    const ring = await page.evaluate(async () => {
+        const { eventSource, eventTypes } = SillyTavern.getContext();
+        const percent = () => document.querySelector('#send_form .stmui-ctx-ring .stmui-ctx-num')?.textContent ?? null;
+        const wait = () => new Promise(resolve => setTimeout(resolve, 600));
+        const long = Array.from({ length: 400 }, (_, i) => `The rain kept falling over the old tavern, line ${i}.`).join('\n');
+        await eventSource.emit(eventTypes.GENERATION_STARTED, 'normal', {}, false);
+        await eventSource.emit(eventTypes.GENERATE_AFTER_COMBINE_PROMPTS, { prompt: long, dryRun: false });
+        await wait();
+        const reply = percent();
+        // An extension's generateRaw, a quiet prompt, and a raw chat-completion prompt.
+        await eventSource.emit(eventTypes.GENERATE_AFTER_COMBINE_PROMPTS, { prompt: 'Summarize in one word.', dryRun: false });
+        await eventSource.emit(eventTypes.CHAT_COMPLETION_PROMPT_READY, { chat: [{ role: 'user', content: 'hi' }], dryRun: false });
+        await eventSource.emit(eventTypes.GENERATION_STARTED, 'quiet', {}, false);
+        await eventSource.emit(eventTypes.GENERATE_AFTER_COMBINE_PROMPTS, { prompt: 'Describe the mood.', dryRun: false });
+        await wait();
+        const after = percent();
+        await eventSource.emit(eventTypes.GENERATION_STOPPED);
+        return { reply, after };
+    });
+    if (!ring.reply || ring.reply === '0%') throw new Error(`the reply's prompt was not counted: ${JSON.stringify(ring)}`);
+    if (ring.after !== ring.reply) throw new Error(`a background prompt replaced the count: ${JSON.stringify(ring)}`);
+});
+
+await step('message text is 15px on a phone and 16px on a computer, line height 1.6 (Compact 1.5), and the editor buttons stay in two rows', async () => {
+    const text = await page.evaluate(() => {
+        const p = document.querySelector('#chat .mes .mes_text');
+        const s = getComputedStyle(p);
+        return { size: s.fontSize, line: Number.parseFloat(s.lineHeight) / Number.parseFloat(s.fontSize), scale: getComputedStyle(document.documentElement).getPropertyValue('--fontScale').trim() || '1' };
+    });
+    // SillyTavern's Font scale multiplies it; the test copy leaves it at 1.
+    if (text.scale === '1' && text.size !== '15px') throw new Error(`phone message text is ${text.size}`);
+    if (Math.abs(text.line - 1.6) > 0.02) throw new Error(`line height is ${text.line.toFixed(2)}`);
+    await setPref('stmui_size', 'compact');
+    try {
+        const compact = await page.evaluate(() => {
+            const s = getComputedStyle(document.querySelector('#chat .mes .mes_text'));
+            return Number.parseFloat(s.lineHeight) / Number.parseFloat(s.fontSize);
+        });
+        if (Math.abs(compact - 1.5) > 0.02) throw new Error(`Compact line height is ${compact.toFixed(2)}`);
+    } finally {
+        await setPref('stmui_size', 'auto');
+    }
+    // The message editor: five tools on one row, Cancel and Save on the next (the 8px gap once wrapped them).
+    await page.evaluate(() => [...document.querySelectorAll('#chat .mes')].pop().querySelector('.mes_edit').click());
+    await until(() => document.documentElement.classList.contains('stmui-editing'));
+    try {
+        const rows = () => page.evaluate(() => {
+            const buttons = [...document.querySelectorAll('#chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu_button')]
+                .filter(button => getComputedStyle(button).display !== 'none' && button.getBoundingClientRect().width);
+            return buttons.map(button => `${button.className.match(/mes_edit_\w+/)?.[0]}@${Math.round(button.getBoundingClientRect().top)}`);
+        });
+        // The editor moves into place over a moment; then the buttons must settle in two rows.
+        let seen = [];
+        for (let i = 0; i < 10; i++) {
+            await page.waitForTimeout(150);
+            seen = await rows();
+            if (new Set(seen.map(item => item.split('@')[1])).size === 2) break;
+        }
+        const count = new Set(seen.map(item => item.split('@')[1])).size;
+        if (count !== 2) throw new Error(`the editor buttons take ${count} rows: ${seen.join(', ')}`);
+    } finally {
+        await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click());
+        await until(() => !document.documentElement.classList.contains('stmui-editing'));
+    }
+    const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const tab = await wide.newPage();
+    try {
+        await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
+        await tab.waitForFunction(() => document.documentElement.classList.contains('stmui-wide') && window.SillyTavern?.getContext, null, { timeout: 120000 });
+        await tab.evaluate(async () => {
+            const context = SillyTavern.getContext();
+            if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
+        });
+        await tab.waitForFunction(() => !!document.querySelector('#chat .mes .mes_text'), null, { timeout: 15000 });
+        const size = await tab.evaluate(() => getComputedStyle(document.querySelector('#chat .mes .mes_text')).fontSize);
+        if (text.scale === '1' && size !== '16px') throw new Error(`desktop message text is ${size}`);
+    } finally {
+        await wide.close();
+    }
+});
+
+await step("More… on a character card stays above the Description tabs at 1920 × 1080 and on a phone (issue #4)", async () => {
+    for (const viewport of [{ width: 1920, height: 1080 }, { width: 390, height: 844 }]) {
+        const view = await browser.newContext(viewport.width > 900 ? { viewport } : { ...devices['Pixel 7'], viewport });
+        const tab = await view.newPage();
+        try {
+            await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
+            await tab.waitForFunction(() => document.documentElement.classList.contains('stmui-on') && window.SillyTavern?.getContext, null, { timeout: 120000 });
+            await tab.waitForTimeout(1500);
+            await tab.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click());
+            await tab.evaluate(async () => {
+                const context = SillyTavern.getContext();
+                if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
+            });
+            await tab.waitForTimeout(800);
+            await tab.evaluate(() => document.getElementById('rightNavDrawerIcon')?.click());
+            await tab.waitForTimeout(600);
+            await tab.evaluate(() => document.getElementById('rm_button_selected_ch')?.click());
+            await tab.waitForFunction(() => document.getElementById('stmui_card_tabs')?.getBoundingClientRect().height > 0, null, { timeout: 10000 });
+            const gap = await tab.evaluate(() => document.getElementById('stmui_card_tabs').getBoundingClientRect().top
+                - document.getElementById('char-management-dropdown').getBoundingClientRect().bottom);
+            if (gap < 0) throw new Error(`at ${viewport.width}px, More… reaches ${Math.round(-gap)}px under the tabs`);
+        } finally {
+            await view.close();
+        }
     }
 });
 

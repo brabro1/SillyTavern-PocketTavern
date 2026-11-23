@@ -179,8 +179,6 @@ const readable = (fg, bg, min) => {
     return color;
 };
 
-/** How far apart two colors are (0–441). */
-const distance = (a, b) => Math.hypot(a.r - b.r, a.g - b.g, a.b - b.b);
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 /**
@@ -221,19 +219,25 @@ export function themeFromSillyTavern(st) {
     // Message cards in the theme's own tints (Azure: navy for the character, blue for you),
     // kept dark (or light) enough that the text reads on them.
     const cardFrom = tint => {
-        if (!tint) return bg;
+        if (!tint || tint.a < 0.05) return bg;
         let color = mixRgb(bg, { ...tint, a: 1 }, 0.6);
         for (let i = 0; i < 24 && contrast(text, color) < 7; i++) color = mixRgb(color, bg, 0.15);
         return color;
     };
     const botTint = parseColor(st.bot_mes_blur_tint_color);
     const userTint = parseColor(st.user_mes_blur_tint_color);
+    // Cards keep the theme's own User Message and AI Message colours, even when the two are the
+    // same: tinting yours with the accent (the quote colour) was not what the theme asked for (issue #5).
     const botCard = cardFrom(botTint);
-    let userCard = cardFrom(userTint);
-    if (distance(botCard, userCard) < 14) {
-        userCard = mixRgb(botCard, accent, 0.16);
-        for (let i = 0; i < 24 && contrast(text, userCard) < 7; i++) userCard = mixRgb(userCard, bg, 0.15);
-    }
+    const userCard = cardFrom(userTint);
+    // Without a chat background: the tint as SillyTavern draws it over the page, made solid and kept
+    // readable. A theme with no (or an invisible) tint gets Pocket Tavern's faint card instead.
+    const solidCard = (tint, fallback) => {
+        if (!tint || tint.a < 0.05) return fallback;
+        let color = over(tint, bg);
+        for (let i = 0; i < 24 && contrast(text, color) < 7; i++) color = mixRgb(color, base, 0.15);
+        return hex(color);
+    };
     // SillyTavern draws two layers over a chat background: the chat tint, then each message's tint.
     // Pocket Tavern draws only the cards (the picture shows between them), so a card takes the
     // strength of both layers together; with one layer, Cappuccino's cards went pale over a bright
@@ -255,8 +259,8 @@ export function themeFromSillyTavern(st) {
         accent: hex(accent),
         onAccent: hex(onAccent),
         quote: hex(quote),
-        user: rgba(accent, dark ? 0.14 : 0.08),
-        bot: rgba(text, dark ? 0.045 : 0.035),
+        user: solidCard(userTint, rgba(accent, dark ? 0.14 : 0.08)),
+        bot: solidCard(botTint, rgba(text, dark ? 0.045 : 0.035)),
         border: rgba(text, dark ? 0.12 : 0.11),
         backdrop: hex(floor),
         glass: {

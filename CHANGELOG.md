@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.28.0
+
+The second step of the redesign (type, radius, spacing and motion), and fixes for GitHub issues #3, #4 and #5.
+
+### Both
+
+- **One type scale.** Every text size is 12, 14, 15, 16, 20 or 24px (there were 30 sizes, among them 13, 18, 19, 22, 23, 26 and 34px). Icons drawn as text use the same steps.
+- **Message text.** 15px on a phone and 16px on a computer (it was about 16px everywhere), line height 1.6 (1.5 in Compact), and 0.75em between paragraphs (0.5em in Compact; it was 0.45em). SillyTavern's Font scale and Pocket Tavern's Chat text size still multiply it; Small is now 0.93 of the base.
+- **Corners in two sizes.** Controls (buttons, fields, menu rows) are 10px and containers (message cards, sheets, panels, lists, toasts) 14px, instead of a mix of 6–16px. Round things stay round.
+- **Even spacing.** Every padding, margin and gap is on a 4px scale (there were 2, 3, 5, 6, 7, 9, 10, 11, 14, 15, 18 and 22px). Pages and rows have a little more room; the message box is tuned so that seven tools still fit on a 320px phone, and it now sits 8px from the screen's edges like the message cards.
+- **Calmer motion.** Every animation is 150, 220 or 240ms with one curve that never overshoots (some took up to 0.8s, and the toasts, tab icon and buttons bounced). The theme switch reveal is 240ms instead of 560ms.
+- **Send.** The send button gives a short press. The rings, sparks and flying paper plane are gone. The **Send animation** setting turns the press on and off.
+- **Jumping to a message or a setting** outlines it for a moment instead of animating its colour (only position and fading are animated now).
+- **SillyTavern themes keep your message colours** (GitHub issue #5). A converted SillyTavern theme drew your messages in its quote colour at 14% and the character's in its text colour, whatever User Message and AI Message were set to. The cards now use those two colours, made darker or lighter only when the text would be hard to read; equal colours give equal cards. A theme with no message colours gets Pocket Tavern's faint cards as before.
+- **The context ring** (GitHub issue #3). It could stay on a small number, such as 64 tokens. Extensions and some SillyTavern features send small prompts of their own in the background (a summary, a classification), and the ring counted the last prompt it saw. It now counts only the prompt for your reply, and when the reply is done (or a message is deleted or swiped) it reads SillyTavern's own record of that prompt, the same numbers as its Prompt view.
+- **More… on a character card** (GitHub issue #4). SillyTavern sizes the card's tool area to the height of the header beside it; with Pocket Tavern's layout (tools under the picture) that held it short, so the More… menu slid under the Description / First message / Notes & tags tabs. Reported in Firefox at 1920 × 1080; it happened in every browser and on phones too. The header now fits its contents, and the empty gap between the two rows of tools is gone.
+
+### Phone
+
+- **No scrollbars on the chat and pages,** as before. Pocket Tavern's own sheets and lists never show one.
+
+### Desktop
+
+- **Scrollbars are back** on SillyTavern's own lists, pages and the chat, for the mouse. Pocket Tavern used to hide every scrollbar.
+- **Message text is 16px.**
+
 ## 2.27.0
 
 Feedback from Kahvana on Reddit (thank you for the detailed screenshots), a full code audit, and fixes for Moonlit Echoes and Chat Completion Tabs.

@@ -155,8 +155,57 @@ try {
     if (activeBlur.length) cssIssues.push(`active backdrop-filter found: ${activeBlur.join(', ')}`);
     if (cssIssues.length) fail('style.css static checks', cssIssues.join('; '));
     else ok(`style.css is balanced (${opens} blocks) and has zero active backdrop-filter`);
+
+    // DESIGN.md Phase 2: type, radius, spacing and motion come from the scales.
+    const scale = [];
+    const offType = [...stripped.matchAll(/font-size:\s*(\d+)px/g)].map(m => m[1]).filter(v => !['12', '14', '15', '16', '20', '24'].includes(v));
+    if (offType.length) scale.push(`font sizes off the 12/14/15/16/20/24 scale: ${[...new Set(offType)].join(', ')}px`);
+    // Spacing on the 4px scale; 1px hairline offsets and the quick reply chips' 6px
+    // ((44px tap row - 32px chip) / 2) are the documented exceptions.
+    const offSpace = [];
+    for (const m of stripped.matchAll(/(?:^|[\s;{])((?:padding|margin|gap|row-gap|column-gap)(?:-[a-z-]+)?)\s*:\s*([^;}]*)/gm)) {
+        for (const v of m[2].matchAll(/(\d+(?:\.\d+)?)px/g)) if (Number(v[1]) % 4 && v[1] !== '1' && !(m[1] === 'margin' && m[2].trim() === '6px 0')) offSpace.push(`${m[1]}: ${m[2].trim()}`);
+    }
+    if (offSpace.length) scale.push(`spacing off the 4px scale: ${[...new Set(offSpace)].slice(0, 6).join(' | ')}`);
+    const offRadius = [...stripped.matchAll(/border-radius:\s*([^;}]+)/g)].map(m => m[1].trim().replace(/\s*!important$/, ''))
+        .filter(v => /\b(1[1-9]|[2-9]\d)px/.test(v) && !/999px/.test(v));
+    if (offRadius.length) scale.push(`radii outside the tokens: ${[...new Set(offRadius)].join(', ')}`);
+    const offMotion = [];
+    for (const m of stripped.matchAll(/(?:^|[\s;{])(?:transition|animation)(?:-duration)?\s*:\s*([^;}]*)/gm)) {
+        if (/infinite/.test(m[1])) continue;
+        for (const t of m[1].matchAll(/\b(\d*\.?\d+)(ms|s)\b/g)) {
+            const ms = t[2] === 's' ? Number(t[1]) * 1000 : Number(t[1]);
+            if (ms >= 1 && (ms < 150 || ms > 240)) offMotion.push(m[1].trim());
+        }
+        if (/cubic-bezier|\bease(?:-in|-out|-in-out)?\b(?![-\w])/.test(m[1].replace(/var\([^)]*\)/g, ''))) offMotion.push(m[1].trim());
+    }
+    if (offMotion.length) scale.push(`motion outside 150-240ms with --pt-ease: ${[...new Set(offMotion)].slice(0, 6).join(' | ')}`);
+    if (/html\.stmui-on\s*\*\s*\{[^}]*scrollbar-width/.test(stripped)) scale.push('scrollbars are hidden on every element');
+    if (scale.length) fail('style.css follows the Phase 2 scales', scale.join('; '));
+    else ok('style.css follows the type, spacing, radius and motion scales');
 } catch (error) {
     fail('style.css static checks', error);
+}
+
+// A SillyTavern theme's message cards keep its own User Message and AI Message colours (GitHub issue #5).
+try {
+    const { themeFromSillyTavern } = await import(new URL('themes.js', root));
+    const st = {
+        name: 'Same tints', main_text_color: 'rgba(220, 220, 210, 1)', quote_text_color: 'rgba(165, 140, 115, 1)',
+        italics_text_color: 'rgba(235, 215, 190, 1)', blur_tint_color: 'rgba(23, 23, 23, 1)', chat_tint_color: 'rgba(23, 23, 23, 1)',
+        user_mes_blur_tint_color: 'rgba(34, 30, 32, 0.75)', bot_mes_blur_tint_color: 'rgba(34, 30, 32, 0.75)',
+    };
+    const same = themeFromSillyTavern(st);
+    const azure = themeFromSillyTavern({ ...st, name: 'Two tints', user_mes_blur_tint_color: 'rgba(40, 90, 180, 0.4)', bot_mes_blur_tint_color: 'rgba(10, 20, 60, 0.5)' });
+    const problems = [];
+    if (same.user !== same.bot) problems.push(`equal tints gave different cards (${same.user} / ${same.bot})`);
+    if (same.glass.userCard !== same.glass.botCard) problems.push('equal tints gave different cards over a background');
+    if (same.user.includes('165, 140, 115')) problems.push('your card is tinted with the quote colour');
+    if (azure.user === azure.bot) problems.push('different tints gave the same card');
+    if (problems.length) fail("SillyTavern themes keep their own message colours", problems.join('; '));
+    else ok("SillyTavern themes keep their own User Message and AI Message colours");
+} catch (error) {
+    fail("SillyTavern themes keep their own message colours", error);
 }
 
 if (failed) {
