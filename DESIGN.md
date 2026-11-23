@@ -152,13 +152,17 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 
 ### Character Sheet
 - Tapping a character in the list opens their sheet (a dialog on desktop) instead of their chat: picture, a few words (creator's note or description), **Chat** (accent), **New chat**, **Edit**, and up to five recent chats as chat rows, newest first. Nothing changes until you pick something. Groups, bulk select and the favourite star keep SillyTavern's behaviour. The **Character preview** setting turns it off.
-- **Chat** replays the list tap SillyTavern and Pocket Tavern already know: on a phone the page closes into the chat, on desktop the card stays beside it. **Edit** selects the character without leaving the page.
+- **Chat** replays the list tap SillyTavern and Pocket Tavern already know: on a phone the page closes into the chat, on desktop the card stays beside it.
+- **Edit** opens the card. SillyTavern edits only the character whose chat is open (Delete, Favorite and Export act on it), so their chat loads behind the card; never open a card for a character whose chat is not open. Where you were is remembered, and leaving the card without pressing Chat saves it and goes back there (a chat, a group chat or the start screen). The card has **Chat** (accent) and **Recent chats** under the name, 44px, side by side.
+
+### Swipe Arrows
+- ‹ and › are SillyTavern's own elements, placed at the end of the card's last row: two 32px round buttons (44px tap area) on 7% of the text colour, with the count between them in `--pt-text-secondary`. No shared pill: each stands on its own, so every state (one version, several, the last) reads right. With SillyTavern's Bubbles or Document style SillyTavern places them.
 
 ### A–Z Strip
 - 28px wide, 12px letters in `--pt-text-secondary`, no track until used. Touching or pressing it shows a soft track, an accent light (24px, with a soft glow) that glides to the letter under the pointer, a lens on the letters around it (they grow and lean out, distance 0–3), and a 56px accent bubble with the letter riding beside the finger. A mouse gets the lens without jumping until it presses. Only `transform` and `opacity` move, `--pt-dur-fast`.
 
 ### Notes in pages and popups
-- SillyTavern's `.info-block` notes (hint, info, warning, error) in its pages and in extensions' popups: a quiet card on `--pt-surface` with 6% of the note's colour, a hairline edge with 30% of it, `--pt-radius-sm`, an 18px icon in that colour at the start (SillyTavern's own leading icon hidden), text in normal flow (they hold links and bold words). Hint `--pt-info`, info `--pt-gold`, warning `--pt-warn`, error `--pt-danger`.
+- SillyTavern's `.info-block` notes (hint, info, warning, error) in its pages and in extensions' popups, its plain `p.hint` paragraphs, and Pocket Tavern's own notes and settings status line (green with a check while on): a quiet card on `--pt-surface` with 6% of the note's colour, a hairline edge with 30% of it, `--pt-radius-sm`, an 18px icon in that colour at the start (SillyTavern's own leading icon hidden), text in normal flow (they hold links and bold words). Hint `--pt-info`, info `--pt-gold`, warning `--pt-warn`, error `--pt-danger`.
 
 ### Notifications
 - A calm card on `--pt-surface-elevated`: hairline edge, `--pt-radius`, a soft shadow, a 20px icon in the status colour (`--pt-ok`, `--pt-info`, `--pt-warn`, `--pt-danger`), the title in `--pt-text-primary` and the message in `--pt-text-secondary` (primary when there is no title), a 2px progress line. No coloured fill. Below the top bar on a phone (8px from the edges), 380px wide at the top right on desktop.

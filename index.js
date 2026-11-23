@@ -2021,6 +2021,7 @@ class Shell {
     }
 
     update() {
+        checkCardPeek();
         const pageId = currentPageId();
         // When SillyTavern swaps one drawer for another, none is open for a moment.
         // Wait that out instead of flashing the chat header in between.
@@ -2394,7 +2395,7 @@ function toastIconCss() {
         .map(([type, name]) => `html.stmui-toasts #toast-container > .toast-${type} { --stmui-t-icon: ${iconUrl(name)}; }`)
         .join(' ')
         // A grey magnifier drawn inside search boxes.
-        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; --stmui-info-icon: ${iconUrl('info')}; --stmui-warn-icon: ${iconUrl('alert-triangle')}; --stmui-error-icon: ${iconUrl('alert-circle')}; }`;
+        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; --stmui-info-icon: ${iconUrl('info')}; --stmui-warn-icon: ${iconUrl('alert-triangle')}; --stmui-error-icon: ${iconUrl('alert-circle')}; --stmui-ok-icon: ${iconUrl('circle-check')}; }`;
 }
 
 /** A Pocket Tavern theme (not a SillyTavern one): only these have a background of their own. */
@@ -4375,7 +4376,7 @@ const CARD_TOOLS = [
     ['#create_button_label', 'Create'],
 ];
 const CARD_TABS = [['desc', 'Description'], ['greet', 'First message'], ['notes', 'Notes & tags']];
-const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false };
+const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null, returning: false };
 
 /**
  * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
@@ -4487,11 +4488,145 @@ function chatWithCharacter(entry, chid, fileId, then) {
     }
 }
 
-/** Edit the card: select the character without leaving the Characters page. */
+/**
+ * Edit a character's card without ending up in their chat. SillyTavern edits only the character
+ * whose chat is open (its Delete, Favorite and Export act on that one), so their chat has to load
+ * behind the card. Where you were is remembered: leaving the card without pressing Chat saves it
+ * and takes you back there (the chat you were in, a group chat, or the start screen).
+ */
 async function editCharacter(chid) {
     closeSheet(true);
     if (shell) shell.jumpAt = 0;
-    await ctx().selectCharacterById(String(chid));
+    const context = ctx();
+    const sameChat = !context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid);
+    const from = sameChat ? null : { chid: context.characterId, groupId: context.groupId, chatId: context.getCurrentChatId?.() ?? null };
+    chars.peek = null;
+    await context.selectCharacterById(String(chid));
+    if (from && String(ctx().characterId) === String(chid)) chars.peek = { from, chid: String(chid) };
+}
+
+/** Keep this character's chat: Chat or a recent chat was picked on the card. */
+function keepCardChat() {
+    chars.peek = null;
+}
+
+/** Called as pages change: leaving a peeked card goes back to where you were. */
+function checkCardPeek() {
+    const peek = chars.peek;
+    if (!peek || chars.returning) return;
+    const context = ctx();
+    // Another character or chat was opened meanwhile: that is where you are now.
+    if (String(context.characterId) !== peek.chid || context.groupId) {
+        chars.peek = null;
+        return;
+    }
+    const editorShown = currentPageId() === 'rightNavHolder' && isShown(document.getElementById('rm_ch_create_block'));
+    if (editorShown) return;
+    chars.peek = null;
+    returnFromCard(peek.from);
+}
+
+async function returnFromCard(from) {
+    chars.returning = true;
+    try {
+        // Save the card now: SillyTavern saves edits a moment after typing, and that save
+        // would otherwise read the next character's card.
+        const context = ctx();
+        const eventName = context.eventTypes?.CHARACTER_EDITED;
+        const saved = new Promise(resolve => {
+            const done = () => {
+                if (eventName) context.eventSource?.removeListener?.(eventName, done);
+                resolve();
+            };
+            if (eventName) context.eventSource?.on?.(eventName, done);
+            setTimeout(done, 2000);
+        });
+        document.getElementById('create_button')?.click();
+        await saved;
+        // Let SillyTavern's own delayed save of the same card run before the card changes.
+        await new Promise(resolve => setTimeout(resolve, 1100));
+        if (from.groupId) await context.openGroupChat?.(from.groupId, from.chatId ?? undefined);
+        else if (from.chid !== undefined && context.characters[from.chid]) {
+            await context.selectCharacterById(String(from.chid));
+            if (from.chatId && ctx().getCurrentChatId?.() !== from.chatId) await ctx().openCharacterChat(from.chatId);
+        } else document.getElementById('option_close_chat')?.click();
+    } catch (error) {
+        console.warn(LOG, 'Could not go back to the chat you were in', error);
+    } finally {
+        chars.returning = false;
+    }
+}
+
+/** On the card: Chat (their latest chat) and Recent chats (pick one). */
+function buildCardGo() {
+    const chat = h('button', {
+        type: 'button',
+        class: 'stmui-card-go-btn stmui-card-go-chat',
+        onclick: () => {
+            buzz(6);
+            keepCardChat();
+            if (!isWide()) closePages();
+        },
+    }, [ui('chat'), h('span', { text: 'Chat' })]);
+    const recent = h('button', {
+        type: 'button',
+        class: 'stmui-card-go-btn',
+        onclick: () => {
+            buzz(6);
+            openCardChats();
+        },
+    }, [ui('history'), h('span', { text: 'Recent chats' })]);
+    return h('div', { id: 'stmui_card_go', class: 'stmui-card-go' }, [chat, recent]);
+}
+
+/** The card's character's chats, newest first; picking one keeps you in it. */
+function openCardChats() {
+    const context = ctx();
+    const character = context.characters?.[context.characterId];
+    if (!character) return;
+    const state = { chats: null };
+    const instance = new MenuSheet({
+        title: 'Recent chats',
+        fill: body => {
+            if (!state.chats) {
+                body.append(h('p', { class: 'stmui-menu-foot', text: 'Loading chats…' }));
+                return;
+            }
+            if (!state.chats.length) {
+                body.append(h('p', { class: 'stmui-menu-foot', text: 'No chats yet.' }));
+                return;
+            }
+            const list = h('div', { class: 'stmui-cs-chats' });
+            for (const chat of state.chats.slice(0, 20)) {
+                const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
+                const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+                const line = h('span', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileId), h('small', { class: 'stmui-rc-when', raw: when })]);
+                if (ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
+                const meta = h('small', { class: 'stmui-rc-meta' });
+                const count = Number(chat.chat_items);
+                if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
+                list.append(h('button', {
+                    type: 'button',
+                    class: 'stmui-rc stmui-cs-chat',
+                    onclick: async () => {
+                        buzz(6);
+                        closeSheet(true);
+                        keepCardChat();
+                        if (ctx().getCurrentChatId?.() !== fileId) await ctx().openCharacterChat(fileId);
+                        if (!isWide()) closePages();
+                    },
+                }, [h('span', { class: 'stmui-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
+            }
+            body.append(list);
+        },
+    });
+    // The character's name is shown as it is.
+    instance.subtitle.textContent = character.name;
+    showSheet(instance);
+    fetchCharacterChats(character.avatar).catch(() => []).then(chats => {
+        state.chats = chats;
+        if (sheet === instance && !instance.closing) instance.refresh();
+    });
 }
 
 function aboutCharacter(character) {
@@ -4608,7 +4743,8 @@ function syncCharacterPage() {
         chars.azTimer = 0;
         restoreCharToolbar();
         document.getElementById('rm_characters_block')?.classList.remove('stmui-one-page');
-        document.querySelectorAll('.stmui-btn-label, #stmui_card_tabs, .stmui-hero-name, .stmui-cap, #stmui_az, #stmui_az_bubble').forEach(node => node.remove());
+        document.querySelectorAll('.stmui-btn-label, #stmui_card_tabs, .stmui-hero-name, #stmui_card_go, .stmui-cap, #stmui_az, #stmui_az_bubble').forEach(node => node.remove());
+        chars.peek = null;
         form?.classList.remove('stmui-ctab-desc', 'stmui-ctab-greet', 'stmui-ctab-notes');
         chars.observer?.disconnect();
         chars.listObserver?.disconnect();
@@ -4638,6 +4774,13 @@ function syncCharacterPage() {
         const creating = isShown(document.getElementById('name_div'));
         heroName.hidden = creating;
         heroName.textContent = document.getElementById('character_name_pole')?.value?.trim() || '';
+        // Chat and Recent chats, while editing a character (not a new one, not a group member).
+        let go = document.getElementById('stmui_card_go');
+        if (!go) {
+            go = buildCardGo();
+            heroName.after(go);
+        }
+        go.hidden = creating || !!ctx().groupId;
     }
 
     // Description, first message and notes on tabs instead of one long scroll.

@@ -77,7 +77,7 @@ It switches itself on and picks the right layout for each screen. Your character
 - Edit a message on a full page, search the chat, translate it, and open pictures full screen.
 
 **🗂️ Characters, personas, lorebooks and presets**
-- Characters and personas as picture cards, with search, favorites and an A–Z strip you can slide along. Choosing a character shows its sheet first: **Chat**, **New chat**, **Edit** and its recent chats (turn it off with **Character preview**).
+- Characters and personas as picture cards, with search, favorites and an A–Z strip you can slide along. Choosing a character shows its sheet first: **Chat**, **New chat**, **Edit** and its recent chats (turn it off with **Character preview**). Editing a card leaves you where you were, and the card has **Chat** and **Recent chats** buttons.
 - Character cards with tabs for Description, First message and Notes.
 - Lorebook entries as cards with keyword chips, and a searchable picker.
 - − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.

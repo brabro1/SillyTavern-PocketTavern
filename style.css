@@ -1941,13 +1941,13 @@ html.stmui-chat:not(.stmui-editing) #chat .mes .mesAvatarWrapper > :is(.mesIDDis
     display: none;
 }
 
+/* Swipes: ‹ 1/3 ›, two round buttons with the count between them, at the end of the card's
+   last row. Each arrow stands on its own (no shared pill), so every state reads right: only ›
+   on the first version, both arrows later, no count when there is one version. › on the last
+   version makes a new one. The arrows are SillyTavern's own; only their place and look change.
+   With SillyTavern's Bubbles or Document style it places them itself, so these rules step back. */
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
     grid-area: left;
-    /* relative, not static: its bigger tap area (::after) must hang off the arrow, not cover the whole message. */
-    position: relative;
-    /* SillyTavern places it with bottom/left offsets meant for absolute positioning; they would shift it now. */
-    inset: auto;
-    margin-top: 8px;
 }
 
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
@@ -1956,148 +1956,81 @@ html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .e
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
-    margin-top: 8px;
+    gap: 4px;
+    height: auto;
+    margin: 8px 0 0 4px;
+    padding: 0;
+    background: none;
     pointer-events: auto;
 }
 
-/* Swipes: one pill, ‹ 1/3 ›. The left half is the back arrow, the right half
-   the counter and the next arrow; on the last version "next" makes a new one,
-   so it shows a "new version" icon in the accent color. */
+/* Pinned (!important): Moonlit Echoes places the arrows absolutely (`right: calc(… + 100px)`,
+   scaled to 80%), which pushed ‹ away from the rest. */
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
-    height: 34px;
-    margin-top: 8px;
-    background: color-mix(in srgb, var(--stmui-text) 7%, transparent);
-}
-
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    min-width: 38px;
-    min-height: 0;
-    padding: 0 0 0 4px;
-    border-radius: 999px 0 0 999px;
-    color: var(--stmui-text);
-    font-size: 16px;
-    opacity: 0.85;
-}
-
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
-    padding: 0 4px 0 0;
-    border-radius: 0 999px 999px 0;
-}
-
-/* With no back arrow, the right half is the whole pill. */
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes:not(.swipes_visible) > .swipeRightBlock,
-html.stmui-chat:not(.stmui-editing) body.hideAllSwipeButtons:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
-    padding-left: 4px;
-    border-radius: 999px;
-}
-
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
+    position: relative !important;
+    inset: auto !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
+    box-sizing: border-box;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
     min-height: 0;
     margin: 0;
+    padding: 0;
     border-radius: 50%;
-    color: var(--stmui-text);
-    font-size: 16px;
-    opacity: 0.85;
-}
-
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left,
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
-    /* Moonlit Echoes scales the arrows to 80%; the :active nudges below still win. */
+    background: color-mix(in srgb, var(--pt-text-primary) 7%, transparent);
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    opacity: 1;
     transform: none;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
-/* In the pill the arrows sit in the row. With SillyTavern's own Bubbles or Document style
-   (a theme such as Cappuccino turns Bubbles on) SillyTavern places ‹ itself, absolutely:
-   made relative there, it became a column of its own beside the text (Kahvana's report). */
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
-    position: relative;
-}
-
-/*
- * Moonlit Echoes places ‹ with `right: calc(… + 100px) !important` (it draws the arrows
- * absolutely). In Pocket Tavern's pill the arrow is in the row, so that offset pushed
- * it about 100px away from the rest of the pill. Pinned against it.
- */
 html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
-    inset: auto !important;
+    margin-top: 8px;
 }
 
-html.stmui-chat:not(.stmui-editing) body #chat .mes > .swipeRightBlock .swipe_right {
-    position: relative !important;
-}
-
+/* A full 44px to tap. */
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left::after,
 html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right::after {
     content: '';
     position: absolute;
-    inset: -5px;
+    inset: -6px;
 }
 
 html.stmui-chat:not(.stmui-editing) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right):active {
-    background: color-mix(in srgb, var(--stmui-text) 12%, transparent);
+    background: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
 }
 
 html.stmui-chat:not(.stmui-editing) #chat .mes .swipes-counter {
     align-items: center;
     /* Moonlit Echoes makes it 60px wide with spaced letters, and adds !important margins on older messages. */
     width: auto;
-    min-width: 30px;
+    min-width: 0;
     height: auto;
     margin: 0 !important;
-    letter-spacing: normal;
     padding: 0 4px;
+    letter-spacing: normal;
     background: transparent;
-    color: var(--stmui-muted);
+    color: var(--pt-text-secondary);
     font-size: 12px;
     font-weight: 650;
     font-variant-numeric: tabular-nums;
     opacity: 1;
 }
 
-/* One version only: no "1/1", just the round › button that makes a new version. */
+/* One version only: no "1/1", just › to make a new version. */
 html.stmui-chat:not(.stmui-editing) #chat .mes.stmui-one-swipe .swipes-counter {
     display: none;
 }
 
-html.stmui-chat:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes.stmui-one-swipe > .swipeRightBlock {
-    padding: 0;
-    border-radius: 999px;
-}
-
-/* The last version: "next" makes a new one. It keeps the same › arrow as every
-   other swipe (a refresh icon read as "write the reply again"), at full strength,
-   and nudges toward where the next version comes from when pressed. */
-html.stmui-chat:not(.stmui-editing) #chat .mes.last_swipe > .swipeRightBlock .swipe_right {
-    opacity: 1;
-}
-
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right,
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left {
-    transition: background-color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
-}
-
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right:active {
-    transform: translateX(2px);
-}
-
-html.stmui-chat:not(.stmui-editing) #chat .mes > .swipe_left:active {
-    transform: translateX(-2px);
-}
-
-html.stmui-wide.stmui-chat:not(.stmui-editing) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right):hover {
-    background: color-mix(in srgb, var(--stmui-text) 10%, transparent);
+@media (hover: hover) {
+    html.stmui-chat:not(.stmui-editing) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right):hover {
+        background: color-mix(in srgb, var(--pt-text-primary) 12%, transparent);
+    }
 }
 
 html:is(.stmui-motion-off) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right) {
@@ -6077,7 +6010,7 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
    Text keeps its normal flow (some notices hold links and bold words).
    ========================================================================== */
 
-html.stmui-on .info-block {
+html.stmui-on :is(.info-block, .stmui-inline-note, p.hint, .stmui-settings .stmui-status-line) {
     --stmui-n-color: var(--pt-info);
     --stmui-n-icon: var(--stmui-info-icon);
     position: relative;
@@ -6109,7 +6042,18 @@ html.stmui-on .info-block.error {
     --stmui-n-icon: var(--stmui-error-icon);
 }
 
-html.stmui-on .info-block::before {
+/* Pocket Tavern's own status line in its settings: green with a check while it is on here. */
+html.stmui-on .stmui-settings .stmui-status-line.stmui-status-active {
+    --stmui-n-color: var(--pt-ok);
+    --stmui-n-icon: var(--stmui-ok-icon);
+}
+
+/* SillyTavern's plain "Hint:" paragraphs (Character Expressions) read as a hint note too. */
+html.stmui-on p.hint {
+    font-size: 14px;
+}
+
+html.stmui-on :is(.info-block, .stmui-inline-note, p.hint, .stmui-settings .stmui-status-line)::before {
     content: '';
     position: absolute;
     top: 14px;
@@ -6121,11 +6065,11 @@ html.stmui-on .info-block::before {
     mask: var(--stmui-n-icon) center / contain no-repeat;
 }
 
-html.stmui-on.stmui-rtl .info-block {
+html.stmui-on.stmui-rtl :is(.info-block, .stmui-inline-note, p.hint, .stmui-settings .stmui-status-line) {
     padding: 12px 44px 12px 16px;
 }
 
-html.stmui-on.stmui-rtl .info-block::before {
+html.stmui-on.stmui-rtl :is(.info-block, .stmui-inline-note, p.hint, .stmui-settings .stmui-status-line)::before {
     left: auto;
     right: 14px;
 }
@@ -7120,6 +7064,68 @@ html.stmui-charpage #avatar_div .stmui-hero-name {
     line-height: 1.2;
     text-align: center;
     overflow-wrap: anywhere;
+}
+
+/* Under the name: Chat (their latest chat) and Recent chats, side by side. */
+html.stmui-charpage .stmui-card-go {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-self: stretch;
+    width: 100%;
+    margin: 4px 0;
+}
+
+html.stmui-charpage .stmui-card-go[hidden] {
+    display: none;
+}
+
+html.stmui-charpage .stmui-card-go-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    height: 44px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html.stmui-charpage .stmui-card-go-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html.stmui-charpage .stmui-card-go-btn .stmui-svg {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+}
+
+html.stmui-charpage .stmui-card-go-btn.stmui-card-go-chat {
+    border-color: transparent;
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+}
+
+html.stmui-charpage .stmui-card-go-btn:active {
+    transform: scale(0.97);
+}
+
+@media (hover: hover) {
+    html.stmui-charpage .stmui-card-go-btn:not(.stmui-card-go-chat):hover {
+        background: var(--pt-surface-elevated);
+    }
 }
 
 html.stmui-charpage .stmui-hero-name[hidden] {
@@ -9886,10 +9892,6 @@ html.stmui-chat.stmui-compact #chat .mes_text {
     line-height: 1.5;
 }
 
-html.stmui-chat.stmui-compact #chat .mes_text p {
-    margin: 0.35em 0;
-}
-
 html.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
 html.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
     margin-top: 4px;
@@ -11746,14 +11748,14 @@ html.stmui-wide .stmui-banner {
     }
 
     html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > :is(.swipe_left, .swipeRightBlock) {
-        height: 30px;
         margin-top: 4px;
     }
 
+    html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
     html.stmui-wide.stmui-chat.stmui-compact:not(.stmui-editing) #chat .mes > .swipeRightBlock .swipe_right {
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
+        width: 28px;
+        min-width: 28px;
+        height: 28px;
     }
 
     /* The message box: slim quick replies, 36px tools. */

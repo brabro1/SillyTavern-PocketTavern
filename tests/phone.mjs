@@ -2210,6 +2210,11 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
     await page.waitForTimeout(800);
     if (await page.evaluate(() => document.documentElement.dataset.stmuiPage) !== 'rightNavHolder') throw new Error('Edit left the Characters page');
     if (!(await page.evaluate(() => !!document.getElementById('stmui_card_tabs')?.getBoundingClientRect().height))) throw new Error('Edit did not show the card');
+    if (!(await page.locator('#stmui_card_go').isVisible())) throw new Error('the card has no Chat and Recent chats buttons');
+    // Leaving the card without pressing Chat goes back to the chat you were in.
+    await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
+    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Aria', null, 10000);
+    if (await chatId() !== before) throw new Error('leaving the card did not go back to the chat you were in');
     // Chat from the sheet: on a phone it lands in the chat.
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
     await page.waitForTimeout(1200);
@@ -2367,9 +2372,11 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
 await step("SillyTavern's notices (Formatting's \"Grayed-out options…\" and the rest) are quiet cards with an icon, not a thick coloured bar", async () => {
     const look = await page.evaluate(() => {
         const out = {};
-        for (const kind of ['warning', 'error', 'hint']) {
-            const block = document.createElement('div');
-            block.className = `info-block ${kind}`;
+        // SillyTavern's notes, Pocket Tavern's own note, and SillyTavern's plain "Hint:" paragraph.
+        const make = { warning: ['div', 'info-block warning'], error: ['div', 'info-block error'], hint: ['div', 'info-block hint'], note: ['div', 'stmui-inline-note'], paragraph: ['p', 'hint'] };
+        for (const [kind, [tag, className]] of Object.entries(make)) {
+            const block = document.createElement(tag);
+            block.className = className;
             block.textContent = 'A notice.';
             document.getElementById('AdvancedFormatting')?.append(block);
             const s = getComputedStyle(block);
@@ -2385,6 +2392,30 @@ await step("SillyTavern's notices (Formatting's \"Grayed-out options…\" and th
         if (s.left !== '1px' || s.pad !== '44px' || !/url\(/.test(s.icon)) throw new Error(`${kind}: ${JSON.stringify(s)}`);
     }
     if (look.formatting !== '44px') throw new Error(`the Formatting notice keeps SillyTavern's padding (${look.formatting})`);
+});
+
+await step('swipe arrows are two round buttons with the count between them, apart in every state', async () => {
+    await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]')?.click());
+    await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
+    await page.waitForTimeout(1200);
+    for (const state of [{ one: true, visible: false }, { one: false, visible: true }]) {
+        const shape = await page.evaluate(({ one, visible }) => {
+            const mes = [...document.querySelectorAll('#chat .mes')].pop();
+            const had = [...mes.classList];
+            mes.classList.toggle('stmui-one-swipe', one);
+            mes.classList.toggle('swipes_visible', visible);
+            mes.classList.add('last_swipe');
+            const box = el => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return { left: r.left, right: r.right, w: Math.round(r.width), h: Math.round(r.height), radius: s.borderRadius, shown: s.display !== 'none' && r.width > 0 }; };
+            const out = { left: box(mes.querySelector('.swipe_left')), right: box(mes.querySelector('.swipeRightBlock .swipe_right')) };
+            mes.className = had.join(' ');
+            return out;
+        }, state);
+        if (!shape.right.shown || shape.right.w !== shape.right.h || shape.right.radius !== '50%') throw new Error(`› is not round: ${JSON.stringify(shape.right)}`);
+        if (state.visible) {
+            if (!shape.left.shown || shape.left.w !== shape.left.h || shape.left.radius !== '50%') throw new Error(`‹ is not round: ${JSON.stringify(shape.left)}`);
+            if (shape.left.right > shape.right.left) throw new Error('‹ and › overlap');
+        } else if (shape.left.shown) throw new Error('‹ shows with one version');
+    }
 });
 
 await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style on Flat, and gives it back for a SillyTavern theme or when Pocket Tavern is off", async () => {
