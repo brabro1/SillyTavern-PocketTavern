@@ -116,6 +116,16 @@ html.stmui-on:not(.stmui-wide) :is(.stmui-list, .stmui-menu-body, .stmui-panel, 
 
 /* On the desktop layout every list scrolls with a slim bar for the mouse: 8px of room, a 4px
    rounded thumb that is faint until you point at the list, no track and no arrows. */
+/* The character list keeps no bar on the desktop layout either: the A–Z strip sits on that edge,
+   and the two side by side fought for the same few pixels. The wheel and the strip scroll it. */
+html.stmui-on.stmui-wide #rm_print_characters_block {
+    scrollbar-width: none;
+}
+
+html.stmui-on.stmui-wide #rm_print_characters_block::-webkit-scrollbar {
+    display: none;
+}
+
 html.stmui-on.stmui-wide ::-webkit-scrollbar {
     width: 8px;
     height: 8px;

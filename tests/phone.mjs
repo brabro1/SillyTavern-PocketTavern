@@ -2366,6 +2366,17 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
         if (!during.on || during.lens < 3 || !during.bubble) throw new Error(`while dragging: ${JSON.stringify(during)}`);
         if (during.active !== during.bubbleText) throw new Error(`the light is on ${during.active} but the bubble says ${during.bubbleText}`);
         if (after) throw new Error('the bubble stayed after letting go');
+        // A finger: everything rests again the moment it lifts (phones keep :hover after a touch).
+        const cdp = await page.context().newCDPSession(page);
+        const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: box.x, y }] });
+        await touch('touchStart', box.y);
+        await touch('touchMove', box.y + 20);
+        await page.waitForTimeout(200);
+        await touch('touchEnd');
+        await page.waitForTimeout(300);
+        const lifted = await page.evaluate(() => ({ on: document.getElementById('stmui_az').classList.contains('stmui-az-on'), lens: document.querySelectorAll('#stmui_az span[data-d]:not([data-d=""])').length }));
+        await cdp.detach();
+        if (lifted.on || lifted.lens) throw new Error(`the strip stayed lit after the finger lifted: ${JSON.stringify(lifted)}`);
     } finally {
         await page.evaluate(value => {
             const select = document.getElementById('character_sort_order');

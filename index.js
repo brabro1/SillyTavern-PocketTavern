@@ -5187,12 +5187,14 @@ function buildAzStrip() {
         // A mouse over the strip: the lens follows it, and nothing scrolls until you press.
         else if (event.pointerType === 'mouse') queue(event.clientY, y => mark(indexAt(y)));
     });
-    const end = () => {
+    const end = event => {
         dragging = false;
         last = '';
         strip.classList.remove('stmui-az-active');
         bubble.classList.remove('stmui-az-bubble-on');
-        if (!strip.matches(':hover')) mark(-1);
+        // Only a mouse still over the strip keeps the lens. A finger lifts away, and phones keep
+        // :hover on the last thing touched, so a touch always puts the strip back to rest.
+        if (event?.pointerType !== 'mouse' || !strip.matches(':hover')) mark(-1);
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) strip.addEventListener(type, end);
     strip.addEventListener('pointerleave', () => {

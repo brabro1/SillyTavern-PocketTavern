@@ -33,7 +33,7 @@ The second step of the redesign (type, radius, spacing and motion), new chat lis
 
 ### Desktop
 
-- **A slim scrollbar on every list** for the mouse: 8px of room, a thin rounded thumb that is faint until you point at the list, no track and no arrows. Pocket Tavern used to hide every scrollbar.
+- **A slim scrollbar on every list** for the mouse: 8px of room, a thin rounded thumb that is faint until you point at the list, no track and no arrows. Pocket Tavern used to hide every scrollbar. The character list is the one exception: the A–Z strip sits on that edge, and the wheel and the strip scroll it.
 - **Message text is 16px.**
 
 ## 2.27.0
