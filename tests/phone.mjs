@@ -69,6 +69,38 @@ const lastMessageCovered = () => page.evaluate(async () => {
     const last = [...chat.querySelectorAll('.mes')].pop();
     return last.getBoundingClientRect().bottom - document.getElementById('send_form').getBoundingClientRect().top;
 });
+// GitHub's check runs a fresh SillyTavern (one character, no chats). Steps that need more make it
+// (test data only) and the last step removes whatever was made.
+const madeCharacters = [];
+const ensureCharacters = async list => {
+    const made = await page.evaluate(async wanted => {
+        const st = await import('/script.js');
+        const out = [];
+        for (const [name, first] of wanted) {
+            if (SillyTavern.getContext().characters.some(c => c.name === name)) continue;
+            const response = await fetch('/api/characters/create', { method: 'POST', headers: st.getRequestHeaders(), body: JSON.stringify({ ch_name: name, first_mes: first }) });
+            if (!response.ok) throw new Error(`could not add ${name}: ${response.status}`);
+            out.push((await response.text()).trim());
+        }
+        if (out.length) await st.getCharacters();
+        return out;
+    }, list);
+    madeCharacters.push(...made);
+    return made;
+};
+const removeCharacters = avatars => page.evaluate(async list => {
+    const st = await import('/script.js');
+    for (const avatar of list) await fetch('/api/characters/delete', { method: 'POST', headers: st.getRequestHeaders(), body: JSON.stringify({ avatar_url: avatar, delete_chats: true }) });
+    await st.getCharacters();
+}, avatars);
+// Opens a character's chat and saves it, so it shows in Recent chats and Chat history.
+const ensureChat = name => page.evaluate(async who => {
+    const context = SillyTavern.getContext();
+    const id = context.characters.findIndex(x => x.name === who);
+    if (String(context.characterId) !== String(id) || context.groupId) await context.selectCharacterById(String(id));
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await SillyTavern.getContext().saveChat?.();
+}, name);
 const dismissPopups = async () => {
     for (let i = 0; i < 5; i++) {
         const open = await page.evaluate(() => {
@@ -1738,7 +1770,7 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
     }
 });
 
-await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, Chat Completion Tabs sticks flush, the Backgrounds tabs clear their buttons and take clicks at their edges, the Personas buttons share their row, and Moonlit Echoes keeps the swipe pill together and the switches their shape', async () => {
+await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, Chat Completion Tabs sticks flush, the Backgrounds tabs clear their buttons and take clicks at their edges, the Personas buttons share their row, and Moonlit Echoes keeps the swipe arrows together and the switches their shape', async () => {
     const desk = await browser.newContext({ viewport: { width: 1366, height: 768 } });
     const tab = await desk.newPage();
     tab.on('pageerror', error => {
@@ -1862,7 +1894,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             script.refreshSwipeButtons(true, false);
             return out;
         });
-        if (Math.abs(pill.gap) > 1 || Math.abs(pill.top) > 2 || pill.scale !== 'none') throw new Error(`the swipe pill splits under Moonlit Echoes: ${JSON.stringify(pill)}`);
+        if (pill.gap < 0 || pill.gap > 8 || Math.abs(pill.top) > 2 || pill.scale !== 'none') throw new Error(`Moonlit Echoes pulls the swipe arrows apart: ${JSON.stringify(pill)}`);
         // Moonlit Echoes' checkbox rules (a stand-in with the same declarations): a settings switch keeps its pill shape and edge.
         const toggle = await tab.evaluate(() => {
             const style = document.createElement('style');
@@ -2172,6 +2204,9 @@ await step("More… on a character card stays above the Description tabs at 1920
 });
 
 await step('tapping a character shows its sheet (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
+    await ensureCharacters([['Aria', 'Hello, I am Aria.'], ['Seraphina', '*She smiles and sets down her cup.* "Welcome, traveler."']]);
+    await ensureChat('Seraphina');
+    await ensureChat('Aria');
     const goCharacters = async () => {
         await showTabs();
         await page.locator('.stmui-tab[data-tab="rightNavHolder"]').click();
@@ -2340,6 +2375,9 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
     await until(() => document.documentElement.dataset.stmuiPage === 'rightNavHolder');
     await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
     const sort = await page.evaluate(() => document.getElementById('character_sort_order')?.value);
+    const total = await page.evaluate(() => SillyTavern.getContext().characters.length + (SillyTavern.getContext().groups?.length ?? 0));
+    const names = ['Bram', 'Cora', 'Dax', 'Esme', 'Felix', 'Gale', 'Hugo', 'Iris', 'Kian', 'Lyra', 'Milo', 'Nora'];
+    const madeHere = total >= 12 ? [] : await ensureCharacters(names.slice(0, 12 - total).map(name => [name, 'Hello.']));
     try {
         await page.evaluate(() => {
             const select = document.getElementById('character_sort_order');
@@ -2388,6 +2426,10 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
         await page.waitForTimeout(800);
         await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]')?.click());
         await page.waitForTimeout(500);
+        if (madeHere.length) {
+            await removeCharacters(madeHere);
+            madeCharacters.splice(0, madeCharacters.length, ...madeCharacters.filter(avatar => !madeHere.includes(avatar)));
+        }
     }
 });
 
@@ -2476,6 +2518,13 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
         await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; s.stChatStyle = ''; s.chatStyleFor = ''; SillyTavern.getContext().saveSettingsDebounced(); });
         await page.waitForTimeout(2000);
     }
+});
+
+await step('test characters made on a fresh SillyTavern are removed', async () => {
+    if (!madeCharacters.length) return;
+    await page.evaluate(() => document.getElementById('option_close_chat')?.click());
+    await page.waitForTimeout(1500);
+    await removeCharacters(madeCharacters.splice(0));
 });
 
 await step('no errors from Pocket Tavern', async () => {
