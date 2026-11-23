@@ -41,6 +41,8 @@ Feedback from Kahvana on Reddit (thank you for the detailed screenshots), a full
 - **Escape** no longer closes the side page while you type in it.
 
 
+## 2.26.0
+
 The first step of the redesign to the new DESIGN.md: design tokens, a new default theme, and no blur anywhere.
 
 ### Both
