@@ -6070,6 +6070,95 @@ html.stmui-toasts body #toast-container > .toast .toast-progress {
 }
 
 /* ==========================================================================
+   Notices in pages and popups (SillyTavern's .info-block: hint, info, warning,
+   error), in the same style as notifications: a quiet card on the surface, a
+   hairline edge with a hint of the notice's colour, and a small icon in that
+   colour at the start, instead of a thick coloured bar on a tinted block.
+   Text keeps its normal flow (some notices hold links and bold words).
+   ========================================================================== */
+
+html.stmui-on .info-block {
+    --stmui-n-color: var(--pt-info);
+    --stmui-n-icon: var(--stmui-info-icon);
+    position: relative;
+    box-sizing: border-box;
+    margin: 12px 0;
+    padding: 12px 16px 12px 44px;
+    border: 1px solid color-mix(in srgb, var(--stmui-n-color) 30%, var(--pt-border));
+    border-radius: var(--pt-radius-sm);
+    background: color-mix(in srgb, var(--stmui-n-color) 6%, var(--pt-surface));
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: start;
+    text-shadow: none;
+}
+
+html.stmui-on .info-block.info {
+    --stmui-n-color: var(--pt-gold);
+}
+
+html.stmui-on .info-block.warning {
+    --stmui-n-color: var(--pt-warn);
+    --stmui-n-icon: var(--stmui-warn-icon);
+}
+
+html.stmui-on .info-block.error {
+    --stmui-n-color: var(--pt-danger);
+    --stmui-n-icon: var(--stmui-error-icon);
+}
+
+html.stmui-on .info-block::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    background: var(--stmui-n-color);
+    -webkit-mask: var(--stmui-n-icon) center / contain no-repeat;
+    mask: var(--stmui-n-icon) center / contain no-repeat;
+}
+
+html.stmui-on.stmui-rtl .info-block {
+    padding: 12px 44px 12px 16px;
+}
+
+html.stmui-on.stmui-rtl .info-block::before {
+    left: auto;
+    right: 14px;
+}
+
+/* The Formatting page's "Grayed-out options…" notice: SillyTavern sizes it by its id (it shows
+   only with Chat Completion), which outweighed the rule above. */
+html.stmui-on #advanced-formatting-cc-notice {
+    margin: 12px 0;
+    padding: 12px 16px 12px 44px;
+}
+
+html.stmui-on.stmui-rtl #advanced-formatting-cc-notice {
+    padding: 12px 44px 12px 16px;
+}
+
+/* SillyTavern's own leading icon, where a notice has one: the drawn icon replaces it. */
+html.stmui-on .info-block > i:is(.fa-solid, .fa-regular):first-child {
+    display: none;
+}
+
+html.stmui-on .info-block a {
+    color: var(--pt-accent);
+}
+
+html.stmui-on .info-block :is(p, ul, ol):first-child {
+    margin-top: 0;
+}
+
+html.stmui-on .info-block :is(p, ul, ol):last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
    Picture viewer
    ========================================================================== */
 

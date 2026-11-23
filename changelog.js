@@ -3,10 +3,10 @@ export const CHANGES = [
     {
         version: '2.28.0',
         items: [
-            "A calmer look, second step: one set of text sizes, corners in two sizes, even spacing and shorter, smoother animations everywhere. Messages are 15px on a phone and 16px on a computer. Send gives a short press instead of a flying plane, and notifications are calm cards with a small coloured icon.",
+            "A calmer look, second step: one set of text sizes, corners in two sizes, even spacing and shorter, smoother animations everywhere. Messages are 15px on a phone and 16px on a computer. Send gives a short press instead of a flying plane, and notifications and the notes inside pages (like “Grayed-out options…” in Formatting) are calm cards with a small coloured icon.",
             "Recent chats and Chat history show each chat with its last message drawn like a message, in your theme's colours, and ⋯ to pin, rename, export or delete. The start screen's buttons each do one thing: hide the message box, settings, and one arrow to fold the list.",
             "Choosing a character shows their sheet first: Chat, New chat, Edit and their recent chats (turn it off with Character preview). The A–Z strip has a light that follows your finger and a lens on the letters. On a computer, every list has a slim scrollbar.",
-            "Fixed: the context ring could stay on a tiny number such as 64 tokens; More… on a character card slid under the Description tabs; SillyTavern themes now keep your own User Message and AI Message colours.",
+            "Fixed: a SillyTavern theme picked before installing (Cappuccino, Azure) kept drawing its bubbles under Pocket Tavern's theme; the context ring could stay on a tiny number such as 64 tokens; More… on a character card slid under the Description tabs; SillyTavern themes now keep your own User Message and AI Message colours.",
         ],
     },
     {

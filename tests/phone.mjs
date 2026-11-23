@@ -2364,6 +2364,67 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
     }
 });
 
+await step("SillyTavern's notices (Formatting's \"Grayed-out options…\" and the rest) are quiet cards with an icon, not a thick coloured bar", async () => {
+    const look = await page.evaluate(() => {
+        const out = {};
+        for (const kind of ['warning', 'error', 'hint']) {
+            const block = document.createElement('div');
+            block.className = `info-block ${kind}`;
+            block.textContent = 'A notice.';
+            document.getElementById('AdvancedFormatting')?.append(block);
+            const s = getComputedStyle(block);
+            out[kind] = { left: s.borderLeftWidth, pad: s.paddingLeft, icon: getComputedStyle(block, '::before').maskImage || getComputedStyle(block, '::before').webkitMaskImage };
+            block.remove();
+        }
+        const notice = document.getElementById('advanced-formatting-cc-notice');
+        out.formatting = notice ? getComputedStyle(notice).paddingLeft : null;
+        return out;
+    });
+    for (const [kind, s] of Object.entries(look)) {
+        if (kind === 'formatting') continue;
+        if (s.left !== '1px' || s.pad !== '44px' || !/url\(/.test(s.icon)) throw new Error(`${kind}: ${JSON.stringify(s)}`);
+    }
+    if (look.formatting !== '44px') throw new Error(`the Formatting notice keeps SillyTavern's padding (${look.formatting})`);
+});
+
+await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style on Flat, and gives it back for a SillyTavern theme or when Pocket Tavern is off", async () => {
+    const setSelect = (id, value) => page.evaluate(([i, v]) => {
+        const select = document.getElementById(i);
+        select.value = v;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }, [id, value]);
+    const display = () => page.evaluate(() => String(SillyTavern.getContext().powerUserSettings.chat_display));
+    const before = await page.evaluate(() => ({ theme: document.getElementById('stmui_theme').value, display: String(SillyTavern.getContext().powerUserSettings.chat_display) }));
+    try {
+        await setSelect('stmui_theme', 'st');
+        await page.waitForTimeout(600);
+        // As a SillyTavern theme such as Cappuccino leaves it.
+        await page.evaluate(() => jQuery('#chat_display').val('1').trigger('change'));
+        await page.waitForTimeout(600);
+        await setSelect('stmui_theme', 'pocket');
+        await page.waitForTimeout(1000);
+        if (await display() !== '0') throw new Error('Bubbles stayed on with the Pocket theme');
+        if (await page.evaluate(() => document.body.classList.contains('bubblechat'))) throw new Error('the chat is still drawn as bubbles');
+        await setSelect('stmui_theme', 'st');
+        await page.waitForTimeout(1000);
+        if (await display() !== '1') throw new Error('Bubbles did not come back with Your SillyTavern theme');
+        // A style picked by hand while a Pocket Tavern theme is on is left alone.
+        await setSelect('stmui_theme', 'pocket');
+        await page.waitForTimeout(1000);
+        await page.evaluate(() => jQuery('#chat_display').val('1').trigger('change'));
+        await page.waitForTimeout(1000);
+        await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click());
+        if (await display() !== '1') throw new Error('Pocket Tavern undid a chat style picked by hand');
+    } finally {
+        await page.evaluate(() => globalThis.toastr?.clear());
+        await setSelect('stmui_theme', before.theme);
+        await page.waitForTimeout(800);
+        await page.evaluate(value => jQuery('#chat_display').val(value).trigger('change'), before.display);
+        await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; s.stChatStyle = ''; s.chatStyleFor = ''; SillyTavern.getContext().saveSettingsDebounced(); });
+        await page.waitForTimeout(2000);
+    }
+});
+
 await step('no errors from Pocket Tavern', async () => {
     if (extensionErrors.length) throw new Error(extensionErrors.join(' | '));
 });

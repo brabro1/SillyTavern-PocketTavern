@@ -46,6 +46,9 @@ const DEFAULTS = Object.freeze({
     haptics: true,
     autoReload: true,
     homeHideBox: false,
+    /** SillyTavern's Chat Style before a Pocket Tavern theme put it on Flat ('' when untouched), and that theme's id. */
+    stChatStyle: '',
+    chatStyleFor: '',
     jumpButton: true,
     messageMenu: true,
     saveDrafts: true,
@@ -2391,7 +2394,7 @@ function toastIconCss() {
         .map(([type, name]) => `html.stmui-toasts #toast-container > .toast-${type} { --stmui-t-icon: ${iconUrl(name)}; }`)
         .join(' ')
         // A grey magnifier drawn inside search boxes.
-        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; }`;
+        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; --stmui-info-icon: ${iconUrl('info')}; --stmui-warn-icon: ${iconUrl('alert-triangle')}; --stmui-error-icon: ${iconUrl('alert-circle')}; }`;
 }
 
 /** A Pocket Tavern theme (not a SillyTavern one): only these have a background of their own. */
@@ -2473,6 +2476,7 @@ function applyAppearance() {
         document.getElementById('stmui-icons-css')?.remove();
     }
     syncThemeColor(theme);
+    syncChatStyleForTheme();
 }
 
 /** Runs `change` behind a circular reveal that grows from `origin` (View Transitions). */
@@ -7494,6 +7498,38 @@ function pickChatLook(look) {
 }
 
 // -- SillyTavern's own look (UI themes, Chat Style, backgrounds) next to Pocket Tavern's
+
+/**
+ * A Pocket Tavern theme draws the whole look, the messages too. A SillyTavern theme picked
+ * earlier (Cappuccino, Azure) often brings Chat Style: Bubbles, and SillyTavern then drew its
+ * bubbles in Pocket Tavern's colours: the two looks fought. So when a Pocket Tavern theme
+ * comes on (a new install, or picking one), SillyTavern's Chat Style goes to Flat once and the
+ * old style is remembered; picking a SillyTavern theme again, or turning Pocket Tavern (or its
+ * chat cards) off, puts it back. Only on those changes: a Chat Style you pick afterwards stays.
+ */
+function syncChatStyleForTheme() {
+    const select = document.getElementById('chat_display');
+    if (!select) return;
+    const own = active && settings.chatStyle && ownThemeOn() ? String(settings.theme) : '';
+    if (own) {
+        if (settings.chatStyleFor === own) return;
+        settings.chatStyleFor = own;
+        if (select.value !== '0') {
+            const name = stChatStyleName();
+            settings.stChatStyle = select.value;
+            useFlatChatStyle();
+            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.", { style: t(name) }), '', { timeOut: 7000 });
+        }
+        saveSettings();
+        return;
+    }
+    if (!settings.chatStyleFor) return;
+    const back = settings.stChatStyle;
+    settings.chatStyleFor = '';
+    settings.stChatStyle = '';
+    saveSettings();
+    if (back && select.value === '0' && select.querySelector(`option[value="${CSS.escape(back)}"]`)) $j()(select).val(back).trigger('change');
+}
 
 /** SillyTavern's Chat Style when it is not Flat (Pocket Tavern's message cards only draw over Flat), else ''. */
 function stChatStyleName() {
