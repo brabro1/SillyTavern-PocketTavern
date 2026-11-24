@@ -1,6 +1,14 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '2.28.1',
+        items: [
+            "Lists in messages and in the AI's thinking indent about four characters instead of eight, so nested lists keep their width on a phone.",
+            "Backgrounds: the − and + buttons are gone. Pocket Tavern always shows thumbnails big enough to choose from, so they did nothing.",
+            "On a computer, Chat Top Bar sits on the chat column again when Moonlit Echoes is on (it was centred on the whole window).",
+        ],
+    },
+    {
         version: '2.28.0',
         items: [
             "A calmer look, second step: one set of text sizes, corners in two sizes, even spacing and shorter, smoother animations everywhere. Messages are 15px on a phone and 16px on a computer. Swipe arrows are two simple round buttons, Send gives a short press instead of a flying plane, and notifications and the notes inside pages (like “Grayed-out options…” in Formatting) are calm cards with a small coloured icon.",

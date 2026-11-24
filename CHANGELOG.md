@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.28.1
+
+Fixes for GitHub issues #6, #7 and #8.
+
+### Both
+
+- **Lists in messages** (GitHub issue #6). Lists in a message and in the AI's thinking (reasoning) indented 40px, the browser's default, so a list nested two or three deep took a large part of a phone's width. They now indent 1.25em, about four characters (19px on a phone, 20px on a computer), and keep their bullets and numbers. Arabic and other right-to-left text indents from the right as before.
+- **Backgrounds − and +** (GitHub issue #7). SillyTavern's buttons to make thumbnails smaller or larger did nothing: Pocket Tavern keeps every thumbnail at least 150px wide, two columns on a phone and more on a wider page. The two buttons are hidden while Pocket Tavern is on.
+
+### Desktop
+
+- **Chat Top Bar with Moonlit Echoes** (GitHub issue #8). Moonlit Echoes pins the Chat Top Bar extension's bar to the middle of the window, which on a computer is not the middle of Pocket Tavern's chat column (the rail and an open panel sit on the left), so the bar hung off one side at every chat width. The bar now sits at the top of the chat column, as it does without Moonlit Echoes, with the chat right under it.
+
 ## 2.28.0
 
 The second step of the redesign (type, radius, spacing and motion), new chat lists, a character sheet, calmer notifications, a new A–Z strip, and fixes for GitHub issues #3, #4 and #5.

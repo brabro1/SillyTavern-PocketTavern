@@ -138,7 +138,7 @@ Every layered element must sit on this documented scale (never invent ad-hoc `99
 - **Send / Stop** sits anchored at the bottom-right and never shrinks.
 - Houses SillyTavern's `☰` chat options, wand (**Tools**), persona chip, tabs toggle arrow (phone), context ring, and compatible extension triggers (e.g. Guided Generations compass, Input History inside the field, slim Quick Reply chips). Any extension button that does not fit cleanly next to Send moves to the wand's **Tools** sheet.
 - **Target:** secondary actions tucked into one `+` menu: `☰` (Chat options) and the wand (Tools) merge into a single `+` sheet with both groups, so the row keeps at most persona, `+`, context ring, the guide button and Send, and `320px` phones are never tight.
-- Extension compatibility patches are keyed strictly on each extension's markup and do nothing when absent (tested with Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse, and Chat Completion Tabs).
+- Extension compatibility patches are keyed strictly on each extension's markup and do nothing when absent (tested with Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse, Chat Completion Tabs and Chat Top Bar).
 
 ### Sheets & Dialogs
 - Bottom sheets on phones (drag handle, safe-area padding), centered modal dialogs on desktop (no downward drag-dismiss on desktop).

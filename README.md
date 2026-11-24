@@ -369,6 +369,7 @@ In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
 | **Moonlit Echoes** | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style**. Switches and page layouts keep Pocket Tavern's shape |
 | **ScenePulse** | ✅ Opens from the wand (**Tools**) on a phone |
 | **Chat Completion Tabs** | ✅ Its tabs match Pocket Tavern's and stay at the top of Presets as you scroll |
+| **Chat Top Bar** | ✅ Its bar sits at the top of the chat, also with Moonlit Echoes |
 | **Character Library** | ✅ Its embedded panel opens from **More** and fits between Pocket Tavern's bars; Back closes it |
 | **Other extensions** | Work alongside it |
 

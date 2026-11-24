@@ -1770,7 +1770,7 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
     }
 });
 
-await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, Chat Completion Tabs sticks flush, the Backgrounds tabs clear their buttons and take clicks at their edges, the Personas buttons share their row, and Moonlit Echoes keeps the swipe arrows together and the switches their shape', async () => {
+await step('desktop layout at 1366 × 768: preset buttons stay one row, the prompt dropdown gets its own line, Chat Completion Tabs sticks flush, the Backgrounds tabs clear their buttons and take clicks at their edges, the Personas buttons share their row, Moonlit Echoes keeps the swipe arrows together, the switches their shape and Chat Top Bar on the chat column, and lists indent four characters', async () => {
     const desk = await browser.newContext({ viewport: { width: 1366, height: 768 } });
     const tab = await desk.newPage();
     tab.on('pageerror', error => {
@@ -1843,9 +1843,11 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             const tabs = boxes('#bg_tabs .bg_tab_button');
             const buttons = boxes('#bg_tabs .heading-controls > button');
             const hit = tabs.some(a => buttons.some(b => b.left < a.right - 1 && a.left < b.right - 1 && b.top < a.bottom - 1 && a.top < b.bottom - 1));
-            return { hit, small: buttons.filter(b => b.width < 44 || b.height < 44).length };
+            // SillyTavern's − / + thumbnail buttons could not change Pocket Tavern's grid, so they are hidden (issue #7).
+            const zoom = ['bg_thumb_zoom_out', 'bg_thumb_zoom_in'].some(id => document.getElementById(id)?.offsetParent);
+            return { hit, zoom, small: buttons.filter(b => b.width < 44 || b.height < 44).length };
         });
-        if (bg.hit || bg.small) throw new Error(`Backgrounds tab row: ${JSON.stringify(bg)}`);
+        if (bg.hit || bg.small || bg.zoom) throw new Error(`Backgrounds tab row: ${JSON.stringify(bg)}`);
         // The link inside each tab switches it: it fills the tab, so a click near the top or bottom edge works too.
         const edges = await tab.evaluate(() => [...document.querySelectorAll('#bg_tabs .bg_tab_button')].filter(node => node.offsetParent).every(node => {
             const box = node.getBoundingClientRect();
@@ -1907,6 +1909,33 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             return out;
         });
         if (toggle.radius !== '999px' || toggle.edge !== '1px') throw new Error(`a switch loses its shape under Moonlit Echoes: ${JSON.stringify(toggle)}`);
+        // Chat Top Bar under Moonlit Echoes (stand-ins with the same declarations): the bar lines up with the chat column (issue #8).
+        // Lists in a message indent about four characters, not the browser's 40px (issue #6).
+        const extras = await tab.evaluate(() => {
+            const style = document.createElement('style');
+            style.textContent = '#extensionTopBar { position: fixed; top: calc(var(--topBarBlockSize) + 5px) !important; left: 50%; transform: translateX(-50%); width: calc(var(--sheldWidth) - 20px) !important; height: 40px; display: flex; }'
+                + ' body:has(#extensionTopBar) #sheld { padding-top: calc(var(--topBarBlockSize)) !important; }';
+            document.head.append(style);
+            const sheld = document.getElementById('sheld');
+            const chat = document.getElementById('chat');
+            const bar = document.createElement('div');
+            bar.id = 'extensionTopBar';
+            sheld.insertBefore(bar, chat);
+            const a = bar.getBoundingClientRect();
+            const c = chat.getBoundingClientRect();
+            const top = { left: Math.round(a.left - c.left), right: Math.round(c.right - a.right), gap: Math.round(c.top - a.bottom) };
+            bar.remove();
+            style.remove();
+            const list = document.createElement('ul');
+            list.innerHTML = '<li>one</li>';
+            const text = document.querySelector('#chat .mes .mes_text');
+            text.append(list);
+            const indent = parseFloat(getComputedStyle(list).paddingInlineStart) / parseFloat(getComputedStyle(text).fontSize);
+            list.remove();
+            return { top, indent };
+        });
+        if (Math.abs(extras.top.left) > 1 || Math.abs(extras.top.right) > 1 || Math.abs(extras.top.gap) > 1) throw new Error(`Chat Top Bar does not line up with the chat under Moonlit Echoes: ${JSON.stringify(extras.top)}`);
+        if (extras.indent > 1.5) throw new Error(`lists in a message indent ${extras.indent.toFixed(2)}em`);
     } finally {
         if (api) {
             await tab.evaluate(value => { const select = document.getElementById('main_api'); select.value = value; jQuery(select).trigger('change'); }, api).catch(() => {});

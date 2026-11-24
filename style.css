@@ -1729,6 +1729,12 @@ html.stmui-chat #chat :is(.mes_text, .mes_reasoning) > :is(blockquote, pre):last
     margin-bottom: 0;
 }
 
+/* Lists indent about four characters instead of the browser's 40px, so nested lists
+   (common in reasoning) keep their width on a phone (issue #6). */
+html.stmui-chat #chat :is(.mes_text, .mes_reasoning) :is(ul, ol) {
+    padding-inline-start: 1.25em;
+}
+
 /* Message action buttons: quiet, round, finger-sized. */
 html.stmui-chat #chat .mes_buttons {
     align-items: center;
@@ -11279,6 +11285,22 @@ html.stmui-wide #sheld {
     padding-right: 0;
 }
 
+/* Chat Top Bar (an official extension) sits at the top of the chat column, as it
+   does without themes. Moonlit Echoes pins it to the middle of the window instead,
+   which on a computer is not the middle of the chat (issue #8). */
+html.stmui-wide #sheld > #extensionTopBar {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: auto !important;
+    flex-shrink: 0;
+}
+
+html.stmui-wide #sheld:has(> #extensionTopBar) {
+    padding-top: 0 !important;
+}
+
 /* Search this chat sits over the chat column. */
 html.stmui-wide .stmui-chat-finder {
     left: var(--stmui-left);
@@ -11837,13 +11859,18 @@ html.stmui-chat:not(.stmui-editing) body.big-avatars #chat .mes .mesAvatarWrappe
 }
 
 /* ==========================================================================
-   Backgrounds: big enough to choose from. SillyTavern's own − / + column count
-   still applies, but a thumbnail never gets narrower than 150px; past that the
-   grid uses fewer columns (two on a phone, more as a desktop page widens).
+   Backgrounds: big enough to choose from. A thumbnail is never narrower than
+   150px, so the grid uses two columns on a phone and more as a desktop page
+   widens. SillyTavern's − / + column buttons could not change that, so they
+   are hidden (issue #7).
    ========================================================================== */
 html.stmui-touch #Backgrounds :is(#bg_menu_content, #bg_custom_content, .bg_folder_grid) {
     gap: 8px !important;
-    grid-template-columns: repeat(auto-fill, minmax(max(150px, calc((100% - (var(--bg-thumb-columns, 3) - 1) * 8px) / var(--bg-thumb-columns, 3))), 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+}
+
+html.stmui-touch #Backgrounds :is(#bg_thumb_zoom_out, #bg_thumb_zoom_in) {
+    display: none !important;
 }
 
 html.stmui-touch #Backgrounds #bg_menu_content .bg_example {
