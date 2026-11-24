@@ -1,28 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Pocket Tavern: a pocket with a lit tavern doorway. Rounded for the README and banner;
+       assets/icon.svg is the same mark as a full-bleed square for app icons. -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F7A94B"/>
-      <stop offset="1" stop-color="#D2552A"/>
+      <stop offset="0" stop-color="#F8B65C"/>
+      <stop offset="0.55" stop-color="#E8813C"/>
+      <stop offset="1" stop-color="#C9482A"/>
     </linearGradient>
+    <radialGradient id="sheen" cx="0.3" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="pocket" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#FFF1E2"/>
+      <stop offset="0" stop-color="#FFF8EE"/>
+      <stop offset="1" stop-color="#FBE6CC"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#7A2A0C" flood-opacity="0.35"/>
+    <linearGradient id="light" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8763A"/>
+      <stop offset="1" stop-color="#B43E1B"/>
+    </linearGradient>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#6E240C" flood-opacity="0.38"/>
     </filter>
   </defs>
   <rect width="512" height="512" rx="116" fill="url(#bg)"/>
-  <!-- A chat bubble tucked into a pocket: your chats, in your pocket. -->
-  <g filter="url(#shadow)">
-    <rect x="168" y="84" width="176" height="128" rx="44" fill="#FFE2BF"/>
-    <circle cx="214" cy="140" r="15" fill="#D2552A"/>
-    <circle cx="256" cy="140" r="15" fill="#D2552A"/>
-    <circle cx="298" cy="140" r="15" fill="#D2552A"/>
+  <rect width="512" height="512" rx="116" fill="url(#sheen)"/>
+  <g transform="translate(256 265) scale(1.1) translate(-256 -265)">
+  <!-- The pocket: square shoulders, a soft point at the bottom. -->
+  <path filter="url(#drop)" fill="url(#pocket)"
+        d="M150 132 H362 Q384 132 384 154 V318 Q384 336 368 345 L270 398 Q256 406 242 398 L144 345 Q128 336 128 318 V154 Q128 132 150 132 Z"/>
+  <!-- Its hem. -->
+  <path d="M152 184 H360" fill="none" stroke="#E9A066" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 17"/>
+  <!-- The tavern door, lit from inside. -->
+  <path fill="url(#light)" d="M212 354 V266 A44 44 0 0 1 300 266 V354 Z"/>
+  <circle cx="283" cy="312" r="6.5" fill="#FFE9CC"/>
+  <rect x="200" y="354" width="112" height="9" rx="4.5" fill="#EDC7A0"/>
   </g>
-  <g filter="url(#shadow)">
-    <path d="M120 196 H392 V352 L256 424 L120 352 Z" fill="url(#pocket)" stroke="url(#pocket)" stroke-width="28" stroke-linejoin="round"/>
-  </g>
-  <path d="M140 236 H372" fill="none" stroke="#E0773A" stroke-width="7" stroke-linecap="round" stroke-dasharray="16 13"/>
-  <path d="M140 262 V340 L256 401 L372 340 V262" fill="none" stroke="#E0773A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16 13"/>
 </svg>

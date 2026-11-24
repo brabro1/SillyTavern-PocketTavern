@@ -421,6 +421,49 @@ if (want('desktop')) {
     await desk.close();
 }
 
+if (want('banner')) {
+    // The banner's screens (docs/brand/banner.html): a short exchange that starts cleanly
+    // at the top. The phone shows the last three messages of the demo chat, the laptop
+    // the first three, at 2x so they stay sharp in the 2560px banner.
+    const BRAND = fileURLToPath(new URL('../docs/brand/', import.meta.url));
+    // Messages are hidden inline: Pocket Tavern's own message rules outrank a stylesheet.
+    const onlyMessages = (target, keep) => target.evaluate(ids => {
+        document.querySelectorAll('#chat .mes').forEach(mes => {
+            if (!ids.includes(Number(mes.getAttribute('mesid')))) mes.style.setProperty('display', 'none', 'important');
+        });
+        document.getElementById('chat').scrollTo(0, 0);
+        document.querySelector('.stmui-jump')?.style.setProperty('display', 'none', 'important');
+    }, keep);
+    await tab('chat');
+    await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
+    const lastIds = await page.evaluate(() => [...document.querySelectorAll('#chat .mes')].slice(-3).map(mes => Number(mes.getAttribute('mesid'))));
+    await onlyMessages(page, lastIds);
+    await settle();
+    await page.screenshot({ path: `${BRAND}shot-phone.jpg`, type: 'jpeg', quality: 92 });
+    await page.evaluate(() => document.querySelectorAll('#chat .mes, .stmui-jump').forEach(node => node.style.removeProperty('display')));
+    console.log('  ✓ brand/shot-phone.jpg');
+
+    const desk = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+    await desk.addInitScript(hideTestExtensions);
+    const deskPage = await desk.newPage();
+    await deskPage.goto(ST_URL, { waitUntil: 'domcontentloaded' });
+    await deskPage.waitForFunction(() => document.documentElement.classList.contains('stmui-wide'), null, { timeout: 120000 });
+    await deskPage.waitForTimeout(2500);
+    await deskPage.evaluate(async () => {
+        document.querySelector('#stmui-sheet .stmui-done')?.click();
+        document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
+        const context = SillyTavern.getContext();
+        await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));
+    });
+    await deskPage.waitForTimeout(2000);
+    await onlyMessages(deskPage, [0, 1, 2]);
+    await deskPage.evaluate(() => document.getAnimations().forEach(animation => { try { animation.finish(); } catch {} }));
+    await deskPage.waitForTimeout(400);
+    await deskPage.screenshot({ path: `${BRAND}shot-desktop.jpg`, type: 'jpeg', quality: 92 });
+    console.log('  ✓ brand/shot-desktop.jpg');
+    await desk.close();
+}
+
 if (guideButtonWasOn) {
     await page.evaluate(() => document.getElementById('stmui_ggbutton')?.click());
     await page.waitForTimeout(2500);

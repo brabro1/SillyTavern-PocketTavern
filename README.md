@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://github.com/brabro1/SillyTavern-PocketTavern"><img src="docs/brand/banner.png" alt="Pocket Tavern: SillyTavern, made for your phone and your computer" width="100%"></a>
+<a href="https://github.com/brabro1/SillyTavern-PocketTavern"><img src="docs/brand/banner.png" alt="Pocket Tavern: a native-feeling mobile and desktop UI for SillyTavern" width="100%"></a>
 
 # Pocket Tavern
 

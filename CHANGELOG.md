@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.28.2
+
+A new icon and banner. Nothing else changes.
+
+### Both
+
+- **New icon.** The pocket with a chat bubble is now a pocket with a lit, arched tavern door: a tavern in your pocket. It is simpler and bolder, so it still reads at the small sizes of a home screen, a browser tab or the Termux widget. A home screen shortcut (Add to Home screen) picks it up when the browser next refreshes it; remove the shortcut and add it again to see it at once. The Termux shortcuts get it the next time you run the setup.
+- **New banner and link preview.** The README banner and GitHub's link preview show a laptop and an upright phone with a short, readable exchange from the demo chat, on a warm dark background.
+
 ## 2.28.1
 
 Fixes for GitHub issues #6, #7 and #8.
