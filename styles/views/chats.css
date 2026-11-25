@@ -256,3 +256,73 @@ html.pt-on #chat.pt-chat-enter {
         opacity: 0;
     }
 }
+
+/* -- Opening a chat: still placeholder messages over the message area (src/features/chat-loading.js) -- */
+
+.pt-chat-loading {
+    position: fixed;
+    z-index: var(--pt-z-chat);
+    overflow: hidden;
+    pointer-events: none;
+    animation: pt-chat-loading-in var(--pt-dur-fast) var(--pt-ease);
+    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-chat-loading--out {
+    opacity: 0;
+}
+
+.pt-chat-loading-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-3);
+    max-width: var(--pt-col, 720px);
+    margin: 0 auto;
+    padding: var(--pt-space-4) var(--pt-space-3);
+}
+
+.pt-chat-loading-mes {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--pt-space-3);
+    padding: var(--pt-space-4);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+}
+
+.pt-chat-loading-mes--user {
+    background: color-mix(in srgb, var(--pt-accent) 8%, var(--pt-surface));
+}
+
+.pt-chat-loading-avatar {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--pt-surface-elevated);
+}
+
+.pt-chat-loading-lines {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+    padding-top: var(--pt-space-1);
+}
+
+.pt-chat-loading-line {
+    height: 12px;
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+}
+
+@keyframes pt-chat-loading-in {
+    from {
+        opacity: 0;
+    }
+}
+
+html.pt-motion-off .pt-chat-loading {
+    animation: none;
+    transition: none;
+}

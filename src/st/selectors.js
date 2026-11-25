@@ -11,6 +11,11 @@ export const POPUP_DIALOG = 'dialog.popup';
 /** Older popups that SillyTavern shows and hides with a style instead of a <dialog>. */
 export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
 
+// ---- Chat ----------------------------------------------------------------------------------------
+
+/** The chat's scroll container; SillyTavern empties it when a chat loads. */
+export const CHAT = '#chat';
+
 // ---- Message box ---------------------------------------------------------------------------
 
 /** SillyTavern's whole message area at the bottom of the chat (quick replies, the box, its buttons). */

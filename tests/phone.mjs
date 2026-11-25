@@ -464,6 +464,31 @@ await step('the Chats page is the home: ‹ in a chat goes there, pinned and rec
     await until(() => !document.documentElement.dataset.ptPage && document.querySelectorAll('#chat .mes').length > 0, null, 10000);
 });
 
+await step('a chat that takes a moment to load shows still placeholder messages outside #chat, which fade once the messages arrive', async () => {
+    await until(() => document.querySelectorAll('#chat .mes').length > 0);
+    // As SillyTavern does when a chat loads: #chat is emptied, then filled.
+    const saved = await page.evaluate(() => {
+        const chat = document.getElementById('chat');
+        window.__ptSaved = [...chat.children];
+        chat.replaceChildren();
+        return window.__ptSaved.length;
+    });
+    try {
+        if (await page.evaluate(() => new Promise(resolve => setTimeout(() => resolve(!!document.querySelector('.pt-chat-loading')), 120)))) throw new Error('placeholders showed before 300ms');
+        await until(() => !!document.querySelector('body > .pt-chat-loading .pt-chat-loading-mes'), null, 2000);
+        const box = await page.evaluate(() => {
+            const layer = document.querySelector('.pt-chat-loading').getBoundingClientRect();
+            const chat = document.getElementById('chat').getBoundingClientRect();
+            return { inChat: !!document.querySelector('#chat .pt-chat-loading'), dx: Math.abs(layer.left - chat.left), dw: Math.abs(layer.width - chat.width) };
+        });
+        if (box.inChat || box.dx > 1 || box.dw > 1) throw new Error(`placeholder layer: ${JSON.stringify(box)}`);
+    } finally {
+        await page.evaluate(() => document.getElementById('chat').append(...window.__ptSaved));
+    }
+    await until(() => !document.querySelector('.pt-chat-loading'), null, 2000);
+    if (!saved) throw new Error('there was nothing in #chat');
+});
+
 await step('find a setting searches the Settings page', async () => {
     await page.evaluate(() => document.querySelector('#user-settings-button > .drawer-toggle')?.click());
     await until(() => document.documentElement.dataset.ptPage === 'user-settings-button');

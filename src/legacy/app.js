@@ -34,6 +34,7 @@ import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
+import { watchChatLoading } from '../features/chat-loading.js';
 import { chatsPage, chatsWelcome } from '../views/chats.js';
 import { chatTitle, chatTitleNode, formatPreview, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
@@ -9536,6 +9537,8 @@ function onWideKeyDown(event) {
 
 /** The SillyTavern popup watch (src/st/popup-watch.js) while Pocket Tavern is on; the shell takes it over in M1c. */
 let stopPopupWatch = null;
+/** Placeholder messages while a chat loads (src/features/chat-loading.js). */
+let chatLoading = null;
 
 function applyState() {
     const next = shouldBeActive();
@@ -9547,6 +9550,7 @@ function applyState() {
     if (active) {
         startObserver();
         stopPopupWatch ??= startPopupWatch();
+        chatLoading ??= watchChatLoading(() => ctx().getCurrentChatId?.() !== undefined);
         // A SillyTavern theme saved from an older version (or changed in SillyTavern since) gets its current values.
         if (changed && String(settings.theme).startsWith('st:')) loadSillyTavernThemes();
         // Kept running while on: adding and removing its page-wide variables for every sheet restyled the whole page twice.
@@ -9555,6 +9559,8 @@ function applyState() {
         stopObserver();
         stopPopupWatch?.();
         stopPopupWatch = null;
+        chatLoading?.stop();
+        chatLoading = null;
         closeSheet(true);
         stopViewportFollow?.();
         stopViewportFollow = null;
@@ -9886,8 +9892,10 @@ function init() {
     // After SillyTavern has finished switching (or closing) the chat.
     if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, () => {
         setTimeout(syncChatsHome, 0);
+        chatLoading?.done();
         fadeInChat();
     });
+    if (event_types.CHAT_LOADED) eventSource?.on?.(event_types.CHAT_LOADED, () => chatLoading?.loaded());
     for (const name of ['CHAT_DELETED', 'GROUP_CHAT_DELETED', 'CHAT_RENAMED', 'CHAT_CREATED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], refreshChatsHome);
     }
