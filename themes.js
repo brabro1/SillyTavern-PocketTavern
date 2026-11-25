@@ -29,7 +29,7 @@
 
 /** @type {Theme[]} */
 export const THEMES = [
-    // Pocket and Pocket Light are the design system's own palette (DESIGN.md, section 2).
+    // Pocket and Pocket Light are the design system's own palette (DESIGN.md, Tokens).
     // The others differ in structure, not only in hue: how light the surface is and an
     // accent tuned for it. All are flat: no glows, no gradients.
     {
@@ -187,7 +187,7 @@ const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
  * recipe (raised cards, quiet message tints, checked contrast). Over a chat
  * background (see `glass`) its message cards keep its own tints and how
  * see-through they are, and its text shadow, with floors so text stays readable.
- * Panels stay solid and nothing is blurred (DESIGN.md, section 7). The most colorful of its text colors becomes
+ * Panels stay solid and nothing is blurred (DESIGN.md, Themes). The most colorful of its text colors becomes
  * the accent.
  * @param {Record<string, any>} st A SillyTavern theme (its saved JSON).
  * @returns {Theme|null}

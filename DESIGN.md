@@ -1,205 +1,637 @@
-# Pocket Tavern — Design System & UI Specification
+# Pocket Tavern: Design System
 
-This document is the single source of truth for Pocket Tavern's visual design, tokens, layout rules, and component behavior across **Phone** and **Desktop**.
-
-Rules marked **Target** are agreed goals the code does not meet yet. They are scheduled in the redesign (Phase 2, type, radius, spacing and motion, was built in 2.28.0; Phase 3 is components) and listed together in §7. Build toward them; never write them out of this document because today's code differs.
+This is the design and UX specification for Pocket Tavern 3.0, on **Phone** and **Desktop**. It describes the target. The code catches up milestone by milestone (see [`AGENTS.md`](AGENTS.md) → Status). When code and this document disagree, this document wins. To change a rule, change it here first, in the same change as the code.
 
 ---
 
-## 1. Core Aesthetic Philosophy
-Pocket Tavern should feel like a **fast, calm, native messaging & reading app**—comparable to Telegram, Linear, or Apple Messages—not a flashy web demo.
-- **Content First:** The character's writing and conversation are the star. Chrome (bars, toolbars, buttons) stays quiet and out of the way.
-- **Tactile & Crisp:** Clear hairline borders, subtle surface elevation, sharp typography, and predictable 4px-grid spacing.
-- **Zero "AI Slop":** Every visual element must earn its place.
+## 1. Principles
 
-### Explicitly Banned Visual Patterns
-Do NOT introduce any of the following:
-- Purple/pink/cyan neon gradients or glowing borders/drop-shadows
-- `backdrop-filter: blur()` anywhere — it lags mobile GPUs **and** turns an element into the containing block of its `position: fixed` children, which breaks full-screen editors over scrolled chats/pages. Pocket Tavern explicitly disables SillyTavern's own blur while active.
-- Card-inside-card-inside-card nesting
-- Random emojis used as UI icons (use clean monochrome Lucide-style SVGs from `icons.js`)
-- Oversized pill radii (`9999px`) on every container
-- Bouncy, slow, or theatrical animations
+**North star:** Pocket Tavern feels like a flagship messaging and reading app that happens to run on SillyTavern: one calm, coherent product, not a skin over another program.
+
+1. **The story is the screen.** The conversation is the hero. Chrome is quiet: secondary-colour icons, hairline edges, no badges or status unless something needs the user.
+2. **One way to do each thing.** Every place has exactly one home in the map. No "More" menus, no second route to the same screen (section 3).
+3. **Quiet until it matters.** Connection, errors and progress appear only when the user must act or wait, and then clearly, with one action that fixes them.
+4. **Visual first.** Pictures over lists (character grid, avatars in chat rows). Icons come with labels. Icon-only buttons are only for icons everyone knows: ✕, ‹, ⋯, search, send, `+`, edit.
+5. **One app, two shapes.** Phone and desktop share the same map, words, tokens and components. They differ in placement and input: thumb and touch versus mouse, keyboard and room.
+6. **Native feel.** Every press answers within 100ms. Motion is short and purposeful. Nothing jumps, and the keyboard never shoves the layout around.
+7. **SillyTavern's data, Pocket Tavern's face.** Everything the user makes is stored and saved by SillyTavern. Pocket Tavern decides how it looks and how you reach it.
+
+### Banned
+
+- Neon or coloured gradients, glows, glowing borders. (A neutral dark scrim under text on photos is allowed.)
+- `backdrop-filter` anywhere. It lags phone GPUs and breaks fixed layers (`AGENTS.md`, Known traps).
+- Cards inside cards.
+- Emoji as UI icons. Use the monochrome icon set in `src/ui/icons.js`.
+- The words "Close" or "Done" as the control that dismisses something (use ✕).
+- −/+ steppers on continuous values (temperature, token counts).
+- "More" catch-all menus, a sheet opened from another sheet, and two routes to the same screen.
+- Permanent status text ("Connected").
+- More than one primary button on a screen.
+- Two shapes for the same role.
+- Walls of always-visible help text.
+- Bouncy, slow or theatrical motion, and animating layout properties.
+- Hard-coded colours outside theme definitions.
 
 ---
 
-## 2. Design Tokens, Themes & Z-Index Layers
+## 2. Tokens
 
-### Root & Token Naming
-All styles are scoped under `html.stmui-on` (plus state classes on `<html>`). **`--pt-*` tokens are the source of truth**; older `--stmui-*` variables alias them for backward compatibility and are not used in new code.
+All tokens are `--pt-*` custom properties on `html.pt-on`. Nothing outside `src/themes/` and `styles/tokens.css` writes a raw colour, size or duration. `npm run check` fails when CSS leaves the scales.
 
-### Color & Surface Tokens (Default Theme: **Pocket**)
-| Token | Pocket (Dark) | Pocket Light | Role |
+### Colour roles
+
+| Token | Pocket (dark) | Pocket Light | Role |
 |---|---|---|---|
-| `--pt-bg` | `#0e0f12` | `#f6f7f9` | Opaque app canvas, bars, pages, sheets, dialogs, composer |
-| `--pt-surface` | `#16181d` | `#ffffff` | Cards, fields, secondary containers |
-| `--pt-surface-elevated` | `#1e2128` | `#eceef2` | Hover states, popovers, raised controls |
-| `--pt-border` | `rgba(255, 255, 255, 0.08)` | `rgba(22, 24, 29, 0.10)` | Hairline separators |
-| `--pt-text-primary` | `#eceef2` | `#16181d` | Main prose and primary labels |
-| `--pt-text-secondary` | `#9aa0ad` | `#5a6170` | Timestamps, narration, metadata, subtle labels |
-| `--pt-text-muted` | contrast-checked (`≥ 3:1`) | contrast-checked (`≥ 3:1`) | Placeholders, disabled hints |
-| `--pt-accent` | `#5b8def` | `#2f5fc4` | Single restrained accent for primary actions/active states |
-| `--pt-accent-soft` | `16%` `--pt-accent` | `16%` `--pt-accent` | Soft selection/active tint |
-| `--pt-on-accent` | `#0b1630` | `#ffffff` | Text/icons placed on `--pt-accent` |
-| `--pt-danger` | contrast-checked (`≥ 4.5:1`) | contrast-checked (`≥ 4.5:1`) | Destructive actions only |
-| `--pt-card-user` / `--pt-card-bot` | subtle surface tint | subtle surface tint | Message card backgrounds (the only translucent surfaces over chat backgrounds) |
-| `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat backdrop behind the chat (no gradients) |
+| `--pt-bg` | `#0e0f12` | `#f6f7f9` | Opaque canvas: bars, pages, sheets, dialogs, message box |
+| `--pt-surface` | `#16181d` | `#ffffff` | Cards, fields, list groups |
+| `--pt-surface-elevated` | `#1e2128` | `#eceef2` | Hover, pressed, secondary buttons, popovers |
+| `--pt-border` | `rgba(255,255,255,.08)` | `rgba(22,24,29,.10)` | Hairlines and separators |
+| `--pt-text-primary` | `#eceef2` | `#16181d` | Prose, titles, labels |
+| `--pt-text-secondary` | `#9aa0ad` | `#5a6170` | Metadata, help, inactive icons |
+| `--pt-text-muted` | ≥ 3:1 | ≥ 3:1 | Placeholders, disabled |
+| `--pt-accent` | `#5b8def` | `#2f5fc4` | The one accent: primary action, selection, focus ring |
+| `--pt-accent-soft` | accent 16% | accent 16% | Selected rows, active tab pill |
+| `--pt-on-accent` | `#0b1630` | `#ffffff` | Text and icons on accent |
+| `--pt-ok` / `--pt-info` / `--pt-warn` / `--pt-danger` | ≥ 4.5:1 | ≥ 4.5:1 | Status icons, notes, destructive actions |
+| `--pt-on-danger` | ≥ 4.5:1 on danger | ≥ 4.5:1 on danger | Text on a filled danger button |
+| `--pt-card-user` / `--pt-card-bot` | subtle tints | subtle tints | Message cards (the only translucent surfaces over a chat background) |
+| `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat colour behind the chat |
+| `--pt-scrim` | black 40% | black 24% | Behind sheets and dialogs |
+| `--pt-shadow-float` | per theme | per theme | Only on floating layers: popovers, dialogs, toasts, floating message box |
 
-### Type, Spacing, Radii & Motion Tokens
-- **Type scale:** every font size is one of `--pt-text-xs` (`12px`), `--pt-text-sm` (`14px`), `--pt-text-body` (`15px`), `--pt-text-md` (`16px`), `--pt-text-lg` (`20px`), `--pt-text-xl` (`24px`). Icon glyphs sized with `font-size` use the same steps (`20px` tools, `24px` close crosses). Sizes in `em` inside a message (timestamps, code) follow the message text, so the Chat text size scales them too.
-- **Message text:** `--pt-text-chat` is `15px` on phones and `16px` on the desktop layout, multiplied by SillyTavern's Font scale and Pocket Tavern's Chat text size.
-- **Spacing (4px scale):** `--pt-space-1` (`4px`), `--pt-space-2` (`8px`), `--pt-space-3` (`12px`), `--pt-space-4` (`16px`), `--pt-space-5` (`20px`), `--pt-space-6` (`24px`), `--pt-space-8` (`32px`). Every padding, margin and gap is on this scale. Exceptions: `1px` hairline offsets, and the quick reply chips' `6px` margin (`(44px tap row − 32px chip) / 2`).
-- **Radii:** `--pt-radius-sm` (`10px`, controls: buttons, inputs, menu rows, chips that are not round), `--pt-radius` (`14px`, containers: message cards, sheets, panels, lists, toasts). A control inside a container with `4px` padding gets the next step down so the corners stay concentric (the segmented control: `14px` outside, `10px` tabs). Round things (avatars, icon buttons, pills) stay `50%` / `999px`. Marks smaller than a control (checkboxes, key caps, badges, search highlights, theme-card miniatures) keep a small radius.
-- **Motion:** `--pt-dur-fast` (`150ms`, presses, hovers, fades), `--pt-dur` (`220ms`, sheets, panels, dialogs), `--pt-dur-slow` (`240ms`, the longest: page slides and the context ring), all with `--pt-ease` (`cubic-bezier(0.2, 0, 0, 1)`). Pocket Tavern's JavaScript animations use the same values.
+**Contrast:** body text, narration, dialogue, text on cards, on accent and on danger meet **4.5:1**. Secondary text, icons, borders of fields and the accent meet **3:1** on both `--pt-bg` and `--pt-surface`. `check.mjs` verifies every theme.
 
-### Z-Index Scale
-Every layered element must sit on this documented scale (never invent ad-hoc `9999`/`30000` values):
+### Type
+
+Font stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif`. Appearance → Reading font can switch the **messages only** to SillyTavern's font.
+
+| Role | Size / line height / weight | Used for |
+|---|---|---|
+| `caption` | 12 / 1.35 / 400–500 | Timestamps, counts, badges, the A–Z strip |
+| `small` | 14 / 1.4 / 400 | Row subtitles, help text, group headers (600) |
+| `body` | 15 / 1.45 / 400 | UI text, row titles, fields; buttons at 600 |
+| `headline` | 16 / 1.3 / 600 | Header titles on pushed pages, sheet and dialog titles, card names |
+| `title` | 20 / 1.25 / 600 | Place titles (Chats, Characters, …), the character name on its page |
+| `display` | 24 / 1.2 / 700 | Empty states |
+| `chat` | 15 phone, 16 desktop / 1.6 (Compact 1.5) | Messages, multiplied by Text size and SillyTavern's Font scale |
+
+Paragraphs in messages are 0.75em apart (Compact 0.5em). Quotes and code blocks get 0.75em above and below. `em` sizes inside a message follow the chat text. Numbers that change in place (counts, values) use `font-variant-numeric: tabular-nums`.
+
+### Spacing and layout
+
+4px scale: `--pt-space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-5` 20, `-6` 24, `-8` 32. Every padding, margin and gap is on the scale. The only exceptions are 1px hairline offsets and offsets computed to centre a smaller visual inside a 44px hit area (comment the formula).
+
+| Constant | Phone | Desktop |
+|---|---|---|
+| Screen edge padding | 16 | 24 (panel 16) |
+| Header height | 52 (Compact 48) + safe area | 52 |
+| Tab bar | 56 + safe area | none: rail 72 wide |
+| Panel width | none | 320–560, default 400. Editors widen it to 720 |
+| Chat column | full width | max 760, or SillyTavern's Chat width when narrower |
+| Tool column | none | 280–360 |
+| Row height | 52 (Compact 44) | 44 |
+
+### Radii: the shape rule
+
+**Actions are round. Containers and fields are rounded rectangles.**
+
+| Token | Value | Use |
+|---|---|---|
+| `--pt-radius-sm` | 10px | Fields, pickers, segmented tabs, menu rows inside a group, small cards, notes |
+| `--pt-radius` | 14px | Containers: list groups, message cards, sheets (top corners), dialogs, popovers, toasts, the segmented track |
+| `--pt-radius-full` | 999px | Every button, icon button, chip, the tab bar's active pill, round avatars |
+
+A control inside a container with 4px padding steps down one radius so corners stay concentric. Marks smaller than a control (checkboxes, key caps, badges, highlights) keep a 4–6px radius.
+
+### Elevation
+
+Depth comes from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines, not shadows. `--pt-shadow-float` is only for things that float above content: popovers, dialogs, toasts and the floating message box.
+
+### Z-index bands
+
 | Token | Value | Layer |
 |---|---|---|
-| `--pt-z-chat` | `30` | In-chat floating controls (Jump to bottom) |
-| `--pt-z-page` | `3005` | Full-screen pages / desktop side page |
-| `--pt-z-panel` | `3050` | Desktop side tool panels (`#movingDivs`) |
-| `--pt-z-finder` | `3150` | In-chat search bar (below full-screen message editor) |
-| `--pt-z-edge` | `3250` | Desktop panel resize edge |
-| `--pt-z-editor` | `3300` | Full-screen editors (message editor, opened lorebook entry, prompt editor) |
-| `--pt-z-drag` | `3500` | Swipe-to-regenerate hint overlay |
-| `--pt-z-bars` | `4010` | App bar and bottom tab bar / desktop left rail |
-| `--pt-z-banner` | `4030` | Connection / translation status banners |
-| `--pt-z-popup` | `5000` | Top-level popups & extension overlays (native `<dialog>` sheets open in the browser top layer above all z-indexes) |
+| `--pt-z-chat` | 30 | Floating controls inside the chat (Jump to latest) |
+| `--pt-z-page` | 3000 | Pages, the desktop panel and tool column, the in-chat search bar |
+| `--pt-z-editor` | 3300 | Full-screen editors and the swipe hint |
+| `--pt-z-bars` | 4000 | Headers, tab bar, rail, status banners |
+| `--pt-z-overlay` | 5000 | Sheets, dialogs, popovers. Native `<dialog>`s use the browser top layer |
 
-### Contrast & Theme Rules
-- **WCAG AA Minimum:** Body text, narration, dialogue, text on cards, text on accent, and `--pt-danger` must meet **4.5:1** minimum. Secondary/muted labels and accents must meet at least **3:1** on both `--pt-bg` and `--pt-surface`.
-- **Never hardcode dark-only hexes** (such as bright yellows/pastels) for icons, badges, toasts, or warnings—derive semantic colors so they pass contrast on all 10 dark and 4 light themes (`Pocket`, `Pocket Light`, `Paper`, `Cloud`, `Lavender`, etc.).
-- **SillyTavern Themes & Chat Backgrounds (`html.stmui-glass`):** SillyTavern themes are converted into these roles with contrast enforced. Over a chat background, bars, pages, sheets, dialogs, and the composer stay **opaque**; only message cards become translucent tints so the artwork shows through and between them. Both `--SmartThemeBodyColor` and `--pt-text-primary` are lifted over mid-grey until they meet contrast.
-
----
-
-## 3. Typography & Reading Ergonomics
-- **Font Stack:** `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif` (or inherit SillyTavern's user-chosen font when **System font** is off).
-- **Reading Size:** `15px` on phones and `16px` on desktop by default, `line-height: 1.6`, clear paragraph rhythm (`0.75em` gap between paragraphs in Comfortable mode). The **Chat text size** setting scales smoothly from this baseline.
-- **Dialogue & Narration:** `*italics*` (`--SmartThemeEmColor`) and `"dialogue"` (`--SmartThemeQuoteColor`) remain visually distinct without garish neon colors.
-- **Desktop Reading Column:** Centered, never stretching wall-to-wall on a 1440p monitor, and never crushing `#send_form` when side panels are open. **Target:** cap the column at `760px` (`720px–780px`), or SillyTavern's **Chat width** slider when that is narrower. Today it follows the Chat width slider alone (up to `1280px` at 2560 wide).
-- **Code Blocks & Tables:** Horizontally scrollable inside their own container (`overflow-x: auto`) so wide content never breaks viewport width.
-- **Quotes & Code Blocks:** `0.75em` above and below (`0.5em` in Compact) so the text around them reads apart.
-- **Message Cards over a Chat Background:** a card from a SillyTavern theme takes the strength of both of SillyTavern's layers (chat tint and message tint), and its text is checked against the card over a bright picture as well as a mid-grey one.
-
----
-
-## 4. Two Layouts & Platform Invariants
-
-### Phone Layout (`html:not(.stmui-wide)`)
-- **Structure:** Top app bar, bottom tab bar (Chat, Characters, Lorebooks, Presets, More — auto-tucked in chat when enabled), full-screen pages one at a time, bottom-sheet menus, and Android/browser back-gesture integration.
-- **Safe Areas:** Pad top bar with `env(safe-area-inset-top)` and bottom bar / docked composer with `env(safe-area-inset-bottom)`.
-- **Touch Targets:** **44×44px** is the strict floor for every tappable control on a phone, including steppers, chevrons, close buttons, tags, and chip `×` buttons. Visual chrome may look smaller (e.g. a 32px chip) only if its hit area fills 44px via padding or `::after`.
-- **No Horizontal Scroll:** Zero elements may bleed past viewport width (test down to `320px` and `360px` with extensions enabled).
-
-### Desktop Layout (`html.stmui-wide`, `≥ 960×560`)
-- **Structure:** Compact left navigation rail with every page, resizable side page panel beside the chat that stays open while chatting, right-hand column for tool panels (Author's Note, CFG, Token Probabilities), centered dialogs instead of bottom sheets, and `Ctrl/Cmd+K` for Search everything.
-- **Keyboard:** `Enter` sends and `Shift+Enter` inserts a newline (SillyTavern's own **Send on Enter** setting decides; never override it), `Escape` closes the topmost dialog, sheet or page (only when not typing in a text field).
-- **Dual-Panel Fit:** Left side panel width must account for any open right-hand tool panel (`--stmui-right`) so the center chat & composer never crush below usable width on `960–1200px` screens.
-- **Pointer Precision:** On fine pointers (`@media (pointer: fine)`), Compact controls may drop under `44px`; on touch devices (tablets/touch laptops), touch targets stay `44px`.
-- **Hover & Keyboard Focus:** Subtle hover states (`--pt-surface-elevated`) and clear `:focus-visible` outlines on every interactive control—never strip `outline: none` without a `:focus-visible` ring.
-
-### iPhone & iPad (Safari / WebKit)
-- Safari does not shrink the layout viewport when the virtual keyboard opens.
-- Every fixed or input-bearing layer (app bar, `#sheld`, open pages, prompt editor, message editor, opened lorebook entry, `#character_popup`, `.stmui-chat-finder`, popups, banners) must follow `--stmui-ios-top` and `--stmui-ios-h` while `html.stmui-ios-kb` is active—**never rely on `100dvh` alone** for fixed layers.
-- On iPad landscape (`html.stmui-wide.stmui-ios-kb`), full-screen editors must keep their desktop horizontal rail/column offsets rather than stretching over the left rail.
-- Verify every phone/fixed/keyboard change in both Chrome and WebKit (`ENGINE=webkit node ios.mjs`).
-
-### Android Keyboard
-- The chat and composer slide together as **one piece** when the window shrinks—never animate either independently.
-- The root page itself never scrolls; hidden bars/elements must leave layout (`display: none`).
-
-### Full-Screen Layers (from SillyTavern DOM)
-- Full-screen editors built from SillyTavern elements (message editor, opened lorebook entry, prompt editor) are `position: fixed`, opaque (`--pt-bg`), `align-self: stretch`, and placed between the bars.
-- Their ancestors must never carry persistent `backdrop-filter`, `transform`, `filter`, or `contain`.
-
-### Right-to-Left (`html.stmui-rtl`)
-- Active only when an RTL dictionary is actually loaded (currently Arabic `ar`).
-- Prefer CSS logical properties (`text-align: start`, `margin-inline-start/end`, `inset-inline-start/end`) over physical `left`/`right` inside bars, sheets, search bars, and chat finder. Flip directional arrows and set `lang` on dialogs/sheets for proper hyphenation.
-
----
-
-## 5. Component Specifications
-
-### Top Bar (`.stmui-appbar`)
-- Compact (`48px–52px` height), single row, solid `--pt-bg`, clean hairline bottom border.
-- Shows active character/group avatar + truncated title (`text-overflow: ellipsis`) or current page title + back button, quick translate trigger (on chat), and page/chat contextual action.
-- **Target:** a clean one-tap toggle back to native SillyTavern for this visit, with a single `44px` "Back to Pocket Tavern" pill in a corner of the native interface. Today switching lives in **More → Pocket Tavern settings**. Turning Pocket Tavern off in settings still leaves nothing behind.
-
-### Message List & Avatars
-- Subtle separation between User (`--pt-card-user`) and Character (`--pt-card-bot`) messages across **Cards**, **Bubbles**, and **Flat** looks.
-- Honors all four of SillyTavern's `avatar_style` shapes (Circle, Square, Rounded, Rectangle).
-- Message actions stay calm and unobtrusive, never 8 loud buttons on every message: a clean compact row + `⋯` action sheet on phone; swipes sit in a compact `‹ 1/3 ›` pill.
-- **Target (desktop):** message buttons sit at low opacity and come up fully on hover or keyboard focus of the message, with a mouse only (`@media (hover: hover)`). Today they are always shown at full strength.
-
-### Composer (`#send_form`)
-- Supports **Floating** and **Docked** layouts; auto-growing `<textarea>` capped before scrolling internally. **Target:** the cap is `~35%` of the window height (today `40dvh`).
-- **Send / Stop** sits anchored at the bottom-right and never shrinks.
-- Houses SillyTavern's `☰` chat options, wand (**Tools**), persona chip, tabs toggle arrow (phone), context ring, and compatible extension triggers (e.g. Guided Generations compass, Input History inside the field, slim Quick Reply chips). Any extension button that does not fit cleanly next to Send moves to the wand's **Tools** sheet.
-- **Target:** secondary actions tucked into one `+` menu: `☰` (Chat options) and the wand (Tools) merge into a single `+` sheet with both groups, so the row keeps at most persona, `+`, context ring, the guide button and Send, and `320px` phones are never tight.
-- Extension compatibility patches are keyed strictly on each extension's markup and do nothing when absent (tested with Guided Generations, Quick Replies, Input History, Moonlit Echoes, ScenePulse, Chat Completion Tabs and Chat Top Bar).
-
-### Sheets & Dialogs
-- Bottom sheets on phones (drag handle, safe-area padding), centered modal dialogs on desktop (no downward drag-dismiss on desktop).
-- Preserve keyboard focus (restore trigger focus on close; avoid blowing away focused controls during toggle refreshes) and always show a clear empty state when search yields no matches.
-
-### Chat Rows (Recent chats, Chat history, a character's sheet)
-- One row shape everywhere: a title line (the character, or the chat's own name, or "Chat from 12 May 2023" for an unnamed chat), when, and `⋯`; then the last message as a **message bubble**; then how many messages.
-- The bubble is drawn like a message card of the chat: `--pt-card-bot` tint, hairline edge, the chat font, and SillyTavern's narration (`--SmartThemeEmColor`) and dialogue (`--SmartThemeQuoteColor`) colours, so a theme or SillyTavern theme shows in the preview too. `*narration*`, `"dialogue"` and `**bold**` are built as DOM nodes from text, never HTML. Three lines at most (two in Compact and in groups), clamped inside the bubble so no sliver of the next line shows; `dir="auto"` so the `…` falls on the right side in any language.
-- `⋯` (a 32px circle with a 44px tap area) opens a sheet with that chat's actions; each one runs SillyTavern's own button (pin, rename, export, delete), which stays in the row, hidden. The file name, file size and three small icons are not shown.
-- The chat that is open now gets an accent edge and an "Open now" label, not a coloured block.
-
-### Character Sheet
-- Tapping a character in the list opens their sheet (a dialog on desktop) instead of their chat: picture, a few words (creator's note or description), **Chat** (accent), **New chat**, **Edit**, and up to five recent chats as chat rows, newest first. Nothing changes until you pick something. Groups, bulk select and the favourite star keep SillyTavern's behaviour. The **Character preview** setting turns it off.
-- **Chat** replays the list tap SillyTavern and Pocket Tavern already know: on a phone the page closes into the chat, on desktop the card stays beside it.
-- **Edit** opens the card without the chat: SillyTavern's own form, filled with `select_selected_character` as SillyTavern does for a group member, while the open chat and SillyTavern's current character stay. Never point SillyTavern's current character at the card's character without opening their chat: the open chat would save into the wrong folder. Form saves (fields, picture, Favorite, Advanced, alternate greetings) go to the card's character; Export downloads its file. Controls that act on SillyTavern's current character (Delete, Duplicate, Lore, Chat lore, Personas, tags, Ext. Media, More…) open the chat first, then run. Leaving the card puts SillyTavern's form back on the open chat's character. The card has **Chat** (accent) and **Recent chats** under the name, 44px, side by side.
-
-### Swipe Arrows
-- ‹ and › are SillyTavern's own elements, placed at the end of the card's last row: two 32px round buttons (44px tap area) on 7% of the text colour, with the count between them in `--pt-text-secondary`. No shared pill: each stands on its own, so every state (one version, several, the last) reads right. With SillyTavern's Bubbles or Document style SillyTavern places them.
-
-### A–Z Strip
-- 28px wide, 12px letters in `--pt-text-secondary`, no track until used. Touching or pressing it shows a soft track, an accent light (24px, with a soft glow) that glides to the letter under the pointer, a lens on the letters around it (they grow and lean out, distance 0–3), and a 56px accent bubble with the letter riding beside the finger. A mouse gets the lens without jumping until it presses. Only `transform` and `opacity` move, `--pt-dur-fast`.
-
-### Notes in pages and popups
-- SillyTavern's `.info-block` notes (hint, info, warning, error) in its pages and in extensions' popups, its plain `p.hint` paragraphs, and Pocket Tavern's own notes and settings status line (green with a check while on): a quiet card on `--pt-surface` with 6% of the note's colour, a hairline edge with 30% of it, `--pt-radius-sm`, an 18px icon in that colour at the start (SillyTavern's own leading icon hidden), text in normal flow (they hold links and bold words). Hint `--pt-info`, info `--pt-gold`, warning `--pt-warn`, error `--pt-danger`.
-
-### Notifications
-- A calm card on `--pt-surface-elevated`: hairline edge, `--pt-radius`, a soft shadow, a 20px icon in the status colour (`--pt-ok`, `--pt-info`, `--pt-warn`, `--pt-danger`), the title in `--pt-text-primary` and the message in `--pt-text-secondary` (primary when there is no title), a 2px progress line. No coloured fill. Below the top bar on a phone (8px from the edges), 380px wide at the top right on desktop.
-
----
-
-## 6. Motion & Writing
+Layers within a band use `calc(var(--pt-z-band) + n)` with `n < 300`. SillyTavern's own popups and toasts are never covered: toasts sit above sheets and dialogs.
 
 ### Motion
-- **Durations:** `150ms` micro-interactions, `220ms` sheets/panels/dialogs, never more than `240ms`. Looping indicators (a reply being written, Stop's pulse) are the only longer animations.
-- **Easing:** `cubic-bezier(0.2, 0, 0, 1)` (snappy, native ease-out—no bouncy overshoot curves). The older `--stmui-ease*` names point at it.
-- **No show pieces:** Send gives a short press (scale `0.9` to `1`, `220ms`); nothing flies off. A message or setting you jump to is outlined for a moment (a still highlight, not an animated colour). Only `transform` and `opacity` animate.
-- **Reduced Motion:** Both `html.stmui-motion-off` and `@media (prefers-reduced-motion: reduce)` must neutralize animations **and** pseudo-elements (`*::before`, `*::after`) with `animation-iteration-count: 1 !important` and `0s` delays so infinite indicators never strobe.
 
-### Writing & Localization
-- Sentence case, plain verbs, no jargon, no apologies.
-- Words follow the active layout: never say "phone" or "tap / long-press" on desktop, and never say "click" on a phone.
-- Every user-facing UI label goes through `t()` with matching entries in `locales.js` (`es`, `pt`, `ru`, `zh`, `ja`, `ar`). Never run user-authored data through `t()`.
+| Token | Value | Use |
+|---|---|---|
+| `--pt-dur-fast` | 150ms | Presses, hovers, fades, popovers |
+| `--pt-dur` | 220ms | Sheets, dialogs, the panel |
+| `--pt-dur-slow` | 240ms | Page push and pop (the longest allowed) |
+| `--pt-ease` | `cubic-bezier(0.2, 0, 0, 1)` | Everything, including JavaScript animations |
+
+- Only `transform` and `opacity` animate.
+- A page push slides in from the end edge. A sheet rises. A dialog fades and scales from 0.98. A popover fades. Pressing scales to 0.97.
+- Send gives one short press. Nothing flies off.
+- A jumped-to message or setting gets a still outline for a moment.
+- Looping indicators (a reply being written, Stop's ring) are the only animations longer than 240ms.
+- **Reduce motion** (the OS setting or Pocket Tavern's switch): fades only, at 150ms. Loops, including on `::before`/`::after`, play once.
+
+### Themes
+
+Six built-in themes:
+- **Pocket** (default) and **Pocket Light**
+- **AMOLED** (true black)
+- **Midnight**
+- **Ember**
+- **Paper** (light, for reading)
+
+Each one fills every colour role above, is flat (no gradients, no glows), and passes the contrast rules. A saved theme that no longer exists falls back to Pocket.
+
+- **SillyTavern UI themes** are offered in the same picker, converted into these roles, with contrast enforced. A converted theme keeps its own User and AI message colours, even when they are equal. They are only darkened or lightened until text passes (issue #5). Themes without message tints get Pocket's faint cards.
+- **A Pocket Tavern theme draws the messages.** When one is chosen, SillyTavern's Chat Style goes to Flat once and the old style is remembered. Choosing a SillyTavern theme or turning Pocket Tavern off restores it.
+- **Chat backgrounds** (`html.pt-glass`): bars, pages, sheets, dialogs and the message box stay **opaque**. Only message cards become translucent, so the picture shows through and between them. Card text is checked over mid-grey and over a bright picture, and lifted until it passes. SillyTavern's own blur is switched off while Pocket Tavern is on.
+
+### Icons
+
+One monochrome, stroke-based set (`src/ui/icons.js`), drawn in `currentColor`. 20px in rows, buttons and toolbars, 24px in the tab bar and rail. Directional icons (back, chevrons) mirror in RTL. Font Awesome icons from SillyTavern or extensions are mapped to the set where a match exists.
 
 ---
 
-## 7. Decisions for this codebase (November 2026)
-- **Root and tokens:** the root selector is `html.stmui-on` (see CLAUDE.md). The `--pt-*` tokens are the source of truth; the older `--stmui-*` tokens are aliases of them and are not used in new code. Nothing is renamed from `stmui` to `pt`: that would break saved settings, drafts, character and chat data, and users' custom CSS.
-- **Themes:** the palette in §2 is the default theme, **Pocket**, with a matching light version. The other Pocket Tavern themes stay, built from the same roles (`--pt-bg`, `--pt-surface`, `--pt-surface-elevated`, `--pt-border`, the three text levels, one accent, danger), flat (no glows, no gradients) and meeting the contrast rule. SillyTavern UI themes are offered too, converted to these roles with the contrast rule enforced.
-- **Chat backgrounds:** no `backdrop-filter` anywhere. Over a chat background, bars, pages, sheets, dialogs and the composer stay solid; only message cards are a translucent tint, so the picture shows through them and between them. Card text is checked against the tint over mid grey and lifted until it meets the contrast rule. SillyTavern's own blur on `#chat` and its drawers is switched off while the shell is on (2.25.1: a blurred container put the full-screen message editor thousands of pixels off screen).
-- **Reading text:** 15px on phones and 16px on desktop by default, line-height 1.6 (Compact 1.5), 0.75em between paragraphs (Compact 0.5em). The Chat text size setting scales up from there.
-- **A Pocket Tavern theme draws the messages:** when one comes on, SillyTavern's Chat Style (Bubbles, Document, often set by a SillyTavern theme) goes to Flat once and the old style is remembered; picking a SillyTavern theme again or turning Pocket Tavern off restores it. Only on those changes, so a style picked afterwards stays.
-- **SillyTavern themes' message cards:** a converted theme keeps its own **User Message** and **AI Message** colours, even when they are the same (GitHub issue #5); they are only made darker or lighter until the text meets the contrast rule. A theme without message tints gets Pocket Tavern's faint cards.
-- **Scrollbars:** on the phone layout nothing shows one: the chat, the pages, sheets and lists scroll by touch, and SillyTavern's 11px bar would take room from the text. On the desktop layout every list scrolls with a slim bar for the mouse: 8px of room, a 4px rounded thumb at 18% of the text colour that comes up to 32% when you point at the list (48% while dragging), no track, no arrows (Firefox: `scrollbar-width: thin`). Only the rail and the segmented controls, which scroll sideways, never show one. Never hide scrollbars on every element.
-- **SillyTavern's own screens** stay SillyTavern's: marked, restyled with tokens and placed with CSS, never moved or rebuilt. Where a screen is a long list of settings, Pocket Tavern may show it in steps (a list of sections that each open their own page, like Settings) by hiding the other sections, not by moving them.
+## 3. Information architecture
 
-### Targets not built yet
-**Phase 2 (type, radius, spacing, motion): built in 2.28.0.** The rules are in §2, §3, §6 and above; `tests/check.mjs` fails when `style.css` leaves the scales.
+### The map
 
-**Phase 3 (components):**
-- Top bar 52px (48px in Compact) with the one-tap SillyTavern toggle (§5 Top Bar).
-- Desktop message buttons at low opacity until hover or focus (§5 Message List).
-- Composer: the 35% cap and the single `+` sheet (§5 Composer).
-- Desktop column capped at 760px, or Chat width when narrower (§3).
-- A `:focus-visible` ring on every Pocket Tavern control.
+Five places, the same on both layouts:
+
+| Place | What lives there |
+|---|---|
+| **Chats** | Search everything; pinned and recent chats. Opening a chat pushes the chat screen |
+| **Characters** | Character grid (or list) and groups; each character's page; the character editor |
+| **Lorebooks** | Active (global) lorebooks; every lorebook and its entries; the entry editor |
+| **AI** | Connection status; connection profile, model and preset; SillyTavern's connection, sampler, prompt and formatting screens |
+| **Settings** | Appearance, Personas, SillyTavern (its settings sections), Extensions, Pocket Tavern, About |
+
+```
+Phone                                  Desktop
+┌──────────────────────────┐           ┌──────┬──────────────┬─────────────────────────┐
+│ Chats                🔍  │           │Chats │ Chats     🔍 │ ◉ Seraphina          ⋯  │
+│ ─ Pinned                 │           │Chars │ ─ Pinned     │                         │
+│ ─ Recent                 │           │Lore  │ ─ Recent     │    messages             │
+│                          │           │AI    │              │                         │
+├──────────────────────────┤           │Sett. │              │ [◉ Message…      +  ➤]  │
+│ Chats Chars Lore AI Sett.│           └──────┴──────────────┴─────────────────────────┘
+└──────────────────────────┘             rail     panel          chat (tool column →)
+```
+
+### One-way rules
+
+1. **Each screen has exactly one home** in the map. Nothing else navigates to it.
+2. **In-context controls act; they don't navigate.** The persona button in the message box *switches* persona; managing personas lives only in Settings → Personas.
+3. **Status links to its fix.** A problem banner may deep-link to the screen that fixes it ("Not connected · Fix" opens AI). That is feedback, not a second route.
+4. **One menu per object.** A chat, a message, a character and a lorebook entry each have one ⋯ menu, with the same items in the same order wherever that object appears.
+5. **No "More".** When a place's root passes about seven rows, group them into sections, not into an overflow.
+6. **One search.** Search everything is the field at the top of Chats (on desktop, `Ctrl/⌘ K` focuses it). It finds characters, chats, lorebooks, entries, settings and the five places. List screens may have a filter field that narrows only that list.
+
+### Where everything lives
+
+| Task | Where |
+|---|---|
+| Open a chat | **Chats** → the chat |
+| Start a chat or a new chat with a character | **Characters** → character → **Chat** / **New chat**. In a chat: tap the name → **New chat** |
+| See every chat with a character | Character page → **Chats** |
+| Switch persona | Message box → persona button |
+| Manage personas | **Settings → Personas** |
+| Switch model, preset or connection profile | **AI** |
+| Check or fix the connection | **AI** status card. Problems also show a banner in the chat and a dot on AI |
+| Regenerate, continue, impersonate, attach a file | Message box → `+` |
+| Author's Note, CFG, token probabilities, extension tools, quick reply sets | Message box → `+` (desktop: they open in the tool column) |
+| Search in this chat, translate, rename, select messages, export, delete the chat | Chat header → ⋯ (the chat's menu) |
+| Edit a message | ✎ on the message |
+| Other message actions (copy, branch, checkpoint, hide, narrate, delete…) | Message ⋯ (phone: also long-press) |
+| Edit a character, favourite it | Character page → **Edit** / ★ |
+| Character's lorebooks | Character editor → **Lorebook** |
+| Global lorebooks, entries | **Lorebooks** |
+| Theme, chat look, text size, reading font, density, message box, chat width, background, Reduce motion | **Settings → Appearance** |
+| SillyTavern's own settings | **Settings → SillyTavern** → its section |
+| Extensions | **Settings → Extensions** |
+| Where Pocket Tavern runs, its switches, "Use SillyTavern for now" | **Settings → Pocket Tavern** |
+| Version, What's new, update Pocket Tavern, SillyTavern updates, install as app, Docs, GitHub, Discord | **Settings → About** |
+
+### Settings inventory
+
+- **Appearance:**
+  - Theme (Pocket Tavern's and SillyTavern's)
+  - Chat look (Cards, Bubbles, Flat)
+  - Text size (Small, Normal, Large, Extra large)
+  - Reading font (System, SillyTavern's)
+  - Layout (Automatic, Phone, Desktop; section 4)
+  - Density (Automatic, Comfortable, Compact)
+  - Message box (Floating, Docked)
+  - Chat width (desktop)
+  - Chat background
+  - SillyTavern's own look controls that still apply (avatar shape, font scale)
+  - Reduce motion
+- **Pocket Tavern:**
+  - Use it on this device (Automatic, Phones only, Off)
+  - Use SillyTavern for now
+  - Behaviour, six switches and no more:
+    - Long-press for message menu
+    - Keep unsent messages
+    - Keep screen on while replying
+    - Connection check
+    - Translation (Google Translate)
+    - Vibration (Android phones)
+- Everything that used to be a "feature switch" in 2.x is now simply how the app works, or is gone (section 9).
+
+### Phone navigation
+
+- The **tab bar** shows on the five place roots and their sub-pages. It hides in the chat, in editors, and while the keyboard is up. Hidden means `display: none`, never off-screen.
+- Each place keeps its own **stack**. ‹ and the system back gesture pop one level. Tapping the active tab pops to that place's root and scrolls to the top.
+- The **chat** is pushed over the tabs from Chats, from a character page, or from search. Back returns where you came from.
+- **Back order:** close the open overlay → pop the page → from another place's root, go to Chats → from Chats' root, leave to the browser.
+- An overlay never opens on top of another overlay. A menu item that needs a further choice replaces the overlay's content (with ‹ inside it). A menu item that navigates closes the overlay first. A menu item that opens a different overlay (⋯ → Rename) closes the menu, then opens the new one on the next frame.
+
+### Desktop navigation
+
+- **Rail | Panel | Chat | (Tool column).** There is no full-width top bar. The panel and the chat each have their own header.
+- The **rail** lists the five places, icon over label. Clicking a place opens it in the panel. Clicking the active place hides the panel, so the chat gets the room.
+- The **panel** is a stack, like the phone (‹ in its header). Drag its edge to resize. Its width is remembered.
+- The **chat column** always shows the open chat. With none open, it shows a calm empty state, and Chats is open in the panel.
+- The **tool column** (Author's Note, CFG, token probabilities) docks at the end. When room runs out the panel narrows first. The chat column never drops below 480px.
+- **Overlays:** menus are popovers anchored to their trigger. Pickers with search, short forms and confirmations are centred dialogs (max 560px). Editors open in the widened panel.
+- **Keyboard:**
+  - `Ctrl/⌘ K` opens Search everything, which also lists the five places.
+  - `Esc` closes the topmost popover or dialog, then goes back in the panel. It never acts while you are typing in a field.
+  - `Enter` / `Shift+Enter` follow SillyTavern's Send on Enter setting.
+  - Tab order follows the visual order.
+  - Pocket Tavern adds no other shortcuts. Digit shortcuts clash with browser tab switching.
+
+---
+
+## 4. Layouts and platform invariants
+
+**Phone** (`html.pt-phone`): any window that is not desktop, including phones held sideways (short height). Landscape gets slimmer bars with labels beside icons.
+- Pad bars with `env(safe-area-inset-*)`.
+- Every tappable thing has a 44×44px hit area. It may look smaller (a 32px chip) if its hit area fills 44px.
+- Nothing scrolls sideways down to 320px wide, with extensions on.
+
+**Desktop** (`html.pt-desktop`): windows at least **960×560**: computers, and tablets held sideways.
+- With a fine pointer (`@media (pointer: fine)`), controls may drop to 36px visual.
+- Touch laptops and tablets keep 44px.
+- Hover styles only under `@media (hover: hover)`.
+
+**Choosing the layout** (Appearance → Layout):
+- **Automatic** (default) uses the size rule above, and re-checks when the window changes size or turns.
+- **Phone** always uses the phone layout, at any size.
+- **Desktop** uses the desktop layout whenever the window is at least 768px wide (for example an iPad held upright). Below that it falls back to Phone, because the chat column needs its 480px.
+- Only one module (`src/shell/layout.js`) decides the layout and sets `pt-phone` or `pt-desktop`. Nothing else reads the window size to choose a layout.
+
+**Both:**
+- **Focus:** every interactive element shows a 2px `--pt-accent` outline at 2px offset on `:focus-visible`. `outline: none` without a replacement is a bug.
+- **Text scaling:** layouts survive browser zoom up to 200% and Extra large text. No fixed heights on text containers.
+- **Reduced motion:** section 2, Motion.
+- **SillyTavern's popups** (`dialog.popup[open]`, `#shadow_popup` and the other popup ids listed in `src/st/selectors.js`): while one is open, `html.pt-st-popup` is on.
+  - Pocket Tavern's own layers are `inert` (no taps, no focus).
+  - Pocket Tavern's back gesture, `Esc` handling and keyboard offsets step aside.
+  - The popup stays above everything (section 2, Z-index).
+  - One observer, at most one check per frame, watches for popups opening and closing, and it is disconnected on teardown.
+- **The keyboard is up** only while a text field (a text input, a text area, or editable text that is not disabled or read-only) has focus **and** the visible height is at least **120px** shorter than the full height. On iPhone and iPad, "visible" means the visual viewport against the window. On Android, it means the window against its largest height at this width. The check reruns on focus changes and on viewport resize and scroll, at most once per frame. The tab bar hiding and `pt-ios-kb` both use this one rule.
+
+**iPhone and iPad (Safari/WebKit):**
+- Safari does not shrink the layout viewport for the keyboard. Every fixed or input-bearing layer follows `--pt-ios-top` and `--pt-ios-h` while `html.pt-ios-kb` is on. Never rely on `100dvh` alone.
+- On iPad landscape (`html.pt-desktop.pt-ios-kb`), editors keep their rail and panel offsets.
+- Test in Chrome **and** WebKit.
+
+**Android keyboard:** the chat and the message box move as one piece when the window shrinks. The root page never scrolls.
+
+**Fixed layers** (editors, the in-chat search bar, banners):
+- Opaque `--pt-bg`.
+- `align-self: stretch`.
+- Placed between the bars.
+- Their ancestors never carry `transform`, `filter`, `backdrop-filter`, `contain` or `will-change: transform`.
+
+**Right-to-left** (`html.pt-rtl`): on only when an RTL language is loaded (Arabic).
+- Use logical properties throughout.
+- Mirror directional icons.
+- Set `lang` and `dir` on overlays so text wraps and hyphenates correctly.
+- Chat text uses `dir="auto"`.
+
+**Scrollbars:**
+- **Phone:** none. Everything scrolls by touch.
+- **Desktop:** every scrolling list has a slim bar: 8px of room, a 4px round thumb at 18% of the text colour (32% on hover, 48% while dragging), no track and no arrows. Firefox uses `scrollbar-width: thin`.
+- The rail, segmented controls and the character list (which has the A–Z strip) show none.
+- Never hide scrollbars on every element.
+
+---
+
+## 5. Components
+
+Every component exists once in `src/ui/` and `styles/components/` and is used everywhere. Sizes below are touch / fine pointer.
+
+### Tab bar and rail
+- **Tab bar:** five equal tabs, 24px icon over a `caption` label. The active tab gets a `--pt-accent-soft` pill behind its icon, which slides between tabs, and its label in `--pt-text-primary`. Inactive tabs are `--pt-text-secondary`. A dot (6px, `--pt-danger`) marks AI when the connection has a problem.
+- **Rail:** the same five, stacked at the top. The same pill and dot.
+
+### Headers and closing
+- **Place root:** title (`title`) at the start, up to two icon actions at the end.
+- **Pushed page:** ‹ at the start, title (`headline`, one line, ellipsis), up to two icon actions at the end.
+- **Sheets, dialogs and full-screen editors:** title (+ optional one-line subtitle) at the start, **✕ at the end**: a 44px icon button labelled "Close" for screen readers. If the thing needs saving, a primary **Save** pill sits just before ✕.
+- **Forms that apply as you go have no Save.** Forms that don't: on a phone the Save pill is full width at the bottom of the sheet. On desktop the dialog footer ends with a quiet Cancel and then Save.
+- Closing anything with unsaved input asks first ("Discard changes?").
+
+### Buttons
+All buttons are pills (`--pt-radius-full`), 44px tall (36px with a fine pointer or Compact), 16px inline padding (12px Compact), label `body` 600, optional 20px leading icon.
+
+| Kind | Look | Use |
+|---|---|---|
+| **Primary** | `--pt-accent` fill, `--pt-on-accent` text | The one main action of a screen (Chat, Save, Send). One per screen |
+| **Secondary** | `--pt-surface-elevated` fill, primary text | Other actions next to it (New chat, Edit) |
+| **Quiet** | No fill, primary text; hover `--pt-surface-elevated` | Toolbar and inline actions, Cancel |
+| **Danger** | Quiet or secondary with `--pt-danger` text; filled `--pt-danger` + `--pt-on-danger` only as the confirm button of a delete dialog | Destructive actions |
+| **Icon button** | 44px round hit area (visual 40, or 32 with a fine pointer), 20px icon in `--pt-text-secondary`, primary on hover or press | ✕, ‹, ⋯, ✎, search, `+` |
+
+Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacity, no pointer events. Labels are short verbs in sentence case ("New chat", not "Start a New Chat").
+
+### List rows and groups
+- **Row:** 52px minimum (44 Compact or fine pointer), `--pt-space-3` `--pt-space-4` padding.
+  - Start: a 20px secondary icon or a 32px avatar.
+  - Middle: title (`body`), then an optional subtitle (`small`, secondary, one line; two lines for descriptions).
+  - End, by kind: chevron for **navigation**, switch for a **toggle** (the whole row toggles), value plus chevron for a **picker**, ⋯ for an **object**.
+- **Group:** rows in a `--pt-surface` container with `--pt-radius`, separated by hairlines that start at the text, not the icon. An optional group header (`small` 600, secondary, sentence case) sits 8px above it.
+
+### Fields
+- **Text field:** 44px tall, `--pt-radius-sm`, `--pt-surface` fill, hairline border. On focus: accent border and focus ring. Placeholder in `--pt-text-muted`.
+- **Label:** `small` 500 above the field on a phone. On desktop, short controls (switch, picker, number) sit beside their label: label at the start, control at the end. Text areas always stack.
+- **Text areas** grow with their text up to 40% of the window, then scroll inside.
+- **Help text:** `small`, secondary, under the field, clamped to two lines with "More".
+- **Errors:** danger text under the field and a danger border.
+- **Picker** (replaces a visible `<select>`): a row with the label, current value and chevron. It opens a sheet on a phone, and on desktop a popover (8 options or fewer) or a dialog with search (more than 8). Single choice closes on pick. Multi-choice shows checkmarks, applies live, closes with ✕, and its row summarizes the choice as chips. SillyTavern's real `<select>` stays underneath and receives the change.
+- **Search field:** a text field with a leading search icon and a clear (✕) button once there is text. Filters as you type (debounced) and always shows an empty state when nothing matches.
+
+### Number and slider (issue #12)
+- **One row:** label at the start. At the end, the **value pill**: min 64px wide, 36px tall (44px hit area), `--pt-surface-elevated`, tabular numbers, unit in secondary text. The **slider** spans the full width under them.
+- **Slider:** 44px hit height, a 4px track filled with accent up to a 20px thumb.
+- **Value pill:**
+  - Tapping it selects the number and opens the numeric keyboard (`inputmode="decimal"`).
+  - `Enter` or leaving the pill commits. `Esc` reverts.
+  - Out-of-range values snap to the limit and show it.
+  - On desktop, `↑`/`↓` change by one step, `Shift` ×10.
+- **No −/+ buttons, ever.** The browser's spin arrows are hidden.
+- SillyTavern's own range and number inputs stay underneath and receive every change with their own events.
+- A number without a range is just the value pill on the row.
+
+### Switch, segmented control, chips, tabs
+- **Switch:** SillyTavern's settings checkboxes render as switches. Real checkboxes are used only in multi-select lists.
+- **Segmented control:** 2–4 options that change a view or a mode, full width on a phone. Track `--pt-radius` with 4px padding, segments `--pt-radius-sm`.
+- **Chips** (filters, tags, quick replies, keywords): pills 32px tall with a 44px hit area, `small` label. Removable chips have a ✕ with its own 44px hit area.
+- **Tabs inside a screen** are a segmented control (four at most). More than four sections become rows that open pages.
+
+### Disclosure
+- Sections of a long screen are **rows that open pages**. There are no accordions for sections.
+- A form may have **one "Advanced" fold**: a row whose chevron turns 90° and whose content appears below it (fading, never animating height). It never nests.
+- **Help text** is clamped to two lines with "More", everywhere.
+
+### Cards
+- **Character card** (grid):
+  - A 3:4 picture tile, `--pt-radius`. The name sits on a neutral scrim at the bottom, and a ★ at the top end marks favourites.
+  - Columns: 3 on phones 360px and wider, 2 below. On desktop the panel fills with columns at least 120px wide.
+  - Tap opens the character page. Grid is the default. A list view is offered in the Characters header (Sort & view).
+- **Chat row:**
+  - A title line (the character, or the chat's own name, or "Chat from 12 May 2023"), when, and ⋯.
+  - Then the last message as a **message bubble** drawn like a message card of the chat: `--pt-card-bot`, hairline edge, the chat font, and SillyTavern's narration and dialogue colours. `*narration*`, `"dialogue"` and `**bold**` are built from text nodes, never HTML. Three lines at most (two in Compact and groups), clamped cleanly, with `dir="auto"`.
+  - Then a message count.
+  - The open chat gets an accent edge and an "Open now" label.
+- **Lorebook entry card:** title, keyword chips, an on/off switch, a strategy icon. Tap opens the entry editor.
+
+### Overlays: which one
+
+| Need | Phone | Desktop |
+|---|---|---|
+| Actions on an object, a short choice | **Sheet**: auto height up to 60%, then it scrolls | **Popover** anchored to the trigger |
+| Pick from a long list | Sheet at full height with search | **Dialog** (480px) with search |
+| Confirm something destructive | Small centred **dialog** | Dialog |
+| Short form (rename, new item) | Sheet with fields and a full-width Save | Dialog with Cancel and Save in the footer |
+| A place or a long settings screen | **Page** (pushed) | Page in the panel |
+| Writing and editing long text | **Full-screen editor** | In place (messages), or in the widened panel (character, entry, prompt) |
+| Looking at a picture | Full-screen viewer (pinch and double-tap zoom) | Full-screen viewer |
+
+- **Sheets:** `--pt-radius` top corners, a 36×4 drag handle, safe-area bottom padding, at most 92% of the height. Close them by dragging down, tapping the scrim, ✕, or back.
+- **Dialogs:** `--pt-radius`, `--pt-shadow-float`, centred, at most 560px wide. No drag-to-dismiss on desktop.
+- **Scrim:** `--pt-scrim`. Tapping it closes the overlay, except over a form with unsaved input, where it asks first.
+- **Focus:** trapped inside, starts on the first control (or the dialog), and returns to the trigger on close.
+- **One way to close:** ✕, the scrim, dragging down, back, `Esc` and a finished action all call the overlay's own close. It plays the exit, then removes the overlay when the exit ends (at once with reduced motion). Nothing else removes an overlay or hides it halfway through its exit.
+- **Actions that take time** (save, rename, delete): the button shows its spinner. On success the overlay closes. On failure it stays open with the error under the fields, and what was typed is kept.
+- **Titles** look like the title role but are not `h1`–`h3` elements (`AGENTS.md` → Known traps).
+
+### Menus (⋯)
+- Rows with a 20px icon and a label, in groups separated by hairlines.
+- Destructive items come last, in `--pt-danger`, after a separator.
+- Eight items at most. Beyond that, group them or move them to the object's page.
+- The same items in the same order for an object type everywhere.
+- Each item runs SillyTavern's own control for that action (the control stays in place, hidden).
+
+### Feedback
+- **Banner:** inline under the header, on `--pt-surface-elevated`: a 20px status-coloured icon, one sentence, and one quiet action. Used for problems that block work: not connected, server not answering, translation unavailable. It disappears by itself when the problem is gone. It can only be dismissed if it does not block anything.
+- **Toast** (SillyTavern's toasts, restyled):
+  - Answers something the user just did, or reports an event they must know (the reply failed).
+  - A calm card on `--pt-surface-elevated`: hairline, `--pt-radius`, `--pt-shadow-float`, a 20px status icon, the title in primary and the message in secondary text, and a 2px progress line. No coloured fill.
+  - On a phone it sits below the header, 8px from the edges, and swipes sideways to dismiss. On desktop it is 380px wide at the top end.
+- **Notes** in SillyTavern's screens (`.info-block`, `p.hint`) and Pocket Tavern's own:
+  - A quiet card on `--pt-surface` with 6% of the status colour, a hairline at 30% of it, `--pt-radius-sm`, an 18px icon.
+  - The text stays in normal flow (it may hold links).
+  - Hint and info use `--pt-info`, warning uses `--pt-warn`, error uses `--pt-danger`.
+- **Waiting:** anything slower than 300ms shows a small spinner in the button that started it. Lists show still placeholder rows. Generating replaces Send with Stop (section 6).
+- **Empty states:** a 24px secondary icon, one sentence, one action ("No chats yet" · **Choose a character**).
+- **Destructive confirmations:**
+  - Title as a question ("Delete this chat?"), one sentence saying what is lost, then Cancel and a filled danger button with the verb.
+  - Where SillyTavern asks itself, its popup is restyled, never replaced.
+
+### Avatars and pictures
+- Avatars follow SillyTavern's avatar shape setting (circle, square, rounded, rectangle). Sizes: 24 inline, 32 in rows and Compact messages, 40 in messages, 96 on the character page.
+- A missing picture shows the name's initial on a colour derived from the name.
+- Full-quality pictures are used where shown large. Animated GIF or WebP pictures move everywhere.
+
+### A–Z strip
+- 28px wide, `caption` letters in secondary, along the end edge of the character list. No track until it is used.
+- **Touching or pressing it:**
+  - a soft track appears
+  - a 24px accent light glides to the letter under the pointer
+  - letters around it grow and lean out (distance 0–3)
+  - a 56px accent bubble with the letter rides beside the finger
+- A mouse gets the lens without jumping until it presses.
+- Only `transform` and `opacity` move, at `--pt-dur-fast`.
+
+---
+
+## 6. Key screens
+
+### Chats (home)
+- **Header:** "Chats" and the Search everything field below it.
+- **List:** Pinned and Recent groups of chat rows. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
+- **No message box** on this screen.
+- **Empty:** "No chats yet" · **Choose a character** (opens Characters).
+
+### The chat
+- **Header:**
+  - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: the same without ‹.
+  - Tapping the avatar or name opens the character page (for a group, the group's page).
+  - The header never shows connection state.
+- **Opening a chat:**
+  - The header changes at once.
+  - If the messages take longer than 300ms to arrive, still placeholder messages cover the message area until they do, then fade out (`--pt-dur-fast`). There is no shimmer.
+  - The placeholder layer sits outside `#chat` (`AGENTS.md` → Known traps).
+  - Only the latest switch counts: opening another chat first cancels the earlier one's layer.
+  - The chat opens at the latest message.
+- **Messages:**
+  - Chat look is Cards (default), Bubbles or Flat. User and character messages are told apart by `--pt-card-user` and `--pt-card-bot`.
+  - A message has a header (avatar, name, time in `caption`), then the text across the full width, then a footer (message number, tokens, as SillyTavern's Display settings choose).
+  - **Actions:** two quiet icon buttons, ✎ and ⋯. On desktop with a mouse they sit at low opacity until the message is hovered or focused. On a phone, long-press opens ⋯ (when the switch is on).
+  - **Versions (swipes):** on the last reply, ‹ and › as two 32px round buttons (44px hit area) with the count between them in secondary text, at the end of the footer. One version shows only ›. On a phone, dragging the last reply sideways also changes version.
+  - **Thinking** (reasoning) is a quiet box that opens with a tap. While it is still thinking, its title breathes.
+  - **Long older messages** fold with "Show more". Code blocks and tables scroll sideways inside themselves.
+  - **Jump to latest** appears when you scroll up, and new text never pulls you down while you read.
+- **Message box:**
+  - **Row:** persona button (avatar), the text field (grows to 35% of the window, then scrolls), `+`, the context ring (small, inside the box), and **Send**.
+  - **The context ring** fills with how much of the context the next prompt uses, turning `--pt-warn` above 90%. Tapping it opens a small sheet (desktop: popover):
+    - **Used of total** tokens, and the room kept for the reply.
+    - **Where they go**, when SillyTavern has a prompt breakdown for this chat (the one behind a message's prompt view): character, persona, lorebooks, chat history, and other. Before the first reply in a visit, it shows only used and total.
+    - One action: **Open prompt settings** (AI → Prompts or Formatting).
+  - **Send** is a 44px accent circle anchored at the end that never shrinks. While a reply is written it becomes **Stop** (same circle, a square inside, a soft pulsing ring).
+  - **`+` opens one sheet (desktop: popover) with two groups:**
+    - **Reply:** Regenerate, Continue, Impersonate, Attach.
+    - **Tools:** Author's Note, CFG, Token probabilities, quick reply sets, other extensions' tools.
+    - This replaces SillyTavern's ☰ and wand menus.
+  - **Quick replies:** one row of chips above the field that scrolls sideways.
+  - **Extension buttons** that fit cleanly beside Send stay (one at most, such as Guided Generations as a single button). Everything else goes into `+`.
+  - **Floating** (default) floats over the chat with a fade behind it. **Docked** sits flat along the bottom edge.
+  - At 320px wide every tool keeps its 44px hit area.
+- **Message editor:**
+  - Phone: full screen, with ✕, title, and Save.
+  - Desktop: in place, with Cancel and Save under the text.
+  - Unsaved changes ask before closing.
+
+### Character page
+- **Top:**
+  - Picture (96, SillyTavern's shape) and name (`title`).
+  - Header actions: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, Delete).
+  - A short about (creator's note or description), clamped to three lines with "More".
+- **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row.
+- **Chats:** every chat with this character as chat rows, newest first, with a filter field when there are more than eight.
+- **Nothing changes** until the user picks something.
+- **Where it opens:** on a phone, as a pushed page. On desktop, in the panel, with the chat staying beside it.
+
+### Character editor
+- **Where:** full screen on a phone, the widened panel on desktop. Header: the name and ✕.
+- **Fields:** SillyTavern's own form, restyled, in at most four segmented tabs:
+  - **Description**
+  - **Greetings** (first message and alternates)
+  - **Details** (personality, scenario, examples, notes, tags, creator)
+  - **Advanced** (prompt overrides, lorebook links, extension data)
+- **Saving:** changes save as you type, through SillyTavern.
+- **Editing without opening the chat:** SillyTavern's form is filled for that character, and saves go to it. Controls that act on SillyTavern's *current* character (delete, duplicate, persona links) open that character's chat first. Never point SillyTavern's current character at another character without opening its chat, or the open chat saves into the wrong folder.
+
+### Lorebooks
+- **Top:** **Active lorebooks** (global), a multi-picker.
+- **Below:** every lorebook as a row, which opens its page.
+- **A lorebook's page:** its settings in a group, then entry cards with a filter field.
+- **An entry** opens its editor: full screen on a phone, the panel on desktop.
+
+### AI
+- **Status card:**
+  - The API and model names, and the connection state with a status-coloured dot.
+  - When something is wrong, the card says what, in one sentence, with **Connect** or **Reconnect**.
+- **Quick rows:** Connection profile, Model, Preset (pickers).
+- **Rows to pages** (SillyTavern's own screens, restyled): Connection settings, Samplers, Prompts (Chat Completion) or Formatting (Text Completion), each one page.
+
+### Settings
+- Rows: **Appearance**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.
+- SillyTavern's own look section is part of Appearance, with the controls Pocket Tavern overrides hidden (UI theme colours, blur, Chat Style).
+- Each settings page has its own filter field.
+
+### Using native SillyTavern
+"Use SillyTavern for now" (Settings → Pocket Tavern) switches to native SillyTavern for this visit. A single 44px **Back to Pocket Tavern** pill sits in a bottom corner of SillyTavern's interface.
+
+**If Pocket Tavern breaks,** it does the same thing by itself (`AGENTS.md` → Rules, 10). It removes everything it added, SillyTavern's own interface shows, and one toast says: "Something went wrong in Pocket Tavern, so SillyTavern's own screens are showing. Your chats are safe." The Back to Pocket Tavern pill is there to try again. Reloading the page also starts Pocket Tavern again.
+
+---
+
+## 7. SillyTavern's own screens
+
+**Replaced** (Pocket Tavern views, writing through SillyTavern's controls):
+- Chats home
+- the chat's header and message box tools
+- the character page
+- the AI root
+- the Settings hub
+- Appearance
+- Pocket Tavern settings
+- About
+- pickers for long selects and lorebooks
+
+**Restyled** (SillyTavern's screens, marked and styled with tokens):
+- connection and API settings
+- presets and samplers
+- the prompt manager and prompt editor
+- formatting
+- the character editor form
+- persona editor fields
+- lorebook editor and entries
+- user settings sections
+- extensions panels
+- backgrounds grid
+- SillyTavern's popups and toasts
+
+**Hidden** while Pocket Tavern is on:
+- **Panel locks** (issue #10): `#lm_button_panel_pin_div`, `#rm_button_panel_pin_div`, `#WI_panel_pin_div`.
+- **SillyTavern's top bar of drawer buttons** (`#top-settings-holder` toggles). The tab bar and rail replace them.
+- **The character panel's own navigation** (issue #11): `#rm_button_characters`, `#rm_button_back`. The Characters place replaces it.
+- **The welcome screen's header and shortcut chips** (Docs, GitHub, Discord; issue #11). They move to Settings → About. The Chats home replaces the welcome screen.
+- **Titles a SillyTavern screen repeats** under Pocket Tavern's header.
+- **SillyTavern's ☰ and wand menus** in the message box. Their items are offered through `+`.
+- **Browser spin arrows** on number inputs.
+- **Controls Pocket Tavern overrides:** blur strength, UI theme colours, Chat Style.
+
+**Icon toolbars** in SillyTavern's screens (for example a preset's import, export, rename and delete): show the one or two most used as labelled buttons. The rest go behind a ⋯ menu whose items `click()` SillyTavern's hidden buttons.
+
+---
+
+## 8. Writing
+
+- **Voice:** sentence case, plain verbs, short sentences. No jargon, no apologies, no exclamation marks.
+- **Layout words:** "tap" and "long-press" on a phone, "click" and "hover" on desktop. Never "phone" in desktop text.
+- **Translation:** every label goes through `t()`, with a row in every `locales/` file. User data never goes through `t()`.
+
+| Say | Not |
+|---|---|
+| Chat, Chats | conversation, thread, Recent chats (as a place) |
+| Message box | composer, input |
+| Version (of a reply) | swipe (on buttons and labels) |
+| AI | API (except inside SillyTavern's own forms) |
+| Connection, Model, Preset | |
+| Persona | user, profile |
+| Lorebook, entry | World Info (except inside SillyTavern's own forms) |
+| Character, group | bot |
+| Pocket Tavern | PT, the extension (in the interface) |
+
+---
+
+## 9. Decisions and tradeoffs
+
+| Decision | Why | Cost and mitigation |
+|---|---|---|
+| **Five places, no More** (issues #9, #11) | One obvious route to everything, the same on both layouts | SillyTavern veterans look for "API". AI's status card is the first thing on that screen, and search finds "API" |
+| **API, Presets and Formatting merged into AI** | Users think "what am I talking to, and how", not three screens | AI is a deeper place. Its root shows the three things people change most as quick rows |
+| **The chat pushes over the tabs on a phone** | Room and focus, like every messaging app. The tab toggle and its setting disappear | One extra tap (back) to change place from a chat |
+| **No permanent connection status** (#9) | 99% of the time it is fine. Problems get a banner, a fix, and a dot on AI | Users can always check on AI |
+| **✕ dismisses, words commit** (#9) | "Close" read like a label. A cross is universal | none |
+| **No −/+ steppers** (#12) | SillyTavern's steps (0.01, 1 token) made them useless and they took a third of the row | Typing the value is one tap; the slider covers rough changes |
+| **Actions round, containers rectangular** (#9) | One shape per role, and pills read clearly | none |
+| **One ⋯ menu per object, shown wherever the object is** | Consistent actions without counting as extra routes | none |
+| **No `backdrop-filter`** | Phone GPUs and broken fixed layers | Over chat backgrounds, cards are tinted, not blurred |
+| **Six themes, plus SillyTavern's** | Fewer, better-tuned themes. Each one is tested for contrast | Midnight, Mocha, Ocean, Forest, Sakura, Nord, Abyss, Cloud and Lavender are retired. Saved choices fall back to Pocket |
+| **Six behaviour switches** | Every switch doubles what has to be tested, and the app should decide | Always on now: message menu, context ring, lorebook cards, sharp and animated pictures, character pages, chat list helpers, faster long chats, Jump to latest, picture viewer, calm notifications, Guided Generations as one button, reload after updates when idle. Gone: Hide tabs in a chat, wand shortcut, start screen message box, send animation switch, long-select switch, custom icons and modern font switches (now Appearance → Reading font) |
+| **Classes renamed `stmui-` → `pt-`** (3.0) | A clean slate with one prefix | Users' custom CSS aimed at Pocket Tavern's own classes needs updating; this is announced in the 3.0 notes. The `mobileUI` settings key is kept |
+| **Pocket Tavern's own views for daily screens; SillyTavern's forms for the long tail** | A coherent app where it matters, while SillyTavern keeps saving everything | Restyled screens can look less tailored. They follow the same tokens and component rules |
+| **No full-width top bar on desktop** | More height for reading. Headers belong to their column | none |
+| **A crash switches to SillyTavern by itself** | Nobody is left with a broken screen, and no data is at risk because SillyTavern did all the saving | A one-off error hides Pocket Tavern for that visit. The toast and the Back pill make it obvious, and a reload starts it again |
+| **Layout can be chosen** (Automatic, Phone, Desktop) | Tablets and small laptops sit between the two sizes, and people have a preference | One more setting. Desktop never applies below 768px wide, so the chat column always fits |
+| **Ideas from AstraProjecta, never its code** | Its crash fallback, popup watch and chat-switch handling are good ideas. It is AGPL and Pocket Tavern is MIT | We write our own. It moves SillyTavern's nodes, which we do not (`AGENTS.md`, Rule 4) |

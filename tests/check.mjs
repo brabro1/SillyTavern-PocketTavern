@@ -156,7 +156,7 @@ try {
     if (cssIssues.length) fail('style.css static checks', cssIssues.join('; '));
     else ok(`style.css is balanced (${opens} blocks) and has zero active backdrop-filter`);
 
-    // DESIGN.md Phase 2: type, radius, spacing and motion come from the scales.
+    // DESIGN.md, Tokens: type, radius, spacing and motion come from the scales.
     const scale = [];
     const offType = [...stripped.matchAll(/font-size:\s*(\d+)px/g)].map(m => m[1]).filter(v => !['12', '14', '15', '16', '20', '24'].includes(v));
     if (offType.length) scale.push(`font sizes off the 12/14/15/16/20/24 scale: ${[...new Set(offType)].join(', ')}px`);
@@ -181,7 +181,7 @@ try {
     }
     if (offMotion.length) scale.push(`motion outside 150-240ms with --pt-ease: ${[...new Set(offMotion)].slice(0, 6).join(' | ')}`);
     if (/html\.stmui-on\s*\*\s*\{[^}]*scrollbar-width/.test(stripped)) scale.push('scrollbars are hidden on every element');
-    if (scale.length) fail('style.css follows the Phase 2 scales', scale.join('; '));
+    if (scale.length) fail('style.css follows the DESIGN.md scales', scale.join('; '));
     else ok('style.css follows the type, spacing, radius and motion scales');
 } catch (error) {
     fail('style.css static checks', error);
