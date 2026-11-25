@@ -162,6 +162,13 @@ try {
         const key = m[2].replace(/\\(['"\\])/g, '$1');
         if (!keys.includes(key)) missingKeys.push(key);
     }
+    // New code (outside src/legacy/) also passes labels to h() and components: text, title,
+    // aria-label, placeholder and label values, and `label = '…'` defaults.
+    const newSource = await readAll(MODULES.filter(file => file.startsWith('src/') && !file.startsWith('src/legacy/')));
+    for (const m of newSource.matchAll(/(?:\btext|'aria-label'|\btitle|\bplaceholder|\blabel)\s*[:=]\s*(['"])((?:\\.|(?!\1).)*)\1/g)) {
+        const key = m[2].replace(/\\(['"\\])/g, '$1');
+        if (key && !/^(pt[-_]|#)/.test(key) && !keys.includes(key)) missingKeys.push(key);
+    }
     const uniqueMissing = [...new Set(missingKeys)];
     if (uniqueMissing.length) issues.push(`missing locales/ rows for t() calls: ${uniqueMissing.join(' | ')}`);
 

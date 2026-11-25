@@ -1,0 +1,189 @@
+/* Buttons (DESIGN.md → Components → Buttons). Actions are round: every button is a pill. */
+
+.pt-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--pt-space-2);
+    min-height: 44px;
+    padding: 0 var(--pt-space-4);
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-button-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.pt-button--primary {
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+}
+
+.pt-button--secondary {
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+}
+
+.pt-button--quiet {
+    background: transparent;
+    color: var(--pt-text-primary);
+}
+
+.pt-button--danger {
+    background: transparent;
+    color: var(--pt-danger);
+}
+
+.pt-button--danger-filled {
+    background: var(--pt-danger);
+    color: var(--pt-on-danger);
+}
+
+/* Pressed: one surface step lighter or darker. */
+.pt-button--primary:active {
+    background: color-mix(in srgb, var(--pt-accent) 86%, var(--pt-bg));
+}
+
+.pt-button--danger-filled:active {
+    background: color-mix(in srgb, var(--pt-danger) 86%, var(--pt-bg));
+}
+
+.pt-button--secondary:active {
+    background: color-mix(in srgb, var(--pt-text-primary) 8%, var(--pt-surface-elevated));
+}
+
+.pt-button--quiet:active,
+.pt-button--danger:active {
+    background: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-button--quiet:hover,
+    .pt-button--danger:hover {
+        background: var(--pt-surface-elevated);
+    }
+}
+
+.pt-button:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Waiting: a spinner in the button that started it. The label stays so the width does not jump. */
+/* Busy buttons are disabled for presses but not dimmed. */
+.pt-button--busy:disabled {
+    opacity: 1;
+}
+
+.pt-button--busy .pt-button-icon {
+    display: none;
+}
+
+.pt-button--busy::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: pt-spin 0.8s linear infinite;
+}
+
+@keyframes pt-spin {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Icon buttons: a 44px round hit area, a 40px visual, a 20px icon in secondary text. */
+.pt-icon-button {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* The visible circle is 40px inside the 44px target ((44 − 40) / 2 = 2px each side). */
+.pt-icon-button::before {
+    content: "";
+    grid-area: 1 / 1;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--pt-radius-full);
+    background: transparent;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-icon-button-icon {
+    grid-area: 1 / 1;
+    width: 20px;
+    height: 20px;
+}
+
+.pt-icon-button:active {
+    color: var(--pt-text-primary);
+}
+
+.pt-icon-button:active::before {
+    background: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-icon-button:hover {
+        color: var(--pt-text-primary);
+    }
+
+    .pt-icon-button:hover::before {
+        background: var(--pt-surface-elevated);
+    }
+}
+
+.pt-icon-button:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* With a fine pointer or Compact: 36px pills and a 32px visual circle (the hit area stays 44px on touch). */
+@media (pointer: fine) {
+    .pt-button {
+        min-height: 36px;
+    }
+
+    .pt-icon-button::before {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+html.pt-compact .pt-button {
+    min-height: 36px;
+    padding: 0 var(--pt-space-3);
+}
+
+/* Reduce motion: the spinner stands still; a ring with a gap still reads as waiting. */
+html.pt-motion-off .pt-button--busy::before {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-button--busy::before {
+        animation: none;
+    }
+}

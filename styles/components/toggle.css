@@ -1,0 +1,67 @@
+/* The switch (DESIGN.md → Components → Switch): a 52 × 32 track with a 24px knob, inside a 44px hit area. */
+
+.pt-toggle {
+    position: relative;
+    flex: 0 0 auto;
+    width: 52px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* The track: 32px tall, centred in the 44px hit area ((44 − 32) / 2 = 6px above and below). */
+.pt-toggle::before {
+    content: "";
+    position: absolute;
+    inset: 6px 0;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    box-shadow: inset 0 0 0 1px var(--pt-border);
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+/* The knob: 24px, 4px inside the track. */
+.pt-toggle-knob {
+    position: absolute;
+    top: 10px;
+    inset-inline-start: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-text-secondary);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-toggle[aria-checked="true"]::before {
+    background: var(--pt-accent);
+    box-shadow: none;
+}
+
+.pt-toggle[aria-checked="true"] .pt-toggle-knob {
+    background: var(--pt-on-accent);
+    transform: translateX(20px);
+}
+
+.pt-toggle[aria-checked="true"]:dir(rtl) .pt-toggle-knob,
+[dir="rtl"] .pt-toggle[aria-checked="true"] .pt-toggle-knob {
+    transform: translateX(-20px);
+}
+
+.pt-toggle:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+html.pt-motion-off .pt-toggle-knob {
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-toggle-knob {
+        transition: background-color var(--pt-dur-fast) var(--pt-ease);
+    }
+}

@@ -79,6 +79,13 @@ jobs:
           CHROME_CHANNEL: chrome
         run: node ios.mjs
 
+      - name: Run the components test
+        working-directory: extension/tests
+        env:
+          ST_URL: http://127.0.0.1:8000
+          CHROME_CHANNEL: chrome
+        run: node e2e/components.mjs
+
       - name: Keep screenshots of failed steps
         if: failure()
         uses: actions/upload-artifact@v4

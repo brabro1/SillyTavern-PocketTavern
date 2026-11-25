@@ -1,0 +1,132 @@
+/* The number row (DESIGN.md → Components → Number and slider): label, value pill, slider under them. */
+
+.pt-number-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: var(--pt-space-3);
+    font-family: var(--pt-font-ui);
+}
+
+.pt-number-label {
+    min-width: 0;
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-body);
+    line-height: 1.45;
+}
+
+/* The value pill: 36px tall inside a 44px hit area, at least 64px wide, tabular numbers. */
+.pt-value-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--pt-space-1);
+    min-width: 64px;
+    min-height: 36px;
+    margin: var(--pt-space-1) 0;
+    padding: 0 var(--pt-space-3);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    cursor: text;
+}
+
+.pt-value-pill:focus-within {
+    box-shadow: inset 0 0 0 1px var(--pt-accent);
+}
+
+.pt-value-input {
+    width: 7ch;
+    min-height: 36px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    field-sizing: content;
+}
+
+.pt-value-input:focus-visible {
+    outline: none;
+}
+
+.pt-value-unit {
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+}
+
+/* The slider: a 44px hit height, a 4px track filled with accent up to a 20px thumb.
+   [type="range"] outranks SillyTavern's own input[type="range"] rule (its bar, filter and transitions). */
+.pt-slider[type="range"] {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    filter: none;
+    transition: none;
+    cursor: pointer;
+    touch-action: pan-y;
+    -webkit-appearance: none;
+    appearance: none;
+    --pt-track: linear-gradient(to right, var(--pt-accent) var(--pt-fill, 0%), var(--pt-surface-elevated) var(--pt-fill, 0%));
+}
+
+.pt-slider[type="range"]:dir(rtl),
+[dir="rtl"] .pt-slider[type="range"] {
+    --pt-track: linear-gradient(to left, var(--pt-accent) var(--pt-fill, 0%), var(--pt-surface-elevated) var(--pt-fill, 0%));
+}
+
+.pt-slider[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-track);
+}
+
+.pt-slider[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-track);
+}
+
+/* The thumb sits on the 4px track: (4 − 20) / 2 = −8px. */
+.pt-slider[type="range"]::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-accent);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pt-slider[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-accent);
+}
+
+/* SillyTavern brightens ranges on hover and draws a 1px outline on focus; these win over both. */
+.pt-slider[type="range"]:hover {
+    filter: none;
+}
+
+.pt-slider[type="range"]:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: -8px;
+}
+
+/* On touch screens field text is 16px, or iPhones zoom in when the value pill is tapped. */
+html.pt-touch .pt-value-input {
+    font-size: var(--pt-text-md);
+}

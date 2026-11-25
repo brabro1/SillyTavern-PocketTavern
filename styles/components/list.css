@@ -1,0 +1,165 @@
+/* List rows and groups (DESIGN.md → Components → List rows and groups). */
+
+.pt-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+}
+
+.pt-list-header {
+    padding: 0 var(--pt-space-4);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.pt-list-group {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+}
+
+.pt-list-row,
+.pt-list-row-main {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-3);
+    width: 100%;
+    min-height: 52px;
+    margin: 0;
+    padding: var(--pt-space-3) var(--pt-space-4);
+    border: 0;
+    background: transparent;
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* A row of an object: the main part opens it, ⋯ opens its menu. */
+.pt-list-row--object {
+    padding: 0;
+    padding-inline-end: var(--pt-space-1);
+}
+
+.pt-list-row--object .pt-list-row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pt-list-row--none {
+    cursor: default;
+}
+
+/* Hairlines between rows start at the text, not the icon: after a 20px icon that is
+   16px padding + 20px icon + 12px gap = 48px; after a 32px avatar, 16 + 32 + 12 = 60px. */
+.pt-list-group > .pt-list-row {
+    position: relative;
+}
+
+.pt-list-group > .pt-list-row + .pt-list-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline-start: var(--pt-row-text-start, var(--pt-space-4));
+    inset-inline-end: 0;
+    height: 1px;
+    background: var(--pt-border);
+    pointer-events: none;
+}
+
+.pt-list-group:has(.pt-list-row-icon) {
+    --pt-row-text-start: 48px;
+}
+
+.pt-list-group:has(.pt-avatar) {
+    --pt-row-text-start: 60px;
+}
+
+.pt-list-row:active,
+.pt-list-row-main:active {
+    background-color: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-list-row:not(.pt-list-row--none):hover,
+    .pt-list-row-main:hover {
+        background-color: var(--pt-surface-elevated);
+    }
+}
+
+.pt-list-row-icon {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: var(--pt-text-secondary);
+}
+
+.pt-list-row-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pt-list-row-title {
+    overflow: hidden;
+    font-size: var(--pt-text-body);
+    line-height: 1.45;
+    text-overflow: ellipsis;
+}
+
+.pt-list-row-subtitle {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.pt-list-row-end {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--pt-space-1);
+    min-width: 0;
+    color: var(--pt-text-secondary);
+}
+
+.pt-list-row-value {
+    overflow: hidden;
+    max-width: 40vw;
+    font-size: var(--pt-text-body);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-list-row-chevron {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+}
+
+/* Directional icons mirror in right-to-left languages. */
+[dir="rtl"] .pt-list-row-chevron,
+.pt-list-row-chevron:dir(rtl) {
+    transform: scaleX(-1);
+}
+
+@media (pointer: fine) {
+    .pt-list-row,
+    .pt-list-row-main {
+        min-height: 44px;
+    }
+}
+
+html.pt-compact :is(.pt-list-row, .pt-list-row-main) {
+    min-height: 44px;
+}

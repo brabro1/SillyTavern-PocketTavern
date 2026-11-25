@@ -22,6 +22,7 @@ import { THEMES, findTheme, themeCss, themeFromSillyTavern, ST_THEME_COLORS } fr
 import { t, setLocale, isRtl, currentLang } from '../core/i18n.js';
 import { CHANGES, VERSION } from '../../changelog.js';
 import { migrateSettings } from '../core/settings.js';
+import { h } from '../core/dom.js';
 import { startPopupWatch } from '../st/popup-watch.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
@@ -271,31 +272,6 @@ function ctx() {
 
 function $j() {
     return globalThis.jQuery;
-}
-
-/**
- * Tiny DOM builder.
- * @param {string} tag
- * @param {Record<string, any>} [attrs]
- * @param {Array<Node|string|null|false>} [children]
- */
-function h(tag, attrs = {}, children = []) {
-    const el = document.createElement(tag);
-    for (const [key, value] of Object.entries(attrs)) {
-        if (value === false || value === null || value === undefined) continue;
-        if (key === 'class') el.className = value;
-        // Labels go through the translator; `raw` is for user data and is never translated.
-        else if (key === 'raw') el.textContent = String(value);
-        else if (key === 'text') el.textContent = typeof value === 'string' ? t(value) : value;
-        else if (key === 'title' || key === 'aria-label' || key === 'placeholder') el.setAttribute(key, t(String(value)));
-        else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
-        else el.setAttribute(key, value === true ? '' : value);
-    }
-    for (const child of children) {
-        if (child === null || child === false || child === undefined) continue;
-        el.append(typeof child === 'string' ? t(child) : child);
-    }
-    return el;
 }
 
 const icon = (classes) => h('i', { class: `fa-solid ${classes}`, 'aria-hidden': 'true' });

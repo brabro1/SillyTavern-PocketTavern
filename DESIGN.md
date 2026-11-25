@@ -325,7 +325,22 @@ Phone                                  Desktop
 
 ## 5. Components
 
-Every component exists once in `src/ui/` and `styles/components/` and is used everywhere. Sizes below are touch / fine pointer.
+Every component exists once in `src/ui/` and `styles/components/` and is used everywhere. Sizes below are touch / fine pointer. `tests/e2e/components.mjs` shows every one on both layouts, light, dark and right-to-left.
+
+| Component | Module | Class |
+|---|---|---|
+| Buttons, icon buttons | `button.js` | `.pt-button` (`--primary`, `--secondary`, `--quiet`, `--danger`, `--danger-filled`), `.pt-icon-button` |
+| Rows and groups | `list.js` | `.pt-list-row`, `.pt-list-group`, `.pt-list-header` |
+| Fields, help, search | `field.js` | `.pt-form-field`, `.pt-text-field`, `.pt-help-block`, `.pt-search-box` |
+| Number and slider | `number.js` | `.pt-number-row`, `.pt-value-pill`, `.pt-slider` |
+| Switch | `toggle.js` | `.pt-toggle` |
+| Segmented control | `segments.js` | `.pt-segments` |
+| Chips | `tag.js` | `.pt-tag` |
+| Banner, notice, empty state | `feedback.js` | `.pt-status-banner`, `.pt-notice`, `.pt-empty-state` |
+| Avatars | `avatar.js` | `.pt-avatar` |
+| The "Advanced" fold | `fold.js` | `.pt-fold` |
+
+Shared behaviour is in `styles/base.css`: `.pt-focus` (the focus ring), `.pt-press` (press scale), `.pt-sr-only`. While the legacy app is still there, a new class name must not be one it uses (`.pt-switch`, `.pt-chip`, `.pt-banner`, `.pt-row`, `.pt-field`, `.pt-help` and others belong to it).
 
 ### Tab bar and rail
 - **Tab bar:** five equal tabs, 24px icon over a `caption` label. The active tab gets a `--pt-accent-soft` pill behind its icon, which slides between tabs, and its label in `--pt-text-primary`. Inactive tabs are `--pt-text-secondary`. A dot (6px, `--pt-danger`) marks AI when the connection has a problem.
@@ -359,7 +374,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **Group:** rows in a `--pt-surface` container with `--pt-radius`, separated by hairlines that start at the text, not the icon. An optional group header (`small` 600, secondary, sentence case) sits 8px above it.
 
 ### Fields
-- **Text field:** 44px tall, `--pt-radius-sm`, `--pt-surface` fill, hairline border. On focus: accent border and focus ring. Placeholder in `--pt-text-muted`.
+- **Text field:** 44px tall, `--pt-radius-sm`, `--pt-surface` fill, hairline border. On focus: accent border and focus ring. Placeholder in `--pt-text-muted`. Text is `body` (15px), but 16px on touch screens, or iPhones zoom in when a field is tapped.
 - **Label:** `small` 500 above the field on a phone. On desktop, short controls (switch, picker, number) sit beside their label: label at the start, control at the end. Text areas always stack.
 - **Text areas** grow with their text up to 40% of the window, then scroll inside.
 - **Help text:** `small`, secondary, under the field, clamped to two lines with "More".

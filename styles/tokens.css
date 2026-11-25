@@ -1,0 +1,86 @@
+/* Pocket Tavern's design tokens (DESIGN.md → Tokens): the only place raw colours, sizes, durations
+   and layers are written. With "Your theme" the colours come from SillyTavern's own; a Pocket Tavern
+   theme sets them in src/themes/themes.js. */
+
+:root {
+    --pt-text-primary: var(--SmartThemeBodyColor, #eceef2);
+    --pt-text-secondary: color-mix(in srgb, var(--pt-text-primary) 64%, transparent);
+    --pt-text-muted: color-mix(in srgb, var(--pt-text-primary) 46%, transparent);
+    --pt-bg: color-mix(in srgb, var(--SmartThemeBlurTintColor, #0e0f12) 92%, #0b0b0b);
+    --pt-surface: color-mix(in srgb, var(--pt-text-primary) 7%, var(--pt-bg));
+    --pt-surface-elevated: color-mix(in srgb, var(--pt-text-primary) 11%, var(--pt-bg));
+    --pt-border: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
+    --pt-accent: var(--SmartThemeQuoteColor, #5b8def);
+    --pt-accent-soft: color-mix(in srgb, var(--pt-accent) 16%, transparent);
+    --pt-on-accent: #fff;
+    /* Semantic status colors. Pocket Tavern themes override these with contrast-checked values in themes.js. */
+    --pt-danger: color-mix(in srgb, #e55353 78%, var(--pt-text-primary));
+    --pt-warn: color-mix(in srgb, #d98218 78%, var(--pt-text-primary));
+    --pt-ok: color-mix(in srgb, #2ea063 78%, var(--pt-text-primary));
+    --pt-info: color-mix(in srgb, #2e84d6 78%, var(--pt-text-primary));
+    --pt-gold: color-mix(in srgb, #c99200 78%, var(--pt-text-primary));
+    /* Message cards: the only see-through surfaces (over a chat background). */
+    --pt-card-user: color-mix(in srgb, var(--pt-accent) 9%, transparent);
+    --pt-card-bot: color-mix(in srgb, var(--pt-text-primary) 5%, transparent);
+    --pt-backdrop: var(--pt-bg);
+    /* Text on a filled danger button: the canvas colour, which every theme keeps 4.5:1 from danger. */
+    --pt-on-danger: var(--pt-bg);
+    /* The initial on an avatar without a picture (its colour comes from the name, at 32% lightness). */
+    --pt-on-avatar: #fff;
+    /* Behind sheets and dialogs, and the one shadow, for floating layers only. Light themes set lighter ones. */
+    --pt-scrim: rgb(0 0 0 / 0.4);
+    --pt-shadow-float: 0 8px 24px rgb(0 0 0 / 0.4);
+    /* The interface font; messages may use SillyTavern's (Appearance → Reading font). */
+    --pt-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    /* Type scale (DESIGN.md, section 2): every font size is one of these. */
+    --pt-text-xs: 12px;
+    --pt-text-sm: 14px;
+    --pt-text-body: 15px;
+    --pt-text-md: 16px;
+    --pt-text-lg: 20px;
+    --pt-text-xl: 24px;
+    /* Message text: 15px on phones, 16px on the desktop layout; the Chat text size and
+       SillyTavern's Font scale multiply it. */
+    --pt-text-chat: 15px;
+    /* Radii: 10px controls, 14px containers; round things stay round. */
+    --pt-radius-sm: 10px;
+    --pt-radius: 14px;
+    --pt-radius-full: 999px;
+    --pt-space-1: 4px;
+    --pt-space-2: 8px;
+    --pt-space-3: 12px;
+    --pt-space-4: 16px;
+    --pt-space-5: 20px;
+    --pt-space-6: 24px;
+    --pt-space-8: 32px;
+    --pt-ease: cubic-bezier(0.2, 0, 0, 1);
+    --pt-dur-fast: 150ms;
+    --pt-dur: 220ms;
+    --pt-dur-slow: 240ms;
+    /* Layers, lowest first (DESIGN.md, section 2). SillyTavern's own popups and toasts
+       open in the browser top layer (<dialog>) above all of these. */
+    --pt-z-chat: 30;
+    --pt-z-page: 3005;
+    --pt-z-panel: 3050;
+    --pt-z-finder: 3150;
+    --pt-z-edge: 3250;
+    --pt-z-editor: 3300;
+    --pt-z-drag: 3500;
+    --pt-z-bars: 4010;
+    --pt-z-banner: 4030;
+    --pt-z-overlay: 5000;
+
+    --pt-tap: 48px;
+    --pt-safe-top: env(safe-area-inset-top, 0px);
+    --pt-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --pt-safe-left: env(safe-area-inset-left, 0px);
+    --pt-safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* The canvas is always opaque, even when SillyTavern's panel tint is see-through:
+   bars, pages, sheets, dialogs and the composer are solid (DESIGN.md, section 7). */
+@supports (color: rgb(from red r g b)) {
+    :root {
+        --pt-bg: rgb(from var(--SmartThemeBlurTintColor, #0e0f12) r g b / 1);
+    }
+}

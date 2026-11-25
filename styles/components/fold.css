@@ -1,0 +1,61 @@
+/* The "Advanced" fold: the chevron turns 90°, the content fades in. Height never animates. */
+
+.pt-fold-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pt-space-3);
+    width: 100%;
+    min-height: 52px;
+    padding: var(--pt-space-3) var(--pt-space-4);
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pt-fold-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--pt-text-secondary);
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-fold-head[aria-expanded="true"] .pt-fold-chevron {
+    transform: rotate(90deg);
+}
+
+.pt-fold-head:dir(rtl) .pt-fold-chevron,
+[dir="rtl"] .pt-fold-head .pt-fold-chevron {
+    transform: scaleX(-1);
+}
+
+.pt-fold-head[aria-expanded="true"]:dir(rtl) .pt-fold-chevron,
+[dir="rtl"] .pt-fold-head[aria-expanded="true"] .pt-fold-chevron {
+    transform: scaleX(-1) rotate(90deg);
+}
+
+.pt-fold-body {
+    animation: pt-fade-in var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-fold-body[hidden] {
+    display: none;
+}
+
+@keyframes pt-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (pointer: fine) {
+    .pt-fold-head {
+        min-height: 44px;
+    }
+}

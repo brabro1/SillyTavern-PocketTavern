@@ -382,15 +382,19 @@ export function themeCss(theme, scope) {
     --pt-text-secondary: ${t.muted};
     --pt-text-muted: ${mutedLow};
     --pt-accent: ${t.accent};
+    --pt-accent-soft: color-mix(in srgb, ${t.accent} 16%, transparent);
     --pt-on-accent: ${t.onAccent};
     --pt-danger: ${danger};
+    --pt-on-danger: ${t.bg};
     --pt-warn: ${warn};
     --pt-ok: ${ok};
     --pt-info: ${info};
     --pt-gold: ${gold};
     --pt-card-user: ${t.user};
     --pt-card-bot: ${t.bot};
-    --pt-backdrop: ${t.backdrop};
+    --pt-backdrop: ${t.backdrop};${t.mode === 'light' ? `
+    --pt-scrim: rgb(0 0 0 / 0.24);
+    --pt-shadow-float: 0 8px 24px rgb(22 24 29 / 0.12);` : ''}
 }
 /* A chat background shows: the chat itself is clear and each message is a tinted
    card over the picture. Bars, pages, sheets and the composer stay solid. */

@@ -9,74 +9,6 @@
    keeps working.
    ========================================================================== */
 
-:root {
-    /* Design tokens (DESIGN.md, sections 2 and 7): the source of truth. With "Your
-       theme" they come from SillyTavern's own colours; a Pocket Tavern theme sets
-       them in themes.js. */
-    --pt-text-primary: var(--SmartThemeBodyColor, #eceef2);
-    --pt-text-secondary: color-mix(in srgb, var(--pt-text-primary) 64%, transparent);
-    --pt-text-muted: color-mix(in srgb, var(--pt-text-primary) 46%, transparent);
-    --pt-bg: color-mix(in srgb, var(--SmartThemeBlurTintColor, #0e0f12) 92%, #0b0b0b);
-    --pt-surface: color-mix(in srgb, var(--pt-text-primary) 7%, var(--pt-bg));
-    --pt-surface-elevated: color-mix(in srgb, var(--pt-text-primary) 11%, var(--pt-bg));
-    --pt-border: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
-    --pt-accent: var(--SmartThemeQuoteColor, #5b8def);
-    --pt-accent-soft: color-mix(in srgb, var(--pt-accent) 16%, transparent);
-    --pt-on-accent: #fff;
-    /* Semantic status colors. Pocket Tavern themes override these with contrast-checked values in themes.js. */
-    --pt-danger: color-mix(in srgb, #e55353 78%, var(--pt-text-primary));
-    --pt-warn: color-mix(in srgb, #d98218 78%, var(--pt-text-primary));
-    --pt-ok: color-mix(in srgb, #2ea063 78%, var(--pt-text-primary));
-    --pt-info: color-mix(in srgb, #2e84d6 78%, var(--pt-text-primary));
-    --pt-gold: color-mix(in srgb, #c99200 78%, var(--pt-text-primary));
-    /* Message cards: the only see-through surfaces (over a chat background). */
-    --pt-card-user: color-mix(in srgb, var(--pt-accent) 9%, transparent);
-    --pt-card-bot: color-mix(in srgb, var(--pt-text-primary) 5%, transparent);
-    --pt-backdrop: var(--pt-bg);
-    /* Type scale (DESIGN.md, section 2): every font size is one of these. */
-    --pt-text-xs: 12px;
-    --pt-text-sm: 14px;
-    --pt-text-body: 15px;
-    --pt-text-md: 16px;
-    --pt-text-lg: 20px;
-    --pt-text-xl: 24px;
-    /* Message text: 15px on phones, 16px on the desktop layout; the Chat text size and
-       SillyTavern's Font scale multiply it. */
-    --pt-text-chat: 15px;
-    /* Radii: 10px controls, 14px containers; round things stay round. */
-    --pt-radius-sm: 10px;
-    --pt-radius: 14px;
-    --pt-space-1: 4px;
-    --pt-space-2: 8px;
-    --pt-space-3: 12px;
-    --pt-space-4: 16px;
-    --pt-space-5: 20px;
-    --pt-space-6: 24px;
-    --pt-space-8: 32px;
-    --pt-ease: cubic-bezier(0.2, 0, 0, 1);
-    --pt-dur-fast: 150ms;
-    --pt-dur: 220ms;
-    --pt-dur-slow: 240ms;
-    /* Layers, lowest first (DESIGN.md, section 2). SillyTavern's own popups and toasts
-       open in the browser top layer (<dialog>) above all of these. */
-    --pt-z-chat: 30;
-    --pt-z-page: 3005;
-    --pt-z-panel: 3050;
-    --pt-z-finder: 3150;
-    --pt-z-edge: 3250;
-    --pt-z-editor: 3300;
-    --pt-z-drag: 3500;
-    --pt-z-bars: 4010;
-    --pt-z-banner: 4030;
-    --pt-z-popup: 5000;
-
-    --pt-tap: 48px;
-    --pt-safe-top: env(safe-area-inset-top, 0px);
-    --pt-safe-bottom: env(safe-area-inset-bottom, 0px);
-    --pt-safe-left: env(safe-area-inset-left, 0px);
-    --pt-safe-right: env(safe-area-inset-right, 0px);
-}
-
 /* Scrollbars (DESIGN.md, section 7). On a phone nothing shows one: the chat, the pages, sheets and
    lists scroll by touch, and SillyTavern's 11px bar would take room from the text. On the desktop
    layout every list has a slim bar for the mouse (below); only the rail and the segmented
@@ -151,14 +83,6 @@ html.pt-on.pt-desktop ::-webkit-scrollbar-thumb:active {
     flex: 0 0 auto;
     width: 1em;
     height: 1em;
-}
-
-/* The canvas is always opaque, even when SillyTavern's panel tint is see-through:
-   bars, pages, sheets, dialogs and the composer are solid (DESIGN.md, section 7). */
-@supports (color: rgb(from red r g b)) {
-    :root {
-        --pt-bg: rgb(from var(--SmartThemeBlurTintColor, #0e0f12) r g b / 1);
-    }
 }
 
 /* No blur anywhere (DESIGN.md): it lags phone GPUs, and a backdrop-filter makes an
@@ -2719,7 +2643,7 @@ html.pt-touch input[type='checkbox']::before {
 }
 
 /* Sliders: keep the visible track but give fingers a 36px-tall hit area. */
-html.pt-touch input[type='range'] {
+html.pt-touch input[type='range']:not(.pt-slider) {
     box-sizing: content-box;
     margin-top: 0 !important;
     padding: 16px 0 !important;
@@ -2728,12 +2652,12 @@ html.pt-touch input[type='range'] {
     touch-action: pan-y;
 }
 
-html.pt-touch input[type='range']::-webkit-slider-thumb {
+html.pt-touch input[type='range']:not(.pt-slider)::-webkit-slider-thumb {
     width: 24px;
     height: 24px;
 }
 
-html.pt-touch input[type='range']::-moz-range-thumb {
+html.pt-touch input[type='range']:not(.pt-slider)::-moz-range-thumb {
     width: 24px;
     height: 24px;
 }
@@ -3876,7 +3800,7 @@ html.pt-touch input[type='checkbox']:not(.pt-switch)::before {
     box-shadow: inset 1em 1em var(--pt-on-accent);
 }
 
-html.pt-touch input[type='range'] {
+html.pt-touch input[type='range']:not(.pt-slider) {
     background-color: var(--pt-surface-elevated) !important;
     background-image: linear-gradient(var(--pt-accent), var(--pt-accent)) !important;
     background-repeat: no-repeat !important;
@@ -3885,22 +3809,22 @@ html.pt-touch input[type='range'] {
 }
 
 /* The filled part follows the value (set by index.js as --pt-fill). */
-html.pt-touch input[type='range'][style*='--pt-fill'] {
+html.pt-touch input[type='range']:not(.pt-slider)[style*='--pt-fill'] {
     background-size: var(--pt-fill) 100% !important;
 }
 
-html.pt-touch input[type='range']::-webkit-slider-thumb {
+html.pt-touch input[type='range']:not(.pt-slider)::-webkit-slider-thumb {
     border: 3px solid var(--pt-accent) !important;
     background: #fff !important;
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18) !important;
 }
 
-html.pt-touch input[type='range']::-moz-range-thumb {
+html.pt-touch input[type='range']:not(.pt-slider)::-moz-range-thumb {
     border: 3px solid var(--pt-accent);
     background: #fff;
 }
 
-html.pt-touch input[type='range']:hover {
+html.pt-touch input[type='range']:not(.pt-slider):hover {
     filter: none;
 }
 

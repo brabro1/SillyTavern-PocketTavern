@@ -1,0 +1,52 @@
+/* Avatars: round by default; SillyTavern's own avatar shape setting (body.square-avatars,
+   body.rounded-avatars, body.big-avatars) is followed everywhere. */
+
+.pt-avatar {
+    position: relative;
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    overflow: hidden;
+    width: var(--pt-avatar-size);
+    height: var(--pt-avatar-size);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    --pt-avatar-size: 40px;
+}
+
+.pt-avatar--24 { --pt-avatar-size: 24px; }
+.pt-avatar--32 { --pt-avatar-size: 32px; }
+.pt-avatar--40 { --pt-avatar-size: 40px; }
+.pt-avatar--96 { --pt-avatar-size: 96px; }
+
+body.square-avatars .pt-avatar {
+    border-radius: 4px;
+}
+
+body.rounded-avatars .pt-avatar {
+    border-radius: var(--pt-radius-sm);
+}
+
+body.big-avatars .pt-avatar {
+    height: calc(var(--pt-avatar-size) * 4 / 3);
+    border-radius: var(--pt-radius-sm);
+}
+
+.pt-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* The initial on a colour from the name; text stays 4.5:1 at this lightness for every hue. */
+.pt-avatar--initial {
+    background: hsl(var(--pt-avatar-hue) 40% 32%);
+    color: var(--pt-on-avatar);
+}
+
+.pt-avatar-initial {
+    font-family: var(--pt-font-ui);
+    font-size: calc(var(--pt-avatar-size) * 0.42);
+    font-weight: 600;
+    line-height: 1;
+}

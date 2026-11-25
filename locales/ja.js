@@ -585,4 +585,9 @@ export default {
 
     // Starting and stopping
     "Something went wrong in Pocket Tavern, so SillyTavern's own screens are showing. Your chats are safe.": "Pocket Tavern で問題が起きたため、SillyTavern 本来の画面を表示しています。チャットは無事です。",
+
+    // Components
+    "Clear": "クリア",
+    "Remove": "外す",
+    "Dismiss": "閉じる",
 };

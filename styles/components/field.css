@@ -1,0 +1,150 @@
+/* Fields (DESIGN.md → Components → Fields): rounded rectangles, 44px tall, a hairline border. */
+
+.pt-form-field {
+    display: grid;
+    gap: var(--pt-space-2);
+    font-family: var(--pt-font-ui);
+}
+
+.pt-form-label {
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-sm);
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* On desktop, short controls (switch, picker, number) sit beside their label. */
+html.pt-desktop .pt-form-field--inline {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: var(--pt-space-4);
+}
+
+html.pt-desktop .pt-form-field--inline > :is(.pt-help-block, .pt-form-error) {
+    grid-column: 1 / -1;
+}
+
+.pt-text-field,
+.pt-search-box-input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    line-height: 1.45;
+    transition: border-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-text-field::placeholder,
+.pt-search-box-input::placeholder {
+    color: var(--pt-text-muted);
+    opacity: 1;
+}
+
+.pt-text-field:focus,
+.pt-search-box-input:focus {
+    border-color: var(--pt-accent);
+}
+
+/* On touch screens field text is 16px, or iPhones zoom in when a field is tapped. */
+html.pt-touch :is(.pt-text-field, .pt-search-box-input) {
+    font-size: var(--pt-text-md);
+}
+
+.pt-text-field--area {
+    resize: none;
+    overflow-y: auto;
+}
+
+.pt-form-field--error .pt-text-field {
+    border-color: var(--pt-danger);
+}
+
+.pt-form-error {
+    color: var(--pt-danger);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+}
+
+.pt-form-error[hidden] {
+    display: none;
+}
+
+/* Help: two lines, then "More". */
+.pt-help-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+}
+
+.pt-help-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.pt-help-block--open .pt-help-text {
+    display: block;
+}
+
+.pt-help-more {
+    min-height: 44px;
+    margin: calc(var(--pt-space-3) * -1) 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pt-accent);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pt-help-more[hidden] {
+    display: none;
+}
+
+/* The search field: icon, input, and ✕ inside one rounded rectangle. */
+.pt-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.pt-search-box-icon {
+    position: absolute;
+    inset-inline-start: var(--pt-space-3);
+    width: 20px;
+    height: 20px;
+    color: var(--pt-text-secondary);
+    pointer-events: none;
+}
+
+.pt-search-box-input {
+    padding-inline: calc(var(--pt-space-3) + 20px + var(--pt-space-2)) 44px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pt-search-box-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.pt-search-box-clear {
+    position: absolute;
+    inset-inline-end: 0;
+}
+
+.pt-search-box-clear[hidden] {
+    display: none;
+}

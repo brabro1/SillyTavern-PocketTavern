@@ -585,4 +585,9 @@ export default {
 
     // Starting and stopping
     "Something went wrong in Pocket Tavern, so SillyTavern's own screens are showing. Your chats are safe.": "Pocket Tavern 出了问题，因此正在显示 SillyTavern 自己的界面。你的聊天记录是安全的。",
+
+    // Components
+    "Clear": "清除",
+    "Remove": "移除",
+    "Dismiss": "关闭",
 };

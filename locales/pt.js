@@ -585,4 +585,9 @@ export default {
 
     // Starting and stopping
     "Something went wrong in Pocket Tavern, so SillyTavern's own screens are showing. Your chats are safe.": "Algo deu errado no Pocket Tavern, então as telas do próprio SillyTavern estão aparecendo. Seus chats estão seguros.",
+
+    // Components
+    "Clear": "Limpar",
+    "Remove": "Remover",
+    "Dismiss": "Dispensar",
 };

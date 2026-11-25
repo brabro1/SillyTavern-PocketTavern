@@ -34,6 +34,7 @@ Run from `tests/`. Point them at your test instance with `ST_URL=http://127.0.0.
 |---|---|---|
 | `npm run check` | Offline: every module imports, theme contrast, token scales, no `backdrop-filter`, versions agree, locales complete, no regex lookbehind | Always. Also runs in CI |
 | `node phone.mjs` (3.0: `node e2e/<view>.mjs`) | Walks through the interface on a phone and on desktop; turning Pocket Tavern off leaves nothing behind | Always. Also runs in CI |
+| `node e2e/components.mjs` | Every component in `src/ui/`: behaviour, touch sizes, focus ring, and screenshots on both layouts, light, dark and right-to-left (`results/components/`) | Any change to a component or `styles/tokens.css`. Also runs in CI |
 | `node ios.mjs` / `ENGINE=webkit node ios.mjs` | iPhone and iPad sizes with Safari's keyboard simulated | Anything on phones, fixed layers or the keyboard. Run both |
 | `node compat.mjs` | Guided Generations, Input History and Quick Replies, with AI requests blocked | Compatibility work |
 | `node perf.mjs` | Frame and style timing with Pocket Tavern on and off (`PROFILE="<step>"` profiles one step) | Typing, scrolling, streaming, opening screens |

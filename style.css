@@ -1,2 +1,15 @@
-/* Pocket Tavern's stylesheet, named in manifest.json. It only imports; the rules live in styles/. */
+/* Pocket Tavern's stylesheet, named in manifest.json. It only imports; the rules live in styles/.
+   Order: tokens, shared behaviour, components, then the legacy 2.x styles (carved out milestone by milestone). */
+@import url("styles/tokens.css");
+@import url("styles/base.css");
+@import url("styles/components/button.css");
+@import url("styles/components/list.css");
+@import url("styles/components/toggle.css");
+@import url("styles/components/field.css");
+@import url("styles/components/number.css");
+@import url("styles/components/segments.css");
+@import url("styles/components/tag.css");
+@import url("styles/components/feedback.css");
+@import url("styles/components/avatar.css");
+@import url("styles/components/fold.css");
 @import url("styles/legacy.css");

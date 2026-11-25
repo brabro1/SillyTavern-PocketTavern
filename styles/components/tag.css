@@ -1,0 +1,83 @@
+/* Chips: the element is the 44px hit area; the 32px pill is drawn behind its contents,
+   (44 − 32) / 2 = 6px from the top and bottom. */
+
+.pt-tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.pt-tag::before {
+    content: "";
+    position: absolute;
+    inset: 6px 0;
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    pointer-events: none;
+}
+
+.pt-tag--selected::before {
+    background: var(--pt-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--pt-accent);
+}
+
+.pt-tag-main {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 var(--pt-space-3);
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: default;
+}
+
+button.pt-tag-main {
+    cursor: pointer;
+}
+
+.pt-tag--removable .pt-tag-main {
+    padding-inline-end: var(--pt-space-1);
+}
+
+.pt-tag-label {
+    overflow: hidden;
+    max-width: 24ch;
+    text-overflow: ellipsis;
+}
+
+/* The ✕: its own 44 × 44 hit area around a 16px icon. */
+.pt-tag-remove {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--pt-radius-full);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+}
+
+.pt-tag-remove-icon {
+    width: 16px;
+    height: 16px;
+}
+
+@media (hover: hover) {
+    .pt-tag-remove:hover {
+        color: var(--pt-text-primary);
+    }
+}
