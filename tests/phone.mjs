@@ -75,7 +75,7 @@ const placeRow = async (tab, place, title, wantPage) => {
     }
 };
 const ST_PAGES = {
-    'sys-settings-button': ['pt-ai', 'API'], 'ai-config-button': ['pt-ai', 'Presets'], 'advanced-formatting-button': ['pt-ai', 'Formatting'],
+    'sys-settings-button': ['pt-ai', 'Connection settings'], 'ai-config-button': ['pt-ai', 'Samplers'], 'advanced-formatting-button': ['pt-ai', 'Formatting'],
     'user-settings-button': ['pt-settings', 'SillyTavern'], 'persona-management-button': ['pt-settings', 'Personas'],
     'backgrounds-button': ['pt-settings', 'Backgrounds'], 'extensions-settings-button': ['pt-settings', 'Extensions'],
 };
@@ -219,7 +219,8 @@ await step('there is no More: Settings and AI list their rows', async () => {
         if (!settings.includes(want)) throw new Error(`Settings has no "${want}"`);
     }
     const ai = await rows('pt-ai');
-    if (ai.join(',') !== 'API,Presets,Formatting') throw new Error(`AI rows: ${ai}`);
+    // The quick rows (when SillyTavern has those choices), then the rows to its screens.
+    if (ai.filter(title => ['Connection settings', 'Samplers', 'Prompts', 'Formatting'].includes(title)).join(',') !== (await page.evaluate(() => SillyTavern.getContext().mainApi === 'openai') ? 'Connection settings,Samplers,Prompts,Formatting' : 'Connection settings,Samplers,Formatting')) throw new Error(`AI rows: ${ai}`);
     await page.locator('.pt-tab[data-tab="chat"]').click();
     await until(() => (document.documentElement.dataset.ptPage ?? 'pt-chats') === 'pt-chats');
 });

@@ -582,7 +582,6 @@ export default {
 
     // Places
     "AI": "AI",
-    "API, presets and formatting": "API、预设和格式",
     "Connect": "连接",
     "Appearance": "外观",
     "SillyTavern": "SillyTavern",
@@ -634,4 +633,14 @@ export default {
     "External media": "外部媒体",
     "Greetings": "问候语",
     "Details": "详情",
+
+    // The AI place
+    "Connection, model and preset": "连接、模型和预设",
+    "Replies need a connection. Connect uses the settings below.": "回复需要连接。“连接”会使用下面的设置。",
+    "Connection settings": "连接设置",
+    "API, address and keys": "API、地址和密钥",
+    "Samplers": "采样器",
+    "Temperature, length and more": "温度、长度等",
+    "What is sent to the model, in order": "按顺序发送给模型的内容",
+    "Templates, tokenizer and more": "模板、分词器等",
 };

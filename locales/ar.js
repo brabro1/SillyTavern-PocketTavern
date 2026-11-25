@@ -582,7 +582,6 @@ export default {
 
     // Places
     "AI": "الذكاء الاصطناعي",
-    "API, presets and formatting": "الواجهة والقوالب والتنسيق",
     "Connect": "اتصال",
     "Appearance": "المظهر",
     "SillyTavern": "SillyTavern",
@@ -634,4 +633,14 @@ export default {
     "External media": "وسائط خارجية",
     "Greetings": "التحيات",
     "Details": "التفاصيل",
+
+    // The AI place
+    "Connection, model and preset": "الاتصال والنموذج والإعداد المسبق",
+    "Replies need a connection. Connect uses the settings below.": "تحتاج الردود إلى اتصال. يستخدم «اتصال» الإعدادات أدناه.",
+    "Connection settings": "إعدادات الاتصال",
+    "API, address and keys": "الواجهة والعنوان والمفاتيح",
+    "Samplers": "أدوات أخذ العينات",
+    "Temperature, length and more": "الحرارة والطول والمزيد",
+    "What is sent to the model, in order": "ما يُرسل إلى النموذج، بالترتيب",
+    "Templates, tokenizer and more": "القوالب والمُقسِّم والمزيد",
 };

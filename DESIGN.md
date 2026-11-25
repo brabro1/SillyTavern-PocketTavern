@@ -559,7 +559,8 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - The API and model names, and the connection state with a status-coloured dot.
   - When something is wrong, the card says what, in one sentence, with **Connect** or **Reconnect**.
 - **Quick rows:** Connection profile, Model, Preset (pickers).
-- **Rows to pages** (SillyTavern's own screens, restyled): Connection settings, Samplers, Prompts (Chat Completion) or Formatting (Text Completion), each one page.
+- **Rows to pages** (SillyTavern's own screens, restyled): Connection settings, Samplers, Prompts (Chat Completion only; the Presets page on its Prompts tab) and Formatting (every API: it also holds the tokenizer and other settings Chat Completion uses), each one page.
+- **The AI tab** shows a small warning dot while nothing is connected.
 
 ### Settings
 - Rows: **Appearance**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.

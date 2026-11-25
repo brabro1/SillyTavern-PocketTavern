@@ -1,0 +1,72 @@
+/* The AI place (DESIGN.md → Key screens → AI; src/views/ai.js). */
+
+/* The status card: the API and model, a status-coloured dot, and Connect while nothing is connected. */
+.pt-ai-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pt-space-1);
+    padding: var(--pt-space-4);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    font-family: var(--pt-font-ui);
+}
+
+.pt-ai-status-line {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+}
+
+.pt-ai-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--pt-ok);
+}
+
+.pt-ai-status--off .pt-ai-status-dot {
+    background: var(--pt-warn);
+}
+
+.pt-ai-status-api {
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-md);
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.pt-ai-status-model {
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-body);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.pt-ai-status-note {
+    margin: var(--pt-space-2) 0;
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.45;
+}
+
+/* The AI tab's dot while nothing is connected (src/legacy/app.js → syncConnectionBanner). */
+.pt-tab.pt-tab-alert .pt-tab-icon {
+    position: relative;
+}
+
+.pt-tab.pt-tab-alert .pt-tab-icon::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-end: 10px;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--pt-bg);
+    border-radius: 50%;
+    background: var(--pt-warn);
+}

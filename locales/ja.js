@@ -582,7 +582,6 @@ export default {
 
     // Places
     "AI": "AI",
-    "API, presets and formatting": "API、プリセット、書式",
     "Connect": "接続",
     "Appearance": "外観",
     "SillyTavern": "SillyTavern",
@@ -634,4 +633,14 @@ export default {
     "External media": "外部メディア",
     "Greetings": "あいさつ",
     "Details": "詳細",
+
+    // The AI place
+    "Connection, model and preset": "接続、モデル、プリセット",
+    "Replies need a connection. Connect uses the settings below.": "返信には接続が必要です。「接続」は下の設定を使います。",
+    "Connection settings": "接続設定",
+    "API, address and keys": "API、アドレス、キー",
+    "Samplers": "サンプラー",
+    "Temperature, length and more": "温度、長さなど",
+    "What is sent to the model, in order": "モデルに送る内容とその順番",
+    "Templates, tokenizer and more": "テンプレート、トークナイザーなど",
 };

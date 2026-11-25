@@ -582,7 +582,6 @@ export default {
 
     // Places
     "AI": "IA",
-    "API, presets and formatting": "API, presets y formato",
     "Connect": "Conectar",
     "Appearance": "Apariencia",
     "SillyTavern": "SillyTavern",
@@ -634,4 +633,14 @@ export default {
     "External media": "Medios externos",
     "Greetings": "Saludos",
     "Details": "Detalles",
+
+    // The AI place
+    "Connection, model and preset": "Conexión, modelo y preset",
+    "Replies need a connection. Connect uses the settings below.": "Las respuestas necesitan una conexión. Conectar usa los ajustes de abajo.",
+    "Connection settings": "Ajustes de conexión",
+    "API, address and keys": "API, dirección y claves",
+    "Samplers": "Samplers",
+    "Temperature, length and more": "Temperatura, longitud y más",
+    "What is sent to the model, in order": "Lo que se envía al modelo, en orden",
+    "Templates, tokenizer and more": "Plantillas, tokenizador y más",
 };

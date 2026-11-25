@@ -582,7 +582,6 @@ export default {
 
     // Places
     "AI": "ИИ",
-    "API, presets and formatting": "API, пресеты и форматирование",
     "Connect": "Подключить",
     "Appearance": "Внешний вид",
     "SillyTavern": "SillyTavern",
@@ -634,4 +633,14 @@ export default {
     "External media": "Внешние медиа",
     "Greetings": "Приветствия",
     "Details": "Подробности",
+
+    // The AI place
+    "Connection, model and preset": "Подключение, модель и пресет",
+    "Replies need a connection. Connect uses the settings below.": "Для ответов нужно подключение. «Подключить» использует настройки ниже.",
+    "Connection settings": "Настройки подключения",
+    "API, address and keys": "API, адрес и ключи",
+    "Samplers": "Сэмплеры",
+    "Temperature, length and more": "Температура, длина и другое",
+    "What is sent to the model, in order": "Что отправляется модели и в каком порядке",
+    "Templates, tokenizer and more": "Шаблоны, токенизатор и другое",
 };

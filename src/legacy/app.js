@@ -8735,6 +8735,7 @@ const connection = { timer: 0 };
 function syncConnectionBanner() {
     window.clearTimeout(connection.timer);
     connection.timer = 0;
+    shell?.tabs?.get('pt-ai')?.classList.toggle('pt-tab-alert', active && !isConnected());
     const context = ctx();
     const inChat = !!(context.groupId || context.characterId !== undefined);
     if (!active || !inChat || isConnected()) {
@@ -8751,6 +8752,94 @@ function syncConnectionBanner() {
             action: { label: 'Fix', onClick: () => openPage('pt-ai') },
         });
     }, 2500);
+}
+
+// -- the AI page (src/views/ai.js): what SillyTavern is connected to, read from its own controls
+
+/** The preset dropdown for each API (SillyTavern keeps one per API). */
+const PRESET_SELECTS = {
+    openai: '#settings_preset_openai',
+    kobold: '#settings_preset',
+    koboldhorde: '#settings_preset',
+    novel: '#settings_preset_novel',
+    textgenerationwebui: '#settings_preset_textgenerationwebui',
+};
+
+const selectedText = select => (select?.selectedOptions?.[0]?.textContent ?? '').trim();
+
+/** The model dropdown SillyTavern shows for the current API, on its connection page. */
+function currentModelSelect() {
+    const block = document.getElementById('rm_api_block');
+    if (!block) return null;
+    return Array.from(block.querySelectorAll('select[id^="model_"], select[id$="_model"], select[id*="model_select"]'))
+        .filter(select => !select.multiple && inActiveSection(select, block) && select.options.length > 1)[0] ?? null;
+}
+
+function aiStatus() {
+    const context = ctx();
+    const api = selectedText(document.getElementById('main_api'));
+    const source = context.mainApi === 'openai' ? selectedText(document.getElementById('chat_completion_source')) : '';
+    const status = String(context.onlineStatus ?? '');
+    // SillyTavern's own status text is the model's name once connected (or a plain "Connected").
+    const model = selectedText(currentModelSelect()) || (isConnected() && !/^(connected|no_connection)$/i.test(status) ? status : '');
+    // SillyTavern's own Connect button for this API, when it shows one.
+    const block = document.getElementById('rm_api_block');
+    const connectButton = block ? [...block.querySelectorAll('[id^="api_button"]')].find(node => inActiveSection(node, block)) : null;
+    return {
+        connected: isConnected(),
+        api: [api, source].filter(Boolean).join(' · '),
+        model,
+        connect: connectButton ? () => connectButton.click() : null,
+    };
+}
+
+/** One quick row: a SillyTavern dropdown's current choice, and a sheet of its choices. */
+function selectRow(title, select) {
+    if (!select || select.options.length < 2) return null;
+    return {
+        title,
+        value: selectedText(select),
+        pick: () => openChoiceSheet({
+            title: t(title),
+            options: [...select.options].filter(option => !option.disabled && option.value !== '').map(option => ({ value: option.value, label: option.textContent.trim() })),
+            current: select.value,
+            onPick: value => {
+                pickFromSelect(select, value);
+                refreshAiPage();
+            },
+        }),
+    };
+}
+
+function aiQuickRows() {
+    return [
+        selectRow('Connection profile', document.getElementById('connection_profiles')),
+        selectRow('Model', currentModelSelect()),
+        selectRow('Preset', document.querySelector(PRESET_SELECTS[ctx().mainApi] ?? '#none')),
+    ].filter(Boolean);
+}
+
+/** SillyTavern's Presets page on its Parameters or Prompts tab (Pocket Tavern's, or Chat Completion Tabs'). */
+function openPresetsOn(tab) {
+    openPage('ai-config-button');
+    setTimeout(() => {
+        const ours = document.getElementById(`pt_ptab_${tab}`);
+        if (ours) {
+            ours.click();
+            return;
+        }
+        const theirs = [...document.querySelectorAll('.openai-tab-buttons button, .openai-tab-buttons .menu_button')].find(node => (tab === 'prompts' ? /prompt/i : /param/i).test(node.textContent));
+        if (theirs) theirs.click();
+        else if (tab === 'prompts') document.getElementById('completion_prompt_manager')?.scrollIntoView({ block: 'start' });
+    }, 400);
+}
+
+/** Drawn again when what it shows changes (another API, model, preset or profile, the connection). */
+function refreshAiPage() {
+    window.clearTimeout(refreshAiPage.timer);
+    refreshAiPage.timer = window.setTimeout(() => {
+        if (active && currentPageId() === 'pt-ai') refreshOwnPage();
+    }, 250);
 }
 
 /** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
@@ -8845,7 +8934,14 @@ function registerOwnPages() {
         favorite: () => pressForCharacter(characterTarget.chid, '#favorite_button'),
         menu: anchor => openCharacterMenu(anchor),
     }));
-    definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
+    definePage('pt-ai', aiPage({
+        openPage,
+        status: aiStatus,
+        quick: aiQuickRows,
+        chatCompletion: () => ctx().mainApi === 'openai',
+        openSamplers: () => openPresetsOn('params'),
+        openPrompts: () => openPresetsOn('prompts'),
+    }));
     definePage('pt-settings', settingsPage({
         openPage,
         extensionPages: () => Array.from(document.querySelectorAll('#top-settings-holder > .drawer'))
@@ -8945,6 +9041,9 @@ function init() {
     }
     for (const name of ['ONLINE_STATUS_CHANGED', 'CHAT_CHANGED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], syncConnectionBanner);
+    }
+    for (const name of ['ONLINE_STATUS_CHANGED', 'MAIN_API_CHANGED', 'CHATCOMPLETION_SOURCE_CHANGED', 'CHATCOMPLETION_MODEL_CHANGED', 'PRESET_CHANGED', 'OAI_PRESET_CHANGED_AFTER', 'CONNECTION_PROFILE_LOADED', 'SETTINGS_UPDATED']) {
+        if (event_types[name]) eventSource?.on?.(event_types[name], refreshAiPage);
     }
     // After SillyTavern has finished switching (or closing) the chat.
     if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, () => {
