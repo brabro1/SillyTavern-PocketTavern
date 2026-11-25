@@ -278,19 +278,35 @@ await step("a character's animated picture that no longer exists falls back to i
     }
 });
 
-await step('quick switch shows persona and connection', async () => {
-    await page.locator('.pt-ab-quick').click();
-    const rows = await page.locator('#pt-sheet .pt-menu-row').allInnerTexts();
-    if (!rows.some(row => row.includes('Persona'))) throw new Error('no Persona row');
-    await closeSheet();
-});
-
-await step('Translate chat sits in the chat header while a chat is open', async () => {
-    const state = await page.evaluate(() => {
-        const button = document.querySelector('#pt-appbar .pt-ab-translate');
-        return { inChat: !!(SillyTavern.getContext().groupId || SillyTavern.getContext().characterId !== undefined), shown: !!button?.getClientRects().length };
+await step('the chat header is ‹, the name and ⋯ (no connection state); ⋯ holds the chat\'s actions, Delete messages last in red', async () => {
+    await page.evaluate(async () => {
+        const context = SillyTavern.getContext();
+        if (context.characterId === undefined && !context.groupId) await context.selectCharacterById(String(context.characters.findIndex(x => x.name === 'Seraphina')));
     });
-    if (state.inChat !== state.shown) throw new Error(`translate button shown: ${state.shown}, in a chat: ${state.inChat}`);
+    await until(() => document.querySelector('#pt-appbar')?.classList.contains('pt-ab-chat'));
+    const header = await page.evaluate(() => {
+        const shown = selector => { const el = document.querySelector(`#pt-appbar ${selector}`); return !!el && getComputedStyle(el).display !== 'none' && !el.hidden; };
+        return {
+            buttons: [...document.querySelectorAll('#pt-appbar button')].filter(b => getComputedStyle(b).display !== 'none' && !b.hidden).map(b => b.className.split(' ').find(c => c.startsWith('pt-ab-') && c !== 'pt-ab-btn')),
+            back: shown('.pt-ab-back'), menu: shown('.pt-ab-menu'), search: shown('.pt-ab-search'),
+            sub: document.querySelector('#pt-appbar .pt-ab-sub')?.textContent ?? '',
+        };
+    });
+    if (!header.back || !header.menu || header.search || header.buttons.length !== 3) throw new Error(`header: ${JSON.stringify(header)}`);
+    if (header.sub) throw new Error(`the header shows "${header.sub}"`);
+    await page.locator('#pt-appbar .pt-ab-menu').click();
+    await until(() => !!document.querySelector('#pt-sheet .pt-list-row'));
+    const menu = await page.evaluate(() => ({
+        rows: [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].map(node => node.textContent),
+        last: [...document.querySelectorAll('#pt-sheet .pt-list-row')].at(-1)?.classList.contains('pt-list-row--danger'),
+        branch: !!SillyTavern.getContext().chatMetadata?.main_chat,
+    }));
+    for (const want of ['Search this chat', 'Translate chat', 'Rename', 'Chat files', 'Delete messages']) {
+        if (!menu.rows.includes(want)) throw new Error(`⋯ has no "${want}": ${menu.rows.join(', ')}`);
+    }
+    if (menu.rows.at(-1) !== 'Delete messages' || !menu.last) throw new Error(`Delete messages is not last and red: ${JSON.stringify(menu)}`);
+    if (menu.rows.includes('Back to parent chat') !== menu.branch) throw new Error(`Back to parent chat shown outside a branch: ${JSON.stringify(menu)}`);
+    await closeSheet();
 });
 
 await step('message box: persona button, context ring and Context page; search this chat', async () => {
@@ -333,8 +349,8 @@ await step('message box: persona button, context ring and Context page; search t
         }, before);
         if (await page.locator('#pt-sheet').count()) await closeSheet();
     }
-    await page.evaluate(() => document.querySelector('#pt-appbar .pt-ab-search').click());
-    await page.locator('#pt-sheet .pt-search-this-chat .pt-menu-row').click();
+    await page.locator('#pt-appbar .pt-ab-menu').click();
+    await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === "Search this chat")?.click());
     await until(() => document.querySelector('.pt-chat-finder input'));
     const word = await page.evaluate(() => document.querySelector('#chat .mes .mes_text')?.textContent.match(/[A-Za-z]{3,}/)?.[0] ?? 'the');
     await page.locator('.pt-chat-finder input').fill(word);
@@ -384,7 +400,7 @@ await step('tapping the text of a reply does not change its version', async () =
 });
 
 await step('recent chats are grouped by character', async () => {
-    await page.locator('.pt-ab-home').click();
+    await page.locator('#pt-appbar .pt-ab-back').click();
     await until(() => document.querySelector('#chat .welcomePanel .recentChatList'));
     const grouped = await page.evaluate(() => {
         const rows = document.querySelectorAll('.recentChatList .recentChat:not(:has(.recentChatPinned))').length;
@@ -489,15 +505,18 @@ await step('Formatting and Extensions open on a list; a section or an extension 
     await until(() => !document.documentElement.dataset.ptPage);
 });
 
-await step('☰ and the wand open sheets, and their items work', async () => {
+await step('☰, ⋯ and the wand open sheets, and their items work', async () => {
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
     await until(() => document.querySelectorAll('#chat .mes').length > 0);
     await page.locator('#options_button').tap();
-    await until(() => document.getElementById('pt-sheet')?.textContent.includes('Manage chat files'));
+    await until(() => !!document.querySelector('#pt-sheet .pt-menu-heading'));
     const groups = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-menu-heading')].map(el => el.textContent));
-    if (!groups.includes('Reply') || !groups.includes('Chats')) throw new Error(`groups: ${groups.join(', ')}`);
+    if (!groups.includes('Reply') || groups.includes('Chats')) throw new Error(`☰ groups: ${groups.join(', ')} (the chat's files are in ⋯ now)`);
     if (await page.evaluate(() => getComputedStyle(document.getElementById('options')).display !== 'none')) throw new Error("SillyTavern's own menu opened too");
-    await page.locator('#pt-sheet .pt-menu-row', { hasText: 'Manage chat files' }).click();
+    await closeSheet();
+    await page.locator('#pt-appbar .pt-ab-menu').click();
+    await until(() => !!document.querySelector('#pt-sheet .pt-list-row'));
+    await page.locator('#pt-sheet .pt-list-row', { hasText: 'Chat files' }).click();
     await until(() => getComputedStyle(document.getElementById('shadow_select_chat_popup')).display !== 'none');
     await page.waitForTimeout(500);
     await page.goBack();
@@ -1789,10 +1808,9 @@ await step('on a 320px phone every message box tool stays 44px, lorebook chips h
         });
         if (!rtl.arrow.startsWith('matrix(-1') || !['start', 'right'].includes(align)) throw new Error(`Arabic: ${JSON.stringify({ ...rtl, align })}`);
         // Google Translate is asked straight from the browser; the note must not say "through your server".
-        // (Holding the header's translate button picks the language.)
-        await tab.locator('#pt-appbar .pt-ab-translate').dispatchEvent('pointerdown', { pointerType: 'touch', button: 0 });
-        await tab.waitForTimeout(700);
-        await tab.locator('#pt-appbar .pt-ab-translate').dispatchEvent('pointerup', { pointerType: 'touch', button: 0 });
+        // (The chat's ⋯ → Translate chat picks the language.)
+        await tab.locator('#pt-appbar .pt-ab-menu').click();
+        await tab.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === "Translate chat")?.click());
         await tab.waitForFunction(() => /Translate chat/.test(document.querySelector('#pt-sheet .pt-overlay-title')?.textContent ?? ''));
         const note = await tab.evaluate(() => ({
             provider: SillyTavern.getContext().extensionSettings?.translate?.provider ?? 'google',
@@ -2387,7 +2405,7 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
 });
 
 await step('recent chats and chat history show each chat as a title, a message bubble and ⋯; the start screen header has one fold button', async () => {
-    await page.locator('.pt-ab-home').click();
+    await page.locator('#pt-appbar .pt-ab-back').click();
     await until(() => !!document.querySelector('#chat .welcomePanel .recentChat.pt-rc .pt-bubble'), null, 10000);
     const home = await page.evaluate(() => {
         const visible = el => !!el && getComputedStyle(el).display !== 'none';

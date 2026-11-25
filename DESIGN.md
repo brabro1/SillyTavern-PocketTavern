@@ -490,6 +490,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: the same without ‹.
   - Tapping the avatar or name opens the character page (for a group, the group's page).
   - The header never shows connection state.
+  - ⋯ holds, in order: Search this chat, Translate chat, Rename, SillyTavern's own items for this chat when they apply (Save checkpoint, Back to parent chat, Convert to group), and Chat files (SillyTavern's list of saved chats, where a chat is exported or deleted). Then, in its own group in danger red, Delete messages.
 - **Opening a chat:**
   - The header changes at once.
   - If the messages take longer than 300ms to arrive, still placeholder messages cover the message area until they do, then fade out (`--pt-dur-fast`). There is no shimmer.

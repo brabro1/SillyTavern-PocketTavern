@@ -62,7 +62,7 @@ for (const size of sizes) {
     await tab('pt-ai'); await shot('ai');
     await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); }); await shot('themes'); await close();
     await tab('chat');
-    await page.evaluate(() => document.querySelector('.pt-ab-quick')?.click()); await shot('quick'); await close();
+    await page.evaluate(() => document.querySelector('.pt-ab-menu')?.click()); await shot('chatmenu'); await close();
     await page.evaluate(() => document.querySelector('.pt-ctx-ring')?.click()); await shot('context'); await close();
     await page.evaluate(() => document.querySelector('.pt-persona-chip')?.click()); await shot('persona');
     await page.evaluate(() => document.querySelector('.pt-persona-card-edit')?.click()); await shot('persona-edit'); await close();
@@ -86,7 +86,8 @@ for (const size of sizes) {
     await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-extensions');
     await page.evaluate(() => document.querySelector('#rm_api_block')?.closest('.drawer')?.querySelector('.drawer-toggle')?.click()); await settle(900); await shot('page-api');
     await tab('chat');
-    await page.evaluate(() => document.querySelector('.pt-ab-home')?.click()); await settle(1500);
+    // To the Chats home: ‹ in the chat on a phone, Chats on the desktop rail.
+    await page.evaluate(() => { const back = document.querySelector('.pt-ab-back'); (back && getComputedStyle(back).display !== 'none' ? back : document.querySelector('.pt-tab[data-tab="chat"]'))?.click(); }); await settle(1500);
     await page.evaluate(() => document.querySelector('.pt-group-toggle')?.click()); await shot('recent-open');
     await page.evaluate(() => document.getElementById('option_select_chat')?.click()); await shot('history');
     await page.goBack().catch(() => {}); await settle(600);

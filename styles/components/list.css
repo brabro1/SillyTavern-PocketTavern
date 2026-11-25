@@ -163,3 +163,9 @@
 html.pt-compact :is(.pt-list-row, .pt-list-row-main) {
     min-height: 44px;
 }
+
+/* A destructive row (Delete messages): danger text and icon; it sits last, in its own group. */
+.pt-list-row--danger,
+.pt-list-row--danger .pt-list-row-icon {
+    color: var(--pt-danger);
+}

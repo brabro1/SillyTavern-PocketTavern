@@ -167,17 +167,19 @@ if (want('bubbles')) {
 }
 
 if (want('translate')) {
-    // Hold the translate button to pick Spanish, then tap it again afterwards for the original.
-    const button = page.locator('.pt-ab-translate');
-    await button.dispatchEvent('pointerdown');
-    await page.waitForTimeout(700);
-    await button.dispatchEvent('pointerup');
+    // The chat's ⋯ → Translate chat → Spanish; afterwards the same sheet shows the original again.
+    const openTranslate = async () => {
+        await page.locator('#pt-appbar .pt-ab-menu').click();
+        await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === "Translate chat")?.click());
+    };
+    await openTranslate();
     await page.locator('#pt-sheet .pt-choice', { hasText: /^Spanish$/ }).first().click();
     await until(() => SillyTavern.getContext().chat.some(message => message.extra?.pt_lang === 'es'), null, 30000);
     await page.waitForTimeout(2600);
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await shot('translate');
-    await button.click();
+    await openTranslate();
+    await page.locator('#pt-sheet .pt-menu-row', { hasText: 'Show original' }).click();
     await until(() => !SillyTavern.getContext().chat.some(message => message.extra?.display_text));
     await settle(2200);
 }
@@ -379,7 +381,7 @@ if (want('glass')) {
 await setTheme('st');
 
 if (want('recent')) {
-    await page.locator('.pt-ab-home').click();
+    await page.locator('#pt-appbar .pt-ab-back').click();
     await until(() => document.querySelector('.recentChat'));
     await shot('recent');
 }

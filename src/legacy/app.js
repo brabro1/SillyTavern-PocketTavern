@@ -32,6 +32,7 @@ import { AI_PAGES, aiPage } from '../views/ai.js';
 import { showBackPill } from '../shell/native.js';
 import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
+import { chatMenu } from '../views/chat-menu.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -1459,6 +1460,11 @@ class Shell {
                     else leavePromptEditor();
                     return;
                 }
+                // In a chat (phone): back to the Chats home.
+                if (!currentPageId() && this.inChat) {
+                    goHome();
+                    return;
+                }
                 if (!closePageSection()) backFromPage();
             },
         }, [ui('arrow-left')]);
@@ -1469,68 +1475,6 @@ class Shell {
             this.avatar,
             h('span', { class: 'pt-ab-text' }, [this.titleEl, this.subEl]),
         ]);
-        this.translateBadge = h('span', { class: 'pt-ab-badge', 'aria-hidden': 'true' });
-        this.translateBtn = h('button', {
-            type: 'button',
-            class: 'pt-ab-btn pt-ab-translate',
-            'aria-label': 'Translate chat',
-            title: 'Tap to translate, hold to pick the language',
-        }, [ui('languages'), this.translateBadge]);
-        // Tap/click: translate the chat (or back to original). Hold or Shift+Enter / right-click: pick language.
-        this.translateHold = 0;
-        let translateHeld = 0;
-        this.translateBtn.addEventListener('pointerdown', event => {
-            if (event.pointerType === 'mouse' && event.button !== 0) return;
-            window.clearTimeout(this.translateHold);
-            this.translateHold = this.after(450, () => {
-                translateHeld = Date.now();
-                buzz(15);
-                openTranslateSheet();
-            });
-        });
-        for (const type of ['pointerup', 'pointercancel', 'pointerleave']) this.translateBtn.addEventListener(type, () => window.clearTimeout(this.translateHold));
-        this.translateBtn.addEventListener('contextmenu', event => {
-            event.preventDefault();
-            if (isWide()) openTranslateSheet();
-        });
-        this.translateBtn.addEventListener('keydown', event => {
-            if ((event.key === 'Enter' && event.shiftKey) || event.key === 'ArrowDown' || event.key === 'ContextMenu') {
-                event.preventDefault();
-                openTranslateSheet();
-            }
-        });
-        this.translateBtn.addEventListener('click', () => {
-            if (Date.now() - translateHeld < 700) return;
-            buzz(6);
-            quickTranslate();
-        });
-        this.actions = h('div', { class: 'pt-ab-actions' }, [
-            this.translateBtn,
-            h('button', {
-                type: 'button',
-                class: 'pt-ab-btn pt-ab-chats',
-                'aria-label': 'Chat history',
-                title: 'Chat history',
-                onclick: () => document.getElementById('option_select_chat')?.click(),
-            }, [ui('history')]),
-            h('button', {
-                type: 'button',
-                class: 'pt-ab-btn pt-ab-new',
-                'aria-label': 'Start a new chat',
-                title: 'New chat',
-                onclick: () => document.getElementById('option_start_new_chat')?.click(),
-            }, [ui('chat-plus')]),
-        ]);
-        this.quick = h('button', {
-            type: 'button',
-            class: 'pt-ab-btn pt-ab-quick',
-            'aria-label': t('Quick switch'),
-            title: t('Quick switch'),
-            onclick: () => {
-                buzz(6);
-                openQuickSwitch();
-            },
-        }, [ui('zap')]);
         this.search = h('button', {
             type: 'button',
             class: 'pt-ab-btn pt-ab-search',
@@ -1538,14 +1482,15 @@ class Shell {
             title: t('Find a setting'),
             onclick: () => (currentPageId() ? openSettingSearch() : openGlobalSearch()),
         }, [ui('search')]);
-        this.home = h('button', {
+        // The chat's ⋯ menu: everything about the open chat (DESIGN.md → The chat).
+        this.menu = h('button', {
             type: 'button',
-            class: 'pt-ab-btn pt-ab-home',
-            'aria-label': 'Recent chats',
-            title: 'Recent chats',
-            onclick: () => goHome(),
-        }, [ui('home')]);
-        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.home, this.who, this.search, this.quick, this.actions]);
+            class: 'pt-ab-btn pt-ab-menu',
+            'aria-label': 'Chat menu',
+            title: 'Chat menu',
+            onclick: () => openChatMenu(),
+        }, [ui('ellipsis')]);
+        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.who, this.search, this.menu]);
 
         // ---- bottom tab bar
         this.tabs = new Map();
@@ -1665,7 +1610,6 @@ class Shell {
     destroy() {
         this.destroyed = true;
         window.clearTimeout(this.settleTimer);
-        window.clearTimeout(this.translateHold);
         for (const id of this.timers) window.clearTimeout(id);
         this.timers.clear();
         document.getElementById('right-nav-panel')?.removeEventListener('click', this.onPanelClick);
@@ -1780,7 +1724,10 @@ class Shell {
         // Character Library's panel covers the chat and pages: any tab leaves it.
         if (closeCharacterLibrary() && id === 'chat') return;
         if (id === 'chat') {
-            if (!currentPageId() && this.tabsOut) this.tuckAgain();
+            // From a chat on desktop, Chats (the place you are in) goes to its root: the Chats home.
+            // On a phone that is ‹ in the chat's header; the tabs are tucked away there.
+            if (!currentPageId() && this.inChat && isWide()) goHome();
+            else if (!currentPageId() && this.tabsOut) this.tuckAgain();
             else closePages();
             return;
         }
@@ -1961,7 +1908,8 @@ class Shell {
             }
             this.search.hidden = !SEARCH_PAGES.includes(pageId) || !!editorMode;
             this.setSearchLabel(t('Find a setting'));
-            this.quick.hidden = true;
+            this.menu.hidden = true;
+            this.appbar.classList.remove('pt-ab-chat');
             this.avatar.replaceChildren(ui(headIcon));
             this.avatar.classList.add('pt-ab-avatar-icon');
             this.who.disabled = true;
@@ -1975,10 +1923,9 @@ class Shell {
         root.classList.remove('pt-prompt-editor');
         // Outside a page the same button searches everything (in a chat, that includes the chat itself).
         this.setSearchLabel(t('Search everything'));
-        this.quick.hidden = false;
         this.who.disabled = false;
         const context = ctx();
-        let name = 'SillyTavern';
+        let name = t('Chats');
         let image = null;
         let hasChat = false;
         if (context.groupId) {
@@ -1994,11 +1941,9 @@ class Shell {
             hasChat = true;
         }
         this.titleEl.textContent = name;
-        const status = context.onlineStatus;
-        const connected = status && status !== 'no_connection';
-        // Some APIs report "Valid" (the key check) instead of a model name; never translate raw model names.
-        this.subEl.textContent = !connected ? t('Not connected') : (/^valid$/i.test(String(status)) ? t('Connected') : String(status));
-        this.subEl.classList.toggle('pt-ab-offline', !connected);
+        // The header never shows connection state (DESIGN.md); problems get a banner and a dot on AI.
+        this.subEl.textContent = '';
+        this.subEl.classList.remove('pt-ab-offline');
         this.avatar.classList.remove('pt-ab-avatar-icon');
         if (image) {
             const existingImg = this.avatar.firstElementChild;
@@ -2008,15 +1953,10 @@ class Shell {
         } else {
             this.avatar.replaceChildren(ui(context.groupId ? 'users' : (hasChat ? 'user' : 'chats')));
         }
-        this.actions.hidden = !hasChat;
-        this.search.hidden = false;
-        const shownIn = hasChat ? chatLanguage() : null;
-        this.translateBtn.classList.toggle('pt-ab-on', !!shownIn);
-        const next = shownIn ?? quickLanguage();
-        this.translateBadge.textContent = next ? next.split('-')[0].toUpperCase() : '';
-        this.translateBadge.hidden = !next;
-        this.translateBtn.setAttribute('aria-label', shownIn ? t('Show original') : (next ? t('Translate to {lang}', { lang: languageName(next) }) : t('Translate chat')));
-        this.home.hidden = !hasChat;
+        // In a chat: ⋯; on the Chats home: Search everything (until the home has its own field).
+        this.menu.hidden = !hasChat;
+        this.search.hidden = hasChat;
+        this.appbar.classList.toggle('pt-ab-chat', hasChat);
         this.inChat = hasChat;
         this.syncTuck();
     }
@@ -4022,8 +3962,8 @@ function quickTranslate() {
 
 /**
  * SillyTavern's own "Translate Chat" in the ✨ menu translates one message at a
- * time. While Pocket Tavern is on, that item does the same one-tap translate as the
- * button in the top bar.
+ * time. While Pocket Tavern is on, that item translates the whole chat in one tap
+ * (or shows the original again), in the last language picked.
  */
 function onWandTranslateClick(event) {
     if (!active || !(event.target instanceof Element) || !event.target.closest('#translate_chat')) return;
@@ -7445,11 +7385,6 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
     if (info) body.append(h('p', { class: 'pt-menu-foot', text: t('Counted from the last reply in this chat.') }));
 }
 
-function meterText() {
-    if (!meter.used || !meter.max) return t('Shown after the next reply');
-    return t('{used} of {max} tokens ({percent}%)', { used: meter.used.toLocaleString(), max: meter.max.toLocaleString(), percent: Math.round((meter.used / meter.max) * 100) });
-}
-
 // -- chat: look (cards, bubbles, flat)
 
 function applyChatLook() {
@@ -8057,37 +7992,10 @@ function inActiveSection(element, root, allowCollapsedDrawers = false) {
     return true;
 }
 
-function optionsOf(select) {
-    return Array.from(select.options)
-        .filter(option => !option.disabled && !option.hidden && option.value !== '')
-        .map(option => ({ value: option.value, label: option.textContent.trim() || option.value, note: option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : '' }));
-}
-
 function pickFromSelect(select, value) {
     select.value = value;
     $j()(select).trigger('change');
     select.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-const PRESET_SELECTS = {
-    openai: '#settings_preset_openai',
-    kobold: '#settings_preset',
-    koboldhorde: '#settings_preset',
-    novel: '#settings_preset_novel',
-    textgenerationwebui: '#settings_preset_textgenerationwebui',
-};
-
-function currentPresetSelect() {
-    const id = PRESET_SELECTS[ctx().mainApi];
-    return id ? document.querySelector(id) : null;
-}
-
-function currentModelSelect() {
-    const block = document.getElementById('rm_api_block');
-    if (!block) return null;
-    const candidates = Array.from(block.querySelectorAll('select[id^="model_"], select[id$="_model"], select[id*="model_select"]'))
-        .filter(select => !select.multiple && inActiveSection(select, block) && select.options.length > 1);
-    return candidates[0] ?? null;
 }
 
 function personaChoices() {
@@ -8295,62 +8203,6 @@ async function savePersonaEdits(avatar, { name, nameChanged, text, textChanged }
     await personas?.getUserAvatars?.(true, avatar);
     personas?.setPersonaDescription?.();
     updatePersonaButton();
-}
-
-function openQuickSwitch() {
-    showSheet(new MenuSheet({
-        title: t('Quick switch'),
-        subtitle: t('Change who you are, the connection, the model or the preset.'),
-        fill: body => {
-            const rows = [];
-            const row = (iconName, label, value, onclick, disabled = false) => h('button', {
-                type: 'button', class: 'pt-menu-row', disabled, onclick,
-            }, [
-                ui(iconName, 'pt-menu-row-icon'),
-                h('span', { class: 'pt-row-text' }, [h('span', { text: label }), h('small', { raw: value || t('Not set') })]),
-                ui('chevron-right', 'pt-menu-row-go'),
-            ]);
-            const currentPersonaName = document.getElementById('your_name')?.textContent?.trim();
-            rows.push(row('smile', t('Persona'), currentPersonaName, () => openPersonaChooser()));
-            const profiles = document.getElementById('connection_profiles');
-            if (profiles && optionsOf(profiles).length) {
-                rows.push(row('plug', t('Connection profile'), profiles.selectedOptions[0]?.textContent.trim(), () => openChoiceSheet({
-                    title: t('Connection profile'),
-                    options: optionsOf(profiles),
-                    current: profiles.value,
-                    onPick: value => pickFromSelect(profiles, value),
-                })));
-            }
-            const model = currentModelSelect();
-            if (model) {
-                rows.push(row('flask', t('Model'), model.selectedOptions[0]?.textContent.trim(), () => openChoiceSheet({
-                    title: t('Model'),
-                    options: optionsOf(model),
-                    current: model.value,
-                    onPick: value => {
-                        pickFromSelect(model, value);
-                        globalThis.toastr?.success(model.selectedOptions[0]?.textContent.trim() ?? value, t('Model'), { timeOut: 2000 });
-                    },
-                })));
-            }
-            const preset = currentPresetSelect();
-            if (preset) {
-                rows.push(row('sliders', t('Preset'), preset.selectedOptions[0]?.textContent.trim(), () => openChoiceSheet({
-                    title: t('Preset'),
-                    options: Array.from(preset.options).filter(option => !option.disabled).map(option => ({ value: option.value, label: option.textContent.trim() })),
-                    current: preset.value,
-                    onPick: value => pickFromSelect(preset, value),
-                })));
-            }
-            if (settings.contextMeter) rows.push(row('chart', t('Context used'), meterText(), () => openContextSheet()));
-            const status = ctx().onlineStatus;
-            rows.push(row('globe', t('API connection'), status && status !== 'no_connection' ? t('Connected') : t('Not connected'), () => {
-                closeSheet(true);
-                openPage('sys-settings-button');
-            }));
-            body.append(h('div', { class: 'pt-menu-list' }, rows));
-        },
-    }));
 }
 
 // -- find a setting
@@ -8952,20 +8804,58 @@ const CHAT_OPTIONS = [
             { id: 'option_toggle_AN', icon: 'note', note: 'A note the AI reads at a set depth' },
             { id: 'option_toggle_CFG', icon: 'scale', note: 'Extra guidance for the next replies' },
             { id: 'option_toggle_logprobs', icon: 'chart', note: 'Which words the AI weighed for each reply' },
-            { id: 'option_new_bookmark', icon: 'flag', note: 'A point in this chat you can come back to' },
-            { id: 'option_back_to_main', icon: 'arrow-left', note: 'Leave this branch for the chat it came from' },
-            { id: 'option_convert_to_group', icon: 'users', note: 'Turn this chat into a group chat' },
-            { id: 'option_delete_mes', icon: 'trash', note: 'Pick messages to remove', danger: true },
-        ],
-    },
-    {
-        title: 'Chats', items: [
-            { id: 'option_start_new_chat', icon: 'chat-plus', note: 'A fresh chat with the same character' },
-            { id: 'option_select_chat', icon: 'history', note: 'Every saved chat with this character' },
-            { id: 'option_close_chat', icon: 'x', note: 'Back to the start screen' },
         ],
     },
 ];
+
+/** SillyTavern's own items for the open chat, in the chat's ⋯ menu. SillyTavern only sets their
+ *  visibility when its own menu opens, so `when` reads the same facts from the chat (bookmarks.js). */
+const CHAT_MENU_ITEMS = [
+    { id: 'option_new_bookmark', icon: 'flag', note: 'A point in this chat you can come back to', when: () => true },
+    { id: 'option_back_to_main', icon: 'arrow-left', note: 'Leave this branch for the chat it came from', when: () => !!ctx().chatMetadata?.main_chat },
+    { id: 'option_convert_to_group', icon: 'users', note: 'Turn this chat into a group chat', when: () => !ctx().groupId },
+];
+
+/** The chat's ⋯ menu (src/views/chat-menu.js) with SillyTavern's own controls behind each row. */
+function openChatMenu() {
+    const options = document.getElementById('options');
+    const press = id => () => pressMenuItem(document.getElementById(id));
+    const shown = id => menuItemShown(document.getElementById(id), options);
+    showSheet(new MenuSheet({
+        title: ctx().groupId ? t('Group chat') : (ctx().characters?.[ctx().characterId]?.name ?? t('Chat')),
+        subtitle: '',
+        fill: body => body.append(...chatMenu({
+            search: () => {
+                closeSheet(true);
+                openChatFinder();
+            },
+            translate: () => openTranslateSheet(),
+            rename: () => {
+                closeSheet(true);
+                renameCurrentChat();
+            },
+            chatItems: CHAT_MENU_ITEMS.filter(item => document.getElementById(item.id)?.textContent.trim() && item.when()).map(item => ({
+                label: (document.getElementById(item.id)?.textContent ?? '').trim(),
+                subtitle: t(item.note),
+                icon: item.icon,
+                run: press(item.id),
+            })),
+            chatFiles: press('option_select_chat'),
+            deleteMessages: shown('option_delete_mes') ? press('option_delete_mes') : null,
+        })),
+    }));
+}
+
+/** Renames the open chat with SillyTavern's own popup and its own renameChat (it saves and moves the file). */
+async function renameCurrentChat() {
+    const context = ctx();
+    const current = context.getCurrentChatId?.();
+    if (!current || typeof context.renameChat !== 'function') return;
+    const name = await context.callGenericPopup?.(t('Rename this chat'), context.POPUP_TYPE?.INPUT ?? 3, current);
+    const next = typeof name === 'string' ? name.trim() : '';
+    if (!next || next === current) return;
+    await context.renameChat(current, next);
+}
 
 /** Shown, unlike SillyTavern's spare copies (it has two "Close chat" items, one always hidden). */
 function menuItemShown(element, stop) {

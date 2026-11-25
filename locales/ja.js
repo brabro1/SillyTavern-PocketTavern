@@ -612,4 +612,11 @@ export default {
     "Use SillyTavern for now": "しばらく SillyTavern を使う",
     "SillyTavern's own screens until you come back or reload.": "戻るか再読み込みするまで、SillyTavern 本来の画面を表示します。",
     "Back to Pocket Tavern": "Pocket Tavern に戻る",
+
+    // The chat
+    "Chat menu": "チャットメニュー",
+    "Chat files": "チャットファイル",
+    "Every saved chat with this character: export or delete them": "このキャラクターと保存したすべてのチャット：書き出しや削除",
+    "Delete messages": "メッセージを削除",
+    "Rename this chat": "このチャットの名前を変更",
 };

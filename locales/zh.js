@@ -612,4 +612,11 @@ export default {
     "Use SillyTavern for now": "暂时使用 SillyTavern",
     "SillyTavern's own screens until you come back or reload.": "在你返回或刷新页面之前，显示 SillyTavern 自己的界面。",
     "Back to Pocket Tavern": "返回 Pocket Tavern",
+
+    // The chat
+    "Chat menu": "聊天菜单",
+    "Chat files": "聊天文件",
+    "Every saved chat with this character: export or delete them": "与这个角色保存的所有聊天：导出或删除",
+    "Delete messages": "删除消息",
+    "Rename this chat": "重命名此聊天",
 };

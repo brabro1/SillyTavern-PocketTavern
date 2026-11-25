@@ -612,4 +612,11 @@ export default {
     "Use SillyTavern for now": "Usar o SillyTavern por enquanto",
     "SillyTavern's own screens until you come back or reload.": "As telas do próprio SillyTavern até você voltar ou recarregar.",
     "Back to Pocket Tavern": "Voltar ao Pocket Tavern",
+
+    // The chat
+    "Chat menu": "Menu do chat",
+    "Chat files": "Arquivos de chat",
+    "Every saved chat with this character: export or delete them": "Todos os chats salvos com este personagem: exporte ou exclua",
+    "Delete messages": "Excluir mensagens",
+    "Rename this chat": "Renomear este chat",
 };

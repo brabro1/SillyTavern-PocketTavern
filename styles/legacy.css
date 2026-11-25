@@ -1050,22 +1050,12 @@ html.pt-shell .pt-appbar {
     vertical-align: 1px;
 }
 
-.pt-ab-actions {
-    display: flex;
-    flex: 0 0 auto;
-}
-
 /* Small phones: the buttons sit closer, but their tap area stays 44px. */
 @media (max-width: 400px) {
     .pt-ab-btn {
         width: 44px;
         margin: 0 -4px;
     }
-}
-
-.pt-ab-actions[hidden],
-.pt-ab-page .pt-ab-actions {
-    display: none;
 }
 
 /* -- Bottom tab bar ------------------------------------------------------- */
@@ -5614,19 +5604,6 @@ html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step,
 }
 
 /* ==========================================================================
-   Home button (back to Recent chats)
-   ========================================================================== */
-
-.pt-ab-home[hidden],
-.pt-ab-page .pt-ab-home {
-    display: none;
-}
-
-.pt-ab-home {
-    margin-right: -8px;
-}
-
-/* ==========================================================================
    Notifications
    ========================================================================== */
 
@@ -6227,16 +6204,17 @@ html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not(:has(#curE
 }
 
 /* ==========================================================================
-   App bar extras: quick switch and find a setting
+   App bar extras: find a setting, the chat's ⋯ menu, ‹ in a chat
    ========================================================================== */
 
-.pt-ab-quick[hidden],
-.pt-ab-search[hidden] {
+.pt-ab-search[hidden],
+.pt-ab-menu[hidden] {
     display: none;
 }
 
-.pt-ab-quick {
-    color: var(--pt-text-primary);
+/* In a chat on a phone, ‹ goes back to the Chats home (DESIGN.md → The chat). */
+html.pt-phone .pt-ab-chat .pt-ab-back {
+    display: inline-flex;
 }
 
 /* ==========================================================================
@@ -6441,36 +6419,8 @@ html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu
 }
 
 /* The translate button glows while the chat is shown in another language. */
-.pt-ab-btn.pt-ab-on {
-    background: var(--pt-accent-soft);
-    color: var(--pt-accent);
-}
 
 /* The language one tap translates to, as a small tag on the button. */
-.pt-ab-translate {
-    position: relative;
-}
-
-.pt-ab-badge {
-    position: absolute;
-    right: 1px;
-    bottom: 3px;
-    min-width: 16px;
-    padding: 0 4px;
-    border-radius: 6px;
-    background: var(--pt-bg);
-    border: 1px solid var(--pt-border);
-    color: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 13px;
-    text-align: center;
-    pointer-events: none;
-}
-
-.pt-ab-badge[hidden] {
-    display: none;
-}
 
 /* ==========================================================================
    Characters list (html.pt-charpage)

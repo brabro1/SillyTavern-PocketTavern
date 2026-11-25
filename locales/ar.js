@@ -612,4 +612,11 @@ export default {
     "Use SillyTavern for now": "استخدام SillyTavern مؤقتًا",
     "SillyTavern's own screens until you come back or reload.": "شاشات SillyTavern الأصلية حتى تعود أو تعيد التحميل.",
     "Back to Pocket Tavern": "العودة إلى Pocket Tavern",
+
+    // The chat
+    "Chat menu": "قائمة الدردشة",
+    "Chat files": "ملفات الدردشة",
+    "Every saved chat with this character: export or delete them": "كل الدردشات المحفوظة مع هذه الشخصية: صدّرها أو احذفها",
+    "Delete messages": "حذف الرسائل",
+    "Rename this chat": "إعادة تسمية هذه الدردشة",
 };
