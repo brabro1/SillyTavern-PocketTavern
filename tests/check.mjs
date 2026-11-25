@@ -1,9 +1,12 @@
 // Quick checks that need no browser: every file loads as a module, the
 // manifests are valid, versions agree, icons and themes are sound, CSS has no
 // active blur or brace errors, and each translation row is complete.
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
+const rootPath = fileURLToPath(root);
 let failed = 0;
 const ok = message => console.log(`  ✓ ${message}`);
 const fail = (message, error) => {
@@ -11,7 +14,23 @@ const fail = (message, error) => {
     console.log(`  ✗ ${message}${error ? `\n      ${error}` : ''}`);
 };
 
-for (const file of ['icons.js', 'themes.js', 'i18n.js', 'locales.js', 'changelog.js', 'index.js']) {
+// Every file of a kind under the given folders, as paths relative to the repo root.
+async function filesIn(folders, extension) {
+    const found = [];
+    for (const folder of folders) {
+        const entries = await readdir(new URL(folder, root), { recursive: true, withFileTypes: true }).catch(() => []);
+        for (const entry of entries) {
+            if (!entry.isFile() || !entry.name.endsWith(extension)) continue;
+            found.push(relative(rootPath, join(entry.parentPath ?? entry.path, entry.name)).replaceAll('\\', '/'));
+        }
+    }
+    return found.sort();
+}
+const MODULES = ['index.js', 'changelog.js', ...await filesIn(['src/', 'locales/'], '.js')];
+const STYLESHEETS = ['style.css', ...await filesIn(['styles/'], '.css')];
+const readAll = async files => (await Promise.all(files.map(file => readFile(new URL(file, root), 'utf8')))).join('\n');
+
+for (const file of MODULES) {
     try {
         await import(new URL(file, root));
         ok(`${file} loads`);
@@ -23,7 +42,7 @@ for (const file of ['icons.js', 'themes.js', 'i18n.js', 'locales.js', 'changelog
 // Every theme meets DESIGN.md's contrast rule (including generated --pt-text-muted and --pt-danger) and stays flat.
 let defaultThemeBg = null;
 try {
-    const { THEMES, themeCss } = await import(new URL('themes.js', root));
+    const { THEMES, themeCss } = await import(new URL('src/themes/themes.js', root));
     defaultThemeBg = THEMES[0]?.bg ?? null;
     const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
     const lum = hex => {
@@ -94,7 +113,7 @@ try {
 }
 
 try {
-    const { ICONS, FA_MAP } = await import(new URL('icons.js', root));
+    const { ICONS, FA_MAP } = await import(new URL('src/ui/icons.js', root));
     const bad = Object.entries(FA_MAP).filter(([, name]) => !Object.hasOwn(ICONS, name)).map(([fa, name]) => `${fa}->${name}`);
     if (bad.length) fail(`FA_MAP references missing icons: ${bad.join(', ')}`);
     else ok(`${Object.keys(ICONS).length} icons and ${Object.keys(FA_MAP).length} Font Awesome mappings are valid`);
@@ -103,9 +122,9 @@ try {
 }
 
 try {
-    const { t, setLocale } = await import(new URL('i18n.js', root));
-    const { LANGS, STRINGS } = await import(new URL('locales.js', root));
-    const indexSource = await readFile(new URL('index.js', root), 'utf8');
+    const { t, setLocale } = await import(new URL('src/core/i18n.js', root));
+    const { LANGS, STRINGS } = await import(new URL('locales/strings.js', root));
+    const indexSource = await readAll(MODULES.filter(file => file.startsWith('src/')));
     const issues = [];
     const placeholders = str => [...str.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(',');
 
@@ -128,7 +147,7 @@ try {
     }
     setLocale('en');
 
-    // Every static t('...') call in index.js should have a row in locales.js
+    // Every static t('...') call in src/ should have a row in locales/
     const missingKeys = [];
     for (const m of indexSource.matchAll(/\bt\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g)) {
         if (m[2].includes('${')) continue;
@@ -136,16 +155,16 @@ try {
         if (!Object.hasOwn(STRINGS, key)) missingKeys.push(key);
     }
     const uniqueMissing = [...new Set(missingKeys)];
-    if (uniqueMissing.length) issues.push(`missing locales.js rows for t() calls: ${uniqueMissing.join(' | ')}`);
+    if (uniqueMissing.length) issues.push(`missing locales/ rows for t() calls: ${uniqueMissing.join(' | ')}`);
 
-    if (issues.length) fail('locales.js and i18n.js checks', issues.join('; '));
+    if (issues.length) fail('locales/ and i18n.js checks', issues.join('; '));
     else ok(`${Object.keys(STRINGS).length} translations in ${LANGS.length} languages (placeholders & t() calls verified)`);
 } catch (error) {
-    fail('locales.js rows are complete', error);
+    fail('locales/ rows are complete', error);
 }
 
 try {
-    const css = await readFile(new URL('style.css', root), 'utf8');
+    const css = await readAll(STYLESHEETS);
     const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
     const opens = (stripped.match(/\{/g) || []).length;
     const closes = (stripped.match(/\}/g) || []).length;
@@ -153,8 +172,8 @@ try {
     const cssIssues = [];
     if (opens !== closes) cssIssues.push(`unbalanced braces (${opens} open vs ${closes} close)`);
     if (activeBlur.length) cssIssues.push(`active backdrop-filter found: ${activeBlur.join(', ')}`);
-    if (cssIssues.length) fail('style.css static checks', cssIssues.join('; '));
-    else ok(`style.css is balanced (${opens} blocks) and has zero active backdrop-filter`);
+    if (cssIssues.length) fail('stylesheet static checks', cssIssues.join('; '));
+    else ok(`the stylesheets are balanced (${opens} blocks) and have zero active backdrop-filter`);
 
     // DESIGN.md, Tokens: type, radius, spacing and motion come from the scales.
     const scale = [];
@@ -181,16 +200,16 @@ try {
     }
     if (offMotion.length) scale.push(`motion outside 150-240ms with --pt-ease: ${[...new Set(offMotion)].slice(0, 6).join(' | ')}`);
     if (/html\.stmui-on\s*\*\s*\{[^}]*scrollbar-width/.test(stripped)) scale.push('scrollbars are hidden on every element');
-    if (scale.length) fail('style.css follows the DESIGN.md scales', scale.join('; '));
-    else ok('style.css follows the type, spacing, radius and motion scales');
+    if (scale.length) fail('the stylesheets follow the DESIGN.md scales', scale.join('; '));
+    else ok('the stylesheets follow the type, spacing, radius and motion scales');
 } catch (error) {
-    fail('style.css static checks', error);
+    fail('stylesheet static checks', error);
 }
 
 // Older iPhones (Safari before iOS 16.4) cannot parse a regex lookbehind; one would stop the whole extension loading there.
 try {
     const found = [];
-    for (const file of ['index.js', 'themes.js', 'i18n.js', 'icons.js', 'locales.js', 'changelog.js']) {
+    for (const file of MODULES) {
         const text = await readFile(new URL(file, root), 'utf8');
         if (/\(\?<[=!]/.test(text)) found.push(file);
     }
@@ -202,7 +221,7 @@ try {
 
 // A SillyTavern theme's message cards keep its own User Message and AI Message colours (GitHub issue #5).
 try {
-    const { themeFromSillyTavern } = await import(new URL('themes.js', root));
+    const { themeFromSillyTavern } = await import(new URL('src/themes/themes.js', root));
     const st = {
         name: 'Same tints', main_text_color: 'rgba(220, 220, 210, 1)', quote_text_color: 'rgba(165, 140, 115, 1)',
         italics_text_color: 'rgba(235, 215, 190, 1)', blur_tint_color: 'rgba(23, 23, 23, 1)', chat_tint_color: 'rgba(23, 23, 23, 1)',

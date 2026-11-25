@@ -2,7 +2,7 @@
 
 ## Lucide icons
 
-The line icons in `icons.js` follow the Lucide icon set (https://lucide.dev), which is distributed under the ISC License:
+The line icons in `src/ui/icons.js` follow the Lucide icon set (https://lucide.dev), which is distributed under the ISC License:
 
 > ISC License
 >

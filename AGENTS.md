@@ -11,18 +11,36 @@ Read in this order:
 
 ## 1. Status: the 3.0 remake
 
-Pocket Tavern is being rebuilt as 3.0: a new module structure, a five-place navigation map, and one component system (see `DESIGN.md`). Until a milestone lands, the old code (`index.js`, `style.css`) stays in charge of everything that milestone has not replaced yet. **Delete old code in the same change that replaces it.** Never keep two versions of one feature.
+Pocket Tavern is being rebuilt as 3.0: a new module structure, a five-place navigation map, and one component system (see `DESIGN.md`).
 
-| Milestone | Scope | Status |
-|---|---|---|
-| M0 | Move the code into the new structure untouched, entry files only import, checks stay green | planned |
-| M1 | Core and shell: lifecycle, settings migration, the five places (tab bar and rail), page stack, overlays | planned |
-| M2 | Chats home and the chat: header, messages, message box with `+`, banners | planned |
-| M3 | Characters: grid, character page, character editor | planned |
-| M4 | AI: status, connection, model, preset, SillyTavern's API/preset/formatting screens | planned |
-| M5 | Settings and Lorebooks: Appearance, Personas, Pocket Tavern, About; switch clean-up | planned |
-| M6 | Compatibility moved to `src/compat/`, checked with the real extensions | planned |
-| M7 | Tests, README, guide, screenshots, banner; release 3.0.0 | planned |
+**Carve, don't rewrite blind.** M0 moves the 2.x code whole into `src/legacy/app.js` and `styles/legacy.css`. Every later milestone takes its part out of the legacy files, builds it new, and **deletes the old part in the same change**. Never keep two versions of one feature. Until a milestone lands, the legacy code stays in charge of what it has not replaced. By M7 the legacy files are empty and are deleted.
+
+**Branches:** M0 lands on `main` (no visible change; it can ship as a 2.x patch). M1–M7 are built on the `3.0` branch, so people updating from `main` never get a half-new app. Testers install the branch. A 2.x hotfix on `main` is merged into `3.0` at once. `3.0` merges into `main` at the release.
+
+**Order and lanes** (a lane is one agent or session, in its own worktree when lanes run at once):
+
+```
+M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
+                     └─► M1c ┴─► M2 ∥ M3 ∥ M4 ∥ M5 ──► M6 ──► M7
+```
+
+| Milestone | Lane and scope | Done when | Status |
+|---|---|---|---|
+| M0 | One lane. `index.js` and `style.css` only import; 2.x code moves to `src/legacy/` and `styles/legacy.css`; `icons.js`, `themes.js`, `i18n.js`, `locales.js` move into `src/` and `locales/`; location-dependent URLs, `check.mjs` and CI follow | `check`, `phone.mjs`, `ios.mjs` (Chrome and WebKit) and `compat.mjs` pass unchanged; screenshots match 2.28.1 | done |
+| M1·0 | One lane, alone (touches everything). Rename `stmui-` → `pt-` everywhere, legacy included; migrate `stmui_*` localStorage keys | Same as M0, with the new names | planned |
+| M1a | Core/ST. `src/core/lifecycle.js` (mount order, `safe()`, crash fallback, reverse teardown), `src/core/settings.js` (version and migrations), `src/st/selectors.js`, popup watch, translations split per language with a section per area | A forced error falls back to SillyTavern; turning off leaves nothing | planned |
+| M1b | UI, after M1a's lifecycle API. `styles/tokens.css`, `base.css`, every component in `DESIGN.md` → Components, a test page that screenshots each | Component screenshots pass review on both layouts, light, dark, RTL | planned |
+| M1c | Shell, beside M1b. `src/shell/layout.js` (Automatic/Phone/Desktop, the keyboard rule), tab bar and rail, page stacks and back order, sheet/dialog/popover with the shared close, "Use SillyTavern for now" and the Back pill | The new tab bar and rail lead to the existing (legacy) screens | planned |
+| M2 | Chats and the chat: 2a Chats home and Search everything · 2b chat header, ⋯, messages, versions, thinking, chat-switch loading · 2c message box, `+`, context ring, banners | Their legacy parts are deleted; `e2e/chats.mjs`, `e2e/chat.mjs` pass | planned |
+| M3 | Characters: grid and A–Z, character page, character editor (restyled) | Legacy part deleted; `e2e/characters.mjs` passes | planned |
+| M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | planned |
+| M5 | Settings (hub, Appearance, Personas, Pocket Tavern, About; retired switches migrated) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | planned |
+| M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | planned |
+| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | planned |
+
+- **Parallel lanes** (M1b ∥ M1c, then M2 ∥ M3 ∥ M4 ∥ M5) each own their `src/views/<view>.js`, `styles/views/`, `src/st/<screen>.js`, `styles/st/<screen>.css`, and their own section in `src/st/selectors.js` and in each `locales/` file. QA writes `tests/e2e/<view>.mjs` beside each lane. Docs checks the translations when a lane ends.
+- **Owner reviews** with screenshots after M0, after M1, after M2–M5, and before the release.
+- **Guards:** screenshots are compared with 2.28.1 after M0 and M1·0; `perf.mjs` runs in every lane while legacy and new code run side by side.
 
 Update the Status column in the same commit that finishes a milestone. Delete this section after 3.0.0 ships.
 
@@ -61,8 +79,10 @@ src/
   compat/             one file per other extension (guided-generations.js, …)
   features/           translate, drafts, context ring, server watch, pictures
   themes/             themes and SillyTavern theme conversion
+  legacy/             app.js: the 2.x code, carved out milestone by milestone (gone by M7)
 locales/              one file per language, loaded only when that language is on
-styles/               tokens.css, base.css, components/, views/, st/, compat/
+styles/               tokens.css, base.css, components/, views/, st/, compat/,
+                      legacy.css (the 2.x styles, gone by M7)
 tests/                check.mjs, e2e/ (one file per view), ios, compat, perf,
                       capture (audit + README screenshots), brand
 docs/                 guide.md (users), development.md (developers), brand/, screenshots/

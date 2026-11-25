@@ -21,7 +21,7 @@ for (const size of sizes) {
     const page = await context.newPage();
     const logs = [];
     page.on('pageerror', e => logs.push(`pageerror: ${e.message}`));
-    page.on('console', m => { if (['error', 'warning'].includes(m.type()) && /stmui|Pocket|index\.js/i.test(m.text() + (m.location()?.url ?? ''))) logs.push(`${m.type()}: ${m.text().slice(0, 160)}`); });
+    page.on('console', m => { if (['error', 'warning'].includes(m.type()) && /stmui|Pocket|Mobile-UI|index\.js/i.test(m.text() + (m.location()?.url ?? ''))) logs.push(`${m.type()}: ${m.text().slice(0, 160)}`); });
     const settle = ms => page.waitForTimeout(ms);
     const shot = async name => {
         await settle(700);

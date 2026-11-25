@@ -3,7 +3,7 @@
 Pocket Tavern is plain ES modules and CSS. There is no build step: SillyTavern loads `index.js` and `style.css` from `manifest.json`, and you see your change as soon as you reload the page. How we work, and the rules that never bend, are in [`AGENTS.md`](../AGENTS.md). How it should look and behave is in [`DESIGN.md`](../DESIGN.md).
 
 > [!NOTE]
-> The 3.0 remake is moving the code into the structure below (see `AGENTS.md` → Status). Until milestone M0 lands, everything still lives in `index.js` and `style.css` at the top of the repo, and the test commands below work the same.
+> The 3.0 remake is moving the code into the structure below (see `AGENTS.md` → Status). For now the 2.x app still runs from `src/legacy/app.js` and `styles/legacy.css`, and each milestone carves its part out of them. `index.js` and `style.css` only import.
 
 ## What you need
 

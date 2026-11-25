@@ -3,7 +3,7 @@
  * Each entry: English text → [Spanish, Portuguese, Russian, Chinese, Japanese, Arabic].
  * To add a language, add a code to LANGS and one more column.
  */
-import { addDictionary } from './i18n.js';
+import { addDictionary } from '../src/core/i18n.js';
 
 export const LANGS = ['es', 'pt', 'ru', 'zh', 'ja', 'ar'];
 
