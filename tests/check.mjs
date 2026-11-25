@@ -122,26 +122,34 @@ try {
 }
 
 try {
-    const { t, setLocale } = await import(new URL('src/core/i18n.js', root));
-    const { LANGS, STRINGS } = await import(new URL('locales/strings.js', root));
+    const { t, setLocale, loadLocale, LANGUAGES } = await import(new URL('src/core/i18n.js', root));
+    const files = (await filesIn(['locales/'], '.js')).map(file => file.replace(/^locales\/|\.js$/g, ''));
     const indexSource = await readAll(MODULES.filter(file => file.startsWith('src/')));
     const issues = [];
     const placeholders = str => [...str.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(',');
+    if ([...files].sort().join() !== [...LANGUAGES].sort().join()) issues.push(`locales/ has ${files.join(', ')} but i18n.js lists ${LANGUAGES.join(', ')}`);
 
-    for (const [key, row] of Object.entries(STRINGS)) {
-        if (!Array.isArray(row) || row.length !== LANGS.length) {
-            issues.push(`wrong column count for "${key}"`);
-            continue;
+    // Every language file has the same keys, none empty, with the same {placeholders}.
+    const dictionaries = {};
+    for (const code of LANGUAGES) dictionaries[code] = (await import(new URL(`locales/${code}.js`, root))).default;
+    const keys = Object.keys(dictionaries[LANGUAGES[0]]);
+    for (const code of LANGUAGES) {
+        const dict = dictionaries[code];
+        const extra = Object.keys(dict).filter(key => !keys.includes(key));
+        const absent = keys.filter(key => !Object.hasOwn(dict, key));
+        if (extra.length || absent.length) issues.push(`${code}.js differs from ${LANGUAGES[0]}.js: ${[...absent.map(k => `-${k}`), ...extra.map(k => `+${k}`)].slice(0, 5).join(' | ')}`);
+        for (const [key, value] of Object.entries(dict)) {
+            if (typeof value !== 'string' || !value.trim()) issues.push(`empty ${code} translation for "${key}"`);
+            else if (placeholders(value) !== placeholders(key)) issues.push(`placeholder mismatch in ${code} for "${key}"`);
         }
-        const expectedPh = placeholders(key);
-        row.forEach((value, idx) => {
-            if (typeof value !== 'string' || !value.trim()) issues.push(`empty ${LANGS[idx]} translation for "${key}"`);
-            else if (placeholders(value) !== expectedPh) issues.push(`placeholder mismatch in ${LANGS[idx]} for "${key}"`);
-        });
     }
 
+    // A language loads on demand, and a regional code (es-ES) finds its language.
+    await loadLocale('es-ES');
+    setLocale('es-es');
+    if (t('Settings') !== dictionaries.es.Settings) issues.push('loadLocale("es-ES") did not load Spanish');
+
     // Verify prototype-key safety in i18n.js
-    setLocale('es');
     if (t('constructor') !== 'constructor' || t('toString') !== 'toString') {
         issues.push('i18n.js t() leaked Object.prototype keys');
     }
@@ -152,13 +160,13 @@ try {
     for (const m of indexSource.matchAll(/\bt\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g)) {
         if (m[2].includes('${')) continue;
         const key = m[2].replace(/\\(['"\\])/g, '$1');
-        if (!Object.hasOwn(STRINGS, key)) missingKeys.push(key);
+        if (!keys.includes(key)) missingKeys.push(key);
     }
     const uniqueMissing = [...new Set(missingKeys)];
     if (uniqueMissing.length) issues.push(`missing locales/ rows for t() calls: ${uniqueMissing.join(' | ')}`);
 
     if (issues.length) fail('locales/ and i18n.js checks', issues.join('; '));
-    else ok(`${Object.keys(STRINGS).length} translations in ${LANGS.length} languages (placeholders & t() calls verified)`);
+    else ok(`${keys.length} translations in ${LANGUAGES.length} languages, one file each (placeholders & t() calls verified)`);
 } catch (error) {
     fail('locales/ rows are complete', error);
 }
@@ -224,6 +232,63 @@ try {
     else ok('storage keys move from stmui_ to pt_ once, without overwriting');
 } catch (error) {
     fail('storage keys move from stmui_ to pt_', error);
+}
+
+// Settings saved by 2.x (no version) come up to the current version; unknown keys stay; newer ones are left alone.
+try {
+    const { migrateSettings, SETTINGS_VERSION } = await import(new URL('src/core/settings.js', root));
+    const problems = [];
+    const old = migrateSettings({ enabled: false, someFutureKey: 1 });
+    if (old.settingsVersion !== SETTINGS_VERSION || old.enabled !== false || old.someFutureKey !== 1) problems.push(`2.x settings came out as ${JSON.stringify(old)}`);
+    if (migrateSettings(null).settingsVersion !== SETTINGS_VERSION) problems.push('missing settings did not get a version');
+    if (migrateSettings({ settingsVersion: SETTINGS_VERSION + 5 }).settingsVersion !== SETTINGS_VERSION + 5) problems.push('newer settings were changed');
+    if (problems.length) fail('settings migrations', problems.join('; '));
+    else ok(`settings migrate to version ${SETTINGS_VERSION} without losing keys`);
+} catch (error) {
+    fail('settings migrations', error);
+}
+
+// The lifecycle starts all or nothing, stops in reverse, and an error in a wrapped callback stops everything once.
+try {
+    const { startAll, stopAll, safe, hasCrashed } = await import(new URL('src/core/lifecycle.js', root));
+    const quiet = console.error;
+    console.error = () => {};
+    const log = [];
+    const part = (name, { failStart, failStop } = {}) => ({ name, start: () => { if (failStart) throw new Error(name); log.push(`+${name}`); return () => { log.push(`-${name}`); if (failStop) throw new Error(name); }; } });
+    const problems = [];
+    if (startAll([part('a'), part('b', { failStop: true }), part('c', { failStart: true }), part('d')]) !== false) problems.push('a failing part did not fail the start');
+    if (log.join(' ') !== '+a +b -b -a') problems.push(`start and stop order was "${log.join(' ')}"`);
+    if (!hasCrashed()) problems.push('a failing start did not count as a crash');
+    log.length = 0;
+    startAll([part('e')]);
+    if (hasCrashed()) problems.push('starting again did not clear the crash');
+    const handler = safe('a test', () => { throw new Error('boom'); });
+    handler();
+    if (!hasCrashed() || log.join(' ') !== '+e -e') problems.push(`an error in a wrapped callback gave "${log.join(' ')}"`);
+    let ran = false;
+    safe('a test', () => { ran = true; })();
+    if (ran) problems.push('a wrapped callback ran after the crash');
+    stopAll();
+    console.error = quiet;
+    if (problems.length) fail('lifecycle', problems.join('; '));
+    else ok('the lifecycle starts all or nothing, stops in reverse, and falls back once');
+} catch (error) {
+    fail('lifecycle', error);
+}
+
+// SillyTavern's ids live in src/st/selectors.js (src/compat/ has other extensions'; src/legacy/ is exempt until it is gone).
+try {
+    const found = [];
+    for (const file of MODULES.filter(f => f.startsWith('src/') && !/^src\/(st|compat|legacy)\//.test(f))) {
+        const text = await readFile(new URL(file, root), 'utf8');
+        for (const m of text.matchAll(/['"`]#([A-Za-z_][\w-]*)/g)) {
+            if (!/^pt[-_]/.test(m[1]) && !/^[0-9a-f]{3,8}$/i.test(m[1])) found.push(`${file}: #${m[1]}`);
+        }
+    }
+    if (found.length) fail("SillyTavern's ids are only in src/st/selectors.js", [...new Set(found)].slice(0, 8).join(', '));
+    else ok("SillyTavern's ids are only in src/st/selectors.js");
+} catch (error) {
+    fail("SillyTavern's ids are only in src/st/selectors.js", error);
 }
 
 // Older iPhones (Safari before iOS 16.4) cannot parse a regex lookbehind; one would stop the whole extension loading there.

@@ -13,6 +13,20 @@ let rtl = false;
 
 const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
 
+/** Languages with a file in locales/. To add one, add locales/<code>.js and its code here. */
+export const LANGUAGES = ['es', 'pt', 'ru', 'zh', 'ja', 'ar'];
+
+/**
+ * Loads the translations for a locale like "es-es" or "zh-cn", once, from locales/<code>.js.
+ * Only the language in use is ever downloaded. English needs nothing.
+ */
+export async function loadLocale(locale) {
+    const base = String(locale || '').trim().toLowerCase().split(/[-_]/)[0];
+    if (!LANGUAGES.includes(base) || Object.hasOwn(DICTIONARIES, base)) return;
+    const { default: entries } = await import(`../../locales/${base}.js`);
+    addDictionary(base, entries);
+}
+
 /** Picks the dictionary for a locale like "es-es" or "zh-cn". */
 export function setLocale(locale) {
     const code = String(locale || 'en').trim().toLowerCase();

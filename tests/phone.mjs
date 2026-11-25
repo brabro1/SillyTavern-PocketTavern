@@ -2551,6 +2551,58 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
     }
 });
 
+await step("while one of SillyTavern's popups is open, Pocket Tavern steps aside (its bars take no taps), and comes back after", async () => {
+    const result = await page.evaluate(async () => {
+        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const { callGenericPopup, POPUP_TYPE } = await import('/scripts/popup.js');
+        const closed = callGenericPopup('A test popup', POPUP_TYPE.TEXT);
+        await wait(400);
+        const root = document.documentElement;
+        const bars = ['pt-appbar', 'pt-tabbar'].map(id => document.getElementById(id)).filter(Boolean);
+        const during = { stepAside: root.classList.contains('pt-st-popup'), bars: bars.length, inert: bars.filter(bar => bar.inert).length };
+        document.querySelector('dialog.popup[open] .popup-button-ok')?.click();
+        await closed;
+        await wait(400);
+        return { during, after: { stepAside: root.classList.contains('pt-st-popup'), inert: [...document.body.children].filter(el => el.inert).map(el => el.id || el.className) } };
+    });
+    if (!result.during.stepAside) throw new Error('html.pt-st-popup was not on while the popup was open');
+    if (!result.during.bars || result.during.inert !== result.during.bars) throw new Error(`${result.during.inert} of ${result.during.bars} bars were inert`);
+    if (result.after.stepAside || result.after.inert.length) throw new Error(`still stepped aside after closing: ${JSON.stringify(result.after)}`);
+});
+
+await step("an error in Pocket Tavern switches to SillyTavern's own screens for the visit, leaves nothing behind, says so, and a reload brings it back", async () => {
+    const result = await page.evaluate(async () => {
+        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // Pocket Tavern's folder: the one whose index.js has a src/core/lifecycle.js next to it.
+        let lifecycle = null;
+        for (const script of document.querySelectorAll('script[src*="/third-party/"][src$="/index.js"]')) {
+            const url = new URL('src/core/lifecycle.js', script.src).href;
+            if ((await fetch(url, { method: 'HEAD' })).ok) { lifecycle = url; break; }
+        }
+        if (!lifecycle) return { error: 'Pocket Tavern\'s lifecycle.js was not found' };
+        // The same URL gives the same module the extension is running, so this is a real crash.
+        const { crash } = await import(lifecycle);
+        const quiet = console.error;
+        console.error = () => {};
+        crash('a test', new Error('forced by phone.mjs'));
+        console.error = quiet;
+        await wait(800);
+        const ours = el => [...el.classList].some(c => c.startsWith('pt-')) || /^pt[-_]/.test(el.id) || ['data-pt-sec', 'data-pt-row', 'data-pt-view'].some(a => el.hasAttribute(a));
+        return {
+            classes: document.documentElement.className,
+            stray: [...document.querySelectorAll('body *')].filter(el => ours(el) && !el.closest('#pt_settings')).map(el => el.id || el.className).slice(0, 5),
+            toast: document.getElementById('toast-container')?.textContent ?? '',
+        };
+    });
+    if (result.error) throw new Error(result.error);
+    if (/(^|\s)pt-/.test(result.classes)) throw new Error(`classes left on <html>: ${result.classes}`);
+    if (result.stray.length) throw new Error(`left behind: ${result.stray.join(', ')}`);
+    if (!/Something went wrong in Pocket Tavern/.test(result.toast)) throw new Error(`no toast said so: "${result.toast.slice(0, 120)}"`);
+    await page.evaluate(() => globalThis.toastr?.clear());
+    await page.reload();
+    await until(() => document.documentElement.classList.contains('pt-on'), null, 20000);
+});
+
 await step('test characters made on a fresh SillyTavern are removed', async () => {
     if (!madeCharacters.length) return;
     await page.evaluate(() => document.getElementById('option_close_chat')?.click());

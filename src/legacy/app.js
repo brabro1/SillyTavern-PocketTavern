@@ -15,11 +15,14 @@
  * event, so SillyTavern applies selections exactly as it does today.
  */
 
+// The prelude (storage keys, translations) has to finish before this file runs.
+import '../core/prelude.js';
 import { svgIcon, iconCss, iconUrl } from '../ui/icons.js';
 import { THEMES, findTheme, themeCss, themeFromSillyTavern, ST_THEME_COLORS } from '../themes/themes.js';
 import { t, setLocale, isRtl, currentLang } from '../core/i18n.js';
-import '../../locales/strings.js';
 import { CHANGES, VERSION } from '../../changelog.js';
+import { migrateSettings } from '../core/settings.js';
+import { startPopupWatch } from '../st/popup-watch.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -254,6 +257,8 @@ const LONG_SELECT_EXCLUDE = '.pt-native-hidden, .template_element select, #pt-sh
 const pickers = new Map();
 let settings = null;
 let active = false;
+/** Stopped for this visit by src/core/lifecycle.js (after an error); SillyTavern's own screens show. */
+let paused = false;
 let sheet = null;
 let scanTimer = 0;
 let domObserver = null;
@@ -363,7 +368,7 @@ function writeMode(mode) {
 
 function loadSettings() {
     const { extensionSettings } = ctx();
-    extensionSettings[MODULE] = Object.assign({}, DEFAULTS, extensionSettings[MODULE]);
+    extensionSettings[MODULE] = Object.assign({}, DEFAULTS, migrateSettings(extensionSettings[MODULE]));
     settings = extensionSettings[MODULE];
 }
 
@@ -387,7 +392,7 @@ function detectPhone() {
  * the desktop layout. "Phones only" keeps a computer on the original interface.
  */
 function shouldBeActive() {
-    if (!settings.enabled) return false;
+    if (paused || !settings.enabled) return false;
     const mode = readMode();
     if (mode === 'never') return false;
     if (mode === 'phone') return detectPhone();
@@ -10289,6 +10294,9 @@ function onWideKeyDown(event) {
     if (closePageSection() || (currentPageId() && (closePages(), true))) event.preventDefault();
 }
 
+/** The SillyTavern popup watch (src/st/popup-watch.js) while Pocket Tavern is on; the shell takes it over in M1c. */
+let stopPopupWatch = null;
+
 function applyState() {
     const next = shouldBeActive();
     const changed = next !== active;
@@ -10298,12 +10306,15 @@ function applyState() {
     watchRanges(active && settings.touchSizing);
     if (active) {
         startObserver();
+        stopPopupWatch ??= startPopupWatch();
         // A SillyTavern theme saved from an older version (or changed in SillyTavern since) gets its current values.
         if (changed && String(settings.theme).startsWith('st:')) loadSillyTavernThemes();
         // Kept running while on: adding and removing its page-wide variables for every sheet restyled the whole page twice.
         if (!stopViewportFollow) stopViewportFollow = viewportFollow() ?? null;
     } else {
         stopObserver();
+        stopPopupWatch?.();
+        stopPopupWatch = null;
         closeSheet(true);
         stopViewportFollow?.();
         stopViewportFollow = null;
@@ -10642,4 +10653,21 @@ function init() {
     setTimeout(syncWandShortcut, 5000);
 }
 
-init();
+/**
+ * Starts the 2.x app (called by src/main.js through the lifecycle) and returns its stop: it pauses
+ * for this visit, which takes every class, node and layer away like turning Pocket Tavern off.
+ * If starting throws halfway, it pauses before passing the error on.
+ */
+export function startLegacy() {
+    const stop = () => {
+        paused = true;
+        if (settings) applyState();
+    };
+    try {
+        init();
+    } catch (error) {
+        stop();
+        throw error;
+    }
+    return stop;
+}
