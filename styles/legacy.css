@@ -78,13 +78,6 @@ html.pt-on.pt-desktop ::-webkit-scrollbar-thumb:active {
     }
 }
 
-.pt-svg {
-    display: block;
-    flex: 0 0 auto;
-    width: 1em;
-    height: 1em;
-}
-
 /* No blur anywhere (DESIGN.md): it lags phone GPUs, and a backdrop-filter makes an
    element the containing block of its fixed children, which once put the full-screen
    message editor and an opened lorebook entry far off the screen (2.25.1). This also
@@ -2018,18 +2011,13 @@ html.pt-chat #rightSendForm {
 }
 
 html.pt-chat #leftSendForm > div,
-html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn),
-html.pt-chat #options_button {
+html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
     width: 44px;
     height: 44px;
     margin: 0;
     border-radius: 50%;
     font-size: 20px;
     opacity: 0.8;
-}
-
-html.pt-chat #options_button {
-    margin-left: 0;
 }
 
 html.pt-chat #send_textarea {
@@ -3013,8 +3001,7 @@ html.pt-on .mes_text video {
     }
 
     html.pt-chat #leftSendForm > div,
-    html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn),
-    html.pt-chat #options_button {
+    html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
         width: 44px;
         height: 44px;
     }
@@ -4010,11 +3997,11 @@ html.pt-motion-full .pt-tab-label {
     transition: color var(--pt-dur) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, #options_button, #extensionsMenuButton) {
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, .pt-plus-btn) {
     transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #options_button, #extensionsMenuButton):active {
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, .pt-plus-btn):active {
     transform: scale(0.95);
 }
 
@@ -9939,22 +9926,6 @@ html.pt-chat.pt-gg .pt-gg-btn {
     }
 }
 
-/*
- * The narrowest phones (320–372px) with the guide button: seven 44px tools do not fit
- * in the floating box's row, and the browser squeezed persona, ☰ and the wand to about
- * 28px. The context ring leaves the row there; Quick switch → Context used still shows it.
- */
-@media (max-width: 372px) {
-    html.pt-chat.pt-gg:not(.pt-desktop):not(.pt-docked) #rightSendForm .pt-ctx-ring {
-        display: none;
-    }
-
-    /* Its 5px of side margin was the last pixel ☰ and the wand needed (with or without the guide button); the row's gap still separates it. */
-    html.pt-chat:not(.pt-desktop):not(.pt-docked) #leftSendForm .pt-persona-chip {
-        margin-inline: 0;
-    }
-}
-
 /* The sheet starts with what you typed: the actions use it as their instruction. */
 .pt-gg-instruction {
     display: flex;
@@ -10315,17 +10286,11 @@ html.pt-shell #sp-panel:not(.sp-mode-mobile, .sp-mode-tablet) {
 /* ==========================================================================
    Moonlit Echoes (theme extension): its chat styles draw the messages (see
    Chat above). It fades the message box until it is hovered or focused;
-   phones cannot hover, so the box stays fully visible. It also sizes ☰ to the
-   font (about 15px, !important); the tap area stays 44px.
+   phones cannot hover, so the box stays fully visible.
    ========================================================================== */
 
 html.pt-chat #send_form {
     opacity: 1 !important;
-}
-
-html.pt-chat #nonQRFormItems #options_button {
-    width: 44px !important;
-    height: 44px !important;
 }
 
 /* ==========================================================================
@@ -11425,8 +11390,7 @@ html.pt-desktop .pt-banner {
     }
 
     html.pt-desktop.pt-chat.pt-compact #leftSendForm > div,
-    html.pt-desktop.pt-chat.pt-compact #rightSendForm > div:not(.mes_stop):not(.stscript_btn),
-    html.pt-desktop.pt-chat.pt-compact #nonQRFormItems #options_button {
+    html.pt-desktop.pt-chat.pt-compact #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
         width: 36px !important;
         height: 36px !important;
         font-size: 16px;

@@ -91,3 +91,27 @@ html.pt-desktop .pt-overlay-grab {
 html.pt-desktop .pt-overlay-head {
     padding-top: var(--pt-space-3);
 }
+
+/* Desktop menus are popovers anchored to their trigger (src/shell/overlay.js → placePopover): no dimmed
+   backdrop, the panel beside the button, a fade rather than a rise. */
+html.pt-desktop dialog.pt-sheet.pt-popover::backdrop {
+    background: transparent;
+}
+
+html.pt-desktop dialog.pt-popover .pt-panel {
+    position: fixed;
+    top: var(--pt-pop-top, auto);
+    bottom: var(--pt-pop-bottom, auto);
+    left: var(--pt-pop-left);
+    width: var(--pt-pop-width);
+    max-width: none;
+    max-height: min(var(--pt-pop-max), 640px);
+    box-shadow: var(--pt-shadow-float);
+    transform: none;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-desktop dialog.pt-popover.pt-sheet-open .pt-panel {
+    transform: none;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+}

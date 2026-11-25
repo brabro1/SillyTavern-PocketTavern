@@ -1,0 +1,49 @@
+/* Pocket Tavern's own parts of the message box (DESIGN.md → Key screens → The chat → Message box). */
+
+/* + : Reply and Tools, in place of SillyTavern's ☰ and wand. A 44px round icon button like the others in the row. */
+.pt-plus-btn {
+    display: none;
+}
+
+html.pt-chat .pt-plus-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.pt-plus-btn .pt-svg {
+    width: 24px;
+    height: 24px;
+}
+
+.pt-plus-btn:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-plus-btn:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: -2px;
+}
+
+@media (hover: hover) {
+    .pt-plus-btn:hover {
+        color: var(--pt-text-primary);
+    }
+}
+
+html.pt-desktop.pt-chat.pt-compact .pt-plus-btn {
+    width: 36px;
+    height: 36px;
+}

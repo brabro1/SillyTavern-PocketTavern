@@ -619,4 +619,7 @@ export default {
     "Every saved chat with this character: export or delete them": "与这个角色保存的所有聊天：导出或删除",
     "Delete messages": "删除消息",
     "Rename this chat": "重命名此聊天",
+
+    // The message box
+    "Reply and tools": "回复与工具",
 };

@@ -31,6 +31,15 @@ html.pt-motion-off .pt-press {
     }
 }
 
+/* Pocket Tavern's line icons (src/ui/icons.js) are 1em by default. Components size them with their own
+   class, which loads after this, so a component's size wins. */
+.pt-svg {
+    display: block;
+    flex: 0 0 auto;
+    width: 1em;
+    height: 1em;
+}
+
 /* For screen readers only. */
 .pt-sr-only {
     position: absolute;

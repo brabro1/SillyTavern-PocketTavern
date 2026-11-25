@@ -619,4 +619,7 @@ export default {
     "Every saved chat with this character: export or delete them": "Все сохранённые чаты с этим персонажем: экспорт или удаление",
     "Delete messages": "Удалить сообщения",
     "Rename this chat": "Переименовать этот чат",
+
+    // The message box
+    "Reply and tools": "Ответ и инструменты",
 };

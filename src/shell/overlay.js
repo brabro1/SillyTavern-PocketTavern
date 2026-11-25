@@ -150,6 +150,37 @@ export function fitToViewport(dialog, compactBelow) {
     dialog.classList.toggle('pt-compact', vv.height < compactBelow);
 }
 
+/**
+ * On desktop a menu is a popover anchored to its trigger (DESIGN.md → Layouts): the sheet's panel is
+ * placed beside the button, opening above it when the button sits in the lower half of the window and
+ * below it otherwise, its end edge lined up with the button's. Positions come from the button's
+ * measured box, so they are physical (left/top) and already right for right-to-left pages.
+ * @param {HTMLDialogElement} dialog the sheet
+ * @param {Element} anchor the button that opened it
+ * @param {number} [width] the popover's width in px
+ */
+export function placePopover(dialog, anchor, width = 360) {
+    const box = anchor.getBoundingClientRect();
+    const gap = 8;
+    const margin = 8;
+    const viewWidth = window.innerWidth;
+    const viewHeight = window.innerHeight;
+    const size = Math.min(width, viewWidth - margin * 2);
+    const end = isRtl() ? box.left : box.right - size;
+    const left = Math.max(margin, Math.min(end, viewWidth - size - margin));
+    const above = box.top + box.height / 2 > viewHeight / 2;
+    dialog.classList.add('pt-popover');
+    dialog.style.setProperty('--pt-pop-left', `${Math.round(left)}px`);
+    dialog.style.setProperty('--pt-pop-width', `${Math.round(size)}px`);
+    if (above) {
+        dialog.style.setProperty('--pt-pop-bottom', `${Math.round(viewHeight - box.top + gap)}px`);
+        dialog.style.setProperty('--pt-pop-max', `${Math.round(box.top - gap - margin)}px`);
+    } else {
+        dialog.style.setProperty('--pt-pop-top', `${Math.round(box.bottom + gap)}px`);
+        dialog.style.setProperty('--pt-pop-max', `${Math.round(viewHeight - box.bottom - gap - margin)}px`);
+    }
+}
+
 /** Keeps the open sheet fitted while the visible screen changes. Returns the stop function. */
 export function followViewport(getDialog, compactBelow) {
     const vv = window.visualViewport;

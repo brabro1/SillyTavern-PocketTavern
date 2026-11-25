@@ -169,3 +169,18 @@ html.pt-compact :is(.pt-list-row, .pt-list-row-main) {
 .pt-list-row--danger .pt-list-row-icon {
     color: var(--pt-danger);
 }
+
+/* Another extension's own icon (a Font Awesome glyph copied from its menu item) in the same 20px box
+   as Pocket Tavern's icons, so its text lines up with the other rows. Three classes beat the legacy
+   .pt-menu-row-icon width it also carries (Guided Generations' sheet still uses that). */
+.pt-list-row .pt-fa-icon.pt-list-row-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    min-width: 20px;
+    margin: 0;
+    padding: 0;
+    font-size: var(--pt-text-md);
+    line-height: 1;
+}

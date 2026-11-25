@@ -1,0 +1,8 @@
+/* SillyTavern's message box (DESIGN.md → SillyTavern's own screens). Its ☰ and wand menus are replaced
+   by Pocket Tavern's + (src/views/plus-menu.js); their items stay in the page and + presses them. */
+
+/* !important beats the inline display SillyTavern sets on the wand when extensions add items to it. */
+html.pt-chat #options_button,
+html.pt-chat #extensionsMenuButton {
+    display: none !important;
+}

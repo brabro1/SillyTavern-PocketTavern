@@ -25,7 +25,7 @@ import { migrateSettings } from '../core/settings.js';
 import { h } from '../core/dom.js';
 import { startPopupWatch } from '../st/popup-watch.js';
 import { applyLayout, isTypingField, IS_IOS, keyboardUp, resolveLayout, watchLayout } from '../shell/layout.js';
-import { fitToViewport, followViewport, overlayHead, syncToasts, wireOverlay } from '../shell/overlay.js';
+import { fitToViewport, followViewport, overlayHead, placePopover, syncToasts, wireOverlay } from '../shell/overlay.js';
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 import { closeOwnPage, currentOwnPage, definePage, isOwnPage, onPageChange, openOwnPage, pageSpec, refreshOwnPage, scrollOwnPageToTop } from '../shell/page.js';
 import { AI_PAGES, aiPage } from '../views/ai.js';
@@ -33,6 +33,7 @@ import { showBackPill } from '../shell/native.js';
 import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
+import { plusMenu } from '../views/plus-menu.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -797,10 +798,12 @@ class Sheet {
 /** A sheet with arbitrary content: the "More" menu. */
 class MenuSheet {
     /**
-     * @param {{ title: string, subtitle?: string, fill: (body: HTMLElement) => void }} options
+     * @param {{ title: string, subtitle?: string, anchor?: Element, fill: (body: HTMLElement) => void }} options
+     *        anchor: the button that opened it; on desktop the sheet is then a popover beside it
      */
-    constructor({ title, subtitle, fill }) {
+    constructor({ title, subtitle, anchor, fill }) {
         this.picker = null;
+        this.anchor = anchor ?? null;
         this.closing = false;
         this.fill = fill;
         this.dialog = h('dialog', { id: 'pt-sheet', class: 'pt-sheet pt-menu-sheet', 'aria-label': title });
@@ -839,6 +842,7 @@ function showSheet(instance) {
     // The language of its labels, so long words (a tile name on a narrow phone) break with a hyphen.
     sheet.dialog.lang = currentLang();
     fitToViewport(sheet.dialog, COMPACT_BELOW);
+    if (sheet.anchor?.isConnected && isWide()) placePopover(sheet.dialog, sheet.anchor);
     document.body.append(sheet.dialog);
     sheet.dialog.showModal();
     syncToasts();
@@ -6234,7 +6238,7 @@ function applyPendingAnimated() {
  * persona (picture and name, tap to switch) and a ring that fills as the
  * context fills (tap it for what is in there).
  */
-const composer = { persona: null, ring: null, tabs: null, personas: null, formObserver: null };
+const composer = { persona: null, ring: null, plus: null, tabs: null, personas: null, formObserver: null };
 
 /** SillyTavern's personas module, loaded once; it knows the current persona. */
 function loadPersonasModule() {
@@ -6325,6 +6329,8 @@ function syncComposer() {
     if (!want) {
         composer.persona?.remove();
         composer.persona = null;
+        composer.plus?.remove();
+        composer.plus = null;
         document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
         syncGuided();
         return;
@@ -6363,6 +6369,10 @@ function syncComposer() {
         composer.ring = buildContextRing();
         right.prepend(composer.ring);
     }
+    // + sits before the ring: persona, the field, +, the ring, Send (DESIGN.md → Message box).
+    if (!composer.plus || !composer.plus.isConnected) composer.plus = buildPlusButton();
+    const plusBefore = composer.ring?.parentElement === right ? composer.ring : right.firstElementChild;
+    if (composer.plus.nextElementSibling !== plusBefore || composer.plus.parentElement !== right) right.insertBefore(composer.plus, plusBefore);
     updatePersonaButton();
     renderMeter();
     syncGuided();
@@ -8788,25 +8798,80 @@ function describeExtensions() {
     }
 }
 
-// -- the ☰ and wand menus as sheets
+// -- the message box's + (in place of SillyTavern's ☰ and wand) and the chat's ⋯
 
-/** SillyTavern's chat options menu, in groups, each item with a line on what it does. */
-const CHAT_OPTIONS = [
-    {
-        title: 'Reply', chat: true, items: [
-            { id: 'option_regenerate', icon: 'refresh', note: 'Write the last reply again' },
-            { id: 'option_continue', icon: 'play', note: 'Make the last reply longer' },
-            { id: 'option_impersonate', icon: 'mask', note: 'Let the AI write your next message' },
-        ],
-    },
-    {
-        title: 'This chat', chat: true, items: [
-            { id: 'option_toggle_AN', icon: 'note', note: 'A note the AI reads at a set depth' },
-            { id: 'option_toggle_CFG', icon: 'scale', note: 'Extra guidance for the next replies' },
-            { id: 'option_toggle_logprobs', icon: 'chart', note: 'Which words the AI weighed for each reply' },
-        ],
-    },
+/** Items of SillyTavern's ☰ menu in the + menu's two groups, each with a line on what it does. */
+const PLUS_REPLY = [
+    { id: 'option_regenerate', icon: 'refresh', note: 'Write the last reply again' },
+    { id: 'option_continue', icon: 'play', note: 'Make the last reply longer' },
+    { id: 'option_impersonate', icon: 'mask', note: 'Let the AI write your next message' },
 ];
+const PLUS_TOOLS = [
+    { id: 'option_toggle_AN', icon: 'note', note: 'A note the AI reads at a set depth' },
+    { id: 'option_toggle_CFG', icon: 'scale', note: 'Extra guidance for the next replies' },
+    { id: 'option_toggle_logprobs', icon: 'chart', note: 'Which words the AI weighed for each reply' },
+];
+/** ☰ items that live in the chat's ⋯ instead, or that Pocket Tavern's own screens cover. */
+const PLUS_ELSEWHERE = new Set(['option_select_chat', 'option_start_new_chat', 'option_close_chat', 'option_new_bookmark', 'option_back_to_main', 'option_convert_to_group', 'option_delete_mes', 'option_settings']);
+/** The wand's file item belongs with Reply: it goes with your next message. */
+const PLUS_ATTACH = 'attachFile';
+
+/** The + menu (src/views/plus-menu.js): SillyTavern's ☰ and wand items, and other extensions' tools. */
+function openPlusMenu(anchor) {
+    const options = document.getElementById('options');
+    const wand = document.getElementById('extensionsMenu');
+    const context = ctx();
+    const inChat = !!(context.groupId || context.characterId !== undefined);
+    const fromOptions = list => list.map(item => {
+        const element = options && [...options.querySelectorAll(`[id="${item.id}"]`)].find(node => menuItemShown(node, options));
+        return element ? { rawTitle: itemLabel(element), subtitle: item.note, icon: item.icon, run: () => pressMenuItem(element) } : null;
+    }).filter(Boolean);
+    const wandItems = wand ? [...wand.querySelectorAll('.list-group-item')].filter(item => menuItemShown(item, wand)) : [];
+    const wandRow = item => ({
+        rawTitle: itemLabel(item),
+        subtitle: TOOL_NOTES[item.id] ?? '',
+        start: faIcon(item),
+        // Image generation asks what to draw, in a little menu of its own.
+        run: () => (item.id === 'sd_gen' && document.querySelector('#sd_dropdown [id]') ? openPictureSheet() : pressMenuItem(item)),
+    });
+    const known = new Set([...PLUS_REPLY, ...PLUS_TOOLS].map(item => item.id));
+    // Items other extensions put in SillyTavern's ☰ menu.
+    const extraOptions = options ? [...options.querySelectorAll('.options-content > :not(hr)')]
+        .filter(node => node.id && !known.has(node.id) && !PLUS_ELSEWHERE.has(node.id) && menuItemShown(node, options))
+        .map(node => ({ rawTitle: itemLabel(node), start: faIcon(node), run: () => pressMenuItem(node) })) : [];
+    const attach = wandItems.find(item => item.id === PLUS_ATTACH);
+    const reply = inChat ? [...fromOptions(PLUS_REPLY), ...(attach ? [wandRow(attach)] : [])] : [];
+    const tools = [
+        ...(inChat ? fromOptions(PLUS_TOOLS) : []),
+        ...wandItems.filter(item => item !== attach).map(wandRow),
+        ...extraOptions,
+        ...[scenePulseRow()].filter(Boolean),
+    ];
+    showSheet(new MenuSheet({
+        title: t('Reply and tools'),
+        subtitle: '',
+        anchor,
+        fill: body => {
+            const groups = plusMenu({ reply, tools });
+            body.append(...(groups.length ? groups : [h('p', { class: 'pt-menu-foot', text: 'Open a chat first.' })]));
+        },
+    }));
+}
+
+function buildPlusButton() {
+    const plus = h('button', {
+        type: 'button',
+        class: 'pt-plus-btn',
+        'aria-label': 'Reply and tools',
+        title: 'Reply and tools',
+        'aria-haspopup': 'dialog',
+        onclick: () => {
+            buzz(6);
+            openPlusMenu(plus);
+        },
+    }, [ui('plus')]);
+    return plus;
+}
 
 /** SillyTavern's own items for the open chat, in the chat's ⋯ menu. SillyTavern only sets their
  *  visibility when its own menu opens, so `when` reads the same facts from the chat (bookmarks.js). */
@@ -8824,6 +8889,7 @@ function openChatMenu() {
     showSheet(new MenuSheet({
         title: ctx().groupId ? t('Group chat') : (ctx().characters?.[ctx().characterId]?.name ?? t('Chat')),
         subtitle: '',
+        anchor: document.querySelector('#pt-appbar .pt-ab-menu'),
         fill: body => body.append(...chatMenu({
             search: () => {
                 closeSheet(true);
@@ -8887,48 +8953,13 @@ function itemLabel(element) {
 /** The item's own Font Awesome icon (Pocket Tavern restyles those), or a neutral one. */
 function faIcon(element) {
     const source = element.querySelector('.extensionsMenuExtensionButton, i[class*="fa-"], div[class*="fa-"]');
-    if (!source) return ui('puzzle', 'pt-menu-row-icon');
+    if (!source) return ui('puzzle', 'pt-menu-row-icon pt-list-row-icon');
     const copy = source.cloneNode(false);
     copy.removeAttribute('id');
     copy.removeAttribute('title');
-    copy.classList.add('pt-menu-row-icon', 'pt-fa-icon');
+    copy.classList.add('pt-menu-row-icon', 'pt-list-row-icon', 'pt-fa-icon');
     copy.setAttribute('aria-hidden', 'true');
     return copy;
-}
-
-async function openChatOptions() {
-    const menu = document.getElementById('options');
-    if (!menu) return;
-    // SillyTavern decides which checkpoint items apply when its menu opens; do the same.
-    try {
-        (await import('/scripts/bookmarks.js')).showBookmarksButtons?.();
-    } catch (error) {
-        console.debug(LOG, 'Checkpoint items not refreshed', error);
-    }
-    const context = ctx();
-    const inChat = !!(context.groupId || context.characterId !== undefined);
-    showSheet(new MenuSheet({
-        title: 'Chat options',
-        subtitle: '',
-        fill: body => {
-            const known = new Set();
-            for (const group of CHAT_OPTIONS) {
-                const rows = [];
-                for (const item of group.items) {
-                    known.add(item.id);
-                    if (group.chat && !inChat) continue;
-                    const element = [...menu.querySelectorAll(`[id="${item.id}"]`)].find(node => menuItemShown(node, menu));
-                    if (element) rows.push(actionRow(ui(item.icon, 'pt-menu-row-icon'), itemLabel(element), item.note, () => pressMenuItem(element), item.danger));
-                }
-                if (rows.length) body.append(h('h4', { class: 'pt-menu-heading', text: group.title }), h('div', { class: 'pt-menu-list' }, rows));
-            }
-            // Items other extensions put in the menu.
-            const extra = [...menu.querySelectorAll('.options-content > :not(hr)')]
-                .filter(node => !known.has(node.id) && menuItemShown(node, menu))
-                .map(node => actionRow(faIcon(node), itemLabel(node), '', () => pressMenuItem(node)));
-            if (extra.length) body.append(h('h4', { class: 'pt-menu-heading', text: 'From extensions' }), h('div', { class: 'pt-menu-list' }, extra));
-        },
-    }));
 }
 
 const TOOL_NOTES = {
@@ -8946,17 +8977,17 @@ const TOOL_NOTES = {
     'sp-st-restore': 'Characters, mood and quests in this scene',
 };
 
-/** ScenePulse puts its button next to Send, where a phone has no room for it (Send got squeezed), so it opens from Tools instead. */
+/** ScenePulse puts its button next to Send, where a phone has no room for it (Send got squeezed), so it opens from + → Tools instead. */
 function scenePulseRow() {
     const button = document.getElementById('sp-st-restore');
     if (!button || button.style.display === 'none') return null;
     const art = button.querySelector('svg')?.cloneNode(true);
     if (art) {
         art.querySelectorAll('[class]').forEach(node => node.removeAttribute('class'));
-        art.setAttribute('class', 'pt-menu-row-icon');
+        art.setAttribute('class', 'pt-menu-row-icon pt-list-row-icon');
         art.setAttribute('aria-hidden', 'true');
     }
-    return actionRow(art ?? ui('puzzle', 'pt-menu-row-icon'), 'ScenePulse', TOOL_NOTES['sp-st-restore'], () => pressMenuItem(button));
+    return { rawTitle: 'ScenePulse', subtitle: TOOL_NOTES['sp-st-restore'], start: art ?? ui('puzzle', 'pt-menu-row-icon pt-list-row-icon'), run: () => pressMenuItem(button) };
 }
 
 const PICTURE_NOTES = {
@@ -8968,27 +8999,6 @@ const PICTURE_NOTES = {
     sd_raw_last: 'The last message, word for word',
     sd_background: 'A background for this chat',
 };
-
-function openToolsSheet() {
-    const menu = document.getElementById('extensionsMenu');
-    if (!menu) return;
-    showSheet(new MenuSheet({
-        title: 'Tools',
-        subtitle: 'From your extensions',
-        fill: body => {
-            const rows = [...menu.querySelectorAll('.list-group-item')]
-                .filter(item => menuItemShown(item, menu))
-                .map(item => actionRow(faIcon(item), itemLabel(item), TOOL_NOTES[item.id] ?? '', () => {
-                    // Image generation asks what to draw, in a little menu of its own.
-                    if (item.id === 'sd_gen' && document.querySelector('#sd_dropdown [id]')) openPictureSheet();
-                    else pressMenuItem(item);
-                }));
-            const pulse = scenePulseRow();
-            if (pulse) rows.push(pulse);
-            body.append(rows.length ? h('div', { class: 'pt-menu-list' }, rows) : h('p', { class: 'pt-menu-foot', text: 'No extension has added a tool yet.' }));
-        },
-    }));
-}
 
 function openPictureSheet() {
     const dropdown = document.getElementById('sd_dropdown');
@@ -9004,25 +9014,14 @@ function openPictureSheet() {
     }));
 }
 
-/** Taps on ☰ and the wand open the sheets instead of SillyTavern's small pop-up menus. */
-function onMenuButtonClick(event) {
+/** A long explanation shows two lines; a tap shows all of it (and does not flip the switch it belongs to). */
+function onHelpClick(event) {
     if (!active || !settings.touchSizing) return;
-    // A long explanation shows two lines; a tap shows all of it (and does not flip the switch it belongs to).
     const tip = event.target.closest?.('.pt-help');
-    if (tip) {
-        event.preventDefault();
-        event.stopPropagation();
-        tip.classList.toggle('pt-help-open');
-        return;
-    }
-    const options = event.target.closest?.('#options_button');
-    const wand = !options && event.target.closest?.('#extensionsMenuButton');
-    if (!options && !wand) return;
+    if (!tip) return;
     event.preventDefault();
-    event.stopImmediatePropagation();
-    buzz(6);
-    if (options) openChatOptions();
-    else openToolsSheet();
+    event.stopPropagation();
+    tip.classList.toggle('pt-help-open');
 }
 
 // -- install as an app
@@ -9304,7 +9303,7 @@ function syncExtras() {
         scheduleHistorySync();
     });
     document.addEventListener('click', onSendClick, true);
-    document.addEventListener('click', onMenuButtonClick, true);
+    document.addEventListener('click', onHelpClick, true);
     document.addEventListener('click', onMessageMenuClick, true);
     document.addEventListener('click', onEditCopyClick, true);
     document.addEventListener('click', onAvatarClick, true);

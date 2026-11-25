@@ -1,5 +1,6 @@
 /* Pocket Tavern's stylesheet, named in manifest.json. It only imports; the rules live in styles/.
-   Order: tokens, shared behaviour, components, then the legacy 2.x styles (carved out milestone by milestone). */
+   Order: tokens, shared behaviour, components, the legacy 2.x styles (carved out milestone by milestone),
+   then Pocket Tavern's views and SillyTavern's own screens, which replace parts of it. */
 @import url("styles/tokens.css");
 @import url("styles/base.css");
 @import url("styles/components/button.css");
@@ -16,3 +17,5 @@
 @import url("styles/components/page.css");
 @import url("styles/components/back-pill.css");
 @import url("styles/legacy.css");
+@import url("styles/views/message-box.css");
+@import url("styles/st/message-box.css");

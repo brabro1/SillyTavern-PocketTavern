@@ -505,13 +505,27 @@ await step('Formatting and Extensions open on a list; a section or an extension 
     await until(() => !document.documentElement.dataset.ptPage);
 });
 
-await step('☰, ⋯ and the wand open sheets, and their items work', async () => {
+await step('+ (Reply and Tools, in place of ☰ and the wand) and ⋯ open sheets, and their items work', async () => {
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
     await until(() => document.querySelectorAll('#chat .mes').length > 0);
-    await page.locator('#options_button').tap();
-    await until(() => !!document.querySelector('#pt-sheet .pt-menu-heading'));
-    const groups = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-menu-heading')].map(el => el.textContent));
-    if (!groups.includes('Reply') || groups.includes('Chats')) throw new Error(`☰ groups: ${groups.join(', ')} (the chat's files are in ⋯ now)`);
+    const row = await page.evaluate(() => {
+        const shown = id => { const el = document.getElementById(id); return !!el && getComputedStyle(el).display !== 'none'; };
+        const right = [...document.getElementById('rightSendForm').children].filter(el => getComputedStyle(el).display !== 'none').map(el => el.id || el.className.split(' ')[0]);
+        return { menu: shown('options_button'), wand: shown('extensionsMenuButton'), right };
+    });
+    if (row.menu || row.wand) throw new Error(`SillyTavern's ☰ or wand still shows: ${JSON.stringify(row)}`);
+    if (row.right[0] !== 'pt-plus-btn' || row.right[1] !== 'pt-ctx-ring' || row.right.at(-1) !== 'send_but') throw new Error(`the row is not +, ring, …, Send: ${row.right.join(', ')}`);
+    await page.locator('.pt-plus-btn').tap();
+    await until(() => !!document.querySelector('#pt-sheet .pt-list-header'));
+    const plus = await page.evaluate(() => ({
+        groups: [...document.querySelectorAll('#pt-sheet .pt-list-header')].map(el => el.textContent),
+        rows: [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].map(el => el.textContent),
+    }));
+    if (plus.groups.join() !== 'Reply,Tools') throw new Error(`+ groups: ${plus.groups.join(', ')}`);
+    for (const want of ['Regenerate', 'Continue', 'Impersonate', "Author's Note", 'Token Counter']) {
+        if (!plus.rows.some(title => title.includes(want))) throw new Error(`+ has no "${want}": ${plus.rows.join(', ')}`);
+    }
+    if (plus.rows.some(title => /Manage chat files|Start new chat|Delete messages/.test(title))) throw new Error(`+ repeats the chat's ⋯: ${plus.rows.join(', ')}`);
     if (await page.evaluate(() => getComputedStyle(document.getElementById('options')).display !== 'none')) throw new Error("SillyTavern's own menu opened too");
     await closeSheet();
     await page.locator('#pt-appbar .pt-ab-menu').click();
@@ -521,9 +535,9 @@ await step('☰, ⋯ and the wand open sheets, and their items work', async () =
     await page.waitForTimeout(500);
     await page.goBack();
     await until(() => getComputedStyle(document.getElementById('shadow_select_chat_popup')).display === 'none');
-    await page.locator('#extensionsMenuButton').tap();
+    await page.locator('.pt-plus-btn').tap();
     await until(() => document.getElementById('pt-sheet')?.textContent.includes('Token Counter'));
-    await page.locator('#pt-sheet .pt-menu-row', { hasText: 'Token Counter' }).click();
+    await page.locator('#pt-sheet .pt-list-row', { hasText: 'Token Counter' }).click();
     await until(() => !!document.querySelector('dialog.popup[open]'));
     await page.waitForTimeout(500);
     await page.goBack();
@@ -727,7 +741,7 @@ await step('compact size and docked message box fit more chat and keep 44px butt
             classes: document.documentElement.className,
             bar: document.getElementById('pt-appbar').getBoundingClientRect().height,
             card: document.querySelector('#chat .mes').getBoundingClientRect().height,
-            small: [...document.querySelectorAll('#send_form .pt-tabs-btn, #send_form #options_button, #chat .mes .mes_button:not([style*="none"])')]
+            small: [...document.querySelectorAll('#send_form .pt-tabs-btn, #send_form .pt-plus-btn, #chat .mes .mes_button:not([style*="none"])')]
                 .map(el => el.getBoundingClientRect())
                 .filter(rect => rect.width && (rect.width < 44 || rect.height < 44)).length,
         }));
@@ -910,7 +924,6 @@ await step("Moonlit Echoes and ScenePulse: their chat styles draw the messages, 
             + ' #chat { -webkit-mask-image: linear-gradient(black 80%, transparent); mask-image: linear-gradient(black 80%, transparent); }'
             + ' body.echostyle #chat .mes .mes_text { padding-left: 97px !important; min-height: 200px; }'
             + ' #send_form { opacity: 0.6; } #nonQRFormItems { transition: all 0.8s ease; } #leftSendForm { display: flex; } #leftSendForm > * { display: flex; }'
-            + ' #nonQRFormItems #options_button { width: 13px !important; height: 13px !important; }'
             + ' .sp-st-restore { display: flex; width: 34px; height: 34px; padding: 4px; flex-shrink: 0; }'
             + ' .sp-mobile-fab { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100000; width: 60px; height: 60px; }'
             + ' .sp-mobile-fab.sp-fab-visible { display: flex !important; }'
@@ -938,23 +951,24 @@ await step("Moonlit Echoes and ScenePulse: their chat styles draw the messages, 
         const box = await page.evaluate(() => {
             const send = document.getElementById('send_but').getBoundingClientRect();
             const at = document.elementFromPoint(send.left + send.width / 2, send.top + send.height / 2);
-            const menu = document.getElementById('options_button').getBoundingClientRect();
+            const plus = document.querySelector('.pt-plus-btn').getBoundingClientRect();
             return {
                 opacity: getComputedStyle(document.getElementById('send_form')).opacity,
                 fab: getComputedStyle(document.getElementById('sp-mobile-fab')).display,
                 inRow: getComputedStyle(document.getElementById('sp-st-restore')).display,
                 send: Math.round(Math.min(send.width, send.height)),
                 sendFree: !!at?.closest('#send_but'),
-                menu: Math.round(Math.min(menu.width, menu.height)),
+                plus: Math.round(Math.min(plus.width, plus.height)),
+                menu: getComputedStyle(document.getElementById('options_button')).display,
             };
         });
         if (box.opacity !== '1') throw new Error(`the message box is faded to ${box.opacity}`);
         if (box.fab !== 'none' || !box.sendFree) throw new Error(`ScenePulse's floating button covers Send: ${JSON.stringify(box)}`);
         if (box.inRow !== 'none' || box.send < 40) throw new Error(`ScenePulse's button crowds the row next to Send: ${JSON.stringify(box)}`);
-        if (box.menu < 44) throw new Error(`☰ is ${box.menu}px`);
-        // Tools lists ScenePulse; tapping it opens its panel, above the tab bar.
-        const pulseRow = () => [...document.querySelectorAll('#pt-sheet .pt-menu-row')].find(row => row.textContent.includes('ScenePulse'));
-        await page.locator('#extensionsMenuButton').click();
+        if (box.plus < 44 || box.menu !== 'none') throw new Error(`+ is ${box.plus}px, ☰ shows: ${box.menu}`);
+        // + → Tools lists ScenePulse; tapping it opens its panel, above the tab bar.
+        const pulseRow = () => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.textContent.includes('ScenePulse'));
+        await page.locator('.pt-plus-btn').click();
         await until(`(${pulseRow})()`);
         await page.evaluate(`(${pulseRow})().click()`);
         await until(() => document.getElementById('sp-panel').classList.contains('sp-visible'));

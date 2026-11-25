@@ -619,4 +619,7 @@ export default {
     "Every saved chat with this character: export or delete them": "كل الدردشات المحفوظة مع هذه الشخصية: صدّرها أو احذفها",
     "Delete messages": "حذف الرسائل",
     "Rename this chat": "إعادة تسمية هذه الدردشة",
+
+    // The message box
+    "Reply and tools": "الرد والأدوات",
 };

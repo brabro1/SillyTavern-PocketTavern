@@ -247,8 +247,8 @@ if (want('settings-place')) {
 }
 
 if (want('chat-options')) {
-    await page.locator('#options_button').tap();
-    await until(() => document.getElementById('pt-sheet')?.textContent.includes('Manage chat files'));
+    await page.locator('.pt-plus-btn').tap();
+    await until(() => !!document.querySelector('#pt-sheet .pt-list-header'));
     await shot('chat-options');
     await closeSheet();
 }

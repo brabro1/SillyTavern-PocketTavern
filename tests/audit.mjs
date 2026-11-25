@@ -63,6 +63,7 @@ for (const size of sizes) {
     await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); }); await shot('themes'); await close();
     await tab('chat');
     await page.evaluate(() => document.querySelector('.pt-ab-menu')?.click()); await shot('chatmenu'); await close();
+    await page.evaluate(() => document.querySelector('.pt-plus-btn')?.click()); await shot('plus'); await close();
     await page.evaluate(() => document.querySelector('.pt-ctx-ring')?.click()); await shot('context'); await close();
     await page.evaluate(() => document.querySelector('.pt-persona-chip')?.click()); await shot('persona');
     await page.evaluate(() => document.querySelector('.pt-persona-card-edit')?.click()); await shot('persona-edit'); await close();

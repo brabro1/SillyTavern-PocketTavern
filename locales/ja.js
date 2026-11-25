@@ -619,4 +619,7 @@ export default {
     "Every saved chat with this character: export or delete them": "このキャラクターと保存したすべてのチャット：書き出しや削除",
     "Delete messages": "メッセージを削除",
     "Rename this chat": "このチャットの名前を変更",
+
+    // The message box
+    "Reply and tools": "返信とツール",
 };
