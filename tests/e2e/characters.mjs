@@ -91,6 +91,8 @@ for (const layout of ['phone', 'desktop']) {
                 actions: [...document.querySelectorAll('#pt-page .pt-character-actions .pt-button')].map(button => button.textContent.trim()),
                 back: getComputedStyle(document.querySelector('#pt-appbar .pt-ab-back')).display !== 'none',
             }));
+            // After the page's fade-in, so screenshots compare cleanly.
+            await page.waitForTimeout(400);
             await page.screenshot({ path: `${OUT}/${layout}-page.png` });
             if (shown.name !== 'Seraphina' || shown.picture !== 96 || shown.actions.join('|') !== 'Chat|New chat|Edit' || shown.buttons.length !== 2 || !shown.back) throw new Error(JSON.stringify(shown));
             if (await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null) !== before) throw new Error('tapping a character switched chats');
