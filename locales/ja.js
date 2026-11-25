@@ -100,10 +100,12 @@ export default {
     "Cancel": "キャンセル",
 
     // Connection banner
-    "Can't reach SillyTavern": "SillyTavern に接続できません",
-    "Is Termux still running? This reconnects by itself when the server is back.": "Termux はまだ動いていますか？サーバーが戻ると自動で再接続します。",
     "Retry": "再試行",
     "Back online": "再接続しました",
+    "Can't reach SillyTavern. Is Termux still running?": "SillyTavern に接続できません。Termux はまだ動いていますか？",
+    "Can't reach SillyTavern. Is it still running?": "SillyTavern に接続できません。まだ動いていますか？",
+    "Not connected to an AI": "AI に接続されていません",
+    "Fix": "修正",
 
     // Quick switch
     "Change who you are, the connection, the model or the preset.": "ペルソナ、接続、モデル、プリセットを切り替えます。",
@@ -570,7 +572,6 @@ export default {
     "2. Tap \"Add to Home screen\" or \"Install app\".": "2.「ホーム画面に追加」または「アプリをインストール」をタップします。",
     "3. Tap Install. SillyTavern now has its own icon.": "3.「インストール」をタップします。SillyTavern に専用のアイコンができます。",
     "Keep Termux running in the background as usual; the app opens the same SillyTavern.": "いつも通り Termux をバックグラウンドで動かしておいてください。アプリは同じ SillyTavern を開きます。",
-    "Make sure SillyTavern is still running, then try again.": "SillyTavern が動作中か確認して、もう一度お試しください。",
     "Pocket Tavern is off.": "Pocket Tavern はオフです。",
     "Off on this device (set to \"Off on this device\").": "このデバイスではオフです（「このデバイスではオフ」に設定）。",
     "Off on this device (phones only — your screen is {width}px wide).": "このデバイスではオフです（スマホのみ — 画面幅 {width}px）。",

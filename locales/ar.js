@@ -100,10 +100,12 @@ export default {
     "Cancel": "إلغاء",
 
     // Connection banner
-    "Can't reach SillyTavern": "تعذّر الوصول إلى SillyTavern",
-    "Is Termux still running? This reconnects by itself when the server is back.": "هل ما زال Termux يعمل؟ سيُعاد الاتصال تلقائيًا عند عودة الخادم.",
     "Retry": "إعادة المحاولة",
     "Back online": "عاد الاتصال",
+    "Can't reach SillyTavern. Is Termux still running?": "تعذّر الوصول إلى SillyTavern. هل ما زال Termux يعمل؟",
+    "Can't reach SillyTavern. Is it still running?": "تعذّر الوصول إلى SillyTavern. هل ما زال يعمل؟",
+    "Not connected to an AI": "غير متصل بذكاء اصطناعي",
+    "Fix": "إصلاح",
 
     // Quick switch
     "Change who you are, the connection, the model or the preset.": "غيّر شخصيتك أو الاتصال أو النموذج أو الإعداد المسبق.",
@@ -570,7 +572,6 @@ export default {
     "2. Tap \"Add to Home screen\" or \"Install app\".": "2. اضغط \"إضافة إلى الشاشة الرئيسية\" أو \"تثبيت التطبيق\".",
     "3. Tap Install. SillyTavern now has its own icon.": "3. اضغط تثبيت. أصبح لـ SillyTavern أيقونته الخاصة.",
     "Keep Termux running in the background as usual; the app opens the same SillyTavern.": "أبقِ Termux يعمل في الخلفية كالمعتاد؛ التطبيق يفتح نفس SillyTavern.",
-    "Make sure SillyTavern is still running, then try again.": "تأكد من أن SillyTavern لا يزال يعمل ثم حاول مجددًا.",
     "Pocket Tavern is off.": "Pocket Tavern متوقف.",
     "Off on this device (set to \"Off on this device\").": "متوقف على هذا الجهاز (مضبوط على \"متوقف على هذا الجهاز\").",
     "Off on this device (phones only — your screen is {width}px wide).": "متوقف على هذا الجهاز (للهواتف فقط — عرض شاشتك {width}px).",

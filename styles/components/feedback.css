@@ -80,3 +80,52 @@
     font-size: var(--pt-text-body);
     line-height: 1.45;
 }
+
+.pt-status-banner--ok .pt-status-banner-icon { color: var(--pt-ok); }
+
+/* Where banners show (src/shell/banners.js): just under the header, over the top of the chat or page,
+   newest first. They float over what scrolls beneath, so they take the floating shadow. */
+.pt-banners {
+    position: fixed;
+    top: calc(var(--topBarBlockSize, 56px) + var(--pt-space-2));
+    inset-inline: calc(var(--pt-space-3) + var(--pt-safe-left, 0px)) calc(var(--pt-space-3) + var(--pt-safe-right, 0px));
+    z-index: var(--pt-z-banner);
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+    pointer-events: none;
+}
+
+.pt-banners > .pt-status-banner {
+    box-shadow: var(--pt-shadow-float);
+    pointer-events: auto;
+    animation: pt-banner-in var(--pt-dur-fast) var(--pt-ease);
+}
+
+/* On a computer they sit over the chat column, not across the rail and panel. */
+html.pt-desktop .pt-banners {
+    inset-inline: auto;
+    left: calc(var(--pt-left, 0px) + (var(--pt-avail, 100vw) - var(--pt-col, 100vw)) / 2);
+    width: var(--pt-col, auto);
+}
+
+@keyframes pt-banner-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-banners > .pt-status-banner {
+        animation: none;
+    }
+}
+
+html.pt-motion-off .pt-banners > .pt-status-banner {
+    animation: none;
+}
+
+/* Safari's keyboard does not shrink the layout viewport: banners follow the visible top (AGENTS.md → Known traps). */
+html.pt-ios-kb .pt-banners {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize, 56px) + var(--pt-space-2));
+}

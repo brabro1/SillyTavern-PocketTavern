@@ -100,10 +100,12 @@ export default {
     "Cancel": "取消",
 
     // Connection banner
-    "Can't reach SillyTavern": "无法连接 SillyTavern",
-    "Is Termux still running? This reconnects by itself when the server is back.": "Termux 还在运行吗？服务器恢复后会自动重新连接。",
     "Retry": "重试",
     "Back online": "已重新连接",
+    "Can't reach SillyTavern. Is Termux still running?": "无法连接 SillyTavern。Termux 还在运行吗？",
+    "Can't reach SillyTavern. Is it still running?": "无法连接 SillyTavern。它还在运行吗？",
+    "Not connected to an AI": "未连接到 AI",
+    "Fix": "修复",
 
     // Quick switch
     "Change who you are, the connection, the model or the preset.": "切换身份、连接、模型或预设。",
@@ -570,7 +572,6 @@ export default {
     "2. Tap \"Add to Home screen\" or \"Install app\".": "2. 点按“添加到主屏幕”或“安装应用”。",
     "3. Tap Install. SillyTavern now has its own icon.": "3. 点按“安装”。SillyTavern 现在有了自己的图标。",
     "Keep Termux running in the background as usual; the app opens the same SillyTavern.": "照常在后台保持 Termux 运行；该应用会打开同一个 SillyTavern。",
-    "Make sure SillyTavern is still running, then try again.": "请确认 SillyTavern 仍在运行，然后重试。",
     "Pocket Tavern is off.": "Pocket Tavern 已关闭。",
     "Off on this device (set to \"Off on this device\").": "已在此设备上关闭（设为“在此设备上关闭”）。",
     "Off on this device (phones only — your screen is {width}px wide).": "已在此设备上关闭（仅限手机 — 屏幕宽度为 {width}px）。",

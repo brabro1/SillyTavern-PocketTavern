@@ -5525,7 +5525,7 @@ html.pt-on #UI-presets-block > .pt-inline-note {
 /* The shortcut for Search everything, shown on a computer. */
 
 /* Keyboard focus: an accent ring on Pocket Tavern's own controls (SillyTavern rings only its fields). */
-html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
+html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
     outline: 2px solid var(--pt-accent);
     outline-offset: -2px;
 }
@@ -6145,79 +6145,6 @@ html.pt-phone .pt-ab-chat .pt-ab-back {
 }
 
 /* ==========================================================================
-   Connection banner
-   ========================================================================== */
-
-.pt-banner {
-    position: fixed;
-    top: calc(var(--topBarBlockSize, 56px) + 8px);
-    left: calc(10px + var(--pt-safe-left, 0px));
-    right: calc(10px + var(--pt-safe-right, 0px));
-    z-index: var(--pt-z-banner);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 12px 12px 16px;
-    border: 1px solid color-mix(in srgb, var(--pt-danger) 45%, var(--pt-border));
-    border-radius: var(--pt-radius);
-    background: color-mix(in srgb, var(--pt-danger) 14%, var(--pt-bg));
-    color: var(--pt-text-primary);
-    box-shadow: none;
-    outline: 1px solid var(--pt-border);
-    animation: pt-toast-in var(--pt-dur) var(--pt-ease);
-}
-
-.pt-banner-ok {
-    border-color: color-mix(in srgb, var(--pt-ok) 45%, var(--pt-border));
-    background: color-mix(in srgb, var(--pt-ok) 14%, var(--pt-bg));
-}
-
-.pt-banner-out {
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
-}
-
-.pt-banner-icon {
-    flex: 0 0 auto;
-    width: 22px;
-    height: 22px;
-    color: var(--pt-danger);
-}
-
-.pt-banner-ok .pt-banner-icon {
-    color: var(--pt-ok);
-}
-
-.pt-banner-text {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    font-size: 14px;
-    line-height: 1.35;
-}
-
-.pt-banner-text small {
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-}
-
-.pt-banner-btn {
-    flex: 0 0 auto;
-    height: 38px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--pt-text-primary);
-    color: var(--pt-bg);
-    font: inherit;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-/* ==========================================================================
    Choice sheets, setting search, steps, what's new
    ========================================================================== */
 
@@ -6293,7 +6220,7 @@ html.pt-standalone {
     --pt-safe-top: env(safe-area-inset-top, 0px);
 }
 
-html.pt-rtl :is(.pt-appbar, .pt-tabbar, .pt-panel, .pt-banner, .pt-viewer-top, .pt-viewer-bar, .pt-chat-finder) {
+html.pt-rtl :is(.pt-appbar, .pt-tabbar, .pt-panel, .pt-viewer-top, .pt-viewer-bar, .pt-chat-finder) {
     direction: rtl;
 }
 
@@ -6317,37 +6244,6 @@ html.pt-rtl .pt-news {
 html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu_button.disabled {
     opacity: 0.35;
 }
-
-/* ==========================================================================
-   Translate chat
-   ========================================================================== */
-
-.pt-banner.pt-banner-info {
-    border-color: color-mix(in srgb, var(--pt-info) 45%, var(--pt-border));
-    background: color-mix(in srgb, var(--pt-info) 14%, var(--pt-bg));
-}
-
-.pt-banner-info .pt-banner-icon {
-    color: var(--pt-info);
-}
-
-.pt-banner.pt-banner-info.pt-banner-ok {
-    border-color: color-mix(in srgb, var(--pt-ok) 45%, var(--pt-border));
-    background: color-mix(in srgb, var(--pt-ok) 14%, var(--pt-bg));
-}
-
-.pt-banner-info.pt-banner-ok .pt-banner-icon {
-    color: var(--pt-ok);
-}
-
-.pt-banner-text small[hidden],
-.pt-banner-btn[hidden] {
-    display: none;
-}
-
-/* The translate button glows while the chat is shown in another language. */
-
-/* The language one tap translates to, as a small tag on the button. */
 
 /* ==========================================================================
    Characters list (html.pt-charpage)
@@ -10366,7 +10262,6 @@ html.pt-shell.pt-ios-kb .pt-chat-finder {
     top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize)) !important;
 }
 
-html.pt-shell.pt-ios-kb .pt-banner,
 html.pt-shell.pt-ios-kb body #toast-container {
     top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize) + 8px) !important;
 }
@@ -11240,12 +11135,6 @@ html.pt-desktop.pt-on body #toast-container {
     left: auto !important;
     right: 16px !important;
     width: 380px !important;
-}
-
-html.pt-desktop .pt-banner {
-    left: auto;
-    right: 16px;
-    width: 420px;
 }
 
 /* -- Hover: a mouse gets the same feedback a tap gets ---------------------- */

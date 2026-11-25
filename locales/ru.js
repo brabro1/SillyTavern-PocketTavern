@@ -100,10 +100,12 @@ export default {
     "Cancel": "Отмена",
 
     // Connection banner
-    "Can't reach SillyTavern": "SillyTavern недоступен",
-    "Is Termux still running? This reconnects by itself when the server is back.": "Termux всё ещё работает? Подключение восстановится само, когда сервер вернётся.",
     "Retry": "Повторить",
     "Back online": "Снова в сети",
+    "Can't reach SillyTavern. Is Termux still running?": "Нет связи с SillyTavern. Termux всё ещё запущен?",
+    "Can't reach SillyTavern. Is it still running?": "Нет связи с SillyTavern. Он всё ещё запущен?",
+    "Not connected to an AI": "Нет подключения к ИИ",
+    "Fix": "Исправить",
 
     // Quick switch
     "Change who you are, the connection, the model or the preset.": "Смените персону, подключение, модель или пресет.",
@@ -570,7 +572,6 @@ export default {
     "2. Tap \"Add to Home screen\" or \"Install app\".": "2. Нажмите «Добавить на гл. экран» или «Установить приложение».",
     "3. Tap Install. SillyTavern now has its own icon.": "3. Нажмите «Установить». У SillyTavern теперь свой значок.",
     "Keep Termux running in the background as usual; the app opens the same SillyTavern.": "Оставьте Termux работать в фоне как обычно; приложение открывает тот же SillyTavern.",
-    "Make sure SillyTavern is still running, then try again.": "Убедитесь, что SillyTavern всё ещё запущен, и попробуйте снова.",
     "Pocket Tavern is off.": "Pocket Tavern выключен.",
     "Off on this device (set to \"Off on this device\").": "Выключено на этом устройстве (выбрано «Выкл. на этом устройстве»).",
     "Off on this device (phones only — your screen is {width}px wide).": "Выключено на этом устройстве (только телефоны — ширина экрана {width}px).",

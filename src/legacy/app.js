@@ -35,6 +35,7 @@ import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { button as uiButton } from '../ui/button.js';
+import { clearBanners, hideBanner, showBanner } from '../shell/banners.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -3574,7 +3575,7 @@ function closeViewer(immediate = false) {
  * changed: translations are shown on top, like SillyTavern's own feature, but
  * several messages are translated at once, newest first, so it feels instant.
  */
-const translation = { running: false, cancel: false, status: null };
+const translation = { running: false, cancel: false };
 const TRANSLATE_WORKERS = 4;
 const FALLBACK_LANGUAGES = [
     ['ar', 'Arabic'], ['zh-CN', 'Chinese (Simplified)'], ['nl', 'Dutch'], ['en', 'English'], ['fr', 'French'], ['de', 'German'],
@@ -3626,41 +3627,14 @@ function setTargetLanguage(code) {
     saveSettings();
 }
 
+/** The translation's progress as a banner (src/shell/banners.js), with Stop while it runs. */
 function translateStatus(text, { done = false, failed = false } = {}) {
-    let status = translation.status;
-    if (!status) {
-        status = h('div', { class: 'pt-banner pt-banner-info', role: 'status', 'aria-live': 'polite' }, [
-            ui('languages', 'pt-banner-icon'),
-            h('span', { class: 'pt-banner-text' }, [h('b'), h('small')]),
-            h('button', {
-                type: 'button',
-                class: 'pt-banner-btn',
-                onclick: () => {
-                    translation.cancel = true;
-                },
-            }, [t('Stop')]),
-        ]);
-        shieldFromDrawerAutoClose(status);
-        document.body.append(status);
-        translation.status = status;
-    }
-    const [title, note] = status.querySelectorAll('.pt-banner-text > *');
-    title.textContent = text;
-    note.textContent = failed ? t('Some messages could not be translated. Check your internet connection.') : '';
-    note.hidden = !failed;
-    status.querySelector('.pt-banner-btn').hidden = done;
-    status.classList.toggle('pt-banner-ok', done && !failed);
-    window.clearTimeout(translation.hideTimer);
-    translation.hideTimer = 0;
-    if (done) {
-        translation.hideTimer = window.setTimeout(() => {
-            translation.hideTimer = 0;
-            if (translation.status !== status || translation.running) return;
-            status.classList.add('pt-banner-out');
-            setTimeout(() => status.remove(), 250);
-            translation.status = null;
-        }, failed ? 5000 : 1800);
-    }
+    showBanner('translate', {
+        status: done ? (failed ? 'warn' : 'ok') : 'info',
+        text,
+        action: done ? undefined : { label: 'Stop', onClick: () => { translation.cancel = true; } },
+        hideAfter: done ? (failed ? 5000 : 1800) : undefined,
+    });
 }
 
 // Google Translate straight from the browser: no detour through the SillyTavern
@@ -3868,7 +3842,8 @@ async function translateChat(code) {
     // Every message changed its text, so its height too.
     primeChatSizes();
     if (translation.cancel) translateStatus(t('Translation stopped'), { done: true });
-    else translateStatus(failed === total ? t('Could not reach the translator') : t('Chat shown in {lang}', { lang: name }), { done: true, failed: failed > 0 });
+    else if (failed) translateStatus(failed === total ? t('Could not reach the translator') : t('Some messages could not be translated. Check your internet connection.'), { done: true, failed: true });
+    else translateStatus(t('Chat shown in {lang}', { lang: name }), { done: true });
 }
 
 /** New, edited and swiped messages follow the chat's language while "Translate new messages too" is on. */
@@ -7823,7 +7798,7 @@ function onPressAfterEffects(event) {
 
 // -- "can't reach SillyTavern" banner
 
-const server = { down: false, timer: 0, banner: null, busy: false };
+const server = { down: false, timer: 0, busy: false };
 
 async function serverReachable() {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
@@ -7867,38 +7842,16 @@ async function checkServer() {
 }
 
 function showServerBanner(back = false) {
-    server.banner?.remove();
-    server.banner = null;
     if (!active || !settings.serverWatch) return;
-    const offlineHint = !isWide() && !IS_IOS
-        ? t('Is Termux still running? This reconnects by itself when the server is back.')
-        : t('Make sure SillyTavern is still running, then try again.');
-    const banner = h('div', { class: `pt-banner ${back ? 'pt-banner-ok' : ''}`, role: 'status', 'aria-live': 'polite' }, [
-        ui(back ? 'circle-check' : 'plug', 'pt-banner-icon'),
-        h('span', { class: 'pt-banner-text' }, back
-            ? [h('b', { text: t('Back online') })]
-            : [h('b', { text: t("Can't reach SillyTavern") }), h('small', { raw: offlineHint })]),
-        back ? null : h('button', {
-            type: 'button',
-            class: 'pt-banner-btn',
-            onclick: () => {
-                buzz(8);
-                checkServer();
-            },
-        }, [t('Retry')]),
-    ]);
-    shieldFromDrawerAutoClose(banner);
-    document.body.append(banner);
-    server.banner = banner;
     if (back) {
-        setTimeout(() => {
-            if (server.banner === banner) {
-                banner.classList.add('pt-banner-out');
-                setTimeout(() => banner.remove(), 250);
-                server.banner = null;
-            }
-        }, 2200);
+        showBanner('server', { status: 'ok', text: 'Back online', hideAfter: 2200 });
+        return;
     }
+    showBanner('server', {
+        status: 'danger',
+        text: !isWide() && !IS_IOS ? "Can't reach SillyTavern. Is Termux still running?" : "Can't reach SillyTavern. Is it still running?",
+        action: { label: 'Retry', onClick: () => { buzz(8); checkServer(); } },
+    });
 }
 
 function syncServerWatch() {
@@ -7906,8 +7859,7 @@ function syncServerWatch() {
     else {
         window.clearTimeout(server.timer);
         server.down = false;
-        server.banner?.remove();
-        server.banner = null;
+        hideBanner('server');
     }
 }
 
@@ -9193,10 +9145,7 @@ function syncExtras() {
         drag.hint = null;
         drag.mes = null;
         translation.cancel = true;
-        window.clearTimeout(translation.hideTimer);
-        translation.hideTimer = 0;
-        translation.status?.remove();
-        translation.status = null;
+        clearBanners();
         window.clearTimeout(autoTimer);
         autoTimer = 0;
         autoQueue.clear();
@@ -9229,6 +9178,7 @@ function syncExtras() {
     applyLanguage();
     syncEditorState();
     syncServerWatch();
+    syncConnectionBanner();
     syncManifest();
     const fastOn = active && settings.fastChat;
     if (fastOn && !document.documentElement.classList.contains('pt-fast-chat')) primeChatSizes();
@@ -10097,6 +10047,30 @@ function isConnected() {
     return !!status && status !== 'no_connection';
 }
 
+const connection = { timer: 0 };
+
+/** "Not connected to an AI" with Fix (opens AI) while a chat is open and no API is connected. */
+function syncConnectionBanner() {
+    window.clearTimeout(connection.timer);
+    connection.timer = 0;
+    const context = ctx();
+    const inChat = !!(context.groupId || context.characterId !== undefined);
+    if (!active || !inChat || isConnected()) {
+        hideBanner('connection');
+        return;
+    }
+    // SillyTavern connects by itself at start and when a profile changes; give it a moment.
+    connection.timer = window.setTimeout(() => {
+        connection.timer = 0;
+        if (!active || isConnected()) return;
+        showBanner('connection', {
+            status: 'warn',
+            text: 'Not connected to an AI',
+            action: { label: 'Fix', onClick: () => openPage('pt-ai') },
+        });
+    }, 2500);
+}
+
 /** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
 function registerOwnPages() {
     definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
@@ -10188,6 +10162,9 @@ function init() {
     });
     for (const name of ['CHARACTER_EDITED', 'CHARACTER_PAGE_LOADED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], () => applyPendingAnimated());
+    }
+    for (const name of ['ONLINE_STATUS_CHANGED', 'CHAT_CHANGED']) {
+        if (event_types[name]) eventSource?.on?.(event_types[name], syncConnectionBanner);
     }
     eventSource?.on?.(event_types.CHAT_CHANGED, () => {
         applyPendingAnimated();

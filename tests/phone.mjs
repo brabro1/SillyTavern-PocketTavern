@@ -225,11 +225,18 @@ await step('there is no More: Settings and AI list their rows', async () => {
 });
 
 await step('a theme can be picked and undone', async () => {
+    const before = await page.evaluate(() => SillyTavern.getContext().extensionSettings.mobileUI.theme);
     await openThemes(page);
-    await page.locator('#pt-sheet .pt-theme-card[data-theme="midnight"]').click();
-    await until(() => document.documentElement.dataset.ptTheme === 'midnight');
-    await page.locator('#pt-sheet .pt-theme-card[data-theme="st"]').click();
-    await until(() => !document.documentElement.dataset.ptTheme);
+    try {
+        await page.locator('#pt-sheet .pt-theme-card[data-theme="midnight"]').click();
+        await until(() => document.documentElement.dataset.ptTheme === 'midnight');
+        await page.locator('#pt-sheet .pt-theme-card[data-theme="st"]').click();
+        await until(() => !document.documentElement.dataset.ptTheme);
+    } finally {
+        // The theme the test copy had before, so later steps and screenshots look as usual.
+        const card = page.locator(`#pt-sheet .pt-theme-card[data-theme="${before}"]`);
+        if (before && await card.count()) await card.click();
+    }
     await closeSheet();
     await leavePlace(page);
 });
@@ -1227,7 +1234,16 @@ await step('the character list view keeps rows apart, and the start screen can h
     await until(() => !!document.getElementById('pt_home_box'), null, 10000);
     try {
         await page.locator('#pt_home_box').click();
-        await until(() => getComputedStyle(document.getElementById('form_sheld')).display === 'none');
+        await until(() => getComputedStyle(document.getElementById('form_sheld')).display === 'none').catch(async error => {
+            const state = await page.evaluate(() => ({
+                setting: SillyTavern.getContext().extensionSettings.mobileUI.homeHideBox,
+                nobox: document.documentElement.classList.contains('pt-home-nobox'),
+                eye: document.getElementById('pt_home_box')?.dataset.on,
+                inChat: SillyTavern.getContext().characterId !== undefined,
+                top: document.elementFromPoint(...(r => [r.left + r.width / 2, r.top + r.height / 2])(document.getElementById('pt_home_box').getBoundingClientRect()))?.id,
+            }));
+            throw new Error(`the eye did not hide the box: ${JSON.stringify(state)} (${error.message})`);
+        });
         await page.locator('#pt_home_box').click();
         await until(() => getComputedStyle(document.getElementById('form_sheld')).display !== 'none');
     } finally {
@@ -1504,10 +1520,38 @@ await step('More can update Pocket Tavern in one tap and shows SillyTavern updat
 await step('banner shows when the server stops answering', async () => {
     await page.route('**/api/ping*', route => route.abort());
     await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await until(() => document.querySelector('.pt-banner:not(.pt-banner-ok)'));
+    await until(() => document.querySelector('#pt-banners [data-pt-banner="server"].pt-status-banner--danger'));
+    // Under the header, inside the screen.
+    const place = await page.evaluate(() => {
+        const banner = document.querySelector('#pt-banners [data-pt-banner="server"]').getBoundingClientRect();
+        const header = document.getElementById('pt-appbar').getBoundingClientRect();
+        return { top: Math.round(banner.top), headerBottom: Math.round(header.bottom), left: Math.round(banner.left), right: Math.round(banner.right), width: window.innerWidth };
+    });
+    if (place.top < place.headerBottom || place.left < 0 || place.right > place.width) throw new Error(`banner placed at ${JSON.stringify(place)}`);
     await page.unroute('**/api/ping*');
-    await page.locator('.pt-banner-btn').click();
-    await until(() => !document.querySelector('.pt-banner:not(.pt-banner-ok)'));
+    await page.locator('#pt-banners [data-pt-banner="server"] .pt-button', { hasText: 'Retry' }).click();
+    await until(() => !document.querySelector('#pt-banners [data-pt-banner="server"].pt-status-banner--danger'));
+});
+
+await step('in a chat with no AI connected, a banner says so and Fix opens AI', async () => {
+    await page.evaluate(async () => {
+        const context = SillyTavern.getContext();
+        if (context.characterId === undefined && !context.groupId) await context.selectCharacterById(String(context.characters.findIndex(x => x.name === 'Seraphina')));
+    });
+    const connected = await page.evaluate(() => SillyTavern.getContext().onlineStatus !== 'no_connection');
+    if (connected) {
+        await page.waitForTimeout(3000);
+        if (await page.locator('[data-pt-banner="connection"]').count()) throw new Error('the not-connected banner shows while connected');
+        return;
+    }
+    await until(() => document.querySelector('#pt-banners [data-pt-banner="connection"]')?.textContent.includes('Not connected to an AI'), null, 8000);
+    await page.locator('#pt-banners [data-pt-banner="connection"] .pt-button', { hasText: 'Fix' }).click();
+    await until(() => document.documentElement.dataset.ptPage === 'pt-ai');
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+    await until(() => !document.documentElement.dataset.ptPage);
+    // Closing the chat takes the banner away.
+    await page.evaluate(() => document.getElementById('option_close_chat')?.click());
+    await until(() => !document.querySelector('[data-pt-banner="connection"]'));
 });
 
 await step('turning Pocket Tavern off leaves nothing behind, and on again works', async () => {

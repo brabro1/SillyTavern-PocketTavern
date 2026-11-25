@@ -445,7 +445,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - Each item runs SillyTavern's own control for that action (the control stays in place, hidden).
 
 ### Feedback
-- **Banner:** inline under the header, on `--pt-surface-elevated`: a 20px status-coloured icon, one sentence, and one quiet action. Used for problems that block work: not connected, server not answering, translation unavailable. It disappears by itself when the problem is gone. It can only be dismissed if it does not block anything.
+- **Banner:** just under the header, floating over the top of the chat or page (desktop: over the chat column), on `--pt-surface-elevated` with the floating shadow: a 20px status-coloured icon, one sentence, and one quiet action. Newest on top; all of them live in one place (`src/shell/banners.js`). Used for problems that block work: server not answering, not connected (in a chat, after SillyTavern has had 2.5 s to connect by itself; **Fix** opens AI), translation unavailable; also a whole-chat translation's progress, with **Stop**. It disappears by itself when the problem is gone ("Back online" shows for a moment). It can only be dismissed if it does not block anything.
 - **Toast** (SillyTavern's toasts, restyled):
   - Answers something the user just did, or reports an event they must know (the reply failed).
   - A calm card on `--pt-surface-elevated`: hairline, `--pt-radius`, `--pt-shadow-float`, a 20px status icon, the title in primary and the message in secondary text, and a 2px progress line. No coloured fill.

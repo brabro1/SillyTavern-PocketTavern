@@ -100,10 +100,12 @@ export default {
     "Cancel": "Cancelar",
 
     // Connection banner
-    "Can't reach SillyTavern": "No se puede conectar con SillyTavern",
-    "Is Termux still running? This reconnects by itself when the server is back.": "¿Sigue abierto Termux? Se reconecta solo cuando el servidor vuelva.",
     "Retry": "Reintentar",
     "Back online": "Conectado de nuevo",
+    "Can't reach SillyTavern. Is Termux still running?": "No se puede conectar con SillyTavern. ¿Sigue abierto Termux?",
+    "Can't reach SillyTavern. Is it still running?": "No se puede conectar con SillyTavern. ¿Sigue en ejecución?",
+    "Not connected to an AI": "Sin conexión con una IA",
+    "Fix": "Arreglar",
 
     // Quick switch
     "Change who you are, the connection, the model or the preset.": "Cambia tu persona, la conexión, el modelo o el preset.",
@@ -570,7 +572,6 @@ export default {
     "2. Tap \"Add to Home screen\" or \"Install app\".": "2. Toca \"Añadir a pantalla de inicio\" o \"Instalar aplicación\".",
     "3. Tap Install. SillyTavern now has its own icon.": "3. Toca Instalar. SillyTavern ya tiene su propio icono.",
     "Keep Termux running in the background as usual; the app opens the same SillyTavern.": "Mantén Termux en segundo plano como siempre; la app abre el mismo SillyTavern.",
-    "Make sure SillyTavern is still running, then try again.": "Asegúrate de que SillyTavern siga en ejecución e inténtalo de nuevo.",
     "Pocket Tavern is off.": "Pocket Tavern está desactivado.",
     "Off on this device (set to \"Off on this device\").": "Desactivado en este dispositivo (configurado en «Desactivado en este dispositivo»).",
     "Off on this device (phones only — your screen is {width}px wide).": "Desactivado en este dispositivo (solo teléfonos — tu pantalla mide {width}px de ancho).",
