@@ -382,7 +382,7 @@ await setTheme('st');
 
 if (want('recent')) {
     await page.locator('#pt-appbar .pt-ab-back').click();
-    await until(() => document.querySelector('.recentChat'));
+    await until(() => document.querySelector('#pt-page .pt-chat-row'));
     await shot('recent');
 }
 

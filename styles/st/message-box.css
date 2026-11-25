@@ -6,3 +6,8 @@ html.pt-chat #options_button,
 html.pt-chat #extensionsMenuButton {
     display: none !important;
 }
+
+/* No chat open: the message box has nothing to send to; the Chats page is the home (DESIGN.md → Chats). */
+html.pt-no-chat #form_sheld {
+    display: none;
+}

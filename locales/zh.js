@@ -186,8 +186,6 @@ export default {
     "Notes & tags": "备注和标签",
     "Jump to letter": "跳到字母",
     "Pinned": "已置顶",
-    "Search recent chats": "搜索最近聊天",
-    "No chat matches that.": "没有匹配的聊天。",
     "Pin": "置顶",
     "Unpin": "取消置顶",
     "Today": "今天",
@@ -196,11 +194,7 @@ export default {
     "This month": "本月",
     "Older": "更早",
     "Search everything": "搜索全部",
-    "Characters, chats, lorebooks and settings": "角色、聊天、世界书和设置",
-    "Type to search…": "输入以搜索…",
-    "Find a character, a chat by its name or last message, a lorebook or a setting.": "查找角色、按名称或最后一条消息查找聊天、世界书或设置。",
     "Chats": "聊天",
-    "Lorebook": "世界书",
     "Loading chats…": "正在加载聊天…",
     "Nothing matches that.": "没有匹配项。",
     "New character pages": "新角色页面",
@@ -299,10 +293,7 @@ export default {
     "Could not save the persona": "无法保存用户角色",
     "Edit persona": "编辑用户角色",
     "Name and description": "名字和描述",
-    "Open the latest chat with {name}": "打开与 {name} 的最新聊天",
-    "All chats": "全部聊天",
     "Character": "角色",
-    "Show chats with {name}": "显示与 {name} 的聊天",
 
     // Settings sections
     "Look": "外观",
@@ -543,8 +534,6 @@ export default {
     "On macOS or Linux": "在 macOS 或 Linux 上",
     "Close SillyTavern, then run this in its folder and start it again:": "关闭 SillyTavern，在其文件夹中运行以下命令，然后重新启动：",
     "Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.": "在 iPhone 或 iPad 上使用 SillyTavern？请在运行它的电脑或手机上更新。",
-    "Hide the message box": "隐藏消息框",
-    "Show the message box": "显示消息框",
 
     // Install as an app on iPhone, iPad and computers
     "1. Tap Safari's Share button (the square with an arrow).": "1. 点按 Safari 的分享按钮（带箭头的方框）。",
@@ -618,4 +607,15 @@ export default {
 
     // The message box
     "Reply and tools": "回复与工具",
+
+    // The Chats home
+    "Pinned and recent chats": "置顶和最近的聊天",
+    "No chats yet": "还没有聊天",
+    "Choose a character": "选择角色",
+    "Show all chats": "显示所有聊天",
+    "Searching…": "正在搜索…",
+    "Places": "板块",
+    "Pick a chat from the list, or start one from Characters.": "从列表中选择一个聊天，或在“角色”中开始新聊天。",
+    "Delete this chat? This cannot be undone.": "删除此聊天？此操作无法撤销。",
+    "Chat history grouped by date.": "按日期分组的聊天记录。",
 };

@@ -1,0 +1,9 @@
+/* SillyTavern's chat area (DESIGN.md → SillyTavern's own screens). */
+
+/* No chat open: SillyTavern still draws its start screen in #chat (its buttons pin, rename and delete
+   for the Chats page), but Pocket Tavern's Chats page is what you see. Two ids and !important beat the
+   legacy message cards' long `#chat .mes { display: grid !important }` (the start screen's assistant
+   messages are .mes). */
+html.pt-no-chat #sheld #chat > * {
+    display: none !important;
+}

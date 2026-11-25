@@ -186,8 +186,6 @@ export default {
     "Notes & tags": "Заметки и теги",
     "Jump to letter": "Перейти к букве",
     "Pinned": "Закреплённые",
-    "Search recent chats": "Поиск по недавним чатам",
-    "No chat matches that.": "Таких чатов нет.",
     "Pin": "Закрепить",
     "Unpin": "Открепить",
     "Today": "Сегодня",
@@ -196,11 +194,7 @@ export default {
     "This month": "В этом месяце",
     "Older": "Раньше",
     "Search everything": "Искать везде",
-    "Characters, chats, lorebooks and settings": "Персонажи, чаты, лорбуки и настройки",
-    "Type to search…": "Начните вводить…",
-    "Find a character, a chat by its name or last message, a lorebook or a setting.": "Найдите персонажа, чат по названию или последнему сообщению, лорбук или настройку.",
     "Chats": "Чаты",
-    "Lorebook": "Лорбук",
     "Loading chats…": "Загрузка чатов…",
     "Nothing matches that.": "Ничего не найдено.",
     "New character pages": "Новые страницы персонажей",
@@ -299,10 +293,7 @@ export default {
     "Could not save the persona": "Не удалось сохранить персону",
     "Edit persona": "Изменить персону",
     "Name and description": "Имя и описание",
-    "Open the latest chat with {name}": "Открыть последний чат с {name}",
-    "All chats": "Все чаты",
     "Character": "Персонаж",
-    "Show chats with {name}": "Показать чаты с {name}",
 
     // Settings sections
     "Look": "Внешний вид",
@@ -543,8 +534,6 @@ export default {
     "On macOS or Linux": "На macOS или Linux",
     "Close SillyTavern, then run this in its folder and start it again:": "Закройте SillyTavern, выполните это в его папке и запустите снова:",
     "Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.": "Пользуетесь SillyTavern с iPhone или iPad? Обновите его на компьютере или телефоне, где он работает.",
-    "Hide the message box": "Скрыть поле сообщения",
-    "Show the message box": "Показать поле сообщения",
 
     // Install as an app on iPhone, iPad and computers
     "1. Tap Safari's Share button (the square with an arrow).": "1. Нажмите кнопку «Поделиться» в Safari (квадрат со стрелкой).",
@@ -618,4 +607,15 @@ export default {
 
     // The message box
     "Reply and tools": "Ответ и инструменты",
+
+    // The Chats home
+    "Pinned and recent chats": "Закреплённые и недавние чаты",
+    "No chats yet": "Чатов пока нет",
+    "Choose a character": "Выберите персонажа",
+    "Show all chats": "Показать все чаты",
+    "Searching…": "Поиск…",
+    "Places": "Разделы",
+    "Pick a chat from the list, or start one from Characters.": "Выберите чат из списка или начните новый в разделе «Персонажи».",
+    "Delete this chat? This cannot be undone.": "Удалить этот чат? Это нельзя отменить.",
+    "Chat history grouped by date.": "История чатов по датам.",
 };

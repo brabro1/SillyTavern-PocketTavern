@@ -484,6 +484,9 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **List:** Pinned and Recent groups of chat rows. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
 - **No message box** on this screen.
 - **Empty:** "No chats yet" · **Choose a character** (opens Characters).
+- **Where it lives:** on a phone it is the Chats place's screen while no chat is open; opening a chat (from here or anywhere) takes the screen, and ‹ in the chat closes it and comes back here. On desktop it fills the panel and stays there beside the chat it opened; Chats on the rail hides or shows it. With no chat open, desktop's chat column shows "Pick a chat from the list, or start one from Characters." · **Choose a character**. SillyTavern's own start screen is hidden.
+- **A row's ⋯:** Pin or Unpin and Rename (SillyTavern's own start-screen buttons, so they are there while no chat is open; the open chat is renamed with SillyTavern's `renameChat`), then **Delete** in its own group, for a chat that is not open (SillyTavern's question, then its own delete). The open chat is deleted from its own ⋯ → Chat files.
+- **Search:** Enter opens the first result. Up to 5 places, 12 characters and groups, 12 chats, 8 lorebooks and 12 settings.
 
 ### The chat
 - **Header:**

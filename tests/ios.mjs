@@ -108,6 +108,12 @@ for (const device of ['iPhone SE', 'iPhone 15', 'iPhone 15 Pro Max', 'iPhone 15 
 for (const device of ['iPad Pro 11 landscape', 'iPad Pro 11', 'iPad Mini landscape']) {
     const { context, page } = await open(device);
     await check(`${device}: layout and chat width`, async () => {
+        // The Chats list opens in the panel beside the chat; Chats again hides it, so the chat gets the room.
+        if (await page.evaluate(() => document.documentElement.dataset.ptPage === 'pt-chats')) {
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+            await page.waitForFunction(() => !document.documentElement.classList.contains('pt-page-open'));
+            await page.waitForTimeout(400);
+        }
         const l = await layout(page);
         const col = await page.evaluate(() => Math.round(document.getElementById('sheld').getBoundingClientRect().width));
         const wide = l.html.includes('pt-desktop');

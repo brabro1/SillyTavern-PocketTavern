@@ -186,8 +186,6 @@ export default {
     "Notes & tags": "Notas y etiquetas",
     "Jump to letter": "Ir a la letra",
     "Pinned": "Fijados",
-    "Search recent chats": "Buscar chats recientes",
-    "No chat matches that.": "Ningún chat coincide.",
     "Pin": "Fijar",
     "Unpin": "Quitar fijado",
     "Today": "Hoy",
@@ -196,11 +194,7 @@ export default {
     "This month": "Este mes",
     "Older": "Más antiguos",
     "Search everything": "Buscar en todo",
-    "Characters, chats, lorebooks and settings": "Personajes, chats, lorebooks y ajustes",
-    "Type to search…": "Escribe para buscar…",
-    "Find a character, a chat by its name or last message, a lorebook or a setting.": "Busca un personaje, un chat por su nombre o último mensaje, un lorebook o un ajuste.",
     "Chats": "Chats",
-    "Lorebook": "Lorebook",
     "Loading chats…": "Cargando chats…",
     "Nothing matches that.": "Nada coincide.",
     "New character pages": "Nuevas páginas de personajes",
@@ -299,10 +293,7 @@ export default {
     "Could not save the persona": "No se pudo guardar la persona",
     "Edit persona": "Editar persona",
     "Name and description": "Nombre y descripción",
-    "Open the latest chat with {name}": "Abrir el último chat con {name}",
-    "All chats": "Todos los chats",
     "Character": "Personaje",
-    "Show chats with {name}": "Ver chats con {name}",
 
     // Settings sections
     "Look": "Aspecto",
@@ -543,8 +534,6 @@ export default {
     "On macOS or Linux": "En macOS o Linux",
     "Close SillyTavern, then run this in its folder and start it again:": "Cierra SillyTavern, ejecuta esto en su carpeta y vuelve a iniciarlo:",
     "Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.": "¿Usas SillyTavern desde un iPhone o iPad? Actualízalo en el ordenador o teléfono donde se ejecuta.",
-    "Hide the message box": "Ocultar la caja de mensaje",
-    "Show the message box": "Mostrar la caja de mensaje",
 
     // Install as an app on iPhone, iPad and computers
     "1. Tap Safari's Share button (the square with an arrow).": "1. Toca el botón Compartir de Safari (el cuadrado con una flecha).",
@@ -618,4 +607,15 @@ export default {
 
     // The message box
     "Reply and tools": "Respuesta y herramientas",
+
+    // The Chats home
+    "Pinned and recent chats": "Chats fijados y recientes",
+    "No chats yet": "Aún no hay chats",
+    "Choose a character": "Elige un personaje",
+    "Show all chats": "Ver todos los chats",
+    "Searching…": "Buscando…",
+    "Places": "Lugares",
+    "Pick a chat from the list, or start one from Characters.": "Elige un chat de la lista o empieza uno desde Personajes.",
+    "Delete this chat? This cannot be undone.": "¿Eliminar este chat? No se puede deshacer.",
+    "Chat history grouped by date.": "Historial de chats agrupado por fecha.",
 };

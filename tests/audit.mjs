@@ -87,9 +87,9 @@ for (const size of sizes) {
     await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-extensions');
     await page.evaluate(() => document.querySelector('#rm_api_block')?.closest('.drawer')?.querySelector('.drawer-toggle')?.click()); await settle(900); await shot('page-api');
     await tab('chat');
-    // To the Chats home: ‹ in the chat on a phone, Chats on the desktop rail.
+    // To the Chats page: ‹ in the chat on a phone (it closes the chat), Chats on the desktop rail (the list in the panel).
     await page.evaluate(() => { const back = document.querySelector('.pt-ab-back'); (back && getComputedStyle(back).display !== 'none' ? back : document.querySelector('.pt-tab[data-tab="chat"]'))?.click(); }); await settle(1500);
-    await page.evaluate(() => document.querySelector('.pt-group-toggle')?.click()); await shot('recent-open');
+    await shot('chats');
     await page.evaluate(() => document.getElementById('option_select_chat')?.click()); await shot('history');
     await page.goBack().catch(() => {}); await settle(600);
     if (logs.length) report.push(`${size.name}: console: ${[...new Set(logs)].join(' || ')}`);

@@ -186,8 +186,6 @@ export default {
     "Notes & tags": "メモとタグ",
     "Jump to letter": "文字へ移動",
     "Pinned": "ピン留め",
-    "Search recent chats": "最近のチャットを検索",
-    "No chat matches that.": "一致するチャットはありません。",
     "Pin": "ピン留め",
     "Unpin": "ピン解除",
     "Today": "今日",
@@ -196,11 +194,7 @@ export default {
     "This month": "今月",
     "Older": "それ以前",
     "Search everything": "すべてを検索",
-    "Characters, chats, lorebooks and settings": "キャラクター、チャット、ロアブック、設定",
-    "Type to search…": "入力して検索…",
-    "Find a character, a chat by its name or last message, a lorebook or a setting.": "キャラクター、名前や最後のメッセージでチャット、ロアブック、設定を探せます。",
     "Chats": "チャット",
-    "Lorebook": "ロアブック",
     "Loading chats…": "チャットを読み込み中…",
     "Nothing matches that.": "一致するものはありません。",
     "New character pages": "新しいキャラクター画面",
@@ -299,10 +293,7 @@ export default {
     "Could not save the persona": "ペルソナを保存できませんでした",
     "Edit persona": "ペルソナを編集",
     "Name and description": "名前と説明",
-    "Open the latest chat with {name}": "{name} との最新のチャットを開く",
-    "All chats": "すべてのチャット",
     "Character": "キャラクター",
-    "Show chats with {name}": "{name} とのチャットを表示",
 
     // Settings sections
     "Look": "見た目",
@@ -543,8 +534,6 @@ export default {
     "On macOS or Linux": "macOS / Linux の場合",
     "Close SillyTavern, then run this in its folder and start it again:": "SillyTavern を閉じ、フォルダーで次を実行してから起動し直します:",
     "Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.": "iPhone や iPad から使っていますか？SillyTavern を動かしているパソコンやスマホで更新してください。",
-    "Hide the message box": "メッセージ欄を隠す",
-    "Show the message box": "メッセージ欄を表示",
 
     // Install as an app on iPhone, iPad and computers
     "1. Tap Safari's Share button (the square with an arrow).": "1. Safari の共有ボタン（矢印の付いた四角）をタップします。",
@@ -618,4 +607,15 @@ export default {
 
     // The message box
     "Reply and tools": "返信とツール",
+
+    // The Chats home
+    "Pinned and recent chats": "ピン留めと最近のチャット",
+    "No chats yet": "まだチャットがありません",
+    "Choose a character": "キャラクターを選ぶ",
+    "Show all chats": "すべてのチャットを表示",
+    "Searching…": "検索中…",
+    "Places": "場所",
+    "Pick a chat from the list, or start one from Characters.": "リストからチャットを選ぶか、キャラクターから始めてください。",
+    "Delete this chat? This cannot be undone.": "このチャットを削除しますか？元に戻せません。",
+    "Chat history grouped by date.": "日付ごとにまとめたチャット履歴。",
 };

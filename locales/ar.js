@@ -186,8 +186,6 @@ export default {
     "Notes & tags": "ملاحظات ووسوم",
     "Jump to letter": "الانتقال إلى حرف",
     "Pinned": "المثبتة",
-    "Search recent chats": "البحث في الدردشات الأخيرة",
-    "No chat matches that.": "لا توجد دردشة مطابقة.",
     "Pin": "تثبيت",
     "Unpin": "إلغاء التثبيت",
     "Today": "اليوم",
@@ -196,11 +194,7 @@ export default {
     "This month": "هذا الشهر",
     "Older": "أقدم",
     "Search everything": "البحث في كل شيء",
-    "Characters, chats, lorebooks and settings": "الشخصيات والدردشات وكتب المعرفة والإعدادات",
-    "Type to search…": "اكتب للبحث…",
-    "Find a character, a chat by its name or last message, a lorebook or a setting.": "ابحث عن شخصية، أو دردشة باسمها أو آخر رسالة فيها، أو كتاب معرفة، أو إعداد.",
     "Chats": "الدردشات",
-    "Lorebook": "كتاب معرفة",
     "Loading chats…": "جارٍ تحميل الدردشات…",
     "Nothing matches that.": "لا شيء مطابق.",
     "New character pages": "صفحات شخصيات جديدة",
@@ -299,10 +293,7 @@ export default {
     "Could not save the persona": "تعذّر حفظ الشخصية",
     "Edit persona": "تعديل الشخصية",
     "Name and description": "الاسم والوصف",
-    "Open the latest chat with {name}": "فتح آخر دردشة مع {name}",
-    "All chats": "كل الدردشات",
     "Character": "الشخصية",
-    "Show chats with {name}": "عرض الدردشات مع {name}",
 
     // Settings sections
     "Look": "المظهر",
@@ -543,8 +534,6 @@ export default {
     "On macOS or Linux": "على macOS أو Linux",
     "Close SillyTavern, then run this in its folder and start it again:": "أغلق SillyTavern ثم شغّل هذا في مجلده وابدأه من جديد:",
     "Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.": "تستخدم SillyTavern من iPhone أو iPad؟ حدّثه على الحاسوب أو الهاتف الذي يعمل عليه.",
-    "Hide the message box": "إخفاء مربع الرسالة",
-    "Show the message box": "إظهار مربع الرسالة",
 
     // Install as an app on iPhone, iPad and computers
     "1. Tap Safari's Share button (the square with an arrow).": "1. اضغط زر المشاركة في Safari (المربع الذي فيه سهم).",
@@ -618,4 +607,15 @@ export default {
 
     // The message box
     "Reply and tools": "الرد والأدوات",
+
+    // The Chats home
+    "Pinned and recent chats": "الدردشات المثبّتة والأخيرة",
+    "No chats yet": "لا توجد دردشات بعد",
+    "Choose a character": "اختر شخصية",
+    "Show all chats": "عرض كل الدردشات",
+    "Searching…": "جارٍ البحث…",
+    "Places": "الأقسام",
+    "Pick a chat from the list, or start one from Characters.": "اختر دردشة من القائمة، أو ابدأ واحدة من الشخصيات.",
+    "Delete this chat? This cannot be undone.": "حذف هذه الدردشة؟ لا يمكن التراجع عن ذلك.",
+    "Chat history grouped by date.": "سجل الدردشات مجمّعًا حسب التاريخ.",
 };

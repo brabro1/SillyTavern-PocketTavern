@@ -34,6 +34,10 @@ import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
+import { chatsPage } from '../views/chats.js';
+import { chatTitle, chatTitleNode, formatPreview, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
+import { emptyState } from '../ui/feedback.js';
+import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
 import { clearBanners, hideBanner, showBanner } from '../shell/banners.js';
 
@@ -65,7 +69,6 @@ const DEFAULTS = Object.freeze({
     sendEffect: true,
     haptics: true,
     autoReload: true,
-    homeHideBox: false,
     /** SillyTavern's Chat Style before a Pocket Tavern theme put it on Flat ('' when untouched), and that theme's id. */
     stChatStyle: '',
     chatStyleFor: '',
@@ -140,7 +143,7 @@ const EXTRAS = [
     { key: 'animatedPictures', id: 'pt_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
     { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
     { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
-    { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Search and swipe in Recent chats; chat history grouped by date.' },
+    { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Chat history grouped by date.' },
     { key: 'longPress', id: 'pt_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
     { key: 'serverWatch', id: 'pt_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
     { key: 'fastChat', id: 'pt_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
@@ -242,7 +245,7 @@ const TABS = [
 
 /** The place a SillyTavern page belongs to: its tab stays lit, and Back from it returns to that place. */
 function placeOf(pageId) {
-    if (!pageId) return 'chat';
+    if (!pageId || pageId === 'pt-chats') return 'chat';
     if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
     if (AI_PAGES.includes(pageId)) return 'pt-ai';
     return 'pt-settings';
@@ -1171,7 +1174,7 @@ function openOverlays() {
 
 function openLayerCount() {
     let count = 0;
-    if (currentPageId()) count += 1;
+    if (currentPageId() && currentPageId() !== 'pt-chats') count += 1;
     count += openOverlays().length;
     count += openGuidedPopups().length;
     count += document.querySelectorAll('dialog.popup[open]').length;
@@ -1486,7 +1489,7 @@ class Shell {
             class: 'pt-ab-btn pt-ab-search',
             'aria-label': t('Find a setting'),
             title: t('Find a setting'),
-            onclick: () => (currentPageId() ? openSettingSearch() : openGlobalSearch()),
+            onclick: () => openSettingSearch(),
         }, [ui('search')]);
         // The chat's ⋯ menu: everything about the open chat (DESIGN.md → The chat).
         this.menu = h('button', {
@@ -1726,14 +1729,23 @@ class Shell {
     }
 
     goTab(id) {
+        // A place you picked yourself is never swapped for Chats by the start-up check (syncChatsHome).
+        chatsHome.startUntil = 0;
         if (sheet) closeSheet(true);
         // Character Library's panel covers the chat and pages: any tab leaves it.
         if (closeCharacterLibrary() && id === 'chat') return;
         if (id === 'chat') {
-            // From a chat on desktop, Chats (the place you are in) goes to its root: the Chats home.
-            // On a phone that is ‹ in the chat's header; the tabs are tucked away there.
-            if (!currentPageId() && this.inChat && isWide()) goHome();
-            else if (!currentPageId() && this.tabsOut) this.tuckAgain();
+            const open = currentPageId();
+            // Desktop: the list in the panel beside the chat; Chats again hides it.
+            if (isWide()) {
+                if (open === 'pt-chats') closePages();
+                else openPage('pt-chats');
+                return;
+            }
+            // Phone: the Chats page is the place's screen while no chat is open; with a chat open, the chat.
+            if (open === 'pt-chats') scrollOwnPageToTop();
+            else if (!open && this.tabsOut) this.tuckAgain();
+            else if (ctx().getCurrentChatId?.() === undefined) openPage('pt-chats');
             else closePages();
             return;
         }
@@ -1847,7 +1859,7 @@ class Shell {
         const tabId = placeOf(pageId);
         if (pageId) this.lastInPlace[tabId] = pageId;
         // A place's root has its title only; a page pushed in a place gets ‹ (DESIGN.md → Headers).
-        this.appbar.classList.toggle('pt-ab-root', !!pageId && tabId === pageId);
+        this.appbar.classList.toggle('pt-ab-root', !!pageId && (tabId === pageId || pageId === 'pt-chats'));
         this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
         for (const [id, button] of this.tabs) {
             const on = id === tabId;
@@ -1858,7 +1870,7 @@ class Shell {
         this.railTab = tabId;
         if (wide) this.placeRailPill();
 
-        if (pageId) {
+        if (pageId && !(wide && pageId === 'pt-chats')) {
             const drawer = drawerById(pageId);
             if (drawer && settings.touchSizing) {
                 requestAnimationFrame(() => fillRanges(drawer));
@@ -1927,8 +1939,6 @@ class Shell {
 
         this.appbar.classList.remove('pt-ab-page');
         root.classList.remove('pt-prompt-editor');
-        // Outside a page the same button searches everything (in a chat, that includes the chat itself).
-        this.setSearchLabel(t('Search everything'));
         this.who.disabled = false;
         const context = ctx();
         let name = t('Chats');
@@ -1959,9 +1969,9 @@ class Shell {
         } else {
             this.avatar.replaceChildren(ui(context.groupId ? 'users' : (hasChat ? 'user' : 'chats')));
         }
-        // In a chat: ⋯; on the Chats home: Search everything (until the home has its own field).
+        // In a chat: ⋯. Search everything is the field on the Chats page.
         this.menu.hidden = !hasChat;
-        this.search.hidden = hasChat;
+        this.search.hidden = true;
         this.appbar.classList.toggle('pt-ab-chat', hasChat);
         this.inChat = hasChat;
         this.syncTuck();
@@ -2790,7 +2800,7 @@ function onFocusGuardPointer(event) {
     focusGuard.at = Date.now();
     if (target.closest('#send_form')) focusGuard.tapped = Date.now();
     // Opening a chat from a list: the focus that follows is not yours.
-    else if (target.closest('.recentChat, .pt-group-main, .character_select, .group_select, .select_chat_block, .pt-choice, .pt-search-hit')) guardKeyboard(3500);
+    else if (target.closest('.pt-chat-row-main, .character_select, .group_select, .select_chat_block, .pt-choice, .pt-search-hit')) guardKeyboard(3500);
 }
 
 function onFocusGuardFocus(event) {
@@ -4352,7 +4362,7 @@ function openCardChats() {
             for (const chat of state.chats.slice(0, 20)) {
                 const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
                 const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
-                const line = h('span', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
+                const line = h('span', { class: 'pt-rc-line' }, [chatTitleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
                 if (String(ctx().characterId) === String(chid) && ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
                 const meta = h('small', { class: 'pt-rc-meta' });
                 const count = Number(chat.chat_items);
@@ -4456,7 +4466,7 @@ function fillCharacterSheet(body, { entry, chid, character, chats }) {
     for (const chat of chats.slice(0, 5)) {
         const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
         const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
-        const line = h('span', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
+        const line = h('span', { class: 'pt-rc-line' }, [chatTitleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
         if (character.chat === fileId) line.append(h('span', { class: 'pt-rc-now', text: 'Latest' }));
         const meta = h('small', { class: 'pt-rc-meta' });
         const count = Number(chat.chat_items);
@@ -4880,366 +4890,36 @@ function placeAzStrip(strip, list, count) {
     if (strip.style.height !== height) strip.style.height = height;
 }
 
-// -- recent chats: search, pinned section, swipe to pin or delete
-
-const welcome = { observer: null };
-
-// -- start screen: hide the message box for more room (both layouts)
-
-const home = { observer: null };
-
-function syncHomeBox() {
-    const root = document.documentElement;
-    let button = document.getElementById('pt_home_box');
-    if (!active || !settings.chatStyle) {
-        button?.remove();
-        root.classList.remove('pt-home-nobox');
-        home.observer?.disconnect();
-        home.observer = null;
-        return;
-    }
-    const chat = document.getElementById('chat');
-    // The start screen comes and goes as chats open and close.
-    if (chat && !home.observer) {
-        home.observer = new MutationObserver(() => syncHomeBox());
-        home.observer.observe(chat, { childList: true });
-    }
-    const panel = document.querySelector('#chat .welcomePanel');
-    const hidden = !!settings.homeHideBox;
-    root.classList.toggle('pt-home-nobox', hidden && !!panel);
-    const header = panel?.querySelector('.welcomeHeaderTitle');
-    if (!header) return;
-    if (!button || !header.contains(button)) {
-        button?.remove();
-        button = h('div', {
-            id: 'pt_home_box',
-            class: 'mes_button pt-home-box',
-            role: 'button',
-            tabindex: '0',
-            onclick: () => toggleHomeBox(),
-            onkeydown: event => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                event.preventDefault();
-                toggleHomeBox();
-            },
-        });
-        const anchor = header.querySelector('.showRecentChats');
-        if (anchor) anchor.before(button);
-        else header.append(button);
-    }
-    const label = t(hidden ? 'Show the message box' : 'Hide the message box');
-    if (button.dataset.on !== String(hidden)) {
-        button.dataset.on = String(hidden);
-        button.replaceChildren(ui(hidden ? 'eye' : 'eye-off'));
-    }
-    button.title = label;
-    button.setAttribute('aria-label', label);
-    button.setAttribute('aria-pressed', String(hidden));
-}
-
-function toggleHomeBox() {
-    buzz(6);
-    settings.homeHideBox = !settings.homeHideBox;
-    saveSettings();
-    syncHomeBox();
-}
-
-function syncWelcome() {
-    const chat = document.getElementById('chat');
-    const want = active && settings.chatStyle && settings.recentTools;
-    if (!want) {
-        welcome.observer?.disconnect();
-        welcome.observer = null;
-        for (const group of document.querySelectorAll('.pt-chat-group')) {
-            group.querySelectorAll('.recentChat').forEach(card => group.before(card));
-            group.remove();
-        }
-        document.querySelectorAll('.showMoreChats.pt-native-hidden').forEach(node => node.classList.remove('pt-native-hidden'));
-        document.querySelectorAll('.pt-recent-search, .pt-recent-heading, .pt-recent-empty, .pt-swipe-hint').forEach(node => node.remove());
-        document.querySelectorAll('.recentChat.pt-match, .recentChat.pt-nomatch').forEach(node => node.classList.remove('pt-match', 'pt-nomatch'));
-        document.querySelectorAll('.recentChatList.pt-searching').forEach(node => node.classList.remove('pt-searching'));
-        document.querySelectorAll('.welcomePanel[data-pt]').forEach(node => delete node.dataset.pt);
-        undecorateRows(document.querySelector('#chat .welcomePanel') ?? document.createElement('div'));
-        return;
-    }
-    if (chat && !welcome.observer) {
-        welcome.observer = new MutationObserver(() => enhanceWelcome());
-        welcome.observer.observe(chat, { childList: true, subtree: false });
-    }
-    enhanceWelcome();
-}
-
-function enhanceWelcome() {
-    const panel = document.querySelector('#chat .welcomePanel');
-    if (!panel || panel.dataset.pt === '1') return;
-    const list = panel.querySelector('.recentChatList');
-    if (!list) return;
-    panel.dataset.pt = '1';
-    const cards = Array.from(list.querySelectorAll('.recentChat'));
-
-    // Pinned chats first under their own heading, as they are.
-    const pinned = cards.filter(card => card.querySelector('.recentChatPinned'));
-    const rest = cards.filter(card => !pinned.includes(card));
-    if (pinned.length) pinned[0].before(h('p', { class: 'pt-recent-heading', text: 'Pinned' }));
-
-    // The rest grouped by character (or group chat): one card each, newest first.
-    const groups = new Map();
-    for (const card of rest) {
-        const key = card.dataset.group ? `g:${card.dataset.group}` : `c:${card.dataset.avatar}`;
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(card);
-    }
-    if (groups.size) {
-        onChatScroll();
-        // A placeholder marks the spot: the rows themselves move into the groups.
-        const spot = document.createComment('pt-groups');
-        rest[0].before(spot);
-        if (pinned.length) spot.before(h('p', { class: 'pt-recent-heading', text: 'Recent' }));
-        for (const chats of groups.values()) spot.before(buildChatGroup(chats));
-        spot.remove();
-    }
-    // SillyTavern's own "show more" folds chats away; the groups show them all.
-    list.querySelector('.showMoreChats')?.classList.add('pt-native-hidden');
-
-    if (cards.length > 3) {
-        const empty = h('p', { class: 'pt-recent-empty', text: 'No chat matches that.', hidden: true });
-        const search = h('input', { type: 'search', class: 'text_pole pt-recent-search', placeholder: 'Search recent chats', 'aria-label': 'Search recent chats', enterkeyhint: 'search' });
-        search.addEventListener('input', () => {
-            const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
-            let shown = 0;
-            for (const card of cards) {
-                if (!card.isConnected) continue;
-                // A chat matches by its own text or its character's name.
-                const group = card.closest('.pt-chat-group');
-                const text = normalizeText(`${card.textContent} ${group?.dataset.name ?? ''}`);
-                const match = !words.length || words.every(word => text.includes(word));
-                card.classList.toggle('pt-match', words.length > 0 && match);
-                card.classList.toggle('pt-nomatch', !match);
-                if (match) shown++;
-            }
-            for (const group of list.querySelectorAll('.pt-chat-group')) {
-                group.hidden = words.length > 0 && !group.querySelector('.recentChat:not(.pt-nomatch)');
-                group.classList.toggle('pt-group-found', words.length > 0 && !group.hidden);
-            }
-            list.classList.toggle('pt-searching', words.length > 0);
-            empty.hidden = shown > 0;
-        });
-        list.before(search);
-        list.append(empty);
-    }
-
-    for (const card of cards) {
-        decorateRecentRow(card);
-        wireSwipe(card, card.parentElement);
-    }
-    showWelcomeFromTop();
-}
+// -- chat rows: the ⋯ menu, and SillyTavern's Chat history drawn as chat rows (src/ui/chat-row.js)
 
 /**
- * SillyTavern scrolls the chat to its end after drawing the start screen (and
- * again after its welcome message), which put you at the bottom of Recent
- * chats. Start at the top instead, unless you already started scrolling.
+ * The ⋯ menu of a chat row. Each item runs SillyTavern's own button or function; destructive ones
+ * come last, in their own group. On desktop it opens beside its ⋯.
  */
-function showWelcomeFromTop() {
-    const chat = document.getElementById('chat');
-    if (!chat) return;
-    const started = userScrollSince();
-    for (const delay of [0, 120, 400, 900]) {
-        setTimeout(() => {
-            if (active && !started() && chat.querySelector('.welcomePanel')) chat.scrollTop = 0;
-        }, delay);
-    }
-}
-
-/** The cards after this one that are on screen (or just below), for the glide. */
-function followingCards(group) {
-    const out = [];
-    const limit = window.innerHeight + 200;
-    for (let node = group.nextElementSibling; node && out.length < 12; node = node.nextElementSibling) {
-        if (node.getBoundingClientRect().top > limit) break;
-        out.push(node);
-    }
-    return out;
-}
-
-/** Characters whose chat list is open; remembered while the app stays open. */
-const openChatGroups = new Set();
-
-/** Opens this chat, then runs `then` once SillyTavern has switched to it. */
-function openRecentThen(card, then) {
-    const context = ctx();
-    const before = context.getCurrentChatId?.();
-    const done = () => setTimeout(then, 150);
-    if (before && before === card.dataset.file) {
-        done();
-        return;
-    }
-    const chatChangedEvent = context.eventTypes?.CHAT_CHANGED;
-    let fired = false;
-    const once = () => {
-        if (fired) return;
-        fired = true;
-        if (chatChangedEvent) context.eventSource?.removeListener?.(chatChangedEvent, once);
-        done();
-    };
-    if (chatChangedEvent) context.eventSource?.on?.(chatChangedEvent, once);
-    card.click();
-    // In case the event never comes (for example the chat was already open).
-    setTimeout(once, 2500);
-}
-
-// -- chat previews: the last message drawn like a message, in the chat's own colours
-
-/**
- * Builds a message preview the way a chat message reads: *narration* and _narration_ in the
- * narration colour, "dialogue" in the quote colour, **bold**. Plain DOM nodes from text, never
- * HTML. A preview cut at its start ("…she smiles.* Then") or end ("*She takes") keeps the half
- * it is in.
- */
-function formatPreview(text) {
-    const out = document.createDocumentFragment();
-    let str = String(text ?? '').replace(/\s+/g, ' ').trim();
-    const lone = str.replace(/\*\*/g, '').split('*').length - 1;
-    let lead = '';
-    let tail = '';
-    if (lone % 2 === 1) {
-        // An odd asterisk: the preview was cut inside narration.
-        if (/^(?:\.\.\.|…)/.test(str) && str.indexOf('*') > -1) {
-            const at = str.indexOf('*');
-            lead = str.slice(0, at);
-            str = str.slice(at + 1);
-        } else {
-            const at = str.lastIndexOf('*');
-            tail = str.slice(at + 1);
-            str = str.slice(0, at);
-        }
-    }
-    if (lead) out.append(h('em', { raw: lead }));
-    // No lookbehind: Safari before iOS 16.4 cannot parse it, and the whole extension would fail to load.
-    const pattern = /\*\*\*([^*]+)\*\*\*|\*\*([^*]+)\*\*|\*([^*]+)\*|(^|[^\w])_([^_]+)_(?!\w)|("[^"]+"|“[^”]+”|«[^»]+»)/g;
-    let cursor = 0;
-    for (const match of str.matchAll(pattern)) {
-        if (match.index > cursor) out.append(str.slice(cursor, match.index));
-        if (match[1] !== undefined) out.append(h('strong', {}, [h('em', { raw: match[1] })]));
-        else if (match[2] !== undefined) out.append(h('strong', { raw: match[2] }));
-        else if (match[3] !== undefined) out.append(h('em', { raw: match[3] }));
-        else if (match[5] !== undefined) out.append(match[4], h('em', { raw: match[5] }));
-        else out.append(h('q', { raw: match[6] }));
-        cursor = match.index + match[0].length;
-    }
-    if (cursor < str.length) out.append(str.slice(cursor));
-    if (tail) out.append(h('em', { raw: tail }));
-    return out;
-}
-
-/** A message bubble with the preview in it, styled like the chat's message cards. */
-function previewBubble(text) {
-    // The words sit in their own box so the line limit never shows a sliver of the next line.
-    const words = h('span', { class: 'pt-bubble-text' });
-    // Its own direction from its words, so a cut line ends with … on the right side in any language.
-    words.dir = 'auto';
-    words.append(formatPreview(text));
-    return h('span', { class: 'pt-bubble' }, [words]);
-}
-
-/** "1 message", "5 messages". */
-function messageCount(count) {
-    return count === 1 ? t('1 message') : t('{count} messages', { count });
-}
-
-/**
- * The name to show for a chat: its own name when it was renamed, otherwise when it was started
- * ("Seraphina - 2023-5-12 @21h 32m 29s 224ms" reads as "Chat from 12 May 2023"). Branches and
- * other names stay as they are. Returns `{ text, raw }`: `raw` is user text, never translated.
- */
-function chatTitle(fileName) {
-    const name = String(fileName ?? '').replace(/\.jsonl$/i, '').trim();
-    const match = name.match(/(?:^|\s-\s)(\d{4})-(\d{1,2})-(\d{1,2})\s?@\s?(\d{1,2})h\s?(\d{1,2})m\s?(\d{1,2})s(?:\s?\d+\s?ms)?$/);
-    if (!match || /^Branch #/i.test(name)) return { text: name, raw: true };
-    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]));
-    if (Number.isNaN(date.getTime())) return { text: name, raw: true };
-    return { text: t('Chat from {date}', { date: date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) }), raw: false };
-}
-
-function titleNode(tag, className, fileName) {
-    const title = chatTitle(fileName);
-    const node = h(tag, { class: className });
-    node.textContent = title.text;
-    if (title.raw) node.dir = 'auto';
-    return node;
-}
-
-/** The ⋯ menu of a chat row: rename, pin, export, delete. Each runs SillyTavern's own button. */
-function openChatRowMenu(fileName, items) {
+function openChatRowMenu(fileName, items, anchor = null) {
+    const rows = items.filter(Boolean);
     const instance = new MenuSheet({
         title: 'Chat',
-        fill: body => body.append(h('div', { class: 'pt-menu-list' }, items.filter(Boolean).map(item => h('button', {
-            type: 'button',
-            class: `pt-menu-row${item.danger ? ' pt-danger' : ''}`,
-            onclick: () => {
-                closeSheet(true);
-                item.run();
-            },
-        }, [ui(item.icon, 'pt-menu-row-icon'), h('span', { text: item.label })])))),
+        anchor,
+        fill: body => {
+            const row = item => {
+                const node = listRow({ title: item.label, icon: item.icon, end: 'none', onClick: () => {
+                    closeSheet(true);
+                    item.run();
+                } });
+                if (item.danger) node.classList.add('pt-list-row--danger');
+                return node;
+            };
+            const plain = rows.filter(item => !item.danger);
+            const danger = rows.filter(item => item.danger);
+            if (plain.length) body.append(listGroup({ rows: plain.map(row) }));
+            if (danger.length) body.append(listGroup({ rows: danger.map(row) }));
+        },
     });
     // The chat's name is shown as it is.
     instance.title.textContent = chatTitle(fileName).text;
     instance.dialog.setAttribute('aria-label', instance.title.textContent);
     showSheet(instance);
-}
-
-function moreButton(label, onOpen) {
-    const button = h('button', {
-        type: 'button',
-        class: 'pt-rc-more',
-        'aria-label': label,
-        title: label,
-        onclick: event => {
-            event.preventDefault();
-            event.stopPropagation();
-            buzz(6);
-            onOpen();
-        },
-    }, [ui('ellipsis')]);
-    // The row opens its chat on a tap; the menu button must not.
-    for (const type of ['pointerdown', 'touchstart', 'mousedown']) button.addEventListener(type, event => event.stopPropagation(), { passive: true });
-    return button;
-}
-
-/**
- * A recent chat on the start screen: a title line (character or chat name, when, ⋯), the last
- * message as a bubble, and how many messages. SillyTavern's own row stays underneath (hidden),
- * so tapping opens the chat and its pin, rename and delete buttons do the work.
- */
-function decorateRecentRow(card) {
-    if (card.querySelector(':scope > .pt-rc-body')) return;
-    card.classList.add('pt-rc');
-    const inGroup = !!card.closest('.pt-group-chats');
-    const name = card.querySelector('.characterName')?.textContent.trim() ?? '';
-    const head = h('div', { class: 'pt-rc-line' });
-    if (inGroup) {
-        head.append(titleNode('b', 'pt-rc-title', card.dataset.file));
-    } else {
-        const who = h('b', { class: 'pt-rc-title', raw: name });
-        who.dir = 'auto';
-        head.append(who);
-    }
-    const date = card.querySelector('.chatDate');
-    const when = h('small', { class: 'pt-rc-when', raw: date?.textContent.trim() ?? '' });
-    if (date?.title) when.title = date.title;
-    const pinned = () => !!card.querySelector('.pinChat.active, .recentChatPinned');
-    head.append(when, moreButton('Chat options', () => openChatRowMenu(card.dataset.file, [
-        { icon: 'bookmark', label: pinned() ? 'Unpin' : 'Pin', run: () => card.querySelector('.pinChat')?.click() },
-        { icon: 'pencil', label: 'Rename', run: () => card.querySelector('.renameChat')?.click() },
-        { icon: 'trash', label: 'Delete', danger: true, run: () => card.querySelector('.deleteChat')?.click() },
-    ])));
-    const count = Number.parseInt(card.querySelector('.counterBlock small')?.textContent ?? '', 10);
-    const meta = h('small', { class: 'pt-rc-meta' });
-    if (!inGroup && card.dataset.file) meta.append(titleNode('span', 'pt-rc-chat', card.dataset.file));
-    if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-    const body = h('div', { class: 'pt-rc-body' }, [head, previewBubble(card.querySelector('.chatMessage')?.textContent ?? '')]);
-    if (meta.childElementCount) body.append(meta);
-    card.append(body);
 }
 
 function undecorateRows(root = document) {
@@ -5255,204 +4935,19 @@ function decorateHistoryRow(block) {
     if (block.querySelector(':scope > .pt-rc-body')) return;
     block.classList.add('pt-rc');
     const fileName = block.getAttribute('file_name') ?? '';
-    const head = h('div', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileName)]);
+    const head = h('div', { class: 'pt-rc-line' }, [chatTitleNode('b', 'pt-rc-title', fileName)]);
     if (block.hasAttribute('highlight')) head.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
     const button = selector => () => block.querySelector(selector)?.click();
-    head.append(moreButton('Chat options', () => openChatRowMenu(fileName, [
+    head.append(rowMenuButton(anchor => openChatRowMenu(fileName, [
         { icon: 'pencil', label: 'Rename', run: button('.renameChatButton') },
         { icon: 'file-export', label: 'Export as JSONL', run: button('.exportRawChatButton') },
         { icon: 'file-text', label: 'Download as text', run: button('.exportChatButton') },
         { icon: 'trash', label: 'Delete', danger: true, run: button('.PastChat_cross') },
-    ])));
+    ], anchor)));
     const meta = h('small', { class: 'pt-rc-meta' }, [h('span', { raw: block.querySelector('.chat_messages_date')?.textContent.trim() ?? '' })]);
     const count = Number.parseInt((block.querySelector('.chat_messages_num')?.textContent ?? '').replace(/\D+/g, ' '), 10);
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
     block.append(h('div', { class: 'pt-rc-body' }, [head, previewBubble(block.querySelector('.select_chat_block_mes')?.textContent ?? ''), meta]));
-}
-
-/**
- * One character's recent chats as a dropdown card. The top row shows the
- * character, the last thing said and when; tap it for the latest chat, or the
- * arrow to open the list: quick actions (new chat, all chats, character card)
- * and every recent chat with them. SillyTavern's own chat rows are moved in, so
- * tapping, renaming, pinning and deleting work as before.
- */
-function buildChatGroup(chats) {
-    const latest = chats[0];
-    const isGroupChat = latest.classList.contains('group');
-    const key = isGroupChat ? `g:${latest.dataset.group}` : `c:${latest.dataset.avatar}`;
-    const name = latest.querySelector('.characterName')?.textContent.trim() ?? '';
-    const group = h('section', { class: 'pt-chat-group', 'data-name': name });
-    if (isGroupChat) group.classList.add('pt-chat-group-group');
-
-    // The top row: open the latest chat.
-    const main = h('button', {
-        type: 'button',
-        class: 'pt-group-main',
-        onclick: () => {
-            buzz(6);
-            latest.click();
-        },
-    });
-    main.setAttribute('aria-label', t('Open the latest chat with {name}', { name }));
-    const picture = latest.querySelector(':scope > .avatar')?.cloneNode(true);
-    const face = h('span', { class: 'pt-group-face' });
-    if (picture) {
-        picture.classList.add('pt-group-avatar');
-        picture.removeAttribute('title');
-        face.append(picture);
-    }
-    if (chats.length > 1) face.append(h('span', { class: 'pt-group-badge', text: String(chats.length) }));
-    const title = h('b', { class: 'pt-group-name' });
-    title.textContent = name;
-    const when = h('small', { class: 'pt-group-when' });
-    when.textContent = latest.querySelector('.chatDate')?.textContent.trim() ?? '';
-    const last = previewBubble(latest.querySelector('.chatMessage')?.textContent ?? '');
-    last.classList.add('pt-group-last');
-    main.append(face, h('span', { class: 'pt-group-text' }, [h('span', { class: 'pt-group-line' }, [title, when]), last]));
-
-    // The arrow: open or close the list.
-    const toggle = h('button', {
-        type: 'button',
-        class: 'pt-group-toggle',
-        'aria-label': t('Show chats with {name}', { name }),
-        onclick: () => {
-            buzz(4);
-            setOpen(!group.classList.contains('pt-group-open'), true);
-        },
-    }, [ui('chevron-down')]);
-    const setOpen = (open, animate = false) => {
-        // The cards below move by however much this one grows or shrinks; they
-        // glide there (movement only, so it stays smooth) instead of the card
-        // growing frame by frame.
-        const below = animate && motionAllowed() ? followingCards(group) : [];
-        const before = below.map(card => card.getBoundingClientRect().top);
-        group.classList.toggle('pt-group-open', open);
-        toggle.setAttribute('aria-expanded', String(open));
-        if (open) openChatGroups.add(key);
-        else openChatGroups.delete(key);
-        if (!below.length && !(animate && motionAllowed())) return;
-        const quick = settings.motion === 'light';
-        const timing = { duration: quick ? 150 : 220, easing: EASE };
-        below.forEach((card, index) => {
-            const shift = before[index] - card.getBoundingClientRect().top;
-            if (Math.abs(shift) > 1) card.animate([{ transform: `translateY(${shift}px)` }, { transform: 'none' }], timing);
-        });
-        if (open) {
-            panel.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'none' }], timing);
-        }
-    };
-
-    // Inside: quick actions, then the chats.
-    const action = (iconName, label, run) => h('button', {
-        type: 'button',
-        class: 'pt-group-action',
-        onclick: () => {
-            buzz(6);
-            openRecentThen(latest, run);
-        },
-    }, [ui(iconName), h('span', { text: label })]);
-    const actions = h('div', { class: 'pt-group-actions' }, [
-        action('plus', 'New chat', () => document.getElementById('option_start_new_chat')?.click()),
-        action('history', 'All chats', () => document.getElementById('option_select_chat')?.click()),
-        isGroupChat ? null : action('user', 'Character', () => openPage('rightNavHolder')),
-    ]);
-    const list = h('div', { class: 'pt-group-chats' }, chats);
-    const panel = h('div', { class: 'pt-group-panel' }, [h('div', { class: 'pt-group-inner' }, [actions, list])]);
-    group.append(h('div', { class: 'pt-group-head' }, [main, toggle]), panel);
-    setOpen(openChatGroups.has(key));
-    return group;
-}
-
-/** Swipe a recent chat right to pin or unpin it, left to delete it (SillyTavern asks first). */
-function wireSwipe(card) {
-    if (card.dataset.ptSwipe) return;
-    card.dataset.ptSwipe = '1';
-    let startX = 0;
-    let startY = 0;
-    let dx = 0;
-    let tracking = false;
-    let swiping = false;
-    let hint = null;
-    let cardTop = 0;
-    let cardHeight = 0;
-    let frame = 0;
-    const paint = () => {
-        frame = 0;
-        if (!swiping) return;
-        card.style.transition = 'none';
-        card.style.transform = `translate3d(${dx}px, 0, 0)`;
-        const pinnedNow = !!card.querySelector('.pinChat.active, .recentChatPinned');
-        const kind = dx > 0 ? 'pin' : 'delete';
-        if (!hint || hint.dataset.kind !== kind) {
-            hint?.remove();
-            hint = h('div', { class: `pt-swipe-hint pt-swipe-${kind}`, 'data-kind': kind }, [
-                ui(kind === 'pin' ? 'bookmark' : 'trash'),
-                h('span', { text: kind === 'pin' ? (pinnedNow ? 'Unpin' : 'Pin') : 'Delete' }),
-            ]);
-            hint.style.top = `${cardTop}px`;
-            hint.style.height = `${cardHeight}px`;
-            card.parentElement?.append(hint);
-        }
-        hint.classList.toggle('pt-swipe-ready', Math.abs(dx) > 90);
-    };
-    const reset = () => {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        card.style.transition = 'transform 0.22s var(--pt-ease)';
-        card.style.transform = '';
-        hint?.remove();
-        hint = null;
-        setTimeout(() => {
-            card.style.transition = '';
-        }, 240);
-    };
-    card.addEventListener('touchstart', event => {
-        if (!active || !settings.chatStyle || !settings.recentTools) return;
-        if (event.touches.length !== 1 || event.target.closest('button')) return;
-        startX = event.touches[0].clientX;
-        startY = event.touches[0].clientY;
-        dx = 0;
-        tracking = true;
-        swiping = false;
-    }, { passive: true });
-    card.addEventListener('touchmove', event => {
-        if (!tracking) return;
-        const x = event.touches[0].clientX - startX;
-        const y = event.touches[0].clientY - startY;
-        if (!swiping) {
-            if (Math.abs(y) > 12 && Math.abs(y) > Math.abs(x)) {
-                tracking = false;
-                return;
-            }
-            if (Math.abs(x) < 14) return;
-            swiping = true;
-            cardTop = card.offsetTop;
-            cardHeight = card.offsetHeight;
-        }
-        dx = Math.max(-140, Math.min(140, x));
-        if (!frame) frame = requestAnimationFrame(paint);
-    }, { passive: true });
-    const end = () => {
-        if (!tracking) return;
-        tracking = false;
-        if (!swiping) return;
-        const action = Math.abs(dx) > 90 ? (dx > 0 ? 'pin' : 'delete') : null;
-        reset();
-        if (action) {
-            buzz(12);
-            card.querySelector(action === 'pin' ? '.pinChat' : '.deleteChat')?.click();
-        }
-        // Then swallow the tap the browser sends after the swipe, so the chat does not open.
-        const swallow = event => {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-        };
-        card.addEventListener('click', swallow, { capture: true, once: true });
-        setTimeout(() => card.removeEventListener('click', swallow, { capture: true }), 400);
-    };
-    card.addEventListener('touchend', end);
-    card.addEventListener('touchcancel', end);
 }
 
 // -- chat history: grouped by date
@@ -5523,21 +5018,7 @@ function syncChatHistory() {
     }
 }
 
-// -- search everything
-
-async function recentChatList() {
-    try {
-        const response = await fetch('/api/chats/recent', {
-            method: 'POST',
-            headers: ctx().getRequestHeaders?.() ?? { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ max: 200 }),
-            cache: 'no-cache',
-        });
-        return response.ok ? await response.json() : [];
-    } catch {
-        return [];
-    }
-}
+// -- search everything: what the Chats page's search finds
 
 async function lorebookNames() {
     try {
@@ -5562,7 +5043,11 @@ function allSettingItems() {
 async function openChatFile(chat) {
     const context = ctx();
     const file = String(chat.file_name ?? '').replace(/\.jsonl$/, '');
-    closePages();
+    if (isOpenChat(chat)) {
+        if (!keepChatsPanel()) closePages();
+        return;
+    }
+    if (!keepChatsPanel()) closePages();
     if (chat.group) {
         await context.openGroupChat?.(chat.group, file);
         return;
@@ -5585,103 +5070,216 @@ function openLorebook(name) {
     }, 300);
 }
 
-function openGlobalSearch() {
+// -- the Chats home (src/views/chats.js)
+
+const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, startUntil: 0 };
+
+/** SillyTavern's pinned chats (its start screen keeps them in account storage): read only. */
+async function loadPinnedChats() {
+    try {
+        const { accountStorage } = await import('/scripts/util/AccountStorage.js');
+        const state = JSON.parse(accountStorage.getItem('pinnedChats') || '{}');
+        chatsHome.pinned = state && typeof state === 'object' ? Object.values(state) : [];
+    } catch {
+        chatsHome.pinned = [];
+    }
+    return chatsHome.pinned;
+}
+
+const sameChat = (a, b) => a.file_name === b.file_name && ((a.group && String(a.group) === String(b.group)) || (!a.group && a.avatar === b.avatar));
+
+function isPinnedChat(chat) {
+    return (chatsHome.pinned ?? []).some(pin => sameChat(pin, chat));
+}
+
+/** Recent chats, pinned first (SillyTavern's own endpoint, as its start screen asks for them). */
+async function recentChatsForHome() {
+    const pinned = await loadPinnedChats();
+    try {
+        const response = await fetch('/api/chats/recent', {
+            method: 'POST',
+            headers: ctx().getRequestHeaders?.() ?? { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ max: 200, pinned }),
+            cache: 'no-cache',
+        });
+        const list = response.ok ? await response.json() : [];
+        const context = ctx();
+        // Like the start screen: only chats whose character or group still exists.
+        return (Array.isArray(list) ? list : []).filter(chat => (chat.group
+            ? context.groups?.some(group => String(group.id) === String(chat.group))
+            : context.characters?.some(character => character.avatar === chat.avatar)));
+    } catch {
+        return [];
+    }
+}
+
+function chatOwner(chat) {
     const context = ctx();
-    const characters = (context.characters ?? []).map((character, id) => ({ kind: 'character', id, name: character.name, note: (character.description ?? '').replace(/\s+/g, ' ').slice(0, 80), avatar: character.avatar }));
-    const groups = (context.groups ?? []).map(group => ({ kind: 'group', id: group.id, name: group.name, note: t('Group chat') }));
-    let chats = null;
-    let lorebooks = null;
-    let settingsIndex = null;
-    const load = Promise.all([
-        recentChatList().then(list => {
-            chats = list;
-        }),
-        lorebookNames().then(list => {
-            lorebooks = list;
-        }),
-    ]);
-    showSheet(new MenuSheet({
-        title: t('Search everything'),
-        subtitle: t('Characters, chats, lorebooks and settings'),
-        fill: body => {
-            const input = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Type to search…'), 'aria-label': t('Search everything'), enterkeyhint: 'search' });
-            const results = h('div', { class: 'pt-search-results' });
-            const section = (title, rows) => (rows.length ? [h('p', { class: 'pt-menu-heading', text: title }), h('div', { class: 'pt-menu-list' }, rows)] : []);
-            const row = (iconOrImage, label, note, onclick) => h('button', { type: 'button', class: 'pt-menu-row', onclick }, [
-                iconOrImage.startsWith('/') ? h('img', { class: 'pt-choice-img', src: iconOrImage, alt: '', loading: 'lazy' }) : ui(iconOrImage, 'pt-menu-row-icon'),
-                h('span', { class: 'pt-row-text' }, [h('span', { raw: label }), note ? h('small', { raw: note }) : null]),
-            ]);
-            const charByAvatar = new Map(characters.map(c => [c.avatar, c.name]));
-            const groupById = new Map(groups.map(g => [String(g.id), g.name]));
-            const ownerName = chat => (chat.group ? groupById.get(String(chat.group)) : charByAvatar.get(chat.avatar)) ?? '';
-            const render = () => {
-                const words = normalizeText(input.value).split(/\s+/).filter(Boolean);
-                if (!words.length) {
-                    results.replaceChildren(h('p', { class: 'pt-menu-foot', text: t('Find a character, a chat by its name or last message, a lorebook or a setting.') }));
-                    return;
-                }
-                const hit = text => {
-                    const norm = normalizeText(text);
-                    return words.every(word => norm.includes(word));
-                };
-                const go = action => () => {
-                    closeSheet(true);
-                    action();
-                };
-                const characterRows = [...characters, ...groups].filter(item => hit(`${item.name} ${item.note}`)).slice(0, 12).map(item => item.kind === 'character'
-                    ? row(item.avatar ? `/thumbnail?type=avatar&file=${encodeURIComponent(item.avatar)}` : 'user', item.name, item.note, go(async () => {
-                        closePages();
-                        await ctx().selectCharacterById(item.id);
-                    }))
-                    : row('users', item.name, item.note, go(async () => {
-                        closePages();
-                        await ctx().openGroupChat?.(item.id);
-                    })));
-                const chatRows = (chats ?? []).filter(chat => hit(`${ownerName(chat)} ${chat.file_name ?? ''} ${chat.mes ?? ''}`)).slice(0, 12).map(chat => row(
-                    chat.avatar ? `/thumbnail?type=avatar&file=${encodeURIComponent(chat.avatar)}` : 'chats',
-                    ownerName(chat) || String(chat.file_name ?? '').replace(/\.jsonl$/, ''),
-                    `${String(chat.mes ?? '').replace(/\s+/g, ' ').slice(0, 80)}`,
-                    go(() => openChatFile(chat)),
-                ));
-                const loreRows = (lorebooks ?? []).filter(name => hit(name)).slice(0, 8).map(name => row('book', name, t('Lorebook'), go(() => openLorebook(name))));
-                if (!settingsIndex) settingsIndex = allSettingItems();
-                const settingRows = settingsIndex.filter(item => hit(`${item.label} ${item.section} ${item.page}`)).slice(0, 12).map(item => row('settings', item.label, [item.page, item.section].filter(Boolean).join(' › '), go(() => {
-                    openPage(item.pageId);
-                    setTimeout(() => revealSetting(item.row), 350);
-                })));
-                const blocks = [
-                    ...section(t('Characters'), characterRows),
-                    ...section(t('Chats'), chatRows),
-                    ...section(t('Lorebooks'), loreRows),
-                    ...section(t('Settings'), settingRows),
-                ];
-                if (chats === null) blocks.push(h('p', { class: 'pt-menu-foot', text: t('Loading chats…') }));
-                results.replaceChildren(...(blocks.length ? blocks : [h('p', { class: 'pt-menu-foot', text: t('Nothing matches that.') })]));
-            };
-            input.addEventListener('input', render);
-            // Enter opens the first result, so Ctrl+K, a few letters and Enter gets you there.
-            input.addEventListener('keydown', event => {
-                if (event.key !== 'Enter' || event.isComposing) return;
-                event.preventDefault();
-                results.querySelector('.pt-menu-row')?.click();
-            });
-            load.then(() => {
-                if (input.isConnected) render();
-            });
-            // One search (DESIGN.md): in a chat it also searches the chat's own messages.
-            const inChat = !!(context.groupId || context.characterId !== undefined);
-            const chatSearch = inChat ? h('div', { class: 'pt-menu-list pt-search-this-chat' }, [row('search', t('Search this chat'), '', () => {
-                closeSheet(true);
-                // The bar searches the chat, so show the chat, not the page that was open.
-                closePages();
-                openChatFinder();
-            })]) : null;
-            if (chatSearch) body.append(input, chatSearch, results);
-            else body.append(input, results);
-            render();
-            setTimeout(() => { if (input.isConnected) input.focus(); }, 250);
+    if (chat.group) return { name: context.groups?.find(group => String(group.id) === String(chat.group))?.name ?? t('Group chat') };
+    const character = context.characters?.find(item => item.avatar === chat.avatar);
+    return { name: character?.name ?? '', picture: chat.avatar ? `/thumbnail?type=avatar&file=${encodeURIComponent(chat.avatar)}` : undefined };
+}
+
+function chatFileId(chat) {
+    return String(chat.file_name ?? '').replace(/\.jsonl$/, '');
+}
+
+function isOpenChat(chat) {
+    const context = ctx();
+    if (context.getCurrentChatId?.() !== chatFileId(chat)) return false;
+    if (chat.group) return String(context.groupId) === String(chat.group);
+    return context.characters?.[context.characterId]?.avatar === chat.avatar;
+}
+
+/** On desktop the list stays in the panel beside the chat it opened; on a phone the chat takes the screen. */
+function keepChatsPanel() {
+    return isWide() && currentPageId() === 'pt-chats';
+}
+
+/** SillyTavern's own start-screen row for a chat, when its start screen is drawn (no chat open). */
+function startScreenRow(chat) {
+    const file = chatFileId(chat);
+    return [...document.querySelectorAll('#chat .welcomePanel .recentChat')].find(row => row.dataset.file === file
+        && (chat.group ? row.dataset.group === String(chat.group) : row.dataset.avatar === chat.avatar)) ?? null;
+}
+
+/**
+ * A chat row's ⋯: Pin and Rename run SillyTavern's own start-screen buttons (there while no chat is
+ * open), the open chat is renamed with SillyTavern's renameChat, and a chat that is not open is
+ * deleted with SillyTavern's confirm and its own delete. The open chat is deleted from its own
+ * ⋯ → Chat files, so the chat on screen never outlives its file.
+ */
+function openHomeChatMenu(chat, anchor) {
+    const row = startScreenRow(chat);
+    const open = isOpenChat(chat);
+    const press = selector => () => row?.querySelector(selector)?.click();
+    openChatRowMenu(chat.file_name, [
+        row ? { icon: 'bookmark', label: isPinnedChat(chat) ? 'Unpin' : 'Pin', run: press('.pinChat') } : null,
+        open ? { icon: 'pencil', label: 'Rename', run: () => renameCurrentChat() } : (row ? { icon: 'pencil', label: 'Rename', run: press('.renameChat') } : null),
+        open ? null : { icon: 'trash', label: 'Delete', danger: true, run: () => (row ? press('.deleteChat')() : deleteChatFile(chat)) },
+    ], anchor);
+}
+
+/** Deletes a chat that is not open: SillyTavern's own question, then its own delete function. */
+async function deleteChatFile(chat) {
+    const context = ctx();
+    const ok = await context.callGenericPopup?.(t('Delete this chat? This cannot be undone.'), context.POPUP_TYPE?.CONFIRM ?? 2);
+    if (!ok || isOpenChat(chat)) return;
+    try {
+        if (chat.group) {
+            await (await import('/scripts/group-chats.js')).deleteGroupChatByName(String(chat.group), chatFileId(chat));
+        } else {
+            const id = context.characters.findIndex(character => character.avatar === chat.avatar);
+            if (id === -1) return;
+            await (await import('/script.js')).deleteCharacterChatByName(String(id), chatFileId(chat));
+        }
+    } finally {
+        refreshChatsHome();
+    }
+}
+
+/** Everything else Search everything finds: the places, characters and groups, lorebooks, settings. */
+async function searchIndexForHome() {
+    const context = ctx();
+    const places = TABS.map(tab => ({ kind: 'place', title: tab.label, icon: tab.icon, text: `${tab.label} ${t(tab.label)}`, run: () => shell?.onTab(tab.id) }));
+    const characters = (context.characters ?? []).map((character, id) => ({
+        kind: 'character',
+        rawTitle: character.name,
+        picture: character.avatar && character.avatar !== 'none' ? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}` : '',
+        text: `${character.name} ${character.tags?.join?.(' ') ?? ''}`,
+        run: async () => {
+            if (!keepChatsPanel()) closePages();
+            await ctx().selectCharacterById(id);
         },
     }));
+    const groups = (context.groups ?? []).map(group => ({
+        kind: 'character',
+        rawTitle: group.name,
+        subtitle: 'Group chat',
+        icon: 'users',
+        text: group.name,
+        run: async () => {
+            if (!keepChatsPanel()) closePages();
+            await ctx().openGroupChat?.(group.id);
+        },
+    }));
+    const lorebooks = (await lorebookNames()).map(name => ({ kind: 'lorebook', rawTitle: name, icon: 'book', text: name, run: () => openLorebook(name) }));
+    const found = allSettingItems().map(item => ({
+        kind: 'setting',
+        rawTitle: item.label,
+        subtitle: [item.page, item.section].filter(Boolean).join(' › '),
+        icon: 'settings',
+        text: `${item.label} ${item.section} ${item.page}`,
+        run: () => {
+            openPage(item.pageId);
+            setTimeout(() => revealSetting(item.row), 350);
+        },
+    }));
+    return [...places, ...characters, ...groups, ...lorebooks, ...found];
+}
+
+/** The Chats page drawn again (the open chat changed, a chat was renamed, pinned or deleted). */
+function refreshChatsHome() {
+    window.clearTimeout(chatsHome.timer);
+    chatsHome.timer = window.setTimeout(() => {
+        chatsHome.timer = 0;
+        if (active && currentPageId() === 'pt-chats') refreshOwnPage();
+    }, 150);
+}
+
+/** Ctrl/⌘ K: the Chats page with its search field focused. */
+function focusChatsSearch() {
+    if (currentPageId() !== 'pt-chats') openPage('pt-chats');
+    requestAnimationFrame(() => document.querySelector('#pt-page .pt-chats-search input')?.focus());
+}
+
+/**
+ * With no chat open: the Chats page is what you see (a phone shows it as the place's screen, desktop
+ * in the panel), SillyTavern's start screen and the message box step aside, and desktop's chat column
+ * says where chats come from. SillyTavern still draws its start screen underneath; its buttons do the
+ * pinning and renaming.
+ */
+function syncChatsHome() {
+    const root = document.documentElement;
+    const on = active && settings.appShell;
+    const chat = document.getElementById('chat');
+    if (!on) {
+        root.classList.remove('pt-no-chat');
+        chatsHome.observer?.disconnect();
+        chatsHome.observer = null;
+        chatsHome.empty?.remove();
+        chatsHome.empty = null;
+        window.clearTimeout(chatsHome.timer);
+        chatsHome.timer = 0;
+        return;
+    }
+    if (chat && !chatsHome.observer) {
+        // SillyTavern draws its start screen again after a pin, rename or delete there.
+        chatsHome.observer = new MutationObserver(records => {
+            if (records.some(record => [...record.addedNodes].some(node => node.classList?.contains('welcomePanel')))) refreshChatsHome();
+        });
+        chatsHome.observer.observe(chat, { childList: true });
+    }
+    const noChat = ctx().getCurrentChatId?.() === undefined;
+    root.classList.toggle('pt-no-chat', noChat);
+    if (noChat && !chatsHome.empty) {
+        chatsHome.empty = h('div', { id: 'pt-no-chat', class: 'pt-no-chat-empty' }, [emptyState({
+            icon: 'chats',
+            text: 'Pick a chat from the list, or start one from Characters.',
+            action: { label: 'Choose a character', onClick: () => shell?.onTab('rightNavHolder') },
+        })]);
+        document.body.append(chatsHome.empty);
+    } else if (!noChat) {
+        chatsHome.empty?.remove();
+        chatsHome.empty = null;
+    }
+    // At start with no chat, Chats comes first, even where SillyTavern reopens its Characters panel a
+    // moment later because its panel lock was on (panel locks mean nothing in Pocket Tavern).
+    const starting = Date.now() < chatsHome.startUntil;
+    if (noChat && (!currentPageId() || (starting && currentPageId() === 'rightNavHolder'))) openPage('pt-chats');
+    // On a phone a chat that opens (from anywhere) takes the screen; desktop keeps the list beside it.
+    else if (!noChat && !isWide() && currentPageId() === 'pt-chats') closePages();
+    else refreshChatsHome();
 }
 
 // -- sharp pictures and animated (GIF) character pictures
@@ -9173,7 +8771,7 @@ function syncExtras() {
     }
     syncPictures();
     syncCharacterPage();
-    syncWelcome();
+    syncChatsHome();
     syncChatHistory();
     applyLanguage();
     syncEditorState();
@@ -9195,7 +8793,6 @@ function syncExtras() {
     syncPromptEditorSession();
     syncPanelEdge();
     syncToolPanels();
-    syncHomeBox();
     syncThemeNotes();
     if (!active || !settings.keepAwake) setAwake(false);
     if (!active || !settings.imageViewer) closeViewer(true);
@@ -9773,7 +9370,7 @@ function closeToolPanel() {
     return true;
 }
 
-/** Ctrl+K (⌘K on a Mac) on the desktop layout: Search everything, when you are not typing. */
+/** Ctrl+K (⌘K on a Mac) on the desktop layout: Search everything (on the Chats page), when you are not typing. */
 const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 function onWideShortcut(event) {
@@ -9782,13 +9379,13 @@ function onWideShortcut(event) {
     // In a text box SillyTavern uses Ctrl+K for inline code.
     // Held down after it opened Search everything, the repeats must not reach the browser
     // (its own Ctrl+K is the address bar search), even though the search box now has focus.
-    if (event.repeat && sheet) {
+    if (event.repeat && currentPageId() === 'pt-chats') {
         event.preventDefault();
         return;
     }
     if (isTypingField(document.activeElement) || sheet || document.querySelector('dialog[open]')) return;
     event.preventDefault();
-    openGlobalSearch();
+    focusChatsSearch();
 }
 
 /** Escape on the desktop layout: back one step (a settings section, then the page). */
@@ -10073,6 +9670,16 @@ function syncConnectionBanner() {
 
 /** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
 function registerOwnPages() {
+    definePage('pt-chats', chatsPage({
+        recentChats: recentChatsForHome,
+        owner: chatOwner,
+        isOpen: isOpenChat,
+        isPinned: isPinnedChat,
+        openChat: chat => openChatFile(chat),
+        chatMenu: (chat, button) => openHomeChatMenu(chat, button),
+        searchIndex: searchIndexForHome,
+        chooseCharacter: () => shell?.onTab('rightNavHolder'),
+    }));
     definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
     definePage('pt-settings', settingsPage({
         openPage,
@@ -10159,12 +9766,20 @@ function init() {
         restoreDraft();
         applyLanguage();
         if (!maybeShowDesktopNotice()) maybeShowWhatsNew();
+        // SillyTavern reopens a locked panel shortly after it is ready; look again while it does.
+        chatsHome.startUntil = Date.now() + 4000;
+        for (const delay of [400, 1000, 2000, 3500]) setTimeout(syncChatsHome, delay);
     });
     for (const name of ['CHARACTER_EDITED', 'CHARACTER_PAGE_LOADED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], () => applyPendingAnimated());
     }
     for (const name of ['ONLINE_STATUS_CHANGED', 'CHAT_CHANGED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], syncConnectionBanner);
+    }
+    // After SillyTavern has finished switching (or closing) the chat.
+    if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, () => setTimeout(syncChatsHome, 0));
+    for (const name of ['CHAT_DELETED', 'GROUP_CHAT_DELETED', 'CHAT_RENAMED', 'CHAT_CREATED']) {
+        if (event_types[name]) eventSource?.on?.(event_types[name], refreshChatsHome);
     }
     eventSource?.on?.(event_types.CHAT_CHANGED, () => {
         applyPendingAnimated();
