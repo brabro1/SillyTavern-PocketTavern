@@ -590,4 +590,12 @@ export default {
     "Clear": "清除",
     "Remove": "移除",
     "Dismiss": "关闭",
+
+    // Layout
+    "Layout": "布局",
+    "Phone": "手机",
+    "Desktop": "桌面",
+    "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "手机使用手机布局；电脑和横放的平板使用桌面布局。",
+    "Always the phone layout, on any screen.": "始终使用手机布局，任何屏幕都一样。",
+    "The desktop layout whenever the window is at least 768 pixels wide.": "窗口宽度至少为 768 像素时使用桌面布局。",
 };

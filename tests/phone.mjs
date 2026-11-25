@@ -2551,6 +2551,38 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
     }
 });
 
+await step('Appearance → Layout: Automatic follows the screen, Phone stays a phone, Desktop needs 768px; exactly one of pt-phone and pt-desktop is on', async () => {
+    const setLayout = value => page.evaluate(value => {
+        const select = document.getElementById('pt_layout');
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }, value);
+    const layout = () => page.evaluate(() => {
+        const root = document.documentElement.classList;
+        return `${root.contains('pt-phone') ? 'phone' : ''}${root.contains('pt-desktop') ? 'desktop' : ''}`;
+    });
+    const expect = async (size, value, want) => {
+        await page.setViewportSize(size);
+        await setLayout(value);
+        await page.waitForTimeout(500);
+        const got = await layout();
+        if (got !== want) throw new Error(`${value} at ${size.width}×${size.height} gave "${got}", not ${want}`);
+    };
+    const before = page.viewportSize();
+    try {
+        await expect({ width: 390, height: 844 }, 'auto', 'phone');
+        await expect({ width: 390, height: 844 }, 'desktop', 'phone');
+        await expect({ width: 1024, height: 700 }, 'auto', 'desktop');
+        await expect({ width: 1024, height: 700 }, 'phone', 'phone');
+        await expect({ width: 820, height: 1180 }, 'auto', 'phone');
+        await expect({ width: 820, height: 1180 }, 'desktop', 'desktop');
+    } finally {
+        await page.setViewportSize(before);
+        await setLayout('auto');
+        await page.waitForTimeout(2000);
+    }
+});
+
 await step("while one of SillyTavern's popups is open, Pocket Tavern steps aside (its bars take no taps), and comes back after", async () => {
     const result = await page.evaluate(async () => {
         const wait = ms => new Promise(resolve => setTimeout(resolve, ms));

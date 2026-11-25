@@ -24,6 +24,7 @@ import { CHANGES, VERSION } from '../../changelog.js';
 import { migrateSettings } from '../core/settings.js';
 import { h } from '../core/dom.js';
 import { startPopupWatch } from '../st/popup-watch.js';
+import { applyLayout, isTypingField, IS_IOS, keyboardUp, resolveLayout, watchLayout } from '../shell/layout.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -83,6 +84,8 @@ const DEFAULTS = Object.freeze({
     uiSize: 'auto',
     /** 'floating' | 'docked' */
     composerStyle: 'floating',
+    /** 'auto' | 'phone' | 'desktop' (DESIGN.md → Layouts) */
+    layout: 'auto',
     /** In a chat the bottom tabs tuck away; a button in the message box brings them back. */
     hideTabsInChat: true,
     desktopNoticeSeen: false,
@@ -98,6 +101,13 @@ const SIZE_NOTES = {
     comfortable: 'Roomy cards and bars.',
     compact: 'Slimmer bars and tighter cards, so more of the chat fits.',
 };
+const LAYOUT_NAMES = { auto: 'Automatic', phone: 'Phone', desktop: 'Desktop' };
+const LAYOUT_NOTES = {
+    auto: 'Phones get the phone layout; computers and tablets held sideways get the desktop layout.',
+    phone: 'Always the phone layout, on any screen.',
+    desktop: 'The desktop layout whenever the window is at least 768 pixels wide.',
+};
+
 const COMPOSER_STYLES = { floating: 'Floating', docked: 'Docked' };
 const COMPOSER_NOTES = {
     floating: 'The message box floats over the chat.',
@@ -249,7 +259,6 @@ const COMPACT_BELOW = 520;
  * as a rail on the left, pages as a panel beside the chat, sheets as dialogs.
  * A sideways phone is wide but short, so it keeps the phone layout.
  */
-const WIDE_QUERY = '(min-width: 960px) and (min-height: 560px)';
 /** Phones narrower than this (most 360px Androids, foldable cover screens) get the compact size on Automatic. */
 const SMALL_PHONE_BELOW = 380;
 const LONG_SELECT_EXCLUDE = '.pt-native-hidden, .template_element select, #pt-sheet select, .select2-hidden-accessible, select[multiple]';
@@ -1532,16 +1541,11 @@ function showCharacterList() {
 
 let shell = null;
 
-function isTypingField(element) {
-    return !!element?.matches?.('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="file"]), [contenteditable="true"]');
-}
-
 class Shell {
     constructor() {
         this.drawerObserver = null;
         this.destroyed = false;
         this.timers = new Set();
-        this.keyboardBase = { width: 0, height: 0 };
         // Checked right away on resize, before the frame is drawn: the tab bar
         // steps aside and the chat starts its slide in the frame the window
         // changes, so there is one move, not two.
@@ -1863,14 +1867,8 @@ class Shell {
             this.lastHeight = window.innerHeight;
             return;
         }
-        const width = window.innerWidth;
         const height = window.innerHeight;
-        if (Math.abs(width - this.keyboardBase.width) > 40) this.keyboardBase = { width, height };
-        if (height > this.keyboardBase.height) this.keyboardBase.height = height;
-        const typing = isTypingField(document.activeElement);
-        // iPhones and iPads keep the page height and shrink only the visible part.
-        const visible = IS_IOS && window.visualViewport ? window.visualViewport.height : height;
-        const keyboard = typing && visible < (IS_IOS ? height : this.keyboardBase.height) * (IS_IOS ? 0.85 : 0.78);
+        const keyboard = keyboardUp();
         const was = root.classList.contains('pt-keyboard');
         const before = this.lastHeight;
         this.lastHeight = height;
@@ -2509,7 +2507,9 @@ function setAppearance(key, value, origin) {
         syncSettingsInputs();
         shell?.update();
         // Switches already show their new state; re-render only what depends on the choice.
-        if (sheet && !sheet.picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle'].includes(key)) sheet.refresh();
+        if (sheet && !sheet.picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) sheet.refresh();
+        // The layout changes the whole interface.
+        if (key === 'layout') applyState();
     };
     if (key === 'theme') revealChange(origin, change);
     else change();
@@ -2732,6 +2732,9 @@ function openThemeSheet() {
             body.append(h('p', { class: 'pt-menu-heading', text: 'Size' }));
             body.append(choiceControl('uiSize', SIZES, 'Size'));
             body.append(h('p', { class: 'pt-menu-foot', text: SIZE_NOTES[settings.uiSize] ?? '' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Layout' }));
+            body.append(choiceControl('layout', LAYOUT_NAMES, 'Layout'));
+            body.append(h('p', { class: 'pt-menu-foot', text: LAYOUT_NOTES[settings.layout] ?? LAYOUT_NOTES.auto }));
             body.append(h('p', { class: 'pt-menu-heading', text: 'Message box' }));
             body.append(choiceControl('composerStyle', COMPOSER_STYLES, 'Message box'));
             body.append(h('p', { class: 'pt-menu-foot', text: COMPOSER_NOTES[settings.composerStyle] ?? '' }));
@@ -9633,7 +9636,7 @@ function syncExtras() {
     window.addEventListener('click', releaseKeptOpen, true);
     document.addEventListener('keydown', onWideKeyDown);
     document.addEventListener('keydown', onWideShortcut);
-    matchMedia(WIDE_QUERY).addEventListener?.('change', () => {
+    watchLayout(() => {
         setFeatureClasses();
         applyLayoutPrefs();
         shell?.update();
@@ -9714,10 +9717,8 @@ function setFeatureClasses() {
     root.classList.toggle('pt-touch', active && settings.touchSizing);
     root.classList.toggle('pt-shell', active && settings.appShell);
     root.classList.toggle('pt-chat', active && settings.chatStyle);
-    root.classList.toggle('pt-desktop', active && settings.appShell && matchMedia(WIDE_QUERY).matches);
+    applyLayout(active && settings.appShell, settings.layout);
 }
-
-const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 /*
  * iPhones and iPads. SillyTavern asks the browser to shrink the page for the
@@ -9735,7 +9736,7 @@ function syncIosViewport() {
     const on = active && IS_IOS;
     root.classList.toggle('pt-ios', on);
     const vv = window.visualViewport;
-    const keyboard = on && !!vv && isTypingField(document.activeElement) && vv.height < window.innerHeight * 0.85;
+    const keyboard = on && !!vv && keyboardUp();
     root.classList.toggle('pt-ios-kb', keyboard);
     if (keyboard) {
         const top = `${Math.round(vv.offsetTop)}px`;
@@ -10370,11 +10371,15 @@ function buildSettings() {
                     h('select', { id: 'pt_motion', class: 'text_pole' }, Object.entries(MOTION_LABELS).map(([value, text]) => h('option', { value, text }))),
                 ]),
                 check('pt_backdrop', 'Theme background', "Use the theme's backdrop instead of your chat background."),
-                check('pt_font', 'Modern font', matchMedia(WIDE_QUERY).matches ? "Your computer's own system font." : "Your phone's own system font."),
+                check('pt_font', 'Modern font', resolveLayout(settings.layout) === 'desktop' ? "Your computer's own system font." : "Your phone's own system font."),
                 check('pt_icons', 'New icons', 'Rounded line icons everywhere.'),
                 h('label', { class: 'pt-field', for: 'pt_size' }, [
                     h('span', { class: 'pt-field-label', text: 'Size' }),
                     h('select', { id: 'pt_size', class: 'text_pole' }, Object.entries(SIZES).map(([value, text]) => h('option', { value, text }))),
+                ]),
+                h('label', { class: 'pt-field', for: 'pt_layout' }, [
+                    h('span', { class: 'pt-field-label', text: 'Layout' }),
+                    h('select', { id: 'pt_layout', class: 'text_pole' }, Object.entries(LAYOUT_NAMES).map(([value, text]) => h('option', { value, text }))),
                 ]),
                 h('label', { class: 'pt-field', for: 'pt_composer' }, [
                     h('span', { class: 'pt-field-label', text: 'Message box' }),
@@ -10425,7 +10430,7 @@ function buildSettings() {
     bind('pt_font', 'modernFont', true);
     bind('pt_icons', 'customIcons', true);
     for (const extra of EXTRAS) bind(extra.id, extra.key, true);
-    for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle']]) {
+    for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
         const select = document.getElementById(id);
         if (id === 'pt_theme') syncSettingsThemeOption(select);
         else select.value = settings[key];
@@ -10459,7 +10464,7 @@ function syncSettingsInputs() {
         if (input) input.checked = !!settings[key];
     }
     syncSettingsThemeOption(document.getElementById('pt_theme'));
-    for (const [id, key] of [['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle']]) {
+    for (const [id, key] of [['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
         const select = document.getElementById(id);
         if (select) select.value = settings[key];
     }
@@ -10489,7 +10494,7 @@ function init() {
             lastWidth = window.innerWidth;
             const nextActive = shouldBeActive();
             if (!active && !nextActive) return;
-            const wideNow = active && settings.appShell && matchMedia(WIDE_QUERY).matches;
+            const wideNow = active && settings.appShell && resolveLayout(settings.layout) === 'desktop';
             if (sameWidth && nextActive === active && wideNow === isWide()) {
                 setFeatureClasses();
                 syncIosViewport();

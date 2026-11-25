@@ -590,4 +590,12 @@ export default {
     "Clear": "مسح",
     "Remove": "إزالة",
     "Dismiss": "تجاهل",
+
+    // Layout
+    "Layout": "التخطيط",
+    "Phone": "الهاتف",
+    "Desktop": "سطح المكتب",
+    "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "تستخدم الهواتف تخطيط الهاتف، وتستخدم الحواسيب والأجهزة اللوحية الأفقية تخطيط سطح المكتب.",
+    "Always the phone layout, on any screen.": "تخطيط الهاتف دائمًا، على أي شاشة.",
+    "The desktop layout whenever the window is at least 768 pixels wide.": "تخطيط سطح المكتب كلما كان عرض النافذة 768 بكسل على الأقل.",
 };

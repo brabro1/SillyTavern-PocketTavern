@@ -590,4 +590,12 @@ export default {
     "Clear": "Очистить",
     "Remove": "Убрать",
     "Dismiss": "Скрыть",
+
+    // Layout
+    "Layout": "Макет",
+    "Phone": "Телефон",
+    "Desktop": "Компьютер",
+    "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "На телефонах — макет для телефона, на компьютерах и планшетах в горизонтальном положении — макет для компьютера.",
+    "Always the phone layout, on any screen.": "Всегда макет для телефона, на любом экране.",
+    "The desktop layout whenever the window is at least 768 pixels wide.": "Макет для компьютера, когда окно шириной не менее 768 пикселей.",
 };

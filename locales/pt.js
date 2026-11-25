@@ -590,4 +590,12 @@ export default {
     "Clear": "Limpar",
     "Remove": "Remover",
     "Dismiss": "Dispensar",
+
+    // Layout
+    "Layout": "Layout",
+    "Phone": "Telefone",
+    "Desktop": "Desktop",
+    "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "Telefones usam o layout de telefone; computadores e tablets na horizontal usam o layout de desktop.",
+    "Always the phone layout, on any screen.": "Sempre o layout de telefone, em qualquer tela.",
+    "The desktop layout whenever the window is at least 768 pixels wide.": "O layout de desktop sempre que a janela tiver pelo menos 768 pixels de largura.",
 };

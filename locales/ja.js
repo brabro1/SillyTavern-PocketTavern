@@ -590,4 +590,12 @@ export default {
     "Clear": "クリア",
     "Remove": "外す",
     "Dismiss": "閉じる",
+
+    // Layout
+    "Layout": "レイアウト",
+    "Phone": "スマートフォン",
+    "Desktop": "デスクトップ",
+    "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "スマートフォンではスマートフォン用、パソコンと横向きのタブレットではデスクトップ用のレイアウトになります。",
+    "Always the phone layout, on any screen.": "どの画面でも常にスマートフォン用のレイアウトです。",
+    "The desktop layout whenever the window is at least 768 pixels wide.": "ウィンドウの幅が 768 ピクセル以上のときはデスクトップ用のレイアウトです。",
 };
