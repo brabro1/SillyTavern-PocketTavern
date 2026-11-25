@@ -435,6 +435,18 @@ await step('the Chats page is the home: ‹ in a chat goes there, pinned and rec
         };
     });
     if (!home.root || home.box !== 'none' || !home.bubble || !home.avatar || !home.headers.includes('Recent')) throw new Error(`Chats page: ${JSON.stringify(home)}`);
+    // The Assistant first; a character with several chats gets a dropdown with New chat, All chats and Character.
+    const extras = await page.evaluate(() => ({
+        assistant: [...document.querySelectorAll('#pt-page .pt-list-row-title')].some(el => el.textContent === 'Assistant'),
+        toggle: !!document.querySelector('#pt-page .pt-chat-group-toggle'),
+    }));
+    if (!extras.assistant) throw new Error('no Assistant row');
+    if (extras.toggle) {
+        await page.locator('#pt-page .pt-chat-group-toggle').first().click();
+        const actions = await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-chat-group-card--open .pt-chat-group-action')].map(el => el.textContent));
+        if (actions.join() !== 'New chat,All chats,Character') throw new Error(`dropdown: ${actions.join(', ')}`);
+        await page.locator('#pt-page .pt-chat-group-toggle').first().click();
+    }
     // ⋯ opens the chat's menu without opening the chat.
     await page.locator('#pt-page .pt-chat-row .pt-rc-more').first().click();
     await until(() => !!document.querySelector('#pt-sheet .pt-list-row'));
@@ -1926,6 +1938,11 @@ await step('desktop layout: Chats sits in the panel beside the chat, Escape clos
             title: document.querySelector('.pt-ab-title')?.textContent,
         }));
         if (beside.page !== 'pt-chats' || !beside.menu || beside.title !== 'Seraphina') throw new Error(`Chats beside the chat: ${JSON.stringify(beside)}`);
+        // Home closes the chat; the chat column shows the welcome with the Assistant.
+        await tab.locator('#pt-appbar .pt-ab-home').click();
+        await tab.waitForFunction(() => SillyTavern.getContext().getCurrentChatId?.() === undefined && !!document.querySelector('#pt-no-chat .pt-welcome'), null, { timeout: 8000 });
+        await tab.evaluate(() => [...document.querySelectorAll('#pt-page .pt-chat-row-main')].find(row => row.querySelector('.pt-rc-title')?.textContent === 'Seraphina').click());
+        await tab.waitForFunction(() => document.querySelectorAll('#chat .mes').length > 0 && !document.querySelector('#pt-no-chat'), null, { timeout: 10000 });
         await tab.locator('#pt-appbar .pt-ab-menu').click();
         await tab.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.textContent.includes('Search this chat'))?.click());
         await tab.waitForFunction(() => document.activeElement?.closest?.('.pt-chat-finder'));
@@ -2837,6 +2854,34 @@ await step('test characters made on a fresh SillyTavern are removed', async () =
     await page.evaluate(() => document.getElementById('option_close_chat')?.click());
     await page.waitForTimeout(1500);
     await removeCharacters(madeCharacters.splice(0));
+});
+
+await step("desktop start-up: Chats first, and SillyTavern's Characters panel never flashes on screen", async () => {
+    const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    // Every frame of the first seconds: is SillyTavern's Characters panel visible?
+    await desk.addInitScript(() => {
+        window.__ptFlash = 0;
+        const sample = () => {
+            const panel = document.getElementById('right-nav-panel');
+            if (panel && document.documentElement.classList.contains('pt-on')) {
+                const box = panel.getBoundingClientRect();
+                const style = getComputedStyle(panel);
+                if (box.width > 50 && box.height > 50 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.05) window.__ptFlash += 1;
+            }
+            if (performance.now() < 15000) requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+    });
+    const tab = await desk.newPage();
+    try {
+        await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
+        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-chats', null, { timeout: 60000 });
+        await tab.waitForTimeout(5000);
+        const end = await tab.evaluate(() => ({ page: document.documentElement.dataset.ptPage, flash: window.__ptFlash, noChat: SillyTavern.getContext().getCurrentChatId?.() === undefined }));
+        if (end.noChat && (end.page !== 'pt-chats' || end.flash)) throw new Error(`start-up: ${JSON.stringify(end)}`);
+    } finally {
+        await desk.close();
+    }
 });
 
 await step('no errors from Pocket Tavern', async () => {

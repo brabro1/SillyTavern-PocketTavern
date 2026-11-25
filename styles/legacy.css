@@ -5692,12 +5692,21 @@ html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not(:has(#curE
 }
 
 /* ==========================================================================
-   App bar extras: find a setting, the chat's ⋯ menu, ‹ in a chat
+   App bar extras: find a setting, the chat's ⋯ menu, ‹ in a chat, home on a computer
    ========================================================================== */
 
 .pt-ab-search[hidden],
 .pt-ab-menu[hidden] {
     display: none;
+}
+
+/* In a chat on a computer, home closes the chat and goes back to the Chats home; a phone has ‹ for that. */
+.pt-ab-home {
+    display: none;
+}
+
+html.pt-desktop .pt-ab-chat .pt-ab-home {
+    display: inline-flex;
 }
 
 /* In a chat on a phone, ‹ goes back to the Chats home (DESIGN.md → The chat). */

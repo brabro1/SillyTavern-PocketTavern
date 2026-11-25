@@ -170,6 +170,10 @@ export function placePopover(dialog, anchor, width = 360) {
     const left = Math.max(margin, Math.min(end, viewWidth - size - margin));
     const above = box.top + box.height / 2 > viewHeight / 2;
     dialog.classList.add('pt-popover');
+    // It grows from the corner nearest its button.
+    const endSide = isRtl() ? 'left' : 'right';
+    dialog.style.setProperty('--pt-pop-origin', `${above ? 'bottom' : 'top'} ${endSide}`);
+    dialog.style.setProperty('--pt-pop-shift', above ? '6px' : '-6px');
     dialog.style.setProperty('--pt-pop-left', `${Math.round(left)}px`);
     dialog.style.setProperty('--pt-pop-width', `${Math.round(size)}px`);
     if (above) {

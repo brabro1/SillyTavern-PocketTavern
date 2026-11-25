@@ -3,14 +3,17 @@
 // Chats, Lorebooks, Settings. On a phone it is the place's own screen; on desktop it fills the panel
 // beside the chat. Every action comes from the shell, which runs SillyTavern's own functions.
 import { h } from '../core/dom.js';
+import { t } from '../core/i18n.js';
 import { avatar } from '../ui/avatar.js';
 import { chatRow } from '../ui/chat-row.js';
+import { button } from '../ui/button.js';
 import { emptyState } from '../ui/feedback.js';
+import { svgIcon } from '../ui/icons.js';
 import { searchBox } from '../ui/field.js';
 import { listGroup, listRow } from '../ui/list.js';
 
-/** Rows shown before "Show all chats". */
-const FIRST_ROWS = 40;
+/** Characters (or groups) shown before "Show all chats". */
+const FIRST_GROUPS = 30;
 const LIMITS = { place: 5, character: 12, chat: 12, lorebook: 8, setting: 12 };
 const KIND_TITLES = { place: 'Places', character: 'Characters', chat: 'Chats', lorebook: 'Lorebooks', setting: 'Settings' };
 
@@ -46,12 +49,17 @@ const normalize = text => String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g
  * @param {(chat: RecentChat, button: HTMLElement) => void} actions.chatMenu
  * @param {() => Promise<SearchItem[]>} actions.searchIndex everything else Search everything finds
  * @param {() => void} actions.chooseCharacter
+ * @param {{ picture: string, open: () => void } | null} actions.assistant SillyTavern's Assistant, when it has one
+ * @param {{ newChat: (chat: RecentChat) => void, allChats: (chat: RecentChat) => void, character: ((chat: RecentChat) => void) | null }} actions.withOwner
+ *        what to do with the character (or group) of a chat
  * @returns {import('../shell/page.js').PageSpec}
  */
 export function chatsPage(actions) {
     // Kept while the page is drawn again (a chat opened beside it on desktop), so the search stays.
     let query = '';
     let showAll = false;
+    /** Whose list of chats is open, by owner key; remembered while the app stays open. */
+    const openGroups = new Set();
     // The last list, shown at once while a fresh one loads (no flash of "Loading" when it is drawn again).
     /** @type {RecentChat[] | null} */
     let cached = null;
@@ -100,17 +108,70 @@ export function chatsPage(actions) {
                 });
             };
             const section = (title, rows) => h('section', { class: 'pt-chats-section' }, [h('div', { class: 'pt-list-header', text: title }), h('div', { class: 'pt-chats-rows' }, rows)]);
+            const ownerKey = chat => (chat.group ? `g:${chat.group}` : `c:${chat.avatar}`);
+
+            /**
+             * One character's (or group's) recent chats: the latest as a row, and when there are more, a
+             * dropdown with New chat, All chats and the character, then every other recent chat with them.
+             */
+            const groupCard = chats => {
+                const latest = chats[0];
+                // Only one chat with them: just the row (its ⋯ has New chat and All chats).
+                if (chats.length === 1) return row(latest);
+                const key = ownerKey(latest);
+                const card = h('div', { class: 'pt-chat-group-card' }, [row(latest)]);
+                const action = (icon, label, run) => h('button', { type: 'button', class: 'pt-chat-group-action pt-focus pt-press', onclick: () => run(latest) }, [svgIcon(icon), h('span', { text: label })]);
+                const panel = h('div', { class: 'pt-chat-group-panel' }, [
+                    h('div', { class: 'pt-chat-group-actions' }, [
+                        action('plus', 'New chat', actions.withOwner.newChat),
+                        action('history', 'All chats', actions.withOwner.allChats),
+                        actions.withOwner.character && !latest.group ? action('user', 'Character', actions.withOwner.character) : null,
+                    ]),
+                    ...chats.slice(1).map(row),
+                ]);
+                const name = actions.owner(latest).name;
+                const toggle = h('button', { type: 'button', class: 'pt-chat-group-toggle pt-focus' }, [
+                    h('span', { class: 'pt-chat-group-count', raw: chats.length === 2 ? t('1 more chat') : t('{count} more chats', { count: chats.length - 1 }) }),
+                    svgIcon('chevron-down', 'pt-chat-group-chevron'),
+                ]);
+                toggle.setAttribute('aria-label', `${toggle.textContent} · ${name}`);
+                const setOpen = open => {
+                    card.classList.toggle('pt-chat-group-card--open', open);
+                    toggle.setAttribute('aria-expanded', String(open));
+                    if (open) openGroups.add(key);
+                    else openGroups.delete(key);
+                };
+                toggle.addEventListener('click', () => setOpen(!card.classList.contains('pt-chat-group-card--open')));
+                card.append(toggle, panel);
+                setOpen(openGroups.has(key));
+                return card;
+            };
+
+            const assistantRow = () => (actions.assistant ? listGroup({ rows: [listRow({
+                title: 'Assistant',
+                subtitle: 'Ask anything, no character needed',
+                start: avatar({ name: 'Assistant', src: actions.assistant.picture, size: 40 }),
+                end: 'nav',
+                onClick: actions.assistant.open,
+            })] }) : null);
 
             const chatList = () => {
                 if (chats === null) return [h('p', { class: 'pt-chats-note', text: 'Loading chats…' })];
                 if (!chats.length) return [emptyState({ icon: 'chats', text: 'No chats yet', action: { label: 'Choose a character', onClick: actions.chooseCharacter } })];
                 const pinned = chats.filter(actions.isPinned);
-                const recent = chats.filter(chat => !actions.isPinned(chat));
-                const shown = showAll ? recent : recent.slice(0, FIRST_ROWS);
-                const out = [];
+                // The rest grouped by character (or group chat), newest first: one card each.
+                const groups = new Map();
+                for (const chat of chats.filter(item => !actions.isPinned(item))) {
+                    const key = ownerKey(chat);
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push(chat);
+                }
+                const all = [...groups.values()];
+                const shown = showAll ? all : all.slice(0, FIRST_GROUPS);
+                const out = [assistantRow()].filter(Boolean);
                 if (pinned.length) out.push(section('Pinned', pinned.map(row)));
-                if (shown.length) out.push(section('Recent', shown.map(row)));
-                if (shown.length < recent.length) {
+                if (shown.length) out.push(section('Recent', shown.map(groupCard)));
+                if (shown.length < all.length) {
                     out.push(h('button', {
                         type: 'button',
                         class: 'pt-button pt-button--quiet pt-focus pt-press pt-chats-more',
@@ -168,4 +229,27 @@ export function chatsPage(actions) {
             draw();
         },
     };
+}
+
+/**
+ * Desktop's chat column while no chat is open: SillyTavern's logo, its version, and the ways in:
+ * ask the Assistant, show the chats, choose a character.
+ * @param {object} actions
+ * @param {string} actions.version e.g. "SillyTavern 1.13.2" (SillyTavern's own text, shown as it is)
+ * @param {(() => void) | null} actions.assistant
+ * @param {(() => void) | null} actions.showChats when the list is not already in the panel
+ * @param {() => void} actions.chooseCharacter
+ */
+export function chatsWelcome({ version, assistant, showChats, chooseCharacter }) {
+    return h('div', { class: 'pt-welcome' }, [
+        h('img', { class: 'pt-welcome-logo', src: 'img/logo.png', alt: '' }),
+        h('div', { class: 'pt-welcome-title', role: 'heading', 'aria-level': '2', text: 'Welcome back' }),
+        h('div', { class: 'pt-welcome-version', raw: version }),
+        h('p', { class: 'pt-welcome-text', text: assistant ? 'Pick up a chat, start one with a character, or ask the Assistant.' : 'Pick up a chat, or start one with a character.' }),
+        h('div', { class: 'pt-welcome-actions' }, [
+            assistant ? button({ label: 'Ask the Assistant', kind: 'primary', icon: 'sparkles', onClick: assistant }) : null,
+            showChats ? button({ label: 'Show chats', icon: 'chats', onClick: showChats }) : null,
+            button({ label: 'Choose a character', icon: 'users', onClick: chooseCharacter }),
+        ]),
+    ]);
 }

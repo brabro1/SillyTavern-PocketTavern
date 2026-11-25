@@ -107,11 +107,18 @@ html.pt-desktop dialog.pt-popover .pt-panel {
     max-width: none;
     max-height: min(var(--pt-pop-max), 640px);
     box-shadow: var(--pt-shadow-float);
-    transform: none;
-    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+    /* It grows out of its button: a short fade and settle, the same way back when it closes. */
+    transform: translateY(var(--pt-pop-shift, 6px)) scale(0.98);
+    transform-origin: var(--pt-pop-origin, bottom right);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.pt-desktop dialog.pt-popover.pt-sheet-open .pt-panel {
     transform: none;
-    transition: opacity var(--pt-dur-fast) var(--pt-ease);
+    transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-off dialog.pt-popover .pt-panel {
+    transform: none;
+    transition: none;
 }

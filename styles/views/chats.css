@@ -59,3 +59,200 @@ html.pt-desktop.pt-no-chat .pt-no-chat-empty {
     justify-content: center;
     padding: var(--pt-space-6);
 }
+
+/* -- One character's recent chats: the latest as a row, the rest in a dropdown under it ---------- */
+
+.pt-chat-group-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+}
+
+/* The rows inside share the card's surface. */
+.pt-chat-group-card .pt-chat-row-main {
+    border-radius: 0;
+    background: transparent;
+}
+
+.pt-chat-group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pt-space-2);
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 var(--pt-space-4);
+    padding-inline-start: calc(var(--pt-space-4) + 40px + var(--pt-space-3));
+    border: 0;
+    border-top: 1px solid var(--pt-border);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-chat-group-toggle:active {
+    background: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-chat-group-toggle:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+.pt-chat-group-chevron {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+.pt-chat-group-card--open .pt-chat-group-chevron {
+    transform: rotate(180deg);
+}
+
+/* The dropdown: shown at once in the layout (no height animation), its content fading and settling in. */
+.pt-chat-group-panel {
+    display: none;
+    flex-direction: column;
+    gap: var(--pt-space-1);
+    padding: 0 0 var(--pt-space-2);
+}
+
+.pt-chat-group-card--open .pt-chat-group-panel {
+    display: flex;
+    animation: pt-chat-group-in var(--pt-dur) var(--pt-ease);
+}
+
+@keyframes pt-chat-group-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+.pt-chat-group-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pt-space-2);
+    padding: var(--pt-space-2) var(--pt-space-4);
+    padding-inline-start: calc(var(--pt-space-4) + 40px + var(--pt-space-3));
+}
+
+.pt-chat-group-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--pt-space-1);
+    min-height: 36px;
+    margin: 0;
+    padding: 0 var(--pt-space-3);
+    border: 0;
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* A 36px chip still takes a 44px tap. */
+.pt-chat-group-action {
+    position: relative;
+}
+
+.pt-chat-group-action::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+}
+
+.pt-chat-group-action .pt-svg {
+    width: 16px;
+    height: 16px;
+}
+
+html.pt-motion-off .pt-chat-group-card--open .pt-chat-group-panel,
+html.pt-motion-off .pt-chat-group-chevron {
+    animation: none;
+    transition: none;
+}
+
+/* -- Desktop's chat column with no chat open: SillyTavern's logo and the ways in ---------------- */
+
+.pt-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--pt-space-2);
+    max-width: 420px;
+    text-align: center;
+    animation: pt-welcome-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+.pt-welcome-logo {
+    width: 88px;
+    height: 88px;
+    margin-bottom: var(--pt-space-2);
+    object-fit: contain;
+}
+
+.pt-welcome-title {
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-xl);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.pt-welcome-version {
+    color: var(--pt-text-muted);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-xs);
+}
+
+.pt-welcome-text {
+    margin: var(--pt-space-2) 0 var(--pt-space-3);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    line-height: 1.5;
+}
+
+.pt-welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--pt-space-2);
+}
+
+@keyframes pt-welcome-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+html.pt-motion-off .pt-welcome {
+    animation: none;
+}
+
+/* -- A chat that opens fades in (opacity only: a transform on #chat would trap its fixed editors) -- */
+
+html.pt-on #chat.pt-chat-enter {
+    animation: pt-chat-enter var(--pt-dur) var(--pt-ease);
+}
+
+@keyframes pt-chat-enter {
+    from {
+        opacity: 0;
+    }
+}

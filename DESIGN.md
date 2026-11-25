@@ -481,16 +481,16 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### Chats (home)
 - **Header:** "Chats" and the Search everything field below it.
-- **List:** Pinned and Recent groups of chat rows. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
+- **List:** first SillyTavern's **Assistant** (ask anything, no character needed; its own permanent Assistant chat), then **Pinned** chat rows, then **Recent**: one card per character or group, newest first. The card shows their latest chat as a row; when there are more, a line under it ("3 more chats") opens a dropdown with **New chat**, **All chats** and **Character**, then their other recent chats. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
 - **No message box** on this screen.
 - **Empty:** "No chats yet" · **Choose a character** (opens Characters).
-- **Where it lives:** on a phone it is the Chats place's screen while no chat is open; opening a chat (from here or anywhere) takes the screen, and ‹ in the chat closes it and comes back here. On desktop it fills the panel and stays there beside the chat it opened; Chats on the rail hides or shows it. With no chat open, desktop's chat column shows "Pick a chat from the list, or start one from Characters." · **Choose a character**. SillyTavern's own start screen is hidden.
-- **A row's ⋯:** Pin or Unpin and Rename (SillyTavern's own start-screen buttons, so they are there while no chat is open; the open chat is renamed with SillyTavern's `renameChat`), then **Delete** in its own group, for a chat that is not open (SillyTavern's question, then its own delete). The open chat is deleted from its own ⋯ → Chat files.
+- **Where it lives:** on a phone it is the Chats place's screen while no chat is open; opening a chat (from here or anywhere) takes the screen, and ‹ in the chat closes it and comes back here. On desktop it fills the panel and stays there beside the chat it opened; Chats on the rail hides or shows it. With no chat open, desktop's chat column is a welcome: SillyTavern's logo, "Welcome back", its version, and **Ask the Assistant** (primary), **Show chats** (when the list is hidden) and **Choose a character**. SillyTavern's own start screen is hidden. At start-up SillyTavern may reopen its locked Characters panel; Pocket Tavern keeps it invisible and closes it, so Chats is the first thing you see.
+- **A row's ⋯:** New chat and All chats (with its character), Pin or Unpin and Rename (SillyTavern's own start-screen buttons, so they are there while no chat is open; the open chat is renamed with SillyTavern's `renameChat`), then **Delete** in its own group, for a chat that is not open (SillyTavern's question, then its own delete). The open chat is deleted from its own ⋯ → Chat files.
 - **Search:** Enter opens the first result. Up to 5 places, 12 characters and groups, 12 chats, 8 lorebooks and 12 settings.
 
 ### The chat
 - **Header:**
-  - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: the same without ‹.
+  - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: home (closes the chat, back to the Chats welcome) in place of ‹.
   - Tapping the avatar or name opens the character page (for a group, the group's page).
   - The header never shows connection state.
   - ⋯ holds, in order: Search this chat, Translate chat, Rename, SillyTavern's own items for this chat when they apply (Save checkpoint, Back to parent chat, Convert to group), and Chat files (SillyTavern's list of saved chats, where a chat is exported or deleted). Then, in its own group in danger red, Delete messages.

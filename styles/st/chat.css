@@ -7,3 +7,10 @@
 html.pt-no-chat #sheld #chat > * {
     display: none !important;
 }
+
+/* Start-up with no chat open: SillyTavern reopens its locked Characters panel and Pocket Tavern closes it
+   again (src/legacy/app.js → endStartWindow); it stays invisible meanwhile so it never flashes.
+   !important beats SillyTavern's own drawer styles while it slides. */
+html.pt-starting.pt-no-chat.pt-desktop #right-nav-panel {
+    visibility: hidden !important;
+}

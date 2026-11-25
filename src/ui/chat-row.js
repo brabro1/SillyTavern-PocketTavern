@@ -138,7 +138,7 @@ export function chatRow({ who, picture, fileName, preview, count, time, open = f
     else if (time) line.append(h('small', { class: 'pt-rc-when', raw: chatWhen(time) }));
     const meta = h('small', { class: 'pt-rc-meta' }, [chatTitleNode('span', 'pt-rc-chat', fileName)]);
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-    const main = h('button', { type: 'button', class: 'pt-chat-row-main pt-focus', onclick: onOpen }, [
+    const main = h('button', { type: 'button', class: 'pt-chat-row-main pt-focus pt-press', onclick: onOpen }, [
         h('span', { class: 'pt-chat-row-picture' }, [picture, pinned ? h('span', { class: 'pt-chat-row-pin', title: 'Pinned' }, [svgIcon('bookmark')]) : null]),
         h('span', { class: 'pt-rc-body' }, [line, previewBubble(preview), meta]),
     ]);

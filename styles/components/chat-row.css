@@ -242,3 +242,8 @@ html.pt-compact .pt-chat-row-main {
 html.pt-compact .pt-chat-row .pt-bubble {
     --pt-clamp: 2;
 }
+
+/* A big row presses in less than a button, so it does not look like it shrinks away. */
+.pt-chat-row-main.pt-press:active:not(:disabled) {
+    transform: scale(0.985);
+}

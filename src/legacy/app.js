@@ -34,9 +34,8 @@ import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
-import { chatsPage } from '../views/chats.js';
+import { chatsPage, chatsWelcome } from '../views/chats.js';
 import { chatTitle, chatTitleNode, formatPreview, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
-import { emptyState } from '../ui/feedback.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
 import { clearBanners, hideBanner, showBanner } from '../shell/banners.js';
@@ -1491,6 +1490,14 @@ class Shell {
             title: t('Find a setting'),
             onclick: () => openSettingSearch(),
         }, [ui('search')]);
+        // Back to the Chats home: closes the chat (SillyTavern's own Close chat). Desktop; a phone has ‹.
+        this.home = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-home',
+            'aria-label': 'Close the chat',
+            title: 'Close the chat',
+            onclick: () => goHome(),
+        }, [ui('home')]);
         // The chat's ⋯ menu: everything about the open chat (DESIGN.md → The chat).
         this.menu = h('button', {
             type: 'button',
@@ -1499,7 +1506,7 @@ class Shell {
             title: 'Chat menu',
             onclick: () => openChatMenu(),
         }, [ui('ellipsis')]);
-        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.who, this.search, this.menu]);
+        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.home, this.who, this.search, this.menu]);
 
         // ---- bottom tab bar
         this.tabs = new Map();
@@ -1551,6 +1558,14 @@ class Shell {
             // One page at a time: a drawer SillyTavern (or anyone) just opened replaces Pocket Tavern's own page.
             // (A drawer that is still closing keeps its open class for a moment; that must not count.)
             const opened = records.some(record => record.target.classList.contains('openDrawer') && !String(record.oldValue ?? '').split(/\s+/).includes('openDrawer'));
+            // While starting with no chat, SillyTavern reopens its locked Characters panel; the Chats page
+            // stays instead. This runs before the browser draws, so the panel never shows.
+            const reopened = opened && Date.now() < chatsHome.startUntil && ctx().getCurrentChatId?.() === undefined
+                && records.some(record => record.target.id === 'right-nav-panel' && record.target.classList.contains('openDrawer'));
+            if (reopened && currentOwnPage() === 'pt-chats') {
+                closeDrawers();
+                return;
+            }
             if (opened && currentOwnPage()) closeOwnPage(true);
             this.update();
             scheduleHistorySync();
@@ -1730,7 +1745,7 @@ class Shell {
 
     goTab(id) {
         // A place you picked yourself is never swapped for Chats by the start-up check (syncChatsHome).
-        chatsHome.startUntil = 0;
+        endStartWindow();
         if (sheet) closeSheet(true);
         // Character Library's panel covers the chat and pages: any tab leaves it.
         if (closeCharacterLibrary() && id === 'chat') return;
@@ -5072,7 +5087,59 @@ function openLorebook(name) {
 
 // -- the Chats home (src/views/chats.js)
 
-const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, startUntil: 0 };
+const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, startUntil: Date.now() + 20000, welcome: null, version: '' };
+
+/**
+ * The first seconds after SillyTavern is ready: it may reopen its locked Characters panel, which Pocket
+ * Tavern closes again. html.pt-starting keeps that panel invisible meanwhile (styles/st/chat.css), so it
+ * never flashes. Ends after 4 s, or as soon as you pick a place yourself.
+ */
+function endStartWindow() {
+    chatsHome.startUntil = 0;
+    document.documentElement.classList.remove('pt-starting');
+}
+
+/** SillyTavern's Assistant (its start screen's) and its version text, for the Chats page and the welcome. */
+function loadStartModules() {
+    import('/scripts/welcome-screen.js').then(module => { chatsHome.welcome = module; }).catch(() => {});
+    import('/script.js').then(module => { chatsHome.version = String(module.displayVersion ?? ''); }).catch(() => {});
+}
+
+/** The Assistant row: SillyTavern's own permanent Assistant chat (it creates the Assistant if needed). */
+function assistantEntry() {
+    const module = chatsHome.welcome;
+    if (typeof module?.openPermanentAssistantChat !== 'function') return null;
+    const avatarFile = module.getPermanentAssistantAvatar?.();
+    const exists = avatarFile && ctx().characters?.some(character => character.avatar === avatarFile);
+    return {
+        picture: exists ? `/thumbnail?type=avatar&file=${encodeURIComponent(avatarFile)}` : 'img/logo.png',
+        open: () => {
+            if (!keepChatsPanel()) closePages();
+            module.openPermanentAssistantChat();
+        },
+    };
+}
+
+/** Opens this chat (unless it is open), then runs `run` once SillyTavern has switched to it. */
+function afterOpening(chat, run) {
+    if (isOpenChat(chat)) {
+        run();
+        return;
+    }
+    const context = ctx();
+    const changed = context.eventTypes?.CHAT_CHANGED;
+    let done = false;
+    const once = () => {
+        if (done) return;
+        done = true;
+        if (changed) context.eventSource?.removeListener?.(changed, once);
+        setTimeout(run, 150);
+    };
+    if (changed) context.eventSource?.on?.(changed, once);
+    openChatFile(chat);
+    // In case the event never comes.
+    setTimeout(once, 2500);
+}
 
 /** SillyTavern's pinned chats (its start screen keeps them in account storage): read only. */
 async function loadPinnedChats() {
@@ -5144,7 +5211,7 @@ function startScreenRow(chat) {
 }
 
 /**
- * A chat row's ⋯: Pin and Rename run SillyTavern's own start-screen buttons (there while no chat is
+ * A chat row's ⋯: New chat and All chats with its character, then Pin and Rename, which run SillyTavern's own start-screen buttons (there while no chat is
  * open), the open chat is renamed with SillyTavern's renameChat, and a chat that is not open is
  * deleted with SillyTavern's confirm and its own delete. The open chat is deleted from its own
  * ⋯ → Chat files, so the chat on screen never outlives its file.
@@ -5154,6 +5221,8 @@ function openHomeChatMenu(chat, anchor) {
     const open = isOpenChat(chat);
     const press = selector => () => row?.querySelector(selector)?.click();
     openChatRowMenu(chat.file_name, [
+        { icon: 'plus', label: 'New chat', run: () => afterOpening(chat, () => document.getElementById('option_start_new_chat')?.click()) },
+        { icon: 'history', label: 'All chats', run: () => afterOpening(chat, () => document.getElementById('option_select_chat')?.click()) },
         row ? { icon: 'bookmark', label: isPinnedChat(chat) ? 'Unpin' : 'Pin', run: press('.pinChat') } : null,
         open ? { icon: 'pencil', label: 'Rename', run: () => renameCurrentChat() } : (row ? { icon: 'pencil', label: 'Rename', run: press('.renameChat') } : null),
         open ? null : { icon: 'trash', label: 'Delete', danger: true, run: () => (row ? press('.deleteChat')() : deleteChatFile(chat)) },
@@ -5227,6 +5296,41 @@ function refreshChatsHome() {
     }, 150);
 }
 
+/** Desktop's chat column while no chat is open: SillyTavern's logo and the ways in (src/views/chats.js). */
+function syncChatsWelcome() {
+    const want = active && settings.appShell && isWide() && ctx().getCurrentChatId?.() === undefined;
+    if (!want) {
+        chatsHome.empty?.remove();
+        chatsHome.empty = null;
+        return;
+    }
+    const assistant = assistantEntry();
+    const listOpen = currentPageId() === 'pt-chats';
+    const key = `${!!assistant}|${listOpen}|${chatsHome.version}`;
+    if (chatsHome.empty?.isConnected && chatsHome.empty.dataset.key === key) return;
+    const next = h('div', { id: 'pt-no-chat', class: 'pt-no-chat-empty', 'data-key': key }, [chatsWelcome({
+        version: chatsHome.version,
+        assistant: assistant?.open ?? null,
+        showChats: listOpen ? null : () => openPage('pt-chats'),
+        chooseCharacter: () => shell?.onTab('rightNavHolder'),
+    })]);
+    if (chatsHome.empty?.isConnected) chatsHome.empty.replaceWith(next);
+    else document.body.append(next);
+    chatsHome.empty = next;
+}
+
+/** The chat that just opened fades in (styles/views/chats.css), instead of appearing all at once. */
+function fadeInChat() {
+    const chat = document.getElementById('chat');
+    if (!active || !chat || ctx().getCurrentChatId?.() === undefined || !motionAllowed()) return;
+    chat.classList.remove('pt-chat-enter');
+    // Restart the animation: the class comes back on the next frame.
+    requestAnimationFrame(() => {
+        chat.classList.add('pt-chat-enter');
+        chat.addEventListener('animationend', () => chat.classList.remove('pt-chat-enter'), { once: true });
+    });
+}
+
 /** Ctrl/⌘ K: the Chats page with its search field focused. */
 function focusChatsSearch() {
     if (currentPageId() !== 'pt-chats') openPage('pt-chats');
@@ -5243,8 +5347,10 @@ function syncChatsHome() {
     const root = document.documentElement;
     const on = active && settings.appShell;
     const chat = document.getElementById('chat');
+    root.classList.toggle('pt-starting', on && Date.now() < chatsHome.startUntil);
     if (!on) {
         root.classList.remove('pt-no-chat');
+        document.getElementById('chat')?.classList.remove('pt-chat-enter');
         chatsHome.observer?.disconnect();
         chatsHome.observer = null;
         chatsHome.empty?.remove();
@@ -5262,17 +5368,7 @@ function syncChatsHome() {
     }
     const noChat = ctx().getCurrentChatId?.() === undefined;
     root.classList.toggle('pt-no-chat', noChat);
-    if (noChat && !chatsHome.empty) {
-        chatsHome.empty = h('div', { id: 'pt-no-chat', class: 'pt-no-chat-empty' }, [emptyState({
-            icon: 'chats',
-            text: 'Pick a chat from the list, or start one from Characters.',
-            action: { label: 'Choose a character', onClick: () => shell?.onTab('rightNavHolder') },
-        })]);
-        document.body.append(chatsHome.empty);
-    } else if (!noChat) {
-        chatsHome.empty?.remove();
-        chatsHome.empty = null;
-    }
+    syncChatsWelcome();
     // At start with no chat, Chats comes first, even where SillyTavern reopens its Characters panel a
     // moment later because its panel lock was on (panel locks mean nothing in Pocket Tavern).
     const starting = Date.now() < chatsHome.startUntil;
@@ -9679,7 +9775,16 @@ function registerOwnPages() {
         chatMenu: (chat, button) => openHomeChatMenu(chat, button),
         searchIndex: searchIndexForHome,
         chooseCharacter: () => shell?.onTab('rightNavHolder'),
+        get assistant() {
+            return assistantEntry();
+        },
+        withOwner: {
+            newChat: chat => afterOpening(chat, () => document.getElementById('option_start_new_chat')?.click()),
+            allChats: chat => afterOpening(chat, () => document.getElementById('option_select_chat')?.click()),
+            character: chat => afterOpening(chat, () => openPage('rightNavHolder')),
+        },
     }));
+    loadStartModules();
     definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
     definePage('pt-settings', settingsPage({
         openPage,
@@ -9700,6 +9805,7 @@ function registerOwnPages() {
     onPageChange(() => {
         shell?.update();
         scheduleHistorySync();
+        syncChatsWelcome();
     });
 }
 
@@ -9769,6 +9875,7 @@ function init() {
         // SillyTavern reopens a locked panel shortly after it is ready; look again while it does.
         chatsHome.startUntil = Date.now() + 4000;
         for (const delay of [400, 1000, 2000, 3500]) setTimeout(syncChatsHome, delay);
+        setTimeout(endStartWindow, 4000);
     });
     for (const name of ['CHARACTER_EDITED', 'CHARACTER_PAGE_LOADED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], () => applyPendingAnimated());
@@ -9777,7 +9884,10 @@ function init() {
         if (event_types[name]) eventSource?.on?.(event_types[name], syncConnectionBanner);
     }
     // After SillyTavern has finished switching (or closing) the chat.
-    if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, () => setTimeout(syncChatsHome, 0));
+    if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, () => {
+        setTimeout(syncChatsHome, 0);
+        fadeInChat();
+    });
     for (const name of ['CHAT_DELETED', 'GROUP_CHAT_DELETED', 'CHAT_RENAMED', 'CHAT_CREATED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], refreshChatsHome);
     }
