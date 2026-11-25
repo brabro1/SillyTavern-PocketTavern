@@ -30,7 +30,7 @@ async function step(name, run) {
 
 const until = (fn, arg, timeout = 8000) => page.waitForFunction(fn, arg, { timeout });
 const closeSheet = async () => {
-    await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+    await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
     await until(() => !document.getElementById('pt-sheet'));
 };
 // In a chat the tabs are tucked away; the arrow in the message box brings them back.
@@ -1277,7 +1277,7 @@ await step('backgrounds are big enough to pick, the next-version button is an ar
         const compact = await tab.evaluate(() => document.documentElement.classList.contains('pt-compact'));
         if ((auto ?? 'auto') === 'auto' && !compact) throw new Error('a computer on Automatic size is not compact');
         // Anything that opened by itself (What's new) closes first.
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 8000 }).catch(() => {});
         await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]')?.click());
         await tab.locator('#pt-sheet .pt-menu-row-theme').click();
@@ -1444,7 +1444,7 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await tab.waitForFunction(() => document.documentElement.classList.contains('pt-desktop'), null, { timeout: 120000 });
         await tab.waitForFunction(() => /on here too/.test(document.querySelector('#pt-sheet')?.textContent ?? ''), null, { timeout: 10000 });
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.waitForTimeout(600);
         const rail = await tab.evaluate(() => { const r = document.querySelector('.pt-tabbar').getBoundingClientRect(); return { w: r.width, h: r.height }; });
         if (rail.w > 120 || rail.h < 300) throw new Error(`tabs are not a rail: ${JSON.stringify(rail)}`);
@@ -1603,7 +1603,7 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await tab.waitForFunction(() => document.documentElement.classList.contains('pt-desktop') && window.SillyTavern?.getContext, null, { timeout: 120000 });
         await settle(2500);
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.evaluate(async () => {
             const context = SillyTavern.getContext();
             if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
@@ -1685,7 +1685,7 @@ await step('on a 320px phone every message box tool stays 44px, lorebook chips h
         await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await tab.waitForFunction(() => document.documentElement.classList.contains('pt-on') && window.SillyTavern?.getContext, null, { timeout: 120000 });
         await tab.waitForTimeout(2500);
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.evaluate(async () => {
             const context = SillyTavern.getContext();
             if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
@@ -1724,13 +1724,13 @@ await step('on a 320px phone every message box tool stays 44px, lorebook chips h
         if (!rtl.arrow.startsWith('matrix(-1') || !['start', 'right'].includes(rtl.align)) throw new Error(`Arabic: ${JSON.stringify(rtl)}`);
         // Google Translate is asked straight from the browser; the note must not say "through your server".
         await tab.locator('#pt-sheet .pt-menu-row', { hasText: 'Translate chat' }).click();
-        await tab.waitForFunction(() => /Translate chat/.test(document.querySelector('#pt-sheet .pt-title')?.textContent ?? ''));
+        await tab.waitForFunction(() => /Translate chat/.test(document.querySelector('#pt-sheet .pt-overlay-title')?.textContent ?? ''));
         const note = await tab.evaluate(() => ({
             provider: SillyTavern.getContext().extensionSettings?.translate?.provider ?? 'google',
             text: [...document.querySelectorAll('#pt-sheet .pt-menu-foot')].map(node => node.textContent).join(' '),
         }));
         if (note.provider === 'google' && !/straight from this browser/.test(note.text)) throw new Error(`translate note: ${note.text}`);
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
     } finally {
         await small.close();
     }
@@ -1746,7 +1746,7 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
         await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await tab.waitForFunction(() => document.documentElement.classList.contains('pt-desktop') && window.SillyTavern?.getContext, null, { timeout: 120000 });
         await tab.waitForTimeout(2500);
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.evaluate(async () => {
             const context = SillyTavern.getContext();
             if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
@@ -1760,7 +1760,7 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
         // Ctrl+K, a few letters and Enter: the first result opens (here a setting on the Settings page).
         await tab.evaluate(() => document.activeElement?.blur?.());
         await tab.keyboard.press(process.platform === 'darwin' ? 'Meta+KeyK' : 'Control+KeyK');
-        await tab.waitForFunction(() => /Search everything/.test(document.querySelector('#pt-sheet .pt-title')?.textContent ?? ''));
+        await tab.waitForFunction(() => /Search everything/.test(document.querySelector('#pt-sheet .pt-overlay-title')?.textContent ?? ''));
         await tab.waitForTimeout(300);
         await tab.keyboard.type('chat width');
         await tab.waitForTimeout(400);
@@ -1783,7 +1783,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
         await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await tab.waitForFunction(() => document.documentElement.classList.contains('pt-desktop') && window.SillyTavern?.getContext, null, { timeout: 120000 });
         await tab.waitForTimeout(2500);
-        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         // The prompt list only lives in the Chat Completion API; switched back in finally.
         api = await tab.evaluate(() => document.getElementById('main_api').value);
         await tab.evaluate(() => { const select = document.getElementById('main_api'); select.value = 'openai'; jQuery(select).trigger('change'); });
@@ -2215,7 +2215,7 @@ await step("More… on a character card stays above the Description tabs at 1920
             await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
             await tab.waitForFunction(() => document.documentElement.classList.contains('pt-on') && window.SillyTavern?.getContext, null, { timeout: 120000 });
             await tab.waitForTimeout(1500);
-            await tab.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+            await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
             await tab.evaluate(async () => {
                 const context = SillyTavern.getContext();
                 if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
@@ -2259,7 +2259,7 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
     await tapCharacter('Seraphina');
     await until(() => !!document.querySelector('#pt-sheet.pt-char-sheet'));
     const sheetState = await page.evaluate(() => ({
-        title: document.querySelector('#pt-sheet .pt-title')?.textContent,
+        title: document.querySelector('#pt-sheet .pt-overlay-title')?.textContent,
         actions: [...document.querySelectorAll('#pt-sheet .pt-cs-action')].map(button => button.textContent.trim()),
         page: document.documentElement.dataset.ptPage,
     }));
@@ -2539,7 +2539,7 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
         await page.waitForTimeout(1000);
         await page.evaluate(() => jQuery('#chat_display').val('1').trigger('change'));
         await page.waitForTimeout(1000);
-        await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+        await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         if (await display() !== '1') throw new Error('Pocket Tavern undid a chat style picked by hand');
     } finally {
         await page.evaluate(() => globalThis.toastr?.clear());
@@ -2549,6 +2549,29 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
         await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; s.stChatStyle = ''; s.chatStyleFor = ''; SillyTavern.getContext().saveSettingsDebounced(); });
         await page.waitForTimeout(2000);
     }
+});
+
+await step('a sheet has a title (not an h1–h3) and ✕ at the end: a 44px button named Close that closes it; no "Close" or "Done" words', async () => {
+    await showTabs();
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
+    await until(() => document.querySelector('#pt-sheet.pt-sheet-open'));
+    const head = await page.evaluate(() => {
+        const sheet = document.getElementById('pt-sheet');
+        const close = sheet.querySelector('.pt-overlay-head .pt-overlay-close');
+        const title = sheet.querySelector('.pt-overlay-title');
+        const r = close?.getBoundingClientRect();
+        const words = [...sheet.querySelectorAll('.pt-overlay-head button')].map(b => b.textContent.trim()).filter(Boolean);
+        return {
+            close: !!close, label: close?.getAttribute('aria-label'), w: r?.width, h: r?.height,
+            atEnd: !!close && !close.nextElementSibling,
+            role: title?.getAttribute('role'), heading: !!sheet.querySelector('.pt-overlay-head :is(h1, h2, h3)'), words,
+        };
+    });
+    if (!head.close || head.label !== 'Close' || head.w < 43.5 || head.h < 43.5 || !head.atEnd) throw new Error(`✕: ${JSON.stringify(head)}`);
+    if (head.role !== 'heading' || head.heading) throw new Error(`title: role ${head.role}, h1–h3 ${head.heading}`);
+    if (head.words.length) throw new Error(`words in the header: ${head.words.join(', ')}`);
+    await page.locator('#pt-sheet .pt-overlay-close').click();
+    await until(() => !document.getElementById('pt-sheet'));
 });
 
 await step('Appearance → Layout: Automatic follows the screen, Phone stays a phone, Desktop needs 768px; exactly one of pt-phone and pt-desktop is on', async () => {

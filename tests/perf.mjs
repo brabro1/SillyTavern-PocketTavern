@@ -121,7 +121,7 @@ const scenarios = {
             await page.waitForTimeout(700);
             await page.evaluate(() => document.querySelector('#pt-sheet .pt-menu-row-theme')?.click());
             await page.waitForTimeout(700);
-            await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
             await page.waitForTimeout(600);
         }
     },
@@ -150,7 +150,7 @@ async function setup() {
     await page.waitForTimeout(3000);
     await page.evaluate(() => {
         document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(button => button.click());
-        document.querySelector('#pt-sheet .pt-done')?.click();
+        document.querySelector('#pt-sheet .pt-overlay-close')?.click();
     });
     // Open the demo chat and make it long: 150 messages, only in this page.
     await page.evaluate(async () => {

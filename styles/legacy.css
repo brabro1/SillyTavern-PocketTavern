@@ -396,67 +396,14 @@ dialog.pt-sheet.pt-sheet-open::backdrop {
     transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
-.pt-head {
-    flex: 0 0 auto;
-    padding: 8px 16px 4px;
-    touch-action: none;
-}
 
-.pt-grab {
-    width: 40px;
-    height: 5px;
-    margin: 4px auto 12px;
-    border-radius: 3px;
-    background: var(--pt-text-muted);
-}
 
-.pt-head-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
 
-.pt-head-text {
-    flex: 1 1 auto;
-    min-width: 0;
-}
 
-.pt-title {
-    margin: 0;
-    font-size: 1.2em;
-    font-weight: 700;
-    line-height: 1.25;
-    overflow-wrap: anywhere;
-}
 
-.pt-subtitle {
-    margin: 4px 0 0;
-    color: var(--pt-text-secondary);
-    font-size: 0.85em;
-    line-height: 1.3;
-}
 
-.pt-subtitle:empty {
-    display: none;
-}
 
-.pt-done {
-    flex: 0 0 auto;
-    min-height: 44px;
-    min-width: 64px;
-    margin-inline-end: -8px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: var(--pt-radius-sm);
-    background: transparent;
-    color: var(--pt-text-primary);
-    font-size: 16px;
-    font-weight: 600;
-}
 
-.pt-done:active {
-    background: var(--pt-surface-elevated);
-}
 
 .pt-search {
     position: relative;
@@ -924,13 +871,7 @@ input[type='search'].pt-search-input::-webkit-search-cancel-button {
         border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     }
 
-    .pt-grab {
-        display: none;
-    }
 
-    .pt-head {
-        padding-top: 12px;
-    }
 
     .pt-list {
         min-height: 80px;
@@ -954,24 +895,12 @@ dialog.pt-compact .pt-panel-fixed {
     height: 100%;
 }
 
-dialog.pt-compact .pt-grab,
-dialog.pt-compact .pt-subtitle,
 dialog.pt-compact .pt-hint {
     display: none;
 }
 
-dialog.pt-compact .pt-head {
-    padding: 8px 12px 0;
-}
 
-dialog.pt-compact .pt-title {
-    font-size: 1em;
-}
 
-dialog.pt-compact .pt-done {
-    min-height: 38px;
-    min-width: 72px;
-}
 
 dialog.pt-compact .pt-search {
     margin: 8px 12px 4px;
@@ -4191,11 +4120,11 @@ html.pt-motion-full .pt-tab-label {
     transition: color var(--pt-dur) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-done, .pt-seg, .pt-open, .pt-single, #send_but, #options_button, #extensionsMenuButton) {
+html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, #options_button, #extensionsMenuButton) {
     transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-done, .pt-seg, .pt-open, .pt-single, #options_button, #extensionsMenuButton):active {
+html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #options_button, #extensionsMenuButton):active {
     transform: scale(0.95);
 }
 
@@ -5794,7 +5723,7 @@ html.pt-on #UI-presets-block > .pt-inline-note {
 }
 
 /* Keyboard focus: an accent ring on Pocket Tavern's own controls (SillyTavern rings only its fields). */
-html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-tile, .pt-seg, .pt-step, .pt-done, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-ctx-btn, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
+html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-tile, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-ctx-btn, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
     outline: 2px solid var(--pt-accent);
     outline-offset: -2px;
 }
@@ -6512,8 +6441,8 @@ html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not(:has(#curE
     font-size: 16px;
 }
 
-/* A search box that is the sheet's header, beside Close (Find a setting). */
-.pt-head-row > .pt-choice-search.pt-head-search {
+/* A search box that is the sheet's header, beside ✕ (Find a setting). */
+.pt-overlay-row > .pt-choice-search.pt-head-search {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;
@@ -11551,13 +11480,7 @@ html.pt-desktop .pt-sheet-open .pt-panel {
     transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur) var(--pt-ease);
 }
 
-html.pt-desktop .pt-grab {
-    display: none;
-}
 
-html.pt-desktop .pt-head {
-    padding-top: 12px;
-}
 
 html.pt-desktop.pt-touch dialog.popup:not(.transparent_dialogue_popup) {
     width: min(640px, calc(100vw - 48px)) !important;
@@ -11631,7 +11554,7 @@ html.pt-desktop .pt-banner {
 /* -- Hover: a mouse gets the same feedback a tap gets ---------------------- */
 
 @media (hover: hover) {
-    html.pt-desktop :is(.pt-menu-row, .pt-tile, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-done, .pt-step, .pt-seg):hover {
+    html.pt-desktop :is(.pt-menu-row, .pt-tile, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-step, .pt-seg):hover {
         background: var(--pt-surface-elevated);
     }
 

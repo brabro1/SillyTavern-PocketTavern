@@ -1,0 +1,93 @@
+/* The header of sheets and dialogs (DESIGN.md → Components → Headers and closing): a 36 × 4 drag
+   handle on a phone, the title and subtitle at the start, Save and ✕ at the end. */
+
+.pt-overlay-head {
+    flex: 0 0 auto;
+    padding-block: var(--pt-space-2) var(--pt-space-1);
+    padding-inline: var(--pt-space-4) var(--pt-space-1);
+    touch-action: none;
+}
+
+.pt-overlay-grab {
+    width: 36px;
+    height: 4px;
+    margin: var(--pt-space-1) auto var(--pt-space-2);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-text-muted);
+}
+
+.pt-overlay-row {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    min-height: 44px;
+}
+
+.pt-overlay-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pt-overlay-title {
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-md);
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+/* The subtitle: one or two lines of secondary text. */
+.pt-overlay-subtitle {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: var(--pt-space-1);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.pt-overlay-subtitle:empty {
+    display: none;
+}
+
+.pt-overlay-save {
+    flex: 0 0 auto;
+}
+
+/* Sideways phones, and short screens with the keyboard up: no handle, no subtitle. */
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    .pt-overlay-grab {
+        display: none;
+    }
+
+    .pt-overlay-head {
+        padding-top: var(--pt-space-3);
+    }
+}
+
+dialog.pt-compact .pt-overlay-grab,
+dialog.pt-compact .pt-overlay-subtitle {
+    display: none;
+}
+
+dialog.pt-compact .pt-overlay-head {
+    padding-block: var(--pt-space-2) 0;
+    padding-inline: var(--pt-space-3) var(--pt-space-1);
+}
+
+dialog.pt-compact .pt-overlay-title {
+    font-size: var(--pt-text-body);
+}
+
+/* Desktop dialogs do not drag, so they have no handle. */
+html.pt-desktop .pt-overlay-grab {
+    display: none;
+}
+
+html.pt-desktop .pt-overlay-head {
+    padding-top: var(--pt-space-3);
+}

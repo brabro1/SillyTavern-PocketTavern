@@ -42,7 +42,7 @@ const shot = async name => {
     console.log(`  ✓ ${name}.jpg`);
 };
 const closeSheet = async () => {
-    await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+    await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
     await until(() => !document.getElementById('pt-sheet'));
     await settle(300);
 };
@@ -403,7 +403,7 @@ if (want('desktop')) {
     await tabPage.waitForFunction(() => document.documentElement.classList.contains('pt-desktop'), null, { timeout: 120000 });
     await tabPage.waitForTimeout(2500);
     await tabPage.evaluate(() => {
-        document.querySelector('#pt-sheet .pt-done')?.click();
+        document.querySelector('#pt-sheet .pt-overlay-close')?.click();
         document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
     });
     await tabPage.evaluate(async () => {
@@ -450,7 +450,7 @@ if (want('banner')) {
     await deskPage.waitForFunction(() => document.documentElement.classList.contains('pt-desktop'), null, { timeout: 120000 });
     await deskPage.waitForTimeout(2500);
     await deskPage.evaluate(async () => {
-        document.querySelector('#pt-sheet .pt-done')?.click();
+        document.querySelector('#pt-sheet .pt-overlay-close')?.click();
         document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
         const context = SillyTavern.getContext();
         await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));

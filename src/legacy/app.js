@@ -25,6 +25,8 @@ import { migrateSettings } from '../core/settings.js';
 import { h } from '../core/dom.js';
 import { startPopupWatch } from '../st/popup-watch.js';
 import { applyLayout, isTypingField, IS_IOS, keyboardUp, resolveLayout, watchLayout } from '../shell/layout.js';
+import { fitToViewport, followViewport, overlayHead, syncToasts, wireOverlay } from '../shell/overlay.js';
+import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -326,13 +328,6 @@ function wireOnce(element, type, handler) {
     element.addEventListener(type, handler);
 }
 
-/** Keeps SillyTavern's "close drawers on outside tap" handler away from our own chrome. */
-function shieldFromDrawerAutoClose(element) {
-    for (const type of ['mousedown', 'touchstart']) {
-        element.addEventListener(type, event => event.stopPropagation(), { passive: true });
-    }
-}
-
 function readMode() {
     try {
         const value = localStorage.getItem(MODE_KEY);
@@ -568,115 +563,6 @@ class Picker {
 
 // ------------------------------------------------------------------ sheets
 
-/** Grab handle, title, subtitle and the close button shared by every sheet. */
-function buildSheetHead(target, title, subtitle, doneLabel) {
-    target.title = h('h3', { class: 'pt-title', text: title });
-    target.subtitle = h('p', { class: 'pt-subtitle', text: subtitle ?? '' });
-    const done = h('button', { type: 'button', class: 'pt-done menu_button', onclick: () => closeSheet() }, [doneLabel]);
-    target.head = h('div', { class: 'pt-head' }, [
-        h('div', { class: 'pt-grab', 'aria-hidden': 'true' }),
-        h('div', { class: 'pt-head-row' }, [
-            h('div', { class: 'pt-head-text' }, [target.title, target.subtitle]),
-            done,
-        ]),
-    ]);
-    return target.head;
-}
-
-/** Backdrop tap, Escape, swipe-down and drawer shielding, shared by every sheet. */
-function wireSheet(target) {
-    const { dialog, panel, head } = target;
-    dialog.addEventListener('click', event => {
-        if (event.target === dialog) closeSheet();
-    });
-    // SillyTavern closes unpinned drawers on any mousedown/touchstart outside them.
-    // The sheet lives outside the drawer, so keep those events from reaching <html>.
-    shieldFromDrawerAutoClose(dialog);
-    dialog.addEventListener('cancel', event => {
-        event.preventDefault();
-        closeSheet();
-    });
-
-    // Drag down to close: from the top strip, or from the contents when they are
-    // scrolled to the top. The sheet is its own layer while dragging and moves once
-    // per frame, and nothing else changes meanwhile (restyling the dimmed
-    // background each frame made a slow drag stutter). The listeners never block
-    // the browser's own scrolling. A quick flick closes.
-    let startY = null;
-    let lastY = 0;
-    let lastT = 0;
-    let speed = 0;
-    let dy = 0;
-    let dragging = false;
-    let frame = 0;
-    const paint = () => {
-        frame = 0;
-        panel.style.transform = `translate3d(0, ${dy}px, 0)`;
-    };
-    const begin = event => {
-        // Only bottom sheets on phones drag to dismiss; centered desktop dialogs stay put.
-        if (isWide() || event.touches.length !== 1 || event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
-        startY = lastY = event.touches[0].clientY;
-        lastT = event.timeStamp;
-        speed = 0;
-        dy = 0;
-        dragging = false;
-    };
-    const move = event => {
-        if (startY === null) return;
-        const y = event.touches[0].clientY;
-        if (!dragging) {
-            // From the contents, only a downward pull at the very top drags; anything else scrolls.
-            const body = event.currentTarget === head ? null : event.currentTarget;
-            if (y - startY < 6 || (body && body.scrollTop > 0)) {
-                if (body && (y - startY < -6 || body.scrollTop > 0)) startY = null;
-                return;
-            }
-            dragging = true;
-            startY = y;
-            panel.style.transition = 'none';
-            panel.style.willChange = 'transform';
-        }
-        const dt = Math.max(1, event.timeStamp - lastT);
-        speed = (y - lastY) / dt;
-        lastY = y;
-        lastT = event.timeStamp;
-        dy = Math.max(0, y - startY);
-        if (!frame) frame = requestAnimationFrame(paint);
-    };
-    const end = () => {
-        if (startY === null) return;
-        startY = null;
-        if (!dragging) return;
-        dragging = false;
-        cancelAnimationFrame(frame);
-        frame = 0;
-        // A drag that started on a row must not also press it, but a short cancelled
-        // drag must not swallow the user's next real tap.
-        const swallow = click => {
-            click.preventDefault();
-            click.stopPropagation();
-        };
-        const disarm = () => dialog.removeEventListener('click', swallow, { capture: true });
-        dialog.addEventListener('click', swallow, { capture: true, once: true });
-        dialog.addEventListener('touchstart', disarm, { capture: true, once: true, passive: true });
-        setTimeout(disarm, 250);
-        panel.style.transition = '';
-        panel.style.willChange = '';
-        // Pulled far enough, or flicked down: keep going from where the finger let go.
-        if (dy > 90 || speed > 0.55) {
-            panel.style.transform = 'translateY(100%)';
-            closeSheet();
-        } else panel.style.transform = '';
-    };
-    for (const area of [head, target.body ?? target.list].filter(Boolean)) {
-        area.addEventListener('touchstart', begin, { passive: true });
-        area.addEventListener('touchmove', move, { passive: true });
-        area.addEventListener('touchend', end);
-        area.addEventListener('touchcancel', end);
-    }
-}
-
 class Sheet {
     /**
      * @param {Picker} picker
@@ -696,7 +582,7 @@ class Sheet {
         this.panel = h('div', { class: 'pt-panel', tabindex: '-1' });
         if (picker.items().length > 6) this.panel.classList.add('pt-panel-fixed');
 
-        buildSheetHead(this, picker.title, picker.config.subtitle, picker.multi ? 'Done' : 'Close');
+        Object.assign(this, overlayHead({ title: picker.title, subtitle: picker.config.subtitle, onClose: () => closeSheet() }));
 
         this.input = h('input', {
             type: 'search',
@@ -740,7 +626,7 @@ class Sheet {
         this.panel.append(this.head, this.controls, this.list, h('div', { class: 'pt-foot' }, [this.status, this.hint]));
         this.dialog.append(this.panel);
 
-        wireSheet(this);
+        wireOverlay({ dialog: this.dialog, panel: this.panel, dragAreas: [this.head, this.list], onClose: () => closeSheet() });
         this.list.addEventListener('click', event => this.onListClick(event));
         this.renderTools();
         this.renderList(true);
@@ -923,11 +809,11 @@ class MenuSheet {
         this.fill = fill;
         this.dialog = h('dialog', { id: 'pt-sheet', class: 'pt-sheet pt-menu-sheet', 'aria-label': title });
         this.panel = h('div', { class: 'pt-panel', tabindex: '-1' });
-        buildSheetHead(this, title, subtitle, 'Close');
+        Object.assign(this, overlayHead({ title, subtitle, onClose: () => closeSheet() }));
         this.body = h('div', { class: 'pt-menu-body' });
         this.panel.append(this.head, this.body);
         this.dialog.append(this.panel);
-        wireSheet(this);
+        wireOverlay({ dialog: this.dialog, panel: this.panel, dragAreas: [this.head, this.body], onClose: () => closeSheet() });
         this.refresh();
     }
 
@@ -939,63 +825,7 @@ class MenuSheet {
     }
 }
 
-/**
- * Keeps an open sheet sized to the part of the screen above the keyboard. The
- * values go on the sheet itself, and nothing happens while no sheet is open:
- * on <html> they restyled the whole page on every frame of the keyboard's slide.
- */
-function fitSheetToViewport() {
-    const vv = window.visualViewport;
-    const dialog = sheet?.dialog;
-    if (!vv || !dialog) return;
-    const height = `${Math.round(vv.height)}px`;
-    const top = `${Math.round(vv.offsetTop)}px`;
-    if (dialog.style.getPropertyValue('--pt-vv-height') !== height) dialog.style.setProperty('--pt-vv-height', height);
-    if (dialog.style.getPropertyValue('--pt-vv-top') !== top) dialog.style.setProperty('--pt-vv-top', top);
-    dialog.classList.toggle('pt-compact', vv.height < COMPACT_BELOW);
-}
-
-function viewportFollow() {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    let frame = 0;
-    const apply = () => {
-        if (frame || !sheet) return;
-        frame = requestAnimationFrame(() => {
-            frame = 0;
-            fitSheetToViewport();
-        });
-    };
-    vv.addEventListener('resize', apply);
-    vv.addEventListener('scroll', apply);
-    return () => {
-        vv.removeEventListener('resize', apply);
-        vv.removeEventListener('scroll', apply);
-        cancelAnimationFrame(frame);
-    };
-}
-
 let stopViewportFollow = null;
-
-/**
- * Toasts in the top layer: a sheet or the picture viewer is a modal dialog, which
- * draws over everything, so SillyTavern's toasts sat under it and could not be
- * clicked. SillyTavern's own helper moves the toast container into the newest
- * open dialog, and back to the page once none is open. Loaded lazily, so a
- * missing or renamed helper leaves toasts as they were instead of breaking us.
- */
-let fixToasts = null;
-import(new URL('../../../popup.js', EXTENSION_ROOT).href)
-    .then(module => { fixToasts = typeof module.fixToastrForDialogs === 'function' ? module.fixToastrForDialogs : null; })
-    .catch(() => { fixToasts = null; });
-
-function syncToasts() {
-    try {
-        fixToasts?.();
-    } catch {
-        // Toasts keep showing where they were.
-    }
-}
 
 function showSheet(instance) {
     const previousFocus = sheet ? sheet.returnFocus : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
@@ -1012,7 +842,7 @@ function showSheet(instance) {
     sheet.dialog.classList.toggle('pt-compact', (window.visualViewport?.height ?? window.innerHeight) < COMPACT_BELOW);
     // The language of its labels, so long words (a tile name on a narrow phone) break with a hyphen.
     sheet.dialog.lang = currentLang();
-    fitSheetToViewport();
+    fitToViewport(sheet.dialog, COMPACT_BELOW);
     document.body.append(sheet.dialog);
     sheet.dialog.showModal();
     syncToasts();
@@ -8707,7 +8537,7 @@ function openSettingSearch() {
             render();
         },
     });
-    finder.head.querySelector('.pt-head-text')?.replaceWith(input);
+    finder.head.querySelector('.pt-overlay-text')?.replaceWith(input);
     showSheet(finder);
     setTimeout(() => input.focus(), 250);
 }
@@ -10287,7 +10117,7 @@ function applyState() {
         // A SillyTavern theme saved from an older version (or changed in SillyTavern since) gets its current values.
         if (changed && String(settings.theme).startsWith('st:')) loadSillyTavernThemes();
         // Kept running while on: adding and removing its page-wide variables for every sheet restyled the whole page twice.
-        if (!stopViewportFollow) stopViewportFollow = viewportFollow() ?? null;
+        if (!stopViewportFollow) stopViewportFollow = followViewport(() => sheet?.dialog, COMPACT_BELOW);
     } else {
         stopObserver();
         stopPopupWatch?.();

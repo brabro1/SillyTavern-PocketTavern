@@ -349,7 +349,7 @@ Shared behaviour is in `styles/base.css`: `.pt-focus` (the focus ring), `.pt-pre
 ### Headers and closing
 - **Place root:** title (`title`) at the start, up to two icon actions at the end.
 - **Pushed page:** ‹ at the start, title (`headline`, one line, ellipsis), up to two icon actions at the end.
-- **Sheets, dialogs and full-screen editors:** title (+ optional one-line subtitle) at the start, **✕ at the end**: a 44px icon button labelled "Close" for screen readers. If the thing needs saving, a primary **Save** pill sits just before ✕.
+- **Sheets, dialogs and full-screen editors:** title (+ an optional subtitle, two lines at most) at the start, **✕ at the end**: a 44px icon button labelled "Close" for screen readers. Built by `src/shell/overlay.js` (`overlayHead`). If the thing needs saving, a primary **Save** pill sits just before ✕.
 - **Forms that apply as you go have no Save.** Forms that don't: on a phone the Save pill is full width at the bottom of the sheet. On desktop the dialog footer ends with a quiet Cancel and then Save.
 - Closing anything with unsaved input asks first ("Discard changes?").
 

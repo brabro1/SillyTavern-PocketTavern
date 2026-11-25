@@ -24,7 +24,7 @@ const open = async (device, extra = {}) => {
     await page.waitForFunction(() => document.documentElement.classList.contains('pt-on'), null, { timeout: 90000 });
     await page.waitForTimeout(4500);
     await page.evaluate(() => document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(b => b.click()));
-    await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+    await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
     await page.evaluate(async () => {
         const c = SillyTavern.getContext();
         const i = c.characters.findIndex(x => x.name === 'Seraphina');

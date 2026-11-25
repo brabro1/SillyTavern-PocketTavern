@@ -27,7 +27,7 @@ await page.goto(ST_URL, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => document.documentElement.classList.contains('pt-on'), null, { timeout: 90000 });
 await page.waitForTimeout(5000);
 await page.evaluate(() => document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(b => b.click()));
-await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
 await page.evaluate(async () => {
     const c = SillyTavern.getContext();
     const i = c.characters.findIndex(x => x.name === 'Seraphina');
@@ -54,7 +54,7 @@ const check = async (name, fn) => {
 };
 const sheetOpen = () => page.waitForFunction(() => document.querySelector('#pt-sheet.pt-sheet-open, #pt-sheet[open]'), null, { timeout: 4000 });
 const sheetGone = () => page.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 4000 });
-const closeSheet = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click()); await sheetGone(); };
+const closeSheet = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click()); await sheetGone(); };
 const openGuide = async () => { await page.locator('.pt-gg-btn').click(); await sheetOpen(); await page.waitForTimeout(250); };
 const rowByText = text => page.locator('#pt-sheet .pt-menu-row', { hasText: text }).first();
 // Records presses on Guided Generations' own buttons, and (when `block`) stops its action.

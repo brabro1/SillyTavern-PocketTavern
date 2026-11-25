@@ -47,7 +47,7 @@ for (const size of sizes) {
         await page.screenshot({ path: `${OUT}/${size.name}-${name}.png` });
     };
     const tab = async id => { await page.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`)?.click(), id); await settle(900); };
-    const close = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click()); await settle(400); };
+    const close = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click()); await settle(400); };
     await page.goto(process.env.ST_URL ?? 'http://127.0.0.1:8000', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.documentElement.classList.contains('pt-on'), null, { timeout: 120000 }).catch(() => {});
     await settle(3500);
