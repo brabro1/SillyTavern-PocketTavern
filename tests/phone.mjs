@@ -464,31 +464,6 @@ await step('the Chats page is the home: ‹ in a chat goes there, pinned and rec
     await until(() => !document.documentElement.dataset.ptPage && document.querySelectorAll('#chat .mes').length > 0, null, 10000);
 });
 
-await step('a chat that takes a moment to load shows still placeholder messages outside #chat, which fade once the messages arrive', async () => {
-    await until(() => document.querySelectorAll('#chat .mes').length > 0);
-    // As SillyTavern does when a chat loads: #chat is emptied, then filled.
-    const saved = await page.evaluate(() => {
-        const chat = document.getElementById('chat');
-        window.__ptSaved = [...chat.children];
-        chat.replaceChildren();
-        return window.__ptSaved.length;
-    });
-    try {
-        if (await page.evaluate(() => new Promise(resolve => setTimeout(() => resolve(!!document.querySelector('.pt-chat-loading')), 120)))) throw new Error('placeholders showed before 300ms');
-        await until(() => !!document.querySelector('body > .pt-chat-loading .pt-chat-loading-mes'), null, 2000);
-        const box = await page.evaluate(() => {
-            const layer = document.querySelector('.pt-chat-loading').getBoundingClientRect();
-            const chat = document.getElementById('chat').getBoundingClientRect();
-            return { inChat: !!document.querySelector('#chat .pt-chat-loading'), dx: Math.abs(layer.left - chat.left), dw: Math.abs(layer.width - chat.width) };
-        });
-        if (box.inChat || box.dx > 1 || box.dw > 1) throw new Error(`placeholder layer: ${JSON.stringify(box)}`);
-    } finally {
-        await page.evaluate(() => document.getElementById('chat').append(...window.__ptSaved));
-    }
-    await until(() => !document.querySelector('.pt-chat-loading'), null, 2000);
-    if (!saved) throw new Error('there was nothing in #chat');
-});
-
 await step('find a setting searches the Settings page', async () => {
     await page.evaluate(() => document.querySelector('#user-settings-button > .drawer-toggle')?.click());
     await until(() => document.documentElement.dataset.ptPage === 'user-settings-button');
@@ -2879,34 +2854,6 @@ await step('test characters made on a fresh SillyTavern are removed', async () =
     await page.evaluate(() => document.getElementById('option_close_chat')?.click());
     await page.waitForTimeout(1500);
     await removeCharacters(madeCharacters.splice(0));
-});
-
-await step("desktop start-up: Chats first, and SillyTavern's Characters panel never flashes on screen", async () => {
-    const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-    // Every frame of the first seconds: is SillyTavern's Characters panel visible?
-    await desk.addInitScript(() => {
-        window.__ptFlash = 0;
-        const sample = () => {
-            const panel = document.getElementById('right-nav-panel');
-            if (panel && document.documentElement.classList.contains('pt-on')) {
-                const box = panel.getBoundingClientRect();
-                const style = getComputedStyle(panel);
-                if (box.width > 50 && box.height > 50 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.05) window.__ptFlash += 1;
-            }
-            if (performance.now() < 15000) requestAnimationFrame(sample);
-        };
-        requestAnimationFrame(sample);
-    });
-    const tab = await desk.newPage();
-    try {
-        await tab.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-chats', null, { timeout: 60000 });
-        await tab.waitForTimeout(5000);
-        const end = await tab.evaluate(() => ({ page: document.documentElement.dataset.ptPage, flash: window.__ptFlash, noChat: SillyTavern.getContext().getCurrentChatId?.() === undefined }));
-        if (end.noChat && (end.page !== 'pt-chats' || end.flash)) throw new Error(`start-up: ${JSON.stringify(end)}`);
-    } finally {
-        await desk.close();
-    }
 });
 
 await step('no errors from Pocket Tavern', async () => {

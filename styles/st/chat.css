@@ -14,3 +14,33 @@ html.pt-no-chat #sheld #chat > * {
 html.pt-starting.pt-no-chat.pt-desktop #right-nav-panel {
     visibility: hidden !important;
 }
+
+/* A message's ✎ and ⋯ (DESIGN.md → The chat → Messages): with a mouse they stay quiet until the message
+   is hovered or has focus, so a long chat reads as text, not as rows of buttons. Touch screens always
+   show them. :hover is never put inside :not(): SillyTavern copies every :hover rule into a :focus-visible
+   twin (dynamic-styles.js), which inside :not() would match exactly when the message is hovered.
+   .mes_buttons and :not(.pt-editing) outrank the legacy rule that sets them to full opacity. */
+@media (hover: hover) and (pointer: fine) {
+    html.pt-chat:not(.pt-editing) #chat .mes .mes_buttons :is(.extraMesButtonsHint, .mes_edit) {
+        opacity: 0.3;
+        transition: opacity var(--pt-dur-fast) var(--pt-ease);
+    }
+
+    html.pt-chat:not(.pt-editing) #chat .mes:is(:hover, :focus-within) .mes_buttons :is(.extraMesButtonsHint, .mes_edit) {
+        opacity: 1;
+    }
+}
+
+/* Code blocks scroll sideways inside themselves instead of wrapping (DESIGN.md → Messages), so code keeps
+   its shape. SillyTavern's own code style wraps it. */
+html.pt-chat #chat .mes .mes_text pre code {
+    white-space: pre;
+}
+
+/* The thinking box opens from anywhere on its title row: SillyTavern only opens it when the tap lands on
+   .mes_reasoning_header, so the header fills the row (its buttons stay at the end). */
+html.pt-chat #chat .mes .mes_reasoning_summary .mes_reasoning_header_block,
+html.pt-chat #chat .mes .mes_reasoning_summary .mes_reasoning_header {
+    flex: 1 1 auto;
+    min-width: 0;
+}

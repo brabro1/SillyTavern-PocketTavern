@@ -10325,13 +10325,6 @@ html.pt-desktop.pt-on body #toast-container {
         margin-top: 4px;
     }
 
-    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
-    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) #chat .mes > .swipeRightBlock .swipe_right {
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
-    }
-
     /* The message box: slim quick replies, 36px tools. */
     html.pt-desktop.pt-chat.pt-compact #form_sheld {
         padding: 12px 8px 8px;

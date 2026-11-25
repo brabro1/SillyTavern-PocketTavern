@@ -1569,6 +1569,7 @@ class Shell {
             }
             if (opened && currentOwnPage()) closeOwnPage(true);
             this.update();
+            ensurePhoneHome();
             scheduleHistorySync();
         });
         for (const content of document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content')) {
@@ -5088,7 +5089,7 @@ function openLorebook(name) {
 
 // -- the Chats home (src/views/chats.js)
 
-const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, startUntil: Date.now() + 20000, welcome: null, version: '' };
+const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, noChat: null, homeTimer: 0, startUntil: Date.now() + 20000, welcome: null, version: '' };
 
 /**
  * The first seconds after SillyTavern is ready: it may reopen its locked Characters panel, which Pocket
@@ -5199,9 +5200,12 @@ function isOpenChat(chat) {
     return context.characters?.[context.characterId]?.avatar === chat.avatar;
 }
 
-/** On desktop the list stays in the panel beside the chat it opened; on a phone the chat takes the screen. */
+/**
+ * Opening a chat from the Chats page keeps the page: on desktop it stays in the panel beside the chat;
+ * on a phone it makes way once the chat has opened (syncChatsHome), so nothing flashes in between.
+ */
 function keepChatsPanel() {
-    return isWide() && currentPageId() === 'pt-chats';
+    return currentPageId() === 'pt-chats';
 }
 
 /** SillyTavern's own start-screen row for a chat, when its start screen is drawn (no chat open). */
@@ -5332,6 +5336,19 @@ function fadeInChat() {
     });
 }
 
+/**
+ * On a phone with no chat open, the Chats page is the screen under every other: when the last page
+ * closes (Back from Characters, say), Chats shows instead of an empty chat area. Checked a moment
+ * later, so switching straight from one page to another never passes through it.
+ */
+function ensurePhoneHome() {
+    window.clearTimeout(chatsHome.homeTimer);
+    chatsHome.homeTimer = window.setTimeout(() => {
+        chatsHome.homeTimer = 0;
+        if (active && settings.appShell && !isWide() && !currentPageId() && ctx().getCurrentChatId?.() === undefined) openPage('pt-chats');
+    }, 120);
+}
+
 /** Ctrl/⌘ K: the Chats page with its search field focused. */
 function focusChatsSearch() {
     if (currentPageId() !== 'pt-chats') openPage('pt-chats');
@@ -5350,6 +5367,9 @@ function syncChatsHome() {
     const chat = document.getElementById('chat');
     root.classList.toggle('pt-starting', on && Date.now() < chatsHome.startUntil);
     if (!on) {
+        chatsHome.noChat = null;
+        window.clearTimeout(chatsHome.homeTimer);
+        chatsHome.homeTimer = 0;
         root.classList.remove('pt-no-chat');
         document.getElementById('chat')?.classList.remove('pt-chat-enter');
         chatsHome.observer?.disconnect();
@@ -5373,7 +5393,10 @@ function syncChatsHome() {
     // At start with no chat, Chats comes first, even where SillyTavern reopens its Characters panel a
     // moment later because its panel lock was on (panel locks mean nothing in Pocket Tavern).
     const starting = Date.now() < chatsHome.startUntil;
-    if (noChat && (!currentPageId() || (starting && currentPageId() === 'rightNavHolder'))) openPage('pt-chats');
+    // Only when the chat has just closed (or at start): a list you hid yourself stays hidden.
+    const justClosed = noChat && chatsHome.noChat !== true;
+    chatsHome.noChat = noChat;
+    if (noChat && (justClosed || starting) && (!currentPageId() || (starting && currentPageId() === 'rightNavHolder'))) openPage('pt-chats');
     // On a phone a chat that opens (from anywhere) takes the screen; desktop keeps the list beside it.
     else if (!noChat && !isWide() && currentPageId() === 'pt-chats') closePages();
     else refreshChatsHome();
@@ -9812,6 +9835,7 @@ function registerOwnPages() {
         shell?.update();
         scheduleHistorySync();
         syncChatsWelcome();
+        ensurePhoneHome();
     });
 }
 
