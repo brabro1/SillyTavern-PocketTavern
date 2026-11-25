@@ -278,14 +278,9 @@ export default {
     "Almost full: the oldest messages are left out so the newest ones fit.": "Почти заполнен: самые старые сообщения не попадают, чтобы поместились новые.",
     "Room for about {free} more tokens before older messages start to drop out.": "Осталось место примерно для {free} токенов, прежде чем старые сообщения начнут выпадать.",
     "Could not read the details of the last reply.": "Не удалось прочитать подробности последнего ответа.",
-    "Messages in context": "Сообщений в контексте",
-    "Connection": "Подключение",
     "Tokenizer": "Токенизатор",
-    "Context size": "Размер контекста",
-    "Kept for the reply": "Оставлено для ответа",
-    "Show the full prompt": "Показать весь промпт",
-    "Change context size": "Изменить размер контекста",
     "Counted from the last reply in this chat.": "Подсчитано по последнему ответу в этом чате.",
+    "Open prompt settings": "Открыть настройки промпта",
 
     // Persona sheet, quick persona editor, grouped recent chats
     "Your persona": "Ваша персона",

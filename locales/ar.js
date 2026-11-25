@@ -278,14 +278,9 @@ export default {
     "Almost full: the oldest messages are left out so the newest ones fit.": "ممتلئ تقريبًا: تُستبعد أقدم الرسائل لتتسع الأحدث.",
     "Room for about {free} more tokens before older messages start to drop out.": "تتسع لنحو {free} رمز إضافي قبل أن تبدأ الرسائل القديمة بالخروج.",
     "Could not read the details of the last reply.": "تعذّرت قراءة تفاصيل الرد الأخير.",
-    "Messages in context": "الرسائل في السياق",
-    "Connection": "الاتصال",
     "Tokenizer": "المُرمِّز",
-    "Context size": "حجم السياق",
-    "Kept for the reply": "محجوز للرد",
-    "Show the full prompt": "عرض الموجّه كاملًا",
-    "Change context size": "تغيير حجم السياق",
     "Counted from the last reply in this chat.": "محسوب من آخر رد في هذه الدردشة.",
+    "Open prompt settings": "فتح إعدادات الموجّه",
 
     // Persona sheet, quick persona editor, grouped recent chats
     "Your persona": "شخصيتك",

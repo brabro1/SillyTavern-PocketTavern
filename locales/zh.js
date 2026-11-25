@@ -278,14 +278,9 @@ export default {
     "Almost full: the oldest messages are left out so the newest ones fit.": "快满了：最早的消息会被省略，好让新消息放得下。",
     "Room for about {free} more tokens before older messages start to drop out.": "大约还能再放 {free} 个 token，之后较早的消息会开始被省略。",
     "Could not read the details of the last reply.": "无法读取上一次回复的详情。",
-    "Messages in context": "上下文中的消息",
-    "Connection": "连接",
     "Tokenizer": "分词器",
-    "Context size": "上下文大小",
-    "Kept for the reply": "为回复预留",
-    "Show the full prompt": "查看完整提示词",
-    "Change context size": "修改上下文大小",
     "Counted from the last reply in this chat.": "根据这个聊天的上一次回复统计。",
+    "Open prompt settings": "打开提示词设置",
 
     // Persona sheet, quick persona editor, grouped recent chats
     "Your persona": "你的用户角色",

@@ -321,7 +321,14 @@ await step('message box: persona button, context ring and Context page; search t
     await until(() => document.querySelector('#leftSendForm .pt-persona-chip img') && document.querySelector('#rightSendForm .pt-ctx-ring'));
     await page.locator('.pt-ctx-ring').click();
     await until(() => document.querySelector('#pt-sheet .pt-ctx-hero'));
-    await closeSheet();
+    // One action, to where the prompt is put together (DESIGN.md → Message box → the context ring).
+    const actions = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-ctx-actions button')].map(b => b.textContent.trim()));
+    if (actions.join() !== 'Open prompt settings') throw new Error(`context actions: ${actions.join(', ')}`);
+    await page.locator('#pt-sheet .pt-ctx-actions button').click();
+    const promptPage = await page.evaluate(() => (SillyTavern.getContext().mainApi === 'openai' ? 'ai-config-button' : 'advanced-formatting-button'));
+    await until(`document.documentElement.dataset.ptPage === ${JSON.stringify(promptPage)}`);
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+    await until(() => !document.documentElement.dataset.ptPage);
     // Your persona: edit the description quickly, check it saved, then put it back.
     const before = await page.evaluate(() => SillyTavern.getContext().powerUserSettings.persona_description ?? '');
     try {

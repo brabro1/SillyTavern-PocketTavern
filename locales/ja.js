@@ -278,14 +278,9 @@ export default {
     "Almost full: the oldest messages are left out so the newest ones fit.": "ほぼ満杯：新しいメッセージが入るよう、古いメッセージは省かれます。",
     "Room for about {free} more tokens before older messages start to drop out.": "あと約 {free} トークン分の余裕があります。それを超えると古いメッセージが省かれ始めます。",
     "Could not read the details of the last reply.": "前回の返信の詳細を読み込めませんでした。",
-    "Messages in context": "コンテキスト内のメッセージ",
-    "Connection": "接続",
     "Tokenizer": "トークナイザー",
-    "Context size": "コンテキストサイズ",
-    "Kept for the reply": "返信用に確保",
-    "Show the full prompt": "プロンプト全体を表示",
-    "Change context size": "コンテキストサイズを変更",
     "Counted from the last reply in this chat.": "このチャットの最後の返信から集計しています。",
+    "Open prompt settings": "プロンプト設定を開く",
 
     // Persona sheet, quick persona editor, grouped recent chats
     "Your persona": "あなたのペルソナ",

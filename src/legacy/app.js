@@ -34,6 +34,7 @@ import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
+import { button as uiButton } from '../ui/button.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -6272,9 +6273,9 @@ function buildContextRing() {
     const ring = h('button', {
         type: 'button',
         class: 'pt-ctx-ring pt-ctx-empty',
-        onclick: () => {
+        onclick: event => {
             buzz(6);
-            openContextSheet();
+            openContextSheet(event.currentTarget);
         },
     }, [h('span', { class: 'pt-ctx-num', 'aria-hidden': 'true' })]);
     ring.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="pt-ctx-track" cx="18" cy="18" r="15"/><circle class="pt-ctx-fill" cx="18" cy="18" r="15" pathLength="100"/></svg>');
@@ -7180,15 +7181,7 @@ async function contextBreakdown() {
             Scenario: n(p.scenarioTextTokens),
             Persona: n(p.userPersonaStringTokens),
         },
-        facts: [
-            ['Messages in context', p.messagesCount],
-            ['Example messages', p.examplesCount],
-            ['Model', p.modelUsed],
-            ['Preset', p.presetName],
-            ['Connection', p.apiUsed || p.mainApiFriendlyName],
-            ['Tokenizer', p.selectedTokenizer],
-        ].filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''),
-        showPrompt: () => module.promptItemize(list, entry.mesId),
+        messages: Number(p.messagesCount) || 0,
     };
 }
 
@@ -7246,8 +7239,8 @@ function renderMeter() {
     ring.title = label;
 }
 
-/** The Context sheet: how full, what filled it, and where to change it. */
-function openContextSheet() {
+/** The Context sheet: how full, what filled it, and where to change it (DESIGN.md → Message box). */
+function openContextSheet(anchor) {
     const inChat = !!(ctx().groupId || ctx().characterId !== undefined);
     let info = meter.breakdown;
     let loading = inChat && !info;
@@ -7255,6 +7248,7 @@ function openContextSheet() {
     const instance = new MenuSheet({
         title: t('Context'),
         subtitle: t('What the model reads before it replies'),
+        anchor,
         fill: body => fillContextSheet(body, { inChat, info, loading, failed }),
     });
     showSheet(instance);
@@ -7331,8 +7325,7 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
                 if (pieces.length) text.append(h('small', { text: pieces.join(', ') }));
             }
             if (part.key === 'history') {
-                const count = info.facts.find(([name]) => name === 'Messages in context')?.[1];
-                if (count) text.append(h('small', { text: t('{count} messages', { count }) }));
+                if (info.messages) text.append(h('small', { text: t('{count} messages', { count: info.messages }) }));
             }
             return h('div', { class: 'pt-ctx-row' }, [
                 dot,
@@ -7360,38 +7353,16 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
     }
     if (failed) body.append(h('p', { class: 'pt-ctx-note pt-ctx-note-warn', text: t('Could not read the details of the last reply.') }));
 
-    // Facts about the last reply and the settings.
-    const facts = [...(info?.facts ?? []).filter(([name]) => name !== 'Messages in context' || !info?.parts?.length)];
-    facts.push(['Context size', fmt(available + reply)], ['Kept for the reply', fmt(reply)]);
-    body.append(h('div', { class: 'pt-ctx-facts' }, facts.map(([name, value]) => {
-        const fact = h('div', { class: 'pt-ctx-fact' }, [h('small', { text: name })]);
-        // Values (model and preset names) are shown as they are, not translated.
-        const strong = document.createElement('b');
-        strong.textContent = String(value);
-        fact.append(strong);
-        return fact;
-    })));
-
-    const actions = [];
-    if (info?.showPrompt) {
-        actions.push(h('button', {
-            type: 'button',
-            class: 'pt-ctx-btn',
-            onclick: () => {
-                closeSheet(true);
-                info.showPrompt();
-            },
-        }, [ui('file-text'), h('span', { text: 'Show the full prompt' })]));
-    }
-    actions.push(h('button', {
-        type: 'button',
-        class: 'pt-ctx-btn',
-        onclick: () => {
+    // One action: where the prompt is put together (Chat Completion keeps it with the presets).
+    const promptPage = ctx().mainApi === 'openai' ? 'ai-config-button' : 'advanced-formatting-button';
+    body.append(h('div', { class: 'pt-ctx-actions' }, [uiButton({
+        label: 'Open prompt settings',
+        icon: 'sliders',
+        onClick: () => {
             closeSheet(true);
-            openPage('ai-config-button');
+            openPage(promptPage);
         },
-    }, [ui('sliders'), h('span', { text: 'Change context size' })]));
-    body.append(h('div', { class: 'pt-ctx-actions' }, actions));
+    })]));
     if (info) body.append(h('p', { class: 'pt-menu-foot', text: t('Counted from the last reply in this chat.') }));
 }
 

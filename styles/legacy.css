@@ -3367,71 +3367,11 @@ html.pt-motion-full .pt-sheet-open .pt-ctx-bar > span {
     background: rgba(240, 160, 48, 0.14);
 }
 
-.pt-ctx-facts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin: 12px 12px 0;
-}
-
-.pt-ctx-fact {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    padding: 12px 12px;
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius-sm);
-    background: var(--pt-surface);
-}
-
-.pt-ctx-fact small {
-    color: var(--pt-text-secondary);
-    font-size: 12px;
-}
-
-.pt-ctx-fact b {
-    overflow: hidden;
-    color: var(--pt-text-primary);
-    font-size: 14px;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .pt-ctx-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin: 16px 12px 4px;
-}
-
-.pt-ctx-btn {
-    display: inline-flex;
-    flex: 1 1 140px;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 0 16px;
-    border: 1px solid var(--pt-border);
-    border-radius: 999px;
-    background: var(--pt-surface);
-    color: var(--pt-text-primary);
-    font: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.pt-ctx-btn .pt-svg {
-    width: 18px;
-    height: 18px;
-    color: var(--pt-text-secondary);
-}
-
-.pt-ctx-btn:active {
-    transform: scale(0.97);
 }
 
 /* ==========================================================================
@@ -5585,7 +5525,7 @@ html.pt-on #UI-presets-block > .pt-inline-note {
 /* The shortcut for Search everything, shown on a computer. */
 
 /* Keyboard focus: an accent ring on Pocket Tavern's own controls (SillyTavern rings only its fields). */
-html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-ctx-btn, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
+html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
     outline: 2px solid var(--pt-accent);
     outline-offset: -2px;
 }

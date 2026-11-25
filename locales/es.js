@@ -278,14 +278,9 @@ export default {
     "Almost full: the oldest messages are left out so the newest ones fit.": "Casi lleno: los mensajes más antiguos se dejan fuera para que quepan los nuevos.",
     "Room for about {free} more tokens before older messages start to drop out.": "Queda espacio para unos {free} tokens más antes de que los mensajes antiguos empiecen a quedar fuera.",
     "Could not read the details of the last reply.": "No se pudieron leer los detalles de la última respuesta.",
-    "Messages in context": "Mensajes en el contexto",
-    "Connection": "Conexión",
     "Tokenizer": "Tokenizador",
-    "Context size": "Tamaño del contexto",
-    "Kept for the reply": "Reservado para la respuesta",
-    "Show the full prompt": "Ver el prompt completo",
-    "Change context size": "Cambiar el tamaño del contexto",
     "Counted from the last reply in this chat.": "Contado a partir de la última respuesta de este chat.",
+    "Open prompt settings": "Abrir ajustes del prompt",
 
     // Persona sheet, quick persona editor, grouped recent chats
     "Your persona": "Tu persona",
