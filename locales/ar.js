@@ -643,4 +643,5 @@ export default {
     "Temperature, length and more": "الحرارة والطول والمزيد",
     "What is sent to the model, in order": "ما يُرسل إلى النموذج، بالترتيب",
     "Templates, tokenizer and more": "القوالب والمُقسِّم والمزيد",
+    "Prompt name": "اسم الموجّه",
 };

@@ -643,4 +643,5 @@ export default {
     "Temperature, length and more": "Температура, длина и другое",
     "What is sent to the model, in order": "Что отправляется модели и в каком порядке",
     "Templates, tokenizer and more": "Шаблоны, токенизатор и другое",
+    "Prompt name": "Название промпта",
 };

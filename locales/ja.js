@@ -643,4 +643,5 @@ export default {
     "Temperature, length and more": "温度、長さなど",
     "What is sent to the model, in order": "モデルに送る内容とその順番",
     "Templates, tokenizer and more": "テンプレート、トークナイザーなど",
+    "Prompt name": "プロンプト名",
 };

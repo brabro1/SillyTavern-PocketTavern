@@ -643,4 +643,5 @@ export default {
     "Temperature, length and more": "温度、长度等",
     "What is sent to the model, in order": "按顺序发送给模型的内容",
     "Templates, tokenizer and more": "模板、分词器等",
+    "Prompt name": "提示词名称",
 };

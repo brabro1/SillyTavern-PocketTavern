@@ -643,4 +643,5 @@ export default {
     "Temperature, length and more": "Temperatura, longitud y más",
     "What is sent to the model, in order": "Lo que se envía al modelo, en orden",
     "Templates, tokenizer and more": "Plantillas, tokenizador y más",
+    "Prompt name": "Nombre del prompt",
 };
