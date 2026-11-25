@@ -607,4 +607,9 @@ export default {
     "SillyTavern": "SillyTavern",
     "Pocket Tavern": "Pocket Tavern",
     "About": "حول",
+
+    // Using native SillyTavern
+    "Use SillyTavern for now": "استخدام SillyTavern مؤقتًا",
+    "SillyTavern's own screens until you come back or reload.": "شاشات SillyTavern الأصلية حتى تعود أو تعيد التحميل.",
+    "Back to Pocket Tavern": "العودة إلى Pocket Tavern",
 };

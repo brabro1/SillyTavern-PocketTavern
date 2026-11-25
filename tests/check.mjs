@@ -257,7 +257,7 @@ try {
 
 // The lifecycle starts all or nothing, stops in reverse, and an error in a wrapped callback stops everything once.
 try {
-    const { startAll, stopAll, safe, hasCrashed } = await import(new URL('src/core/lifecycle.js', root));
+    const { startAll, stopAll, restartAll, safe, hasCrashed } = await import(new URL('src/core/lifecycle.js', root));
     const quiet = console.error;
     console.error = () => {};
     const log = [];
@@ -275,10 +275,16 @@ try {
     let ran = false;
     safe('a test', () => { ran = true; })();
     if (ran) problems.push('a wrapped callback ran after the crash');
+    // The Back to Pocket Tavern pill: a restart after a crash resumes each part; without a crash it does nothing.
+    log.length = 0;
+    startAll([{ name: 'f', start: () => { log.push('+f'); return () => log.push('-f'); }, resume: () => { log.push('~f'); return () => log.push('-f'); } }]);
+    safe('a test', () => { throw new Error('boom'); })();
+    if (!restartAll() || hasCrashed() || log.join(' ') !== '+f -f ~f') problems.push(`a restart after a crash gave "${log.join(' ')}"`);
+    if (restartAll()) problems.push('a restart ran without a crash');
     stopAll();
     console.error = quiet;
     if (problems.length) fail('lifecycle', problems.join('; '));
-    else ok('the lifecycle starts all or nothing, stops in reverse, and falls back once');
+    else ok('the lifecycle starts all or nothing, stops in reverse, falls back once and restarts');
 } catch (error) {
     fail('lifecycle', error);
 }

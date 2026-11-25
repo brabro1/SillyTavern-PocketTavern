@@ -37,14 +37,42 @@ const closeSheet = async () => {
 };
 // The five places (DESIGN.md): Chats, Characters, Lorebooks, AI and Settings. AI and Settings are
 // Pocket Tavern's own pages of rows that lead to SillyTavern's pages.
+// A place reopens the page you left it on, so this goes back (‹) to the place's root after opening it.
+// (On desktop, clicking the place you are on hides the panel, so it is not clicked again.)
+// It reads the page that is really open: html[data-pt-page] follows 200ms later (the shell waits out
+// SillyTavern swapping drawers), so right after a change it can still name the page before.
+const REAL_PAGE = () => document.getElementById('pt-page')?.dataset.page
+    ?? document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer')?.closest('.drawer')?.id ?? null;
+/** The place a page belongs to (the same rule as the shell's placeOf). */
+const PLACE_OF = `page => (!page ? 'chat' : (page.startsWith('pt-') || ['rightNavHolder', 'WI-SP-button'].includes(page) ? page
+    : (['sys-settings-button', 'ai-config-button', 'advanced-formatting-button'].includes(page) ? 'pt-ai' : 'pt-settings')))`;
+const realPage = tab => tab.evaluate(`(${REAL_PAGE})()`);
 const openPlace = async (tab, id) => {
-    await tab.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
-    await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want, id);
+    let page = await realPage(tab);
+    const place = await tab.evaluate(`(${PLACE_OF})(${JSON.stringify(page)})`);
+    if (page !== id && place !== id) {
+        await tab.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
+        await tab.waitForFunction(`(() => { const page = (${REAL_PAGE})(); return !!page && (${PLACE_OF})(page) === ${JSON.stringify(id)}; })()`);
+        page = await realPage(tab);
+    }
+    for (let i = 0; i < 4 && page !== id; i++) {
+        await tab.evaluate(() => document.querySelector('.pt-ab-back').click());
+        await tab.waitForTimeout(400);
+        page = await realPage(tab);
+    }
+    // The header and tabs have caught up, and a SillyTavern page that was just left has finished closing.
+    await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want
+        && (!want.startsWith('pt-') || !document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer')), id);
 };
 const placeRow = async (tab, place, title, wantPage) => {
     await openPlace(tab, place);
     await tab.evaluate(want => [...document.querySelectorAll('#pt-page .pt-list-row, #pt-page .pt-list-row-main')].find(row => row.querySelector('.pt-list-row-title')?.textContent === want)?.click(), title);
-    if (wantPage) await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want, wantPage);
+    if (wantPage) {
+        await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want, wantPage, { timeout: 10000 }).catch(async () => {
+            const state = await tab.evaluate(want => ({ page: document.documentElement.dataset.ptPage ?? null, sheet: !!document.getElementById('pt-sheet'), rows: [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent), open: [...document.querySelectorAll('.openDrawer')].map(node => node.id || node.parentElement?.id), target: document.getElementById(want)?.querySelector(':scope > .drawer-content')?.className }), wantPage);
+            throw new Error(`"${title}" did not open ${wantPage}: ${JSON.stringify(state)}`);
+        });
+    }
 };
 const ST_PAGES = {
     'sys-settings-button': ['pt-ai', 'API'], 'ai-config-button': ['pt-ai', 'Presets'], 'advanced-formatting-button': ['pt-ai', 'Formatting'],
@@ -1565,6 +1593,10 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-settings');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
+        // Clicking the place you are on hides the panel, so the chat gets the room.
+        await openPlace(tab, 'pt-ai');
+        await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-ai"]').click());
+        await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
         // A laptop window with browser bars: Settings, the last place, still fits on the rail.
         await tab.setViewportSize({ width: 1280, height: 620 });
         await tab.waitForTimeout(500);
@@ -2657,7 +2689,43 @@ await step("while one of SillyTavern's popups is open, Pocket Tavern steps aside
     if (result.after.stepAside || result.after.inert.length) throw new Error(`still stepped aside after closing: ${JSON.stringify(result.after)}`);
 });
 
-await step("an error in Pocket Tavern switches to SillyTavern's own screens for the visit, leaves nothing behind, says so, and a reload brings it back", async () => {
+await step('Settings → Use SillyTavern for now: SillyTavern\'s own screens with one 44px Back pill above the message area; the pill brings Pocket Tavern back', async () => {
+    await placeRow(page, 'pt-settings', 'Use SillyTavern for now');
+    await until(() => !document.documentElement.classList.contains('pt-on') && !!document.getElementById('pt-back-pill'));
+    const native = await page.evaluate(() => {
+        const ours = el => [...el.classList].some(c => c.startsWith('pt-')) || /^pt[-_]/.test(el.id);
+        const pill = document.getElementById('pt-back-pill').getBoundingClientRect();
+        // Above SillyTavern's whole message area (quick replies, the box, Send), covering none of it.
+        const form = document.getElementById('form_sheld').getBoundingClientRect();
+        const overlaps = pill.bottom > form.top + 1 || pill.top < 0;
+        return {
+            classes: document.documentElement.className,
+            stray: [...document.querySelectorAll('body *')].filter(el => ours(el) && !el.closest('#pt_settings, #pt-back-pill')).map(el => el.id || el.className).slice(0, 5),
+            height: Math.round(pill.height), overlaps,
+        };
+    });
+    if (/(^|\s)pt-/.test(native.classes) || native.stray.length) throw new Error(`left on SillyTavern: ${native.classes} ${native.stray.join(', ')}`);
+    if (native.height < 44 || native.overlaps) throw new Error(`the pill: ${JSON.stringify(native)}`);
+    await page.locator('#pt-back-pill').click();
+    await until(() => document.documentElement.classList.contains('pt-on') && !document.getElementById('pt-back-pill'));
+});
+
+await step('a place\'s root has no ‹ and a page in it has ‹; a place reopens the page you left; tapping it again goes to its root', async () => {
+    const back = () => page.evaluate(() => getComputedStyle(document.querySelector('.pt-ab-back')).display !== 'none');
+    await openPlace(page, 'pt-ai');
+    if (await back()) throw new Error('AI (a place) shows ‹');
+    await placeRow(page, 'pt-ai', 'Formatting', 'advanced-formatting-button');
+    if (!await back()) throw new Error('Formatting (a page in AI) has no ‹');
+    await openPlace(page, 'rightNavHolder');
+    if (await back()) throw new Error('Characters (a place) shows ‹');
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-ai"]').click());
+    await until(() => document.documentElement.dataset.ptPage === 'advanced-formatting-button');
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-ai"]').click());
+    await until(() => document.documentElement.dataset.ptPage === 'pt-ai');
+    await leavePlace(page);
+});
+
+await step("an error in Pocket Tavern switches to SillyTavern's own screens for the visit, leaves only the Back pill, says so, and the pill brings it back", async () => {
     const result = await page.evaluate(async () => {
         const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
         // Pocket Tavern's folder: the one whose index.js has a src/core/lifecycle.js next to it.
@@ -2677,7 +2745,8 @@ await step("an error in Pocket Tavern switches to SillyTavern's own screens for 
         const ours = el => [...el.classList].some(c => c.startsWith('pt-')) || /^pt[-_]/.test(el.id) || ['data-pt-sec', 'data-pt-row', 'data-pt-view'].some(a => el.hasAttribute(a));
         return {
             classes: document.documentElement.className,
-            stray: [...document.querySelectorAll('body *')].filter(el => ours(el) && !el.closest('#pt_settings')).map(el => el.id || el.className).slice(0, 5),
+            stray: [...document.querySelectorAll('body *')].filter(el => ours(el) && !el.closest('#pt_settings, #pt-back-pill')).map(el => el.id || el.className).slice(0, 5),
+            pill: !!document.getElementById('pt-back-pill'),
             toast: document.getElementById('toast-container')?.textContent ?? '',
         };
     });
@@ -2685,9 +2754,10 @@ await step("an error in Pocket Tavern switches to SillyTavern's own screens for 
     if (/(^|\s)pt-/.test(result.classes)) throw new Error(`classes left on <html>: ${result.classes}`);
     if (result.stray.length) throw new Error(`left behind: ${result.stray.join(', ')}`);
     if (!/Something went wrong in Pocket Tavern/.test(result.toast)) throw new Error(`no toast said so: "${result.toast.slice(0, 120)}"`);
+    if (!result.pill) throw new Error('there is no Back to Pocket Tavern pill');
     await page.evaluate(() => globalThis.toastr?.clear());
-    await page.reload();
-    await until(() => document.documentElement.classList.contains('pt-on'), null, 20000);
+    await page.locator('#pt-back-pill').click();
+    await until(() => document.documentElement.classList.contains('pt-on') && !document.getElementById('pt-back-pill'), null, 10000);
 });
 
 await step('test characters made on a fresh SillyTavern are removed', async () => {

@@ -5,10 +5,10 @@
 // translations) is done before the legacy app loads.
 import './core/prelude.js';
 import { startAll } from './core/lifecycle.js';
-import { startLegacy } from './legacy/app.js';
+import { resumeLegacy, startLegacy } from './legacy/app.js';
 
 export { onPocketTavernUpdate } from './legacy/app.js';
 
 startAll([
-    { name: 'the 2.x app', start: startLegacy },
+    { name: 'the 2.x app', start: startLegacy, resume: resumeLegacy },
 ]);

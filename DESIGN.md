@@ -563,7 +563,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - Each settings page has its own filter field.
 
 ### Using native SillyTavern
-"Use SillyTavern for now" (Settings → Pocket Tavern) switches to native SillyTavern for this visit. A single 44px **Back to Pocket Tavern** pill sits in a bottom corner of SillyTavern's interface.
+"Use SillyTavern for now" (Settings → Pocket Tavern) switches to native SillyTavern for this visit. A single 44px **Back to Pocket Tavern** pill sits at the end side, just above SillyTavern's message box (never over Send), under SillyTavern's popups and toasts. It is the only thing Pocket Tavern leaves on SillyTavern's interface (`src/shell/native.js`).
 
 **If Pocket Tavern breaks,** it does the same thing by itself (`AGENTS.md` → Rules, 10). It removes everything it added, SillyTavern's own interface shows, and one toast says: "Something went wrong in Pocket Tavern, so SillyTavern's own screens are showing. Your chats are safe." The Back to Pocket Tavern pill is there to try again. Reloading the page also starts Pocket Tavern again.
 

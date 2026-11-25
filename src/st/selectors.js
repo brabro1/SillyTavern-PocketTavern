@@ -10,3 +10,8 @@ export const POPUP_DIALOG_OPEN = 'dialog.popup[open], dialog.popup[opening]';
 export const POPUP_DIALOG = 'dialog.popup';
 /** Older popups that SillyTavern shows and hides with a style instead of a <dialog>. */
 export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
+
+// ---- Message box ---------------------------------------------------------------------------
+
+/** SillyTavern's whole message area at the bottom of the chat (quick replies, the box, its buttons). */
+export const MESSAGE_FORM = '#form_sheld';

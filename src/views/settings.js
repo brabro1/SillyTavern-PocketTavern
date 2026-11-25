@@ -13,6 +13,7 @@ export const SETTINGS_PAGES = ['user-settings-button', 'persona-management-butto
  * @param {() => void} actions.openThemes
  * @param {() => void} actions.openFeatures
  * @param {() => void} actions.openPocketTavernSettings
+ * @param {() => void} actions.useSillyTavernForNow SillyTavern's own screens for this visit
  * @param {() => void} actions.openWhatsNew
  * @param {(row: HTMLElement) => void} actions.updatePocketTavern shows its progress in the row's value
  * @param {() => void} actions.openSillyTavernUpdates
@@ -42,6 +43,7 @@ export function settingsPage(actions) {
                 listGroup({ header: 'Pocket Tavern', rows: [
                     listRow({ title: 'Features', icon: 'list', onClick: actions.openFeatures }),
                     listRow({ title: 'Pocket Tavern settings', icon: 'sliders', onClick: actions.openPocketTavernSettings }),
+                    listRow({ title: 'Use SillyTavern for now', subtitle: "SillyTavern's own screens until you come back or reload.", icon: 'log-out', onClick: actions.useSillyTavernForNow }),
                 ] }),
                 listGroup({ header: 'About', rows: [
                     listRow({ title: "What's new", icon: 'star', onClick: actions.openWhatsNew }),

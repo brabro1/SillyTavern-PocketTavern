@@ -15,6 +15,8 @@ const ROOT = new URL('../../', import.meta.url).href;
 
 /** @type {{ name: string, stop?: () => void }[]} */
 let running = [];
+/** @type {{ name: string, start: () => (void | (() => void)), resume?: () => (void | (() => void)) }[]} */
+let parts = [];
 let crashed = false;
 
 /** True after an error stopped Pocket Tavern, until it is started again. */
@@ -76,16 +78,31 @@ export function safe(source, callback) {
 /**
  * Starts the parts in order. Each `start()` may return its stop function. A part that throws
  * while starting undoes its own half-start before it throws; the parts before it are stopped here.
- * @param {{ name: string, start: () => (void | (() => void)) }[]} parts
+ * @param {{ name: string, start: () => (void | (() => void)), resume?: () => (void | (() => void)) }[]} list
  * @returns {boolean} false when a part failed and everything was stopped again
  */
-export function startAll(parts) {
+export function startAll(list) {
+    parts = list;
+    return run(part => part.start());
+}
+
+/**
+ * After an error stopped everything: starts the parts again (the Back to Pocket Tavern pill).
+ * A part with `resume` picks up where it was instead of starting from scratch.
+ * @returns {boolean} false when it was not stopped, or a part failed again
+ */
+export function restartAll() {
+    if (!crashed) return false;
+    return run(part => (part.resume ?? part.start)());
+}
+
+function run(begin) {
     crashed = false;
     globalThis.addEventListener?.('error', onPageError);
     globalThis.addEventListener?.('unhandledrejection', onPageRejection);
     for (const part of parts) {
         try {
-            running.push({ name: part.name, stop: part.start() || undefined });
+            running.push({ name: part.name, stop: begin(part) || undefined });
         } catch (error) {
             crash(`starting ${part.name}`, error);
             return false;

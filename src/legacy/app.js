@@ -29,6 +29,8 @@ import { fitToViewport, followViewport, overlayHead, syncToasts, wireOverlay } f
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 import { closeOwnPage, currentOwnPage, definePage, isOwnPage, onPageChange, openOwnPage, pageSpec, refreshOwnPage, scrollOwnPageToTop } from '../shell/page.js';
 import { AI_PAGES, aiPage } from '../views/ai.js';
+import { showBackPill } from '../shell/native.js';
+import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
@@ -1389,6 +1391,8 @@ class Shell {
     constructor() {
         this.drawerObserver = null;
         this.destroyed = false;
+        /** The page each place was last on (AI → Presets…), so coming back opens it again. */
+        this.lastInPlace = {};
         this.timers = new Set();
         // Checked right away on resize, before the frame is drawn: the tab bar
         // steps aside and the chat starts its slide in the frame the window
@@ -1781,10 +1785,23 @@ class Shell {
             return;
         }
         const open = currentPageId();
+        // The place you are on (or one of its pages): on desktop that hides the panel, so the chat
+        // gets the room; on a phone it goes back to the place's root, or to its top.
+        if (open && placeOf(open) === id) {
+            if (isWide()) {
+                closePages();
+                return;
+            }
+            if (isOwnPage(id)) {
+                if (open === id) scrollOwnPageToTop();
+                else openPage(id);
+                return;
+            }
+        }
         if (isOwnPage(id)) {
-            // The place you are on: back to its top. From one of its SillyTavern pages: back to it.
-            if (open === id) scrollOwnPageToTop();
-            else openPage(id);
+            // Each place keeps its page: coming back opens the page you left it on.
+            const last = this.lastInPlace[id];
+            openPage(last && drawerById(last) ? last : id);
             return;
         }
         if (open === id) {
@@ -1875,6 +1892,9 @@ class Shell {
 
         const wide = isWide();
         const tabId = placeOf(pageId);
+        if (pageId) this.lastInPlace[tabId] = pageId;
+        // A place's root has its title only; a page pushed in a place gets ‹ (DESIGN.md → Headers).
+        this.appbar.classList.toggle('pt-ab-root', !!pageId && tabId === pageId);
         this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
         for (const [id, button] of this.tabs) {
             const on = id === tabId;
@@ -10229,6 +10249,7 @@ function registerOwnPages() {
         openThemes: () => openThemeSheet(),
         openFeatures: () => openExtrasSheet(),
         openPocketTavernSettings: () => openMobileSettings(),
+        useSillyTavernForNow,
         openWhatsNew: () => openWhatsNew(),
         updatePocketTavern: row => updatePocketTavern(row),
         openSillyTavernUpdates: () => openSillyTavernUpdates(),
@@ -10404,21 +10425,45 @@ function init() {
     setTimeout(syncWandShortcut, 5000);
 }
 
+/** Steps aside for this visit: every class, node and layer goes, like turning Pocket Tavern off. */
+function pauseLegacy() {
+    paused = true;
+    if (settings) applyState();
+}
+
+/** The lifecycle's stop (after an error): steps aside, with the Back pill to try again. */
+function stopLegacy() {
+    pauseLegacy();
+    showBackPill(() => restartAll());
+}
+
 /**
- * Starts the 2.x app (called by src/main.js through the lifecycle) and returns its stop: it pauses
- * for this visit, which takes every class, node and layer away like turning Pocket Tavern off.
- * If starting throws halfway, it pauses before passing the error on.
+ * Starts the 2.x app (called by src/main.js through the lifecycle) and returns its stop.
+ * If starting throws halfway, it steps aside before passing the error on.
  */
 export function startLegacy() {
-    const stop = () => {
-        paused = true;
-        if (settings) applyState();
-    };
     try {
         init();
     } catch (error) {
-        stop();
+        stopLegacy();
         throw error;
     }
-    return stop;
+    return stopLegacy;
+}
+
+/** After a restart: it already started once, so it only comes back. */
+export function resumeLegacy() {
+    paused = false;
+    if (settings) applyState();
+    return stopLegacy;
+}
+
+/** Settings → Use SillyTavern for now: SillyTavern's own screens for this visit, and the Back pill. */
+function useSillyTavernForNow() {
+    closePages();
+    pauseLegacy();
+    showBackPill(() => {
+        paused = false;
+        applyState();
+    });
 }

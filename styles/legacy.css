@@ -953,6 +953,11 @@ html.pt-shell .pt-appbar {
     display: inline-flex;
 }
 
+/* A place's root (Characters, Lorebooks, AI, Settings) has its title only: the tab bar is the way out. */
+.pt-ab-page.pt-ab-root .pt-ab-back {
+    display: none;
+}
+
 .pt-ab-who {
     display: flex;
     flex: 1 1 auto;

@@ -1,0 +1,12 @@
+/* The "Back to Pocket Tavern" pill on SillyTavern's own interface: a 44px pill at the end side. Its top is
+   set by src/shell/native.js, just above SillyTavern's message area, so it never covers Send or the quick
+   replies. Under SillyTavern's popups and toasts. (`top`, not `bottom`: with Pocket Tavern off,
+   SillyTavern's transform on <html> makes `bottom` the bottom of the page, not the screen.) */
+
+.pt-back-pill {
+    position: fixed;
+    top: calc(100dvh - 120px);
+    inset-inline-end: calc(var(--pt-space-4) + var(--pt-safe-right));
+    z-index: calc(var(--pt-z-page) + 1);
+    box-shadow: var(--pt-shadow-float);
+}
