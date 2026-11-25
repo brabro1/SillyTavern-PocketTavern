@@ -58,7 +58,10 @@ for (const size of sizes) {
     await settle(2500);
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await shot('chat');
-    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click()); await shot('more'); await close();
+    await tab('pt-settings'); await shot('settings');
+    await tab('pt-ai'); await shot('ai');
+    await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); }); await shot('themes'); await close();
+    await tab('chat');
     await page.evaluate(() => document.querySelector('.pt-ab-quick')?.click()); await shot('quick'); await close();
     await page.evaluate(() => document.querySelector('.pt-ctx-ring')?.click()); await shot('context'); await close();
     await page.evaluate(() => document.querySelector('.pt-persona-chip')?.click()); await shot('persona');

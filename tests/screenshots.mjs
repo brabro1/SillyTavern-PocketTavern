@@ -49,12 +49,12 @@ const closeSheet = async () => {
 const tab = async id => {
     await page.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
     if (id === 'chat') await until(() => !document.documentElement.dataset.ptPage);
-    else if (id !== 'more') await until(want => document.documentElement.dataset.ptPage === want, id);
+    else await until(want => document.documentElement.dataset.ptPage === want, id);
     await settle();
 };
 const openThemes = async () => {
-    await tab('more');
-    await page.locator('#pt-sheet .pt-menu-row-theme').click();
+    await tab('pt-settings');
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click());
     await settle();
 };
 const setTheme = async theme => {
@@ -238,10 +238,10 @@ if (want('notifications')) {
     await page.waitForTimeout(500);
 }
 
-if (want('more')) {
-    await tab('more');
-    await shot('more');
-    await closeSheet();
+if (want('settings-place')) {
+    await tab('pt-settings');
+    await shot('settings-place');
+    await tab('chat');
 }
 
 if (want('chat-options')) {
@@ -353,7 +353,7 @@ if (want('compact-light')) {
 }
 
 if (want('glass')) {
-    // Over a chat background: SillyTavern's Azure theme from More → Themes (solid bars, tinted cards).
+    // Over a chat background: SillyTavern's Azure theme from Settings → Themes (solid bars, tinted cards).
     // The background and theme are put back afterwards.
     const before = await page.evaluate(() => decodeURIComponent((document.getElementById('bg1').style.backgroundImage.match(/backgrounds\/([^"')]+)/) ?? [])[1] ?? ''));
     const avatar = await page.evaluate(() => document.getElementById('avatar_style').value);
@@ -411,7 +411,7 @@ if (want('desktop')) {
         await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));
     });
     await tabPage.waitForTimeout(2000);
-    await tabPage.locator('.pt-tab[data-tab="ai-config-button"]').click();
+    await tabPage.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-ai"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Presets')?.click(); });
     await tabPage.waitForTimeout(1200);
     await tabPage.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await tabPage.evaluate(() => document.getAnimations().forEach(animation => { try { animation.finish(); } catch {} }));

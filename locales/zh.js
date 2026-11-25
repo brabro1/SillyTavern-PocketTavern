@@ -368,7 +368,7 @@ export default {
     "No chats yet. Chat starts the first one.": "还没有聊天。点“聊天”开始第一个。",
     "Character preview": "角色预览",
     "1 message": "1 条消息",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.": "Pocket Tavern 的主题负责绘制聊天，因此在它启用期间 SillyTavern 的“{style}”聊天样式会关闭。在 更多 → 主题 中选择 SillyTavern 主题即可恢复。",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Pocket Tavern 的主题负责绘制聊天，因此在它启用期间 SillyTavern 的“{style}”聊天样式会关闭。在 设置 → 主题 中选择 SillyTavern 主题即可恢复。",
     "No chats yet.": "还没有聊天。",
     "This needs {name}'s chat, so it is open now.": "这需要 {name} 的聊天，所以已打开它。",
     "Could not export the character.": "无法导出该角色。",
@@ -515,12 +515,12 @@ export default {
     "Loading your SillyTavern themes…": "正在载入你的 SillyTavern 主题…",
     "Import a SillyTavern theme": "导入 SillyTavern 主题",
     "A theme file (.json) from SillyTavern": "SillyTavern 的主题文件（.json）",
-    "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "主题在 更多 → 主题 中：Pocket Tavern 自带的主题，以及调整过的你的 SillyTavern 主题。下方的 Theme Colors 用来修改“你的主题”。",
+    "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "主题在 设置 → 主题 中：Pocket Tavern 自带的主题，以及调整过的你的 SillyTavern 主题。下方的 Theme Colors 用来修改“你的主题”。",
     "Open Themes": "打开主题",
     "SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows.": "SillyTavern 的聊天样式已改为“扁平”，现在显示 Pocket Tavern 的聊天外观。",
     "The {theme} theme shows its own background, so chat backgrounds are hidden.": "{theme} 主题显示它自己的背景，所以聊天背景被隐藏了。",
     "Show chat backgrounds": "显示聊天背景",
-    "The theme's own background is off now. Turn it back on in More → Themes.": "主题自带的背景已关闭。可在 更多 → 主题 中重新打开。",
+    "The theme's own background is off now. Turn it back on in Settings → Themes.": "主题自带的背景已关闭。可在 设置 → 主题 中重新打开。",
     "Showing your background": "正在显示你的背景",
     "SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.": "SillyTavern 的 {style} 聊天样式已开启，消息由它绘制。在这里选一个外观即可改用 Pocket Tavern 的。",
 
@@ -598,4 +598,13 @@ export default {
     "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "手机使用手机布局；电脑和横放的平板使用桌面布局。",
     "Always the phone layout, on any screen.": "始终使用手机布局，任何屏幕都一样。",
     "The desktop layout whenever the window is at least 768 pixels wide.": "窗口宽度至少为 768 像素时使用桌面布局。",
+
+    // Places
+    "AI": "AI",
+    "API, presets and formatting": "API、预设和格式",
+    "Connect": "连接",
+    "Appearance": "外观",
+    "SillyTavern": "SillyTavern",
+    "Pocket Tavern": "Pocket Tavern",
+    "About": "关于",
 };

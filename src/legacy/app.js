@@ -27,6 +27,9 @@ import { startPopupWatch } from '../st/popup-watch.js';
 import { applyLayout, isTypingField, IS_IOS, keyboardUp, resolveLayout, watchLayout } from '../shell/layout.js';
 import { fitToViewport, followViewport, overlayHead, syncToasts, wireOverlay } from '../shell/overlay.js';
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
+import { closeOwnPage, currentOwnPage, definePage, isOwnPage, onPageChange, openOwnPage, pageSpec, refreshOwnPage, scrollOwnPageToTop } from '../shell/page.js';
+import { AI_PAGES, aiPage } from '../views/ai.js';
+import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 
 // This file sits two folders below Pocket Tavern's own folder (src/legacy/), which sits in
 // /scripts/extensions/third-party/<folder>/.
@@ -118,7 +121,7 @@ const COMPOSER_NOTES = {
 
 const TEXT_SIZES = { small: 'Small', normal: 'Normal', large: 'Large', xl: 'Extra large' };
 
-/** Phone features shown as switches in More → Phone features and in the settings panel. */
+/** Features shown as switches in Settings → Features and in the settings panel. */
 const EXTRAS = [
     { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', when: () => ggPresent() },
     { key: 'hideTabsInChat', id: 'pt_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', when: () => !isWide() },
@@ -216,38 +219,28 @@ const PAGES = {
     'sys-settings-button': { title: 'API', long: 'API connection', icon: 'plug' },
     'advanced-formatting-button': { title: 'Formatting', long: 'Prompt formatting', icon: 'type' },
     'WI-SP-button': { title: 'Lorebooks', long: 'Lorebooks and World Info', icon: 'book' },
-    'user-settings-button': { title: 'Settings', long: 'User settings', icon: 'settings' },
+    'user-settings-button': { title: 'SillyTavern', long: 'User settings', icon: 'settings' },
     'backgrounds-button': { title: 'Backgrounds', long: 'Chat backgrounds', icon: 'image' },
     'extensions-settings-button': { title: 'Extensions', long: 'Extensions and add-ons', icon: 'puzzle' },
     'persona-management-button': { title: 'Personas', long: 'Who you are in the chat', icon: 'smile' },
     'rightNavHolder': { title: 'Characters', long: 'Characters and groups', icon: 'users' },
 };
 
-/** Subtitles on the More tiles, only where they add information. */
-const TILE_NOTES = {
-    'persona-management-button': 'Who you are in the chat',
-};
-
 const TABS = [
-    { id: 'chat', label: 'Chat', icon: 'chat' },
+    { id: 'chat', label: 'Chats', icon: 'chats' },
     { id: 'rightNavHolder', label: 'Characters', icon: 'users' },
     { id: 'WI-SP-button', label: 'Lorebooks', icon: 'book' },
-    { id: 'ai-config-button', label: 'Presets', icon: 'sliders' },
-    { id: 'more', label: 'More', icon: 'grid' },
+    { id: 'pt-ai', label: 'AI', icon: 'sparkles' },
+    { id: 'pt-settings', label: 'Settings', icon: 'settings' },
 ];
 
-/** Order of the tiles in the "More" sheet; drawers added by other extensions follow. */
-const MORE_ORDER = [
-    'sys-settings-button',
-    'persona-management-button',
-    'advanced-formatting-button',
-    'user-settings-button',
-    'backgrounds-button',
-    'extensions-settings-button',
-];
-
-/** The desktop layout has room on the rail for these too; phones keep them in More. */
-const RAIL_PAGES = MORE_ORDER;
+/** The place a SillyTavern page belongs to: its tab stays lit, and Back from it returns to that place. */
+function placeOf(pageId) {
+    if (!pageId) return 'chat';
+    if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
+    if (AI_PAGES.includes(pageId)) return 'pt-ai';
+    return 'pt-settings';
+}
 
 function isWide() {
     return document.documentElement.classList.contains('pt-desktop');
@@ -1282,7 +1275,7 @@ function closeTopLayer() {
     }
     if (closePageSection()) return true;
     if (currentPageId()) {
-        closePages();
+        backFromPage();
         return true;
     }
     return false;
@@ -1322,6 +1315,8 @@ function drawerById(id) {
 
 /** The id of the top-bar drawer that is currently open, if any. */
 function currentPageId() {
+    const own = currentOwnPage();
+    if (own) return own;
     const content = document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer');
     return content?.closest('.drawer')?.id || null;
 }
@@ -1336,6 +1331,12 @@ function pageInfo(drawer) {
 }
 
 function openPage(id) {
+    if (isOwnPage(id)) {
+        closeDrawers();
+        openOwnPage(id);
+        return;
+    }
+    closeOwnPage(true);
     const drawer = drawerById(id);
     if (!drawer) return;
     if (drawer.querySelector(':scope > .drawer-content')?.classList.contains('openDrawer')) return;
@@ -1343,11 +1344,24 @@ function openPage(id) {
 }
 
 function closePages() {
+    closeOwnPage();
+    closeDrawers();
+}
+
+function closeDrawers() {
     // The prompt editor lives outside the Presets drawer and would stay on screen.
     closePromptEditor();
     for (const content of document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content.openDrawer')) {
         content.parentElement.querySelector(':scope > .drawer-toggle')?.click();
     }
+}
+
+/** Back from a page: from one of SillyTavern's pages to the place it belongs to (AI, Settings), else to the chat. */
+function backFromPage() {
+    const id = currentPageId();
+    const place = id ? placeOf(id) : null;
+    if (place && place !== id && isOwnPage(place)) openPage(place);
+    else closePages();
 }
 
 /** Leaves the open chat for SillyTavern's start screen with the recent chats. */
@@ -1441,7 +1455,7 @@ class Shell {
                     else leavePromptEditor();
                     return;
                 }
-                if (!closePageSection()) closePages();
+                if (!closePageSection()) backFromPage();
             },
         }, [ui('arrow-left')]);
         this.avatar = h('span', { class: 'pt-ab-avatar', 'aria-hidden': 'true' });
@@ -1545,29 +1559,10 @@ class Shell {
             this.tabs.set(tab.id, button);
             return button;
         });
-        // The desktop rail also lists SillyTavern's other pages, between the tabs and More.
-        this.pageTabs = new Map();
-        const pageButtons = RAIL_PAGES.filter(id => drawerById(id)).map(id => {
-            const info = PAGES[id];
-            const button = h('button', {
-                type: 'button',
-                class: 'pt-tab pt-tab-page',
-                'data-tab': id,
-                'aria-label': info.title,
-                title: info.title,
-                onclick: () => this.onTab(id),
-            }, [
-                h('span', { class: 'pt-tab-icon' }, [ui(info.icon)]),
-                h('span', { class: 'pt-tab-label', text: info.title }),
-            ]);
-            this.pageTabs.set(id, button);
-            return button;
-        });
-        const rule = h('span', { class: 'pt-rail-rule', 'aria-hidden': 'true' });
         // One pill slides between tabs instead of each tab fading its own background.
         this.indicator = h('span', { class: 'pt-tab-indicator', 'aria-hidden': 'true' });
         this.tabbar = h('nav', { id: 'pt-tabbar', class: 'pt-tabbar', 'aria-label': 'Main', 'data-pt': '1' }, [
-            this.indicator, ...tabButtons.slice(0, -1), rule, ...pageButtons, tabButtons[tabButtons.length - 1],
+            this.indicator, ...tabButtons,
         ]);
 
         for (const el of [this.appbar, this.tabbar]) shieldFromDrawerAutoClose(el);
@@ -1594,12 +1589,16 @@ class Shell {
         document.getElementById('right-nav-panel')?.addEventListener('click', this.onPanelClick);
 
         // Follow SillyTavern opening and closing its drawers, whoever triggers it.
-        this.drawerObserver = new MutationObserver(() => {
+        this.drawerObserver = new MutationObserver(records => {
+            // One page at a time: a drawer SillyTavern (or anyone) just opened replaces Pocket Tavern's own page.
+            // (A drawer that is still closing keeps its open class for a moment; that must not count.)
+            const opened = records.some(record => record.target.classList.contains('openDrawer') && !String(record.oldValue ?? '').split(/\s+/).includes('openDrawer'));
+            if (opened && currentOwnPage()) closeOwnPage(true);
             this.update();
             scheduleHistorySync();
         });
         for (const content of document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content')) {
-            this.drawerObserver.observe(content, { attributes: true, attributeFilter: ['class'] });
+            this.drawerObserver.observe(content, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
         }
         window.addEventListener('resize', this.onResize);
         document.addEventListener('focusin', this.onFocusIn);
@@ -1676,6 +1675,7 @@ class Shell {
         chat?.removeEventListener('wheel', this.onChatWheel);
         this.tuckPending = false;
         this.endGlide();
+        closeOwnPage(true);
         this.appbar.remove();
         this.tabbar.remove();
         const root = document.documentElement;
@@ -1762,10 +1762,6 @@ class Shell {
 
     onTab(id) {
         buzz(6);
-        if (id === 'more') {
-            openMoreSheet();
-            return;
-        }
         // The prompt editor sits over the Presets page and would stay over the next one.
         if (promptEditorOpen()) {
             if (sheet) closeSheet(true);
@@ -1785,6 +1781,12 @@ class Shell {
             return;
         }
         const open = currentPageId();
+        if (isOwnPage(id)) {
+            // The place you are on: back to its top. From one of its SillyTavern pages: back to it.
+            if (open === id) scrollOwnPageToTop();
+            else openPage(id);
+            return;
+        }
         if (open === id) {
             // Tapping the current tab goes "home" within it.
             if (id === 'rightNavHolder') showCharacterList();
@@ -1803,7 +1805,7 @@ class Shell {
      * not all the same height, and on a short window the rail scrolls.
      */
     placeRailPill() {
-        const button = this.tabs.get(this.railTab) ?? this.pageTabs.get(this.railTab);
+        const button = this.tabs.get(this.railTab);
         const iconBox = button?.querySelector('.pt-tab-icon');
         if (!iconBox || !button.offsetParent) return;
         this.tabbar.style.setProperty('--pt-tab-y', `${button.offsetTop + iconBox.offsetTop}px`);
@@ -1872,10 +1874,9 @@ class Shell {
         else delete root.dataset.ptPage;
 
         const wide = isWide();
-        let tabId = 'chat';
-        if (pageId) tabId = this.tabs.has(pageId) || (wide && this.pageTabs.has(pageId)) ? pageId : 'more';
+        const tabId = placeOf(pageId);
         this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
-        for (const [id, button] of [...this.tabs, ...this.pageTabs]) {
+        for (const [id, button] of this.tabs) {
             const on = id === tabId;
             button.classList.toggle('pt-tab-on', on);
             if (on) button.setAttribute('aria-current', 'page');
@@ -1903,7 +1904,12 @@ class Shell {
                 }
             }
             if (pageId === 'backgrounds-button' || pageId === 'user-settings-button') syncThemeNotes();
-            const info = drawer ? pageInfo(drawer) : { title: '', icon: 'fa-gear' };
+            const info = drawer ? pageInfo(drawer) : (pageSpec(pageId) ?? { title: '', icon: 'fa-gear' });
+            // The AI page shows a banner while there is no connection: draw it again when that changes.
+            if (pageId === 'pt-ai' && this.aiConnected !== isConnected()) {
+                this.aiConnected = isConnected();
+                refreshOwnPage();
+            }
             this.titleEl.textContent = t(info.title);
             this.subEl.textContent = t(info.long ?? '');
             this.subEl.classList.remove('pt-ab-offline');
@@ -1947,7 +1953,7 @@ class Shell {
 
         this.appbar.classList.remove('pt-ab-page');
         root.classList.remove('pt-prompt-editor');
-        // Outside a page the same button searches everything (the start screen shows it).
+        // Outside a page the same button searches everything (in a chat, that includes the chat itself).
         this.setSearchLabel(t('Search everything'));
         this.quick.hidden = false;
         this.who.disabled = false;
@@ -1983,7 +1989,7 @@ class Shell {
             this.avatar.replaceChildren(ui(context.groupId ? 'users' : (hasChat ? 'user' : 'chats')));
         }
         this.actions.hidden = !hasChat;
-        this.search.hidden = hasChat;
+        this.search.hidden = false;
         const shownIn = hasChat ? chatLanguage() : null;
         this.translateBtn.classList.toggle('pt-ab-on', !!shownIn);
         const next = shownIn ?? quickLanguage();
@@ -2010,104 +2016,6 @@ function syncTabsButton() {
     button.setAttribute('aria-label', label);
     button.title = label;
     button.classList.toggle('pt-tabs-btn-out', !tucked);
-}
-
-function openMoreSheet() {
-    showSheet(new MenuSheet({
-        title: 'More',
-        subtitle: '',
-        fill: body => {
-            // On the desktop layout the rail already lists SillyTavern's pages.
-            const onRail = id => isWide() && RAIL_PAGES.includes(id);
-            const drawers = Array.from(document.querySelectorAll('#top-settings-holder > .drawer'))
-                .filter(drawer => drawer.id && !TABS.some(tab => tab.id === drawer.id) && !onRail(drawer.id));
-            drawers.sort((a, b) => {
-                const ai = MORE_ORDER.indexOf(a.id);
-                const bi = MORE_ORDER.indexOf(b.id);
-                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-            });
-            const openId = currentPageId();
-            const status = ctx().onlineStatus;
-            const tiles = drawers.map(drawer => {
-                const info = pageInfo(drawer);
-                // Only notes that add something: "Backgrounds / Chat backgrounds" just repeats the title.
-                let note = TILE_NOTES[drawer.id] ?? '';
-                if (drawer.id === 'sys-settings-button') note = status && status !== 'no_connection' ? 'Connected' : 'Not connected';
-                return h('button', {
-                    type: 'button',
-                    class: `pt-tile ${openId === drawer.id ? 'pt-tile-on' : ''} ${drawer.id === 'sys-settings-button' && note === 'Not connected' ? 'pt-tile-warn' : ''}`,
-                    onclick: () => {
-                        closeSheet(true);
-                        openPage(drawer.id);
-                    },
-                }, [
-                    h('span', { class: 'pt-tile-icon' }, [ui(info.icon)]),
-                    h('span', { class: 'pt-tile-label', text: info.title }),
-                    note ? h('span', { class: 'pt-tile-note', text: note }) : null,
-                ]);
-            });
-            body.append(h('button', {
-                type: 'button',
-                class: 'pt-search-field',
-                onclick: () => openGlobalSearch(),
-            }, [ui('search'), h('span', { text: 'Search everything' }), isWide() ? h('kbd', { class: 'pt-kbd', text: IS_MAC ? '⌘K' : 'Ctrl K' }) : null]));
-            // One or two pages left (the desktop rail lists the rest) read as rows, not a lone tile in a grid.
-            const pageRows = tiles.length > 0 && tiles.length < 3 ? drawers.map(drawer => h('button', {
-                type: 'button',
-                class: 'pt-menu-row',
-                onclick: () => {
-                    closeSheet(true);
-                    openPage(drawer.id);
-                },
-            }, [ui(pageInfo(drawer).icon, 'pt-menu-row-icon'), h('span', { text: pageInfo(drawer).title }), ui('chevron-right', 'pt-menu-row-go')])) : [];
-            if (tiles.length >= 3) body.append(h('div', { class: 'pt-tiles' }, tiles));
-
-            const context = ctx();
-            const inChat = !!(context.groupId || context.characterId !== undefined);
-            const row = (iconName, label, onclick, disabled = false) => h('button', {
-                type: 'button', class: 'pt-menu-row', disabled, onclick,
-            }, [ui(iconName, 'pt-menu-row-icon'), h('span', { text: t(label) }), ui('chevron-right', 'pt-menu-row-go')]);
-            const themeName = currentTheme()?.name ?? t('Your theme');
-            body.append(h('div', { class: 'pt-menu-list' }, [
-                ...pageRows,
-                h('button', {
-                    type: 'button',
-                    class: 'pt-menu-row pt-menu-row-theme',
-                    onclick: () => openThemeSheet(),
-                }, [ui('palette', 'pt-menu-row-icon'), h('span', { text: 'Themes' }), h('small', { class: 'pt-menu-row-note', text: themeName }), ui('chevron-right', 'pt-menu-row-go')]),
-                row('home', 'Recent chats', () => {
-                    closeSheet(true);
-                    goHome();
-                }, !inChat),
-                row('history', 'Chat history', () => {
-                    closeSheet(true);
-                    document.getElementById('option_select_chat')?.click();
-                }, !inChat),
-                row('chat-plus', 'Start a new chat', () => {
-                    closeSheet(true);
-                    closePages();
-                    document.getElementById('option_start_new_chat')?.click();
-                }, !inChat),
-                isWide() ? row('list', 'Features', () => openExtrasSheet()) : row('phone', 'Phone features', () => openExtrasSheet()),
-                row('zap', 'Quick switch', () => openQuickSwitch()),
-                row('languages', 'Translate chat', () => openTranslateSheet(), !inChat),
-                row('search', 'Search this chat', () => {
-                    closeSheet(true);
-                    // The bar searches the chat, so show the chat, not the page that was open.
-                    closePages();
-                    openChatFinder();
-                }, !inChat),
-                isStandalone() ? null : row('download', 'Install as an app', () => installApp()),
-                row('star', "What's new", () => openWhatsNew()),
-                updateRow(),
-                row('refresh', 'SillyTavern updates', () => openSillyTavernUpdates()),
-                row(isWide() ? 'desktop' : 'phone', 'Pocket Tavern settings', () => {
-                    closeSheet(true);
-                    openMobileSettings();
-                }),
-            ]));
-        },
-    }));
 }
 
 function openMobileSettings() {
@@ -2340,6 +2248,7 @@ function setAppearance(key, value, origin) {
         if (sheet && !sheet.picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) sheet.refresh();
         // The layout changes the whole interface.
         if (key === 'layout') applyState();
+        refreshOwnPage();
     };
     if (key === 'theme') revealChange(origin, change);
     else change();
@@ -5819,7 +5728,16 @@ function openGlobalSearch() {
             load.then(() => {
                 if (input.isConnected) render();
             });
-            body.append(input, results);
+            // One search (DESIGN.md): in a chat it also searches the chat's own messages.
+            const inChat = !!(context.groupId || context.characterId !== undefined);
+            const chatSearch = inChat ? h('div', { class: 'pt-menu-list pt-search-this-chat' }, [row('search', t('Search this chat'), '', () => {
+                closeSheet(true);
+                // The bar searches the chat, so show the chat, not the page that was open.
+                closePages();
+                openChatFinder();
+            })]) : null;
+            if (chatSearch) body.append(input, chatSearch, results);
+            else body.append(input, results);
             render();
             setTimeout(() => { if (input.isConnected) input.focus(); }, 250);
         },
@@ -7564,7 +7482,7 @@ function syncChatStyleForTheme() {
             const name = stChatStyleName();
             settings.stChatStyle = select.value;
             useFlatChatStyle();
-            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.", { style: t(name) }), '', { timeOut: 7000 });
+            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.", { style: t(name) }), '', { timeOut: 7000 });
         }
         saveSettings();
         return;
@@ -7619,7 +7537,7 @@ function syncBackgroundNote() {
 
 /**
  * At the top of Settings → Look: SillyTavern's UI Theme list is hidden there while
- * Pocket Tavern is on, because its themes are in More → Themes, made to fit.
+ * Pocket Tavern is on, because its themes are in Settings → Themes, made to fit.
  */
 function syncLookNote() {
     const block = document.getElementById('UI-presets-block');
@@ -7629,7 +7547,7 @@ function syncLookNote() {
         return;
     }
     if (note) return;
-    note = themeNote('pt_look_note', 'moved', "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
+    note = themeNote('pt_look_note', 'moved', "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
         ['Open Themes', () => openThemeSheet()],
     ]);
     block.prepend(note);
@@ -7649,7 +7567,7 @@ function onBackgroundPick(event) {
     const thumb = event.target.closest?.('#bg_menu_content .bg_example');
     if (!thumb || event.target.closest('.jg-menu, .mobile-only-menu-toggle') || thumb.closest('.bg-selection-mode')) return;
     setAppearance('themeBackdrop', false);
-    globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in More → Themes."), t('Showing your background'), { timeOut: 4000 });
+    globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in Settings → Themes."), t('Showing your background'), { timeOut: 4000 });
 }
 
 // -- lorebooks: entry cards with keyword chips, full-screen entry editor
@@ -8684,7 +8602,7 @@ const SETTINGS_SECTIONS = [
 const setnav = new PageSections({
     pageId: 'user-settings-button',
     rootClass: 'pt-setnav',
-    pageTitle: 'Settings',
+    pageTitle: 'SillyTavern',
     sections: SETTINGS_SECTIONS,
     block: () => document.getElementById('user-settings-block'),
     mark: (nav, block) => {
@@ -9464,7 +9382,9 @@ function syncExtras() {
     window.addEventListener('mousedown', releaseKeptOpen);
     window.addEventListener('mouseup', releaseKeptOpen, true);
     window.addEventListener('click', releaseKeptOpen, true);
-    document.addEventListener('keydown', onWideKeyDown);
+    // Capture on window: Escape on one of SillyTavern's pages must reach Back (to AI or Settings) before
+    // SillyTavern's own handler closes the drawer.
+    window.addEventListener('keydown', onWideKeyDown, true);
     document.addEventListener('keydown', onWideShortcut);
     watchLayout(() => {
         setFeatureClasses();
@@ -9682,7 +9602,7 @@ function reloadWhenIdle(force = false) {
     window.setTimeout(() => location.reload(), 1500);
 }
 
-// -- More → Update Pocket Tavern, and SillyTavern updates (both layouts)
+// -- Settings → Update Pocket Tavern, and SillyTavern updates (both layouts)
 
 /** Pocket Tavern's folder name, from where it was loaded (scripts/extensions/third-party/<folder>/). */
 function extensionFolder() {
@@ -9699,26 +9619,13 @@ async function extensionRequest(endpoint, global) {
     });
 }
 
-function updateRow() {
-    return h('button', {
-        type: 'button',
-        class: 'pt-menu-row pt-update-row',
-        onclick: event => updatePocketTavern(event.currentTarget),
-    }, [
-        ui('download', 'pt-menu-row-icon'),
-        h('span', { text: 'Update Pocket Tavern' }),
-        h('small', { class: 'pt-menu-row-note', text: `v${VERSION}` }),
-        ui('chevron-right', 'pt-menu-row-go'),
-    ]);
-}
-
 /**
  * The same update as Extensions → Manage extensions → update, in one tap: SillyTavern's
  * server pulls the new version, then the page reloads (once nothing is in progress).
  */
 async function updatePocketTavern(button) {
     if (button.disabled) return;
-    const note = button.querySelector('.pt-menu-row-note');
+    const note = button.querySelector('.pt-menu-row-note, .pt-list-row-value');
     const before = note?.textContent ?? '';
     button.disabled = true;
     if (note) note.textContent = t('Checking…');
@@ -10098,7 +10005,10 @@ function onWideKeyDown(event) {
         event.preventDefault();
         return;
     }
-    if (closePageSection() || (currentPageId() && (closePages(), true))) event.preventDefault();
+    if (closePageSection() || (currentPageId() && (backFromPage(), true))) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
 }
 
 /** The SillyTavern popup watch (src/st/popup-watch.js) while Pocket Tavern is on; the shell takes it over in M1c. */
@@ -10302,12 +10212,42 @@ function syncSettingsInputs() {
 
 // ------------------------------------------------------------------- init
 
+function isConnected() {
+    const status = ctx().onlineStatus;
+    return !!status && status !== 'no_connection';
+}
+
+/** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
+function registerOwnPages() {
+    definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
+    definePage('pt-settings', settingsPage({
+        openPage,
+        extensionPages: () => Array.from(document.querySelectorAll('#top-settings-holder > .drawer'))
+            .filter(drawer => drawer.id && !TABS.some(tab => tab.id === drawer.id) && !AI_PAGES.includes(drawer.id) && !SETTINGS_PAGES.includes(drawer.id))
+            .map(drawer => ({ id: drawer.id, title: pageInfo(drawer).title })),
+        themeName: () => currentTheme()?.name ?? t('Your theme'),
+        openThemes: () => openThemeSheet(),
+        openFeatures: () => openExtrasSheet(),
+        openPocketTavernSettings: () => openMobileSettings(),
+        openWhatsNew: () => openWhatsNew(),
+        updatePocketTavern: row => updatePocketTavern(row),
+        openSillyTavernUpdates: () => openSillyTavernUpdates(),
+        installApp: isStandalone() ? null : () => installApp(),
+        version: VERSION,
+    }));
+    onPageChange(() => {
+        shell?.update();
+        scheduleHistorySync();
+    });
+}
+
 function init() {
     if (!globalThis.SillyTavern?.getContext || !globalThis.jQuery) {
         console.warn(LOG, 'SillyTavern context is not available; extension not started.');
         return;
     }
     loadSettings();
+    registerOwnPages();
     // Pick the language before anything is drawn.
     setLocale(ctx().getCurrentLocale?.() ?? navigator.language);
     buildSettings();

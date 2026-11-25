@@ -22,7 +22,9 @@ async function step(name, run) {
         console.log(`  ✓ ${name}`);
     } catch (error) {
         failed++;
-        console.log(`  ✗ ${name}\n      ${String(error.message ?? error).split('\n')[0]}`);
+        // The line of this file it stopped at, so a timeout says which wait it was.
+        const at = String(error?.stack ?? '').match(/phone\.mjs:(\d+)/)?.[1];
+        console.log(`  ✗ ${name}\n      ${String(error.message ?? error).split('\n')[0]}${at ? ` (phone.mjs:${at})` : ''}`);
         await mkdir('results', { recursive: true });
         await page.screenshot({ path: `results/${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png` }).catch(() => {});
     }
@@ -32,6 +34,33 @@ const until = (fn, arg, timeout = 8000) => page.waitForFunction(fn, arg, { timeo
 const closeSheet = async () => {
     await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
     await until(() => !document.getElementById('pt-sheet'));
+};
+// The five places (DESIGN.md): Chats, Characters, Lorebooks, AI and Settings. AI and Settings are
+// Pocket Tavern's own pages of rows that lead to SillyTavern's pages.
+const openPlace = async (tab, id) => {
+    await tab.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
+    await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want, id);
+};
+const placeRow = async (tab, place, title, wantPage) => {
+    await openPlace(tab, place);
+    await tab.evaluate(want => [...document.querySelectorAll('#pt-page .pt-list-row, #pt-page .pt-list-row-main')].find(row => row.querySelector('.pt-list-row-title')?.textContent === want)?.click(), title);
+    if (wantPage) await tab.waitForFunction(want => document.documentElement.dataset.ptPage === want, wantPage);
+};
+const ST_PAGES = {
+    'sys-settings-button': ['pt-ai', 'API'], 'ai-config-button': ['pt-ai', 'Presets'], 'advanced-formatting-button': ['pt-ai', 'Formatting'],
+    'user-settings-button': ['pt-settings', 'SillyTavern'], 'persona-management-button': ['pt-settings', 'Personas'],
+    'backgrounds-button': ['pt-settings', 'Backgrounds'], 'extensions-settings-button': ['pt-settings', 'Extensions'],
+};
+/** One of SillyTavern's pages, reached through the place it belongs to. */
+const openStPage = (tab, id) => placeRow(tab, ...ST_PAGES[id], id);
+/** Back to the chat from a place's page. */
+const leavePlace = async tab => {
+    await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+    await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
+};
+const openThemes = async tab => {
+    await placeRow(tab, 'pt-settings', 'Themes');
+    await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-theme-card'));
 };
 // In a chat the tabs are tucked away; the arrow in the message box brings them back.
 // A page that was just closed may still be sliding away, and the tabs tuck only once it is
@@ -125,15 +154,14 @@ await step('Pocket Tavern turns on for a phone', async () => {
     if (await page.locator('#pt-sheet').count()) await closeSheet();
 });
 
-await step('top bar and five tabs are shown', async () => {
+await step('top bar and the five places are shown: Chats, Characters, Lorebooks, AI, Settings', async () => {
     await page.locator('#pt-appbar').waitFor({ state: 'visible' });
-    // The desktop rail's extra pages are in the bar too, hidden on a phone.
-    const tabs = await page.locator('.pt-tab:visible').count();
-    if (tabs !== 5) throw new Error(`found ${tabs} tabs`);
+    const tabs = await page.evaluate(() => [...document.querySelectorAll('.pt-tab')].map(tab => tab.dataset.tab).join(','));
+    if (tabs !== 'chat,rightNavHolder,WI-SP-button,pt-ai,pt-settings') throw new Error(`tabs: ${tabs}`);
 });
 
 await step('each tab opens its page and Chat goes back', async () => {
-    for (const id of ['rightNavHolder', 'WI-SP-button', 'ai-config-button']) {
+    for (const id of ['rightNavHolder', 'WI-SP-button', 'pt-ai', 'pt-settings']) {
         await page.locator(`.pt-tab[data-tab="${id}"]`).click();
         await until(want => document.documentElement.dataset.ptPage === want, id);
     }
@@ -141,32 +169,41 @@ await step('each tab opens its page and Chat goes back', async () => {
     await until(() => !document.documentElement.dataset.ptPage);
 });
 
-await step('back gesture closes a page', async () => {
-    await page.locator('.pt-tab[data-tab="ai-config-button"]').click();
-    await until(() => document.documentElement.dataset.ptPage === 'ai-config-button');
+await step('back gesture goes from Presets back to AI, then closes AI', async () => {
+    await openStPage(page, 'ai-config-button');
+    if (await page.evaluate(() => document.querySelector('.pt-tab-on')?.dataset.tab) !== 'pt-ai') throw new Error('the AI tab is not lit on Presets');
+    await page.waitForTimeout(600);
+    await page.goBack();
+    await until(() => document.documentElement.dataset.ptPage === 'pt-ai');
     await page.waitForTimeout(600);
     await page.goBack();
     await until(() => !document.documentElement.dataset.ptPage);
 });
 
-await step('More sheet lists pages and helpers', async () => {
-    await page.locator('.pt-tab[data-tab="more"]').click();
-    await until(() => document.querySelectorAll('#pt-sheet .pt-tile').length >= 4);
-    const rows = await page.locator('#pt-sheet .pt-menu-row').allInnerTexts();
-    for (const want of ['Themes', 'Phone features', 'Quick switch', "What's new"]) {
-        if (!rows.some(row => row.includes(want))) throw new Error(`missing "${want}"`);
+await step('there is no More: Settings and AI list their rows', async () => {
+    if (await page.locator('.pt-tab[data-tab="more"]').count()) throw new Error('More is still a tab');
+    const rows = async place => {
+        await openPlace(page, place);
+        return page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent));
+    };
+    const settings = await rows('pt-settings');
+    for (const want of ['Themes', 'Personas', 'SillyTavern', 'Extensions', 'Features', "What's new", 'Update Pocket Tavern']) {
+        if (!settings.includes(want)) throw new Error(`Settings has no "${want}"`);
     }
-    await closeSheet();
+    const ai = await rows('pt-ai');
+    if (ai.join(',') !== 'API,Presets,Formatting') throw new Error(`AI rows: ${ai}`);
+    await page.locator('.pt-tab[data-tab="chat"]').click();
+    await until(() => !document.documentElement.dataset.ptPage);
 });
 
 await step('a theme can be picked and undone', async () => {
-    await page.locator('.pt-tab[data-tab="more"]').click();
-    await page.locator('#pt-sheet .pt-menu-row-theme').click();
+    await openThemes(page);
     await page.locator('#pt-sheet .pt-theme-card[data-theme="midnight"]').click();
     await until(() => document.documentElement.dataset.ptTheme === 'midnight');
     await page.locator('#pt-sheet .pt-theme-card[data-theme="st"]').click();
     await until(() => !document.documentElement.dataset.ptTheme);
     await closeSheet();
+    await leavePlace(page);
 });
 
 await step('message menu opens from ⋯', async () => {
@@ -220,13 +257,12 @@ await step('quick switch shows persona and connection', async () => {
     await closeSheet();
 });
 
-await step('Translate chat is offered (greyed out until a chat is open)', async () => {
-    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
-    const row = page.locator('#pt-sheet .pt-menu-row', { hasText: 'Translate chat' });
-    await row.waitFor();
-    const inChat = await page.evaluate(() => !!(SillyTavern.getContext().groupId || SillyTavern.getContext().characterId !== undefined));
-    if (inChat === (await row.isDisabled())) throw new Error('row enabled state does not match whether a chat is open');
-    await closeSheet();
+await step('Translate chat sits in the chat header while a chat is open', async () => {
+    const state = await page.evaluate(() => {
+        const button = document.querySelector('#pt-appbar .pt-ab-translate');
+        return { inChat: !!(SillyTavern.getContext().groupId || SillyTavern.getContext().characterId !== undefined), shown: !!button?.getClientRects().length };
+    });
+    if (state.inChat !== state.shown) throw new Error(`translate button shown: ${state.shown}, in a chat: ${state.inChat}`);
 });
 
 await step('message box: persona button, context ring and Context page; search this chat', async () => {
@@ -269,8 +305,8 @@ await step('message box: persona button, context ring and Context page; search t
         }, before);
         if (await page.locator('#pt-sheet').count()) await closeSheet();
     }
-    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
-    await page.locator('#pt-sheet .pt-menu-row', { hasText: 'Search this chat' }).click();
+    await page.evaluate(() => document.querySelector('#pt-appbar .pt-ab-search').click());
+    await page.locator('#pt-sheet .pt-search-this-chat .pt-menu-row').click();
     await until(() => document.querySelector('.pt-chat-finder input'));
     const word = await page.evaluate(() => document.querySelector('#chat .mes .mes_text')?.textContent.match(/[A-Za-z]{3,}/)?.[0] ?? 'the');
     await page.locator('.pt-chat-finder input').fill(word);
@@ -361,7 +397,7 @@ await step('Settings opens on its sections; a section, explanations, search and 
     if (after.checked !== before || !after.open) throw new Error('tapping the explanation flipped the switch, or did not open it');
     await page.waitForTimeout(500);
     await page.goBack();
-    await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Settings' && document.documentElement.dataset.ptPage === 'user-settings-button');
+    await until(() => document.querySelector('.pt-ab-title')?.textContent === 'SillyTavern' && document.documentElement.dataset.ptPage === 'user-settings-button');
     // Search from the list goes into the right section.
     await page.locator('.pt-set-home .pt-search-field').click();
     await page.locator('#pt-sheet .pt-choice-search').fill('font scale');
@@ -369,11 +405,14 @@ await step('Settings opens on its sections; a section, explanations, search and 
     await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Look');
     await page.waitForTimeout(500);
     await page.goBack();
-    await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Settings');
+    await until(() => document.querySelector('.pt-ab-title')?.textContent === 'SillyTavern');
+    await page.waitForTimeout(500);
+    // Back from SillyTavern's settings returns to the Settings place, then out.
+    await page.goBack();
+    await until(() => document.documentElement.dataset.ptPage === 'pt-settings');
     await page.waitForTimeout(500);
     await page.goBack();
     await until(() => !document.documentElement.dataset.ptPage);
-
 });
 
 await step('Formatting and Extensions open on a list; a section or an extension opens as its own page, and back returns to the list', async () => {
@@ -394,6 +433,10 @@ await step('Formatting and Extensions open on a list; a section or an extension 
     await page.goBack();
     await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Formatting' && document.documentElement.dataset.ptPage === 'advanced-formatting-button');
     await page.waitForTimeout(500);
+    // Back from Formatting returns to AI, then out.
+    await page.goBack();
+    await until(() => document.documentElement.dataset.ptPage === 'pt-ai');
+    await page.waitForTimeout(500);
     await page.goBack();
     await until(() => !document.documentElement.dataset.ptPage);
     // Extensions: rows; one opens as its own page with its name in the top bar.
@@ -410,6 +453,9 @@ await step('Formatting and Extensions open on a list; a section or an extension 
     await page.waitForTimeout(500);
     await page.goBack();
     await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Extensions' && !document.querySelector('.pt-ext-open'));
+    await page.waitForTimeout(500);
+    await page.goBack();
+    await until(() => document.documentElement.dataset.ptPage === 'pt-settings');
     await page.waitForTimeout(500);
     await page.goBack();
     await until(() => !document.documentElement.dataset.ptPage);
@@ -437,9 +483,10 @@ await step('☰ and the wand open sheets, and their items work', async () => {
     await until(() => !document.querySelector('dialog.popup[open]'));
 });
 
-await step('search everything finds settings', async () => {
-    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
-    await page.locator('#pt-sheet .pt-search-field').click();
+await step('search everything (the header search) finds settings', async () => {
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+    await until(() => !document.documentElement.dataset.ptPage);
+    await page.evaluate(() => document.querySelector('#pt-appbar .pt-ab-search').click());
     await page.locator('#pt-sheet .pt-choice-search').fill('font');
     await until(() => [...document.querySelectorAll('#pt-sheet .pt-menu-heading')].some(el => el.textContent === 'Settings'));
     await closeSheet();
@@ -919,9 +966,7 @@ await step('the prompt editor reaches the tabs, opens full screen and asks befor
     try {
         await setApi('openai');
         await page.waitForTimeout(800);
-        await showTabs();
-        await page.locator('.pt-tab[data-tab="ai-config-button"]').click();
-        await until(() => document.documentElement.dataset.ptPage === 'ai-config-button');
+        await openStPage(page, 'ai-config-button');
         await until(() => !!document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'), null, 15000);
         // Beside − and +: no browser arrows over the number (Firefox always shows them), and room for seven digits.
         const box = await page.evaluate(() => {
@@ -1129,14 +1174,10 @@ await step('a theme gives way to the background you pick, every theme shows it u
         const s = SillyTavern.getContext().extensionSettings.mobileUI;
         return { avatar: document.getElementById('avatar_style').value, theme: s.theme, backdrop: s.themeBackdrop, stTheme: s.stTheme, style: document.getElementById('chat_display').value, bg: decodeURIComponent((getComputedStyle(document.getElementById('bg1')).backgroundImage.match(/\/backgrounds\/([^"')]+)/) ?? [])[1] ?? '') || null };
     });
-    const openThemes = async () => {
-        await showTabs();
-        await page.locator('.pt-tab[data-tab="more"]').click();
-        await page.locator('#pt-sheet .pt-menu-row-theme').click();
-    };
+    const openThemesSheet = () => openThemes(page);
     try {
         // A Pocket Tavern theme with its own background on.
-        await openThemes();
+        await openThemesSheet();
         await page.locator('#pt-sheet .pt-theme-card[data-theme="sakura"]').click();
         await until(() => document.documentElement.dataset.ptTheme === 'sakura');
         await page.evaluate(() => {
@@ -1146,9 +1187,7 @@ await step('a theme gives way to the background you pick, every theme shows it u
         await until(() => document.documentElement.classList.contains('pt-backdrop'));
         await closeSheet();
         // The Backgrounds page says why backgrounds don't show.
-        await page.locator('.pt-tab[data-tab="more"]').click();
-        await page.locator('#pt-sheet .pt-tile', { hasText: 'Backgrounds' }).click();
-        await until(() => document.documentElement.dataset.ptPage === 'backgrounds-button');
+        await openStPage(page, 'backgrounds-button');
         await until(() => /Sakura theme shows its own background/.test(document.getElementById('pt_bg_note')?.textContent ?? ''));
         const button = await page.evaluate(() => Math.round(document.querySelector('#pt_bg_note .pt-inline-note-btn').getBoundingClientRect().height));
         if (button < 44) throw new Error(`the note's button is ${button}px tall`);
@@ -1168,10 +1207,8 @@ await step('a theme gives way to the background you pick, every theme shows it u
         const alphaOf = color => (/rgba|\//.test(color) ? Number((color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]) : 1);
         if (!bar.glass || alphaOf(bar.color) < 1) throw new Error(`the top bar is not solid over the background: ${JSON.stringify(bar)}`);
         await page.evaluate(() => globalThis.toastr?.clear());
-        // Settings → Look: SillyTavern's theme list is hidden; a note points to More → Themes.
-        await page.locator('.pt-tab[data-tab="more"]').click();
-        await page.locator('#pt-sheet .pt-tile', { hasText: 'Settings' }).click();
-        await until(() => document.documentElement.dataset.ptPage === 'user-settings-button');
+        // SillyTavern → Look: SillyTavern's theme list is hidden; a note points to Settings → Themes.
+        await openStPage(page, 'user-settings-button');
         await page.evaluate(() => [...document.querySelectorAll('.pt-set-home .pt-menu-row')].find(row => /Look/.test(row.textContent))?.click());
         await until(() => (document.getElementById('pt_look_note')?.getBoundingClientRect().height ?? 0) > 0);
         const listShown = await page.evaluate(() => document.getElementById('themes')?.getBoundingClientRect().height ?? 0);
@@ -1194,7 +1231,7 @@ await step('a theme gives way to the background you pick, every theme shows it u
         await closeSheet();
         // SillyTavern's Bubbles style pauses the chat look; picking one puts Chat Style back on Flat.
         await setPref('chat_display', '1');
-        await openThemes();
+        await openThemesSheet();
         const paused = await page.evaluate(() => ({
             on: document.querySelectorAll('#pt-sheet .pt-look-seg[aria-label="Chat look"] .pt-seg-on').length,
             note: [...document.querySelectorAll('#pt-sheet .pt-menu-foot')].some(foot => /Bubbles chat style is on/.test(foot.textContent)),
@@ -1219,7 +1256,7 @@ await step('a theme gives way to the background you pick, every theme shows it u
         // Picking a SillyTavern theme set its avatar shape too.
         await setPref('avatar_style', before.avatar);
         // Re-apply the restored theme the same way the Themes sheet does.
-        await openThemes();
+        await openThemesSheet();
         await page.locator(`#pt-sheet .pt-theme-card[data-theme="${before.theme}"]`).click();
         await page.waitForTimeout(600);
         await closeSheet();
@@ -1239,10 +1276,7 @@ await step('a theme gives way to the background you pick, every theme shows it u
 
 await step('backgrounds are big enough to pick, the next-version button is an arrow, and the chat width slider fills to its knob; a computer is compact', async () => {
     // Background thumbnails never drop below 150px, whatever SillyTavern's column count.
-    await showTabs();
-    await page.locator('.pt-tab[data-tab="more"]').click();
-    await page.locator('#pt-sheet .pt-tile', { hasText: 'Backgrounds' }).click();
-    await until(() => document.documentElement.dataset.ptPage === 'backgrounds-button');
+    await openStPage(page, 'backgrounds-button');
     const thumbs = await page.evaluate(() => {
         document.documentElement.style.setProperty('--bg-thumb-columns', '6');
         const widths = [...document.querySelectorAll('#bg_menu_content .bg_example')].slice(0, 3).map(e => Math.round(e.getBoundingClientRect().width));
@@ -1279,8 +1313,7 @@ await step('backgrounds are big enough to pick, the next-version button is an ar
         // Anything that opened by itself (What's new) closes first.
         await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 8000 }).catch(() => {});
-        await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]')?.click());
-        await tab.locator('#pt-sheet .pt-menu-row-theme').click();
+        await openThemes(tab);
         await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-width-range'));
         const share = await tab.evaluate(() => {
             const input = document.querySelector('#pt-sheet .pt-width-range');
@@ -1384,13 +1417,10 @@ await step('More can update Pocket Tavern in one tap and shows SillyTavern updat
     });
     await page.route('https://api.github.com/repos/SillyTavern/SillyTavern/releases/latest', route => route.fulfill({ json: { tag_name: 'v99.0.0' } }));
     try {
-        await showTabs();
-        await page.locator('.pt-tab[data-tab="more"]').click();
-        await until(() => !!document.querySelector('#pt-sheet .pt-update-row'));
-        await page.locator('#pt-sheet .pt-update-row').click();
+        await placeRow(page, 'pt-settings', 'Update Pocket Tavern');
         await until(() => /up to date/i.test(document.querySelector('#toast-container')?.textContent ?? ''), null, 10000);
         if (asked.join(',') !== 'version,update') throw new Error(`asked SillyTavern for: ${asked.join(',')}`);
-        await page.locator('#pt-sheet .pt-menu-row', { hasText: 'SillyTavern updates' }).click();
+        await placeRow(page, 'pt-settings', 'SillyTavern updates');
         await until(() => /99\.0\.0 is out/.test(document.querySelector('.pt-update-status')?.textContent ?? ''), null, 10000);
         const copy = await page.locator('#pt-sheet .pt-command-copy').count();
         if (copy < 2) throw new Error('the update commands have no copy buttons');
@@ -1448,8 +1478,7 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         await tab.waitForTimeout(600);
         const rail = await tab.evaluate(() => { const r = document.querySelector('.pt-tabbar').getBoundingClientRect(); return { w: r.width, h: r.height }; });
         if (rail.w > 120 || rail.h < 300) throw new Error(`tabs are not a rail: ${JSON.stringify(rail)}`);
-        await tab.locator('.pt-tab[data-tab="ai-config-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'ai-config-button');
+        await openStPage(tab, 'ai-config-button');
         const layout = await tab.evaluate(() => {
             const panel = document.querySelector('#ai-config-button > .drawer-content').getBoundingClientRect();
             const chat = document.getElementById('sheld').getBoundingClientRect();
@@ -1464,13 +1493,18 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         // The page stays open without swallowing the click: menus and other extensions still hear it.
         if (!await tab.evaluate(() => window.ptTestDown)) throw new Error('a click beside the page never reached the document');
         if (await tab.evaluate(() => document.querySelectorAll('.pinnedOpen').length)) throw new Error('a panel was left marked as pinned');
+        // Escape steps back like Back: Presets → AI → out.
+        await tab.keyboard.press('Escape');
+        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-ai');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
-        await tab.locator('.pt-tab[data-tab="more"]').click();
-        await tab.waitForFunction(() => !!document.getElementById('pt-sheet'));
+        await openThemes(tab);
         const box = await tab.evaluate(() => document.querySelector('#pt-sheet .pt-panel').getBoundingClientRect());
-        if (box.bottom > 880) throw new Error('More is not a centred dialog');
+        if (box.bottom > 880) throw new Error('Themes is not a centred dialog');
         await tab.keyboard.press('Escape');
+        await tab.waitForFunction(() => !document.getElementById('pt-sheet'));
+        await tab.keyboard.press('Escape');
+        await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
         // ScenePulse's side panel (it sets its own top from SillyTavern's hidden top bar) and Moonlit's rule that shows every tool.
         const side = await tab.evaluate(async () => {
             const style = document.createElement('style');
@@ -1493,15 +1527,14 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         });
         if (side.top < side.bar) throw new Error(`ScenePulse's panel starts at ${side.top}px, under the top bar (${side.bar}px)`);
         if (side.arrow !== 'none') throw new Error(`the tabs arrow shows in the desktop layout (${side.arrow})`);
-        // The rail lists SillyTavern's other pages too, the pill follows, and More does not repeat them.
+        // The rail shows the five places, and the pill sits on the place a page belongs to.
         const railTabs = await tab.locator('.pt-tab:visible').count();
-        if (railTabs < 10) throw new Error(`the rail shows ${railTabs} tabs`);
-        await tab.locator('.pt-tab[data-tab="user-settings-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'user-settings-button');
+        if (railTabs !== 5) throw new Error(`the rail shows ${railTabs} tabs`);
+        await openStPage(tab, 'user-settings-button');
         await tab.waitForTimeout(800);
         const pill = await tab.evaluate(() => ({
             pill: Math.round(document.querySelector('.pt-tab-indicator').getBoundingClientRect().top),
-            icon: Math.round(document.querySelector('.pt-tab[data-tab="user-settings-button"] .pt-tab-icon').getBoundingClientRect().top),
+            icon: Math.round(document.querySelector('.pt-tab[data-tab="pt-settings"] .pt-tab-icon').getBoundingClientRect().top),
         }));
         if (Math.abs(pill.pill - pill.icon) > 2) throw new Error(`the rail's pill is not on Settings: ${JSON.stringify(pill)}`);
         // The panel's edge drags it wider, the width is kept, and a double-click puts it back.
@@ -1523,27 +1556,23 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         await tab.waitForTimeout(300);
         if (Math.abs(await widthOf() - start) > 1 || await tab.evaluate(() => localStorage.getItem('pt_panel_w'))) throw new Error('a double-click on the edge did not reset the panel');
         // Extensions: one column in the panel.
-        await tab.locator('.pt-tab[data-tab="extensions-settings-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'extensions-settings-button');
+        await openStPage(tab, 'extensions-settings-button');
         await tab.waitForTimeout(600);
         const columns = await tab.evaluate(() => [document.getElementById('extensions_settings'), document.getElementById('extensions_settings2')].map(node => Math.round(node.getBoundingClientRect().left)));
         if (columns[0] !== columns[1]) throw new Error(`the Extensions page has two columns: ${columns}`);
-        await tab.locator('.pt-tab[data-tab="more"]').click();
-        await tab.waitForFunction(() => !!document.getElementById('pt-sheet'));
-        const tiles = await tab.locator('#pt-sheet .pt-tile-label').allInnerTexts();
-        if (tiles.some(label => ['API', 'Settings', 'Extensions', 'Personas'].includes(label.trim()))) throw new Error(`More repeats the rail: ${tiles}`);
+        // Escape steps back: from Extensions to Settings, the place it belongs to, then out.
         await tab.keyboard.press('Escape');
-        await tab.waitForFunction(() => !document.getElementById('pt-sheet'));
+        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-settings');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
-        // A laptop window with browser bars: More still fits on the rail.
+        // A laptop window with browser bars: Settings, the last place, still fits on the rail.
         await tab.setViewportSize({ width: 1280, height: 620 });
         await tab.waitForTimeout(500);
         const short = await tab.evaluate(() => ({
-            more: Math.round(document.querySelector('.pt-tab[data-tab="more"]').getBoundingClientRect().bottom),
+            more: Math.round(document.querySelector('.pt-tab[data-tab="pt-settings"]').getBoundingClientRect().bottom),
             rail: Math.round(document.getElementById('pt-tabbar').getBoundingClientRect().bottom),
         }));
-        if (short.more > short.rail) throw new Error(`More is cut off at 620px tall: ${JSON.stringify(short)}`);
+        if (short.more > short.rail) throw new Error(`Settings is cut off at 620px tall: ${JSON.stringify(short)}`);
         await tab.setViewportSize({ width: 1440, height: 900 });
         await tab.waitForTimeout(500);
         // The prompt editor fills the panel to the bottom, full screen takes the width, and Escape leaves it step by step.
@@ -1557,7 +1586,7 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         try {
             await setApi('openai');
             await tab.waitForTimeout(800);
-            await tab.locator('.pt-tab[data-tab="ai-config-button"]').click();
+            await openStPage(tab, 'ai-config-button');
             await tab.waitForFunction(() => !!document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'), null, { timeout: 15000 });
             // Chat Completion Tabs (when installed) builds its tabs up to 2 seconds after the API switch.
             await tab.waitForTimeout(2200);
@@ -1642,8 +1671,7 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await settle(2500);
         if (await tab.evaluate(() => document.documentElement.dataset.ptPage) !== 'rightNavHolder') throw new Error('picking a character closed the page');
         // Personas: labeled tools like a character card, and on a wide page the list and the card side by side.
-        await tab.locator('.pt-tab[data-tab="persona-management-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'persona-management-button');
+        await openStPage(tab, 'persona-management-button');
         await settle(600);
         if (!(await tab.locator('#persona_rename_button .pt-btn-label').count())) throw new Error('the persona tools have no labels');
         const edge = await tab.evaluate(() => {
@@ -1659,16 +1687,14 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await tab.mouse.dblclick(edge.x + 400, edge.y);
         if (side.includes('none')) throw new Error(`the persona list and card are not side by side on a wide page: ${side}`);
         // Backgrounds: Auto-select, New folder and Add background are 44px icons.
-        await tab.locator('.pt-tab[data-tab="backgrounds-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'backgrounds-button');
+        await openStPage(tab, 'backgrounds-button');
         await settle(600);
         const bg = await tab.evaluate(() => [...document.querySelectorAll('#Backgrounds .bg-header-row-1 > .menu_button_icon')].map(button => ({ w: Math.round(button.getBoundingClientRect().width), text: getComputedStyle(button.querySelector('span')).display })));
         if (!bg.length || bg.some(button => button.w < 44 || button.text !== 'none')) throw new Error(`the Backgrounds buttons: ${JSON.stringify(bg)}`);
-        // On a computer, More says Features, not Phone features.
-        await tab.locator('.pt-tab[data-tab="more"]').click();
-        await tab.waitForFunction(() => !!document.getElementById('pt-sheet'));
-        const rows = await tab.locator('#pt-sheet .pt-menu-row').allInnerTexts();
-        if (rows.some(row => row.includes('Phone features')) || !rows.some(row => row.includes('Features'))) throw new Error('More still says Phone features on a computer');
+        // Settings says Features, not Phone features.
+        await openPlace(tab, 'pt-settings');
+        const rows = await tab.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent));
+        if (rows.includes('Phone features') || !rows.includes('Features')) throw new Error(`Settings rows: ${rows}`);
         await tab.keyboard.press('Escape');
     } finally {
         await desk.close();
@@ -1709,21 +1735,32 @@ await step('on a 320px phone every message box tool stays 44px, lorebook chips h
             return { w: Math.round(rect.width), h: Math.round(rect.height) };
         });
         if (chip.w < 44 || chip.h < 44) throw new Error(`lorebook chip × is ${chip.w}x${chip.h}`);
-        // Arabic: the row arrows point the way you read, and the chat's name sits by its picture.
-        if (await tab.evaluate(() => document.documentElement.classList.contains('pt-tabs-tucked'))) await tab.locator('.pt-tabs-btn').click();
-        await tab.locator('.pt-tab[data-tab="more"]').click();
-        await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-menu-row-go'));
+        // Arabic: the row arrows point the way you read (a page is right-to-left), and the chat's name sits by its picture.
+        await openPlace(tab, 'pt-settings');
         const rtl = await tab.evaluate(() => {
             const root = document.documentElement;
+            const page = document.getElementById('pt-page');
             root.classList.add('pt-rtl');
-            const arrow = getComputedStyle(document.querySelector('#pt-sheet .pt-menu-row-go')).transform;
-            const align = getComputedStyle(document.querySelector('.pt-ab-who')).textAlign;
+            page.dir = 'rtl';
+            const arrow = getComputedStyle(page.querySelector('.pt-list-row-chevron')).transform;
+            page.dir = 'ltr';
             root.classList.remove('pt-rtl');
-            return { arrow, align };
+            return { arrow };
         });
-        if (!rtl.arrow.startsWith('matrix(-1') || !['start', 'right'].includes(rtl.align)) throw new Error(`Arabic: ${JSON.stringify(rtl)}`);
+        await tab.locator('.pt-tab[data-tab="chat"]').click();
+        await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
+        const align = await tab.evaluate(() => {
+            document.documentElement.classList.add('pt-rtl');
+            const value = getComputedStyle(document.querySelector('.pt-ab-who')).textAlign;
+            document.documentElement.classList.remove('pt-rtl');
+            return value;
+        });
+        if (!rtl.arrow.startsWith('matrix(-1') || !['start', 'right'].includes(align)) throw new Error(`Arabic: ${JSON.stringify({ ...rtl, align })}`);
         // Google Translate is asked straight from the browser; the note must not say "through your server".
-        await tab.locator('#pt-sheet .pt-menu-row', { hasText: 'Translate chat' }).click();
+        // (Holding the header's translate button picks the language.)
+        await tab.locator('#pt-appbar .pt-ab-translate').dispatchEvent('pointerdown', { pointerType: 'touch', button: 0 });
+        await tab.waitForTimeout(700);
+        await tab.locator('#pt-appbar .pt-ab-translate').dispatchEvent('pointerup', { pointerType: 'touch', button: 0 });
         await tab.waitForFunction(() => /Translate chat/.test(document.querySelector('#pt-sheet .pt-overlay-title')?.textContent ?? ''));
         const note = await tab.evaluate(() => ({
             provider: SillyTavern.getContext().extensionSettings?.translate?.provider ?? 'google',
@@ -1752,8 +1789,8 @@ await step('desktop layout: Escape closes Search this chat before the page, and 
             if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
         });
         await tab.waitForTimeout(1500);
-        await tab.locator('.pt-tab[data-tab="more"]').click();
-        await tab.locator('#pt-sheet .pt-menu-row', { hasText: 'Search this chat' }).click();
+        await tab.evaluate(() => document.querySelector('#pt-appbar .pt-ab-search').click());
+        await tab.locator('#pt-sheet .pt-search-this-chat .pt-menu-row').click();
         await tab.waitForFunction(() => document.activeElement?.closest?.('.pt-chat-finder'));
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.querySelector('.pt-chat-finder'), null, { timeout: 3000 });
@@ -1788,8 +1825,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
         api = await tab.evaluate(() => document.getElementById('main_api').value);
         await tab.evaluate(() => { const select = document.getElementById('main_api'); select.value = 'openai'; jQuery(select).trigger('change'); });
         await tab.waitForTimeout(1500);
-        await tab.locator('.pt-tab[data-tab="ai-config-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'ai-config-button');
+        await openStPage(tab, 'ai-config-button');
         await tab.waitForTimeout(800);
         const presets = await tab.evaluate(() => {
             const head = document.querySelector('#ai-config-button .title_restorable.standoutHeader:has(#import_oai_preset)');
@@ -1837,8 +1873,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
         });
         if (ownTabs && (ownTabs.params.prompts || !ownTabs.params.sliders || !ownTabs.prompts.prompts || ownTabs.prompts.sliders)) throw new Error(`Parameters / Prompts tabs: ${JSON.stringify(ownTabs)}`);
         // Backgrounds: Global and Chat never sit under the select, − and + buttons.
-        await tab.locator('.pt-tab[data-tab="backgrounds-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'backgrounds-button');
+        await openStPage(tab, 'backgrounds-button');
         await tab.waitForTimeout(800);
         const bg = await tab.evaluate(() => {
             const boxes = selector => [...document.querySelectorAll(selector)].filter(node => node.offsetParent).map(node => node.getBoundingClientRect());
@@ -1857,8 +1892,7 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
         }));
         if (!edges) throw new Error('a Backgrounds tab ignores clicks near its top or bottom edge');
         // Personas: Usage Stats, Backup and Restore share the whole row.
-        await tab.locator('.pt-tab[data-tab="persona-management-button"]').click();
-        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'persona-management-button');
+        await openStPage(tab, 'persona-management-button');
         await tab.waitForTimeout(800);
         const personaRow = await tab.evaluate(() => {
             const buttons = [...document.querySelectorAll('.user_stats_button, #personas_backup, #personas_restore')].map(node => node.getBoundingClientRect());
@@ -1979,11 +2013,9 @@ await step('over a chat background, pages, sheets and the message box are solid 
         await ensureGlass();
         const box = await page.evaluate(() => getComputedStyle(document.getElementById('send_form')).backgroundColor);
         if (!opaque(box)) throw new Error(`message box is see-through with No Blur: ${box}`);
-        await showTabs();
-        await page.locator('.pt-tab[data-tab="more"]').click();
-        await page.locator('#pt-sheet').waitFor();
+        await openThemes(page);
         const sheetBg = await page.evaluate(() => getComputedStyle(document.querySelector('#pt-sheet .pt-panel')).backgroundColor);
-        if (!opaque(sheetBg)) throw new Error(`More is see-through with No Blur: ${sheetBg}`);
+        if (!opaque(sheetBg)) throw new Error(`Themes is see-through with No Blur: ${sheetBg}`);
         // A toast while the sheet is open is drawn above it, where it can be tapped.
         const toast = await page.evaluate(async () => {
             window.toastr.info('Above the sheet', 'Test', { timeOut: 1500 });
@@ -2552,8 +2584,7 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
 });
 
 await step('a sheet has a title (not an h1–h3) and ✕ at the end: a 44px button named Close that closes it; no "Close" or "Done" words', async () => {
-    await showTabs();
-    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
+    await openThemes(page);
     await until(() => document.querySelector('#pt-sheet.pt-sheet-open'));
     const head = await page.evaluate(() => {
         const sheet = document.getElementById('pt-sheet');
@@ -2572,6 +2603,7 @@ await step('a sheet has a title (not an h1–h3) and ✕ at the end: a 44px butt
     if (head.words.length) throw new Error(`words in the header: ${head.words.join(', ')}`);
     await page.locator('#pt-sheet .pt-overlay-close').click();
     await until(() => !document.getElementById('pt-sheet'));
+    await leavePlace(page);
 });
 
 await step('Appearance → Layout: Automatic follows the screen, Phone stays a phone, Desktop needs 768px; exactly one of pt-phone and pt-desktop is on', async () => {

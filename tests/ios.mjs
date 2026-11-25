@@ -117,9 +117,7 @@ for (const device of ['iPad Pro 11 landscape', 'iPad Pro 11', 'iPad Mini landsca
     });
     if (device === 'iPad Pro 11 landscape') {
         await check('iPad landscape: Chat width slider in Themes changes the chat', async () => {
-            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click());
-            await page.waitForTimeout(600);
-            await page.locator('#pt-sheet .pt-menu-row-theme').click();
+            await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); });
             await page.waitForTimeout(600);
             const before = await page.evaluate(() => Math.round(document.getElementById('sheld').getBoundingClientRect().width));
             const s = await page.evaluate(async () => {
@@ -130,15 +128,19 @@ for (const device of ['iPad Pro 11 landscape', 'iPad Pro 11', 'iPad Mini landsca
                 range.dispatchEvent(new Event('input', { bubbles: true }));
                 await new Promise(r => setTimeout(r, 400));
                 const after = Math.round(document.getElementById('sheld').getBoundingClientRect().width);
+                // SillyTavern's own Chat width slider receives the change (DESIGN.md → Number and slider).
+                const stDuring = document.getElementById('chat_width_slider').value;
+                // With Settings open in the panel the chat may already use all the room it has.
+                const panel = document.documentElement.classList.contains('pt-page-open');
                 const tall = range.getBoundingClientRect().height;
                 range.value = was;
                 range.dispatchEvent(new Event('input', { bubbles: true }));
                 await new Promise(r => setTimeout(r, 400));
-                return { after, tall, was, st: document.getElementById('chat_width_slider').value };
+                return { after, tall, was, stDuring, panel, st: document.getElementById('chat_width_slider').value };
             });
             await page.screenshot({ path: `${OUT}/ios-ipad-width.png` });
             if (!s) throw new Error('no slider');
-            if (s.after <= before || s.tall < 44) throw new Error(JSON.stringify({ before, ...s }));
+            if (s.stDuring !== '90' || s.st !== s.was || (!s.panel && s.after <= before) || s.tall < 44) throw new Error(JSON.stringify({ before, ...s }));
             return `: ${before}px → ${s.after}px at 90%, back to ${s.was}%`;
         });
     }

@@ -2,6 +2,7 @@
 // fitting them to the part of the screen you can see. Styles in styles/components/overlay.css.
 // Which sheet is open is still kept by the legacy app (showSheet / closeSheet) until its callers move.
 import { h } from '../core/dom.js';
+import { currentLang, isRtl } from '../core/i18n.js';
 import { safe } from '../core/lifecycle.js';
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 import { button, iconButton } from '../ui/button.js';
@@ -29,6 +30,9 @@ export function overlayHead({ title, subtitle, onClose, save }) {
         h('div', { class: 'pt-overlay-grab', 'aria-hidden': 'true' }),
         h('div', { class: 'pt-overlay-row' }, [text, saveButton, close]),
     ]);
+    // Its own direction: the legacy sheets are not marked right-to-left themselves (they mirror with CSS).
+    head.lang = currentLang();
+    if (isRtl()) head.dir = 'rtl';
     return { head, title: titleEl, subtitle: subtitleEl, text };
 }
 

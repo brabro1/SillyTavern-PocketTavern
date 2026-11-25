@@ -368,7 +368,7 @@ export default {
     "No chats yet. Chat starts the first one.": "Ainda não há chats. Chat começa o primeiro.",
     "Character preview": "Prévia do personagem",
     "1 message": "1 mensagem",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.": "O tema do Pocket Tavern desenha o chat, então o estilo de chat {style} do SillyTavern fica desligado enquanto ele estiver ativo. Escolher um tema do SillyTavern em Mais → Temas o traz de volta.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "O tema do Pocket Tavern desenha o chat, então o estilo de chat {style} do SillyTavern fica desligado enquanto ele estiver ativo. Escolher um tema do SillyTavern em Configurações → Temas o traz de volta.",
     "No chats yet.": "Ainda não há chats.",
     "This needs {name}'s chat, so it is open now.": "Isto precisa do chat de {name}, então ele foi aberto.",
     "Could not export the character.": "Não foi possível exportar o personagem.",
@@ -515,12 +515,12 @@ export default {
     "Loading your SillyTavern themes…": "Carregando seus temas do SillyTavern…",
     "Import a SillyTavern theme": "Importar um tema do SillyTavern",
     "A theme file (.json) from SillyTavern": "Um arquivo de tema (.json) do SillyTavern",
-    "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "Os temas ficam em Mais → Temas: os do Pocket Tavern e seus temas do SillyTavern adaptados. Theme Colors, aqui embaixo, muda \"Seu tema\".",
+    "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "Os temas ficam em Configurações → Temas: os do Pocket Tavern e seus temas do SillyTavern adaptados. Theme Colors, aqui embaixo, muda \"Seu tema\".",
     "Open Themes": "Abrir Temas",
     "SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows.": "O estilo de chat do SillyTavern agora é Plano, então o visual de chat do Pocket Tavern aparece.",
     "The {theme} theme shows its own background, so chat backgrounds are hidden.": "O tema {theme} mostra o próprio fundo, então os fundos de chat ficam ocultos.",
     "Show chat backgrounds": "Mostrar fundos de chat",
-    "The theme's own background is off now. Turn it back on in More → Themes.": "O fundo próprio do tema está desligado. Ligue de novo em Mais → Temas.",
+    "The theme's own background is off now. Turn it back on in Settings → Themes.": "O fundo próprio do tema está desligado. Ligue de novo em Configurações → Temas.",
     "Showing your background": "Mostrando seu fundo",
     "SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.": "O estilo de chat {style} do SillyTavern está ativo e é ele que desenha as mensagens. Escolha um visual aqui para usar o do Pocket Tavern.",
 
@@ -598,4 +598,13 @@ export default {
     "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "Telefones usam o layout de telefone; computadores e tablets na horizontal usam o layout de desktop.",
     "Always the phone layout, on any screen.": "Sempre o layout de telefone, em qualquer tela.",
     "The desktop layout whenever the window is at least 768 pixels wide.": "O layout de desktop sempre que a janela tiver pelo menos 768 pixels de largura.",
+
+    // Places
+    "AI": "IA",
+    "API, presets and formatting": "API, predefinições e formatação",
+    "Connect": "Conectar",
+    "Appearance": "Aparência",
+    "SillyTavern": "SillyTavern",
+    "Pocket Tavern": "Pocket Tavern",
+    "About": "Sobre",
 };

@@ -368,7 +368,7 @@ export default {
     "No chats yet. Chat starts the first one.": "لا توجد دردشات بعد. «دردشة» تبدأ الأولى.",
     "Character preview": "معاينة الشخصية",
     "1 message": "رسالة واحدة",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.": "سمة Pocket Tavern ترسم الدردشة، لذا يتوقف نمط الدردشة {style} في SillyTavern ما دامت مفعّلة. اختيار سمة من SillyTavern في المزيد ← السمات يعيده.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "سمة Pocket Tavern ترسم الدردشة، لذا يتوقف نمط الدردشة {style} في SillyTavern ما دامت مفعّلة. اختيار سمة من SillyTavern في الإعدادات ← السمات يعيده.",
     "No chats yet.": "لا توجد دردشات بعد.",
     "This needs {name}'s chat, so it is open now.": "يحتاج هذا إلى دردشة {name}، لذا فُتحت الآن.",
     "Could not export the character.": "تعذّر تصدير الشخصية.",
@@ -515,12 +515,12 @@ export default {
     "Loading your SillyTavern themes…": "جارٍ تحميل سمات SillyTavern…",
     "Import a SillyTavern theme": "استيراد سمة SillyTavern",
     "A theme file (.json) from SillyTavern": "ملف سمة (.json) من SillyTavern",
-    "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "السمات موجودة في المزيد ← السمات: سمات Pocket Tavern وسمات SillyTavern الخاصة بك بعد تكييفها. Theme Colors في الأسفل تغيّر «سمتك».",
+    "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "السمات موجودة في الإعدادات ← السمات: سمات Pocket Tavern وسمات SillyTavern الخاصة بك بعد تكييفها. Theme Colors في الأسفل تغيّر «سمتك».",
     "Open Themes": "فتح السمات",
     "SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows.": "أصبح نمط الدردشة في SillyTavern «مسطحًا»، لذا يظهر شكل الدردشة في Pocket Tavern.",
     "The {theme} theme shows its own background, so chat backgrounds are hidden.": "سمة {theme} تعرض خلفيتها الخاصة، لذا خلفيات الدردشة مخفية.",
     "Show chat backgrounds": "إظهار خلفيات الدردشة",
-    "The theme's own background is off now. Turn it back on in More → Themes.": "تم إيقاف خلفية السمة الخاصة. أعد تشغيلها من المزيد ← السمات.",
+    "The theme's own background is off now. Turn it back on in Settings → Themes.": "تم إيقاف خلفية السمة الخاصة. أعد تشغيلها من الإعدادات ← السمات.",
     "Showing your background": "يتم عرض خلفيتك",
     "SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.": "نمط الدردشة {style} في SillyTavern مفعّل وهو الذي يرسم الرسائل. اختر شكلًا هنا لاستخدام شكل Pocket Tavern بدلًا منه.",
 
@@ -598,4 +598,13 @@ export default {
     "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "تستخدم الهواتف تخطيط الهاتف، وتستخدم الحواسيب والأجهزة اللوحية الأفقية تخطيط سطح المكتب.",
     "Always the phone layout, on any screen.": "تخطيط الهاتف دائمًا، على أي شاشة.",
     "The desktop layout whenever the window is at least 768 pixels wide.": "تخطيط سطح المكتب كلما كان عرض النافذة 768 بكسل على الأقل.",
+
+    // Places
+    "AI": "الذكاء الاصطناعي",
+    "API, presets and formatting": "الواجهة والقوالب والتنسيق",
+    "Connect": "اتصال",
+    "Appearance": "المظهر",
+    "SillyTavern": "SillyTavern",
+    "Pocket Tavern": "Pocket Tavern",
+    "About": "حول",
 };

@@ -368,7 +368,7 @@ export default {
     "No chats yet. Chat starts the first one.": "Чатов пока нет. «Чат» начнёт первый.",
     "Character preview": "Карточка персонажа",
     "1 message": "1 сообщение",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.": "Тема Pocket Tavern сама оформляет чат, поэтому стиль чата SillyTavern «{style}» отключён, пока она включена. Выбор темы SillyTavern в «Ещё → Темы» вернёт его.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Тема Pocket Tavern сама оформляет чат, поэтому стиль чата SillyTavern «{style}» отключён, пока она включена. Выбор темы SillyTavern в «Настройки → Темы» вернёт его.",
     "No chats yet.": "Чатов пока нет.",
     "This needs {name}'s chat, so it is open now.": "Для этого нужен чат с {name}, поэтому он открыт.",
     "Could not export the character.": "Не удалось экспортировать персонажа.",
@@ -515,12 +515,12 @@ export default {
     "Loading your SillyTavern themes…": "Загрузка ваших тем SillyTavern…",
     "Import a SillyTavern theme": "Импортировать тему SillyTavern",
     "A theme file (.json) from SillyTavern": "Файл темы (.json) из SillyTavern",
-    "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "Темы находятся в Ещё → Темы: темы Pocket Tavern и ваши темы SillyTavern, подогнанные под него. Theme Colors ниже меняют «Вашу тему».",
+    "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "Темы находятся в Настройки → Темы: темы Pocket Tavern и ваши темы SillyTavern, подогнанные под него. Theme Colors ниже меняют «Вашу тему».",
     "Open Themes": "Открыть темы",
     "SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows.": "Стиль чата SillyTavern теперь «Плоский», поэтому виден вид чата Pocket Tavern.",
     "The {theme} theme shows its own background, so chat backgrounds are hidden.": "Тема {theme} показывает свой фон, поэтому фоны чата скрыты.",
     "Show chat backgrounds": "Показать фоны чата",
-    "The theme's own background is off now. Turn it back on in More → Themes.": "Собственный фон темы выключен. Включить его снова можно в Ещё → Темы.",
+    "The theme's own background is off now. Turn it back on in Settings → Themes.": "Собственный фон темы выключен. Включить его снова можно в Настройки → Темы.",
     "Showing your background": "Показан ваш фон",
     "SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.": "Включён стиль чата SillyTavern «{style}», и сообщения рисует он. Выберите вид здесь, чтобы использовать вид Pocket Tavern.",
 
@@ -598,4 +598,13 @@ export default {
     "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "На телефонах — макет для телефона, на компьютерах и планшетах в горизонтальном положении — макет для компьютера.",
     "Always the phone layout, on any screen.": "Всегда макет для телефона, на любом экране.",
     "The desktop layout whenever the window is at least 768 pixels wide.": "Макет для компьютера, когда окно шириной не менее 768 пикселей.",
+
+    // Places
+    "AI": "ИИ",
+    "API, presets and formatting": "API, пресеты и форматирование",
+    "Connect": "Подключить",
+    "Appearance": "Внешний вид",
+    "SillyTavern": "SillyTavern",
+    "Pocket Tavern": "Pocket Tavern",
+    "About": "О программе",
 };

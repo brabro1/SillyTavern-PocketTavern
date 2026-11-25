@@ -396,15 +396,6 @@ dialog.pt-sheet.pt-sheet-open::backdrop {
     transition: transform var(--pt-dur-slow) var(--pt-ease);
 }
 
-
-
-
-
-
-
-
-
-
 .pt-search {
     position: relative;
     flex: 0 0 auto;
@@ -719,85 +710,7 @@ input[type='search'].pt-search-input::-webkit-search-cancel-button {
     overscroll-behavior: contain;
 }
 
-.pt-tiles {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.pt-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    min-width: 0;
-    min-height: 108px;
-    padding: 16px 8px 12px;
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
-    background: var(--pt-surface);
-    color: var(--pt-text-primary);
-    font: inherit;
-    text-align: center;
-    cursor: pointer;
-    transition: transform var(--pt-dur-fast) var(--pt-ease), background var(--pt-dur-fast) var(--pt-ease);
-}
-
-.pt-tile:active {
-    transform: scale(0.96);
-    background: var(--pt-surface-elevated);
-}
-
-.pt-tile-on {
-    border-color: color-mix(in srgb, var(--pt-accent) 60%, transparent);
-    background: var(--pt-accent-soft);
-}
-
-.pt-tile-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--pt-radius-sm);
-    background: var(--pt-surface-elevated);
-    color: var(--pt-text-primary);
-    font-size: 20px;
-}
-
-.pt-tile-label {
-    max-width: 100%;
-    font-weight: 600;
-    font-size: 0.92em;
-    line-height: 1.2;
-    /* A word too long for a narrow tile ("Backgrounds" at 320px) breaks with a hyphen, not mid-word (the sheet has a lang). */
-    overflow-wrap: break-word;
-    hyphens: auto;
-}
-
 /* The narrowest phones: a little more room per tile, so "Backgrounds" fits on one line. */
-@media (max-width: 359px) {
-    html:not(.pt-desktop) .pt-tiles {
-        gap: 8px;
-    }
-
-    html:not(.pt-desktop) .pt-tile {
-        padding-inline: 4px;
-    }
-}
-
-.pt-tile-note {
-    max-width: 100%;
-    color: var(--pt-text-secondary);
-    font-size: 0.72em;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-}
-
-.pt-tile-warn .pt-tile-note {
-    color: var(--pt-danger);
-}
 
 .pt-menu-list {
     display: flex;
@@ -871,19 +784,10 @@ input[type='search'].pt-search-input::-webkit-search-cancel-button {
         border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     }
 
-
-
     .pt-list {
         min-height: 80px;
     }
 
-    .pt-tiles {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .pt-tile {
-        min-height: 92px;
-    }
 }
 
 dialog.pt-compact .pt-panel,
@@ -898,9 +802,6 @@ dialog.pt-compact .pt-panel-fixed {
 dialog.pt-compact .pt-hint {
     display: none;
 }
-
-
-
 
 dialog.pt-compact .pt-search {
     margin: 8px 12px 4px;
@@ -963,8 +864,7 @@ dialog.pt-compact .pt-panel:has(.pt-search-input:focus) .pt-tools {
 @media (prefers-reduced-motion: reduce) {
     .pt-panel,
     dialog.pt-sheet::backdrop,
-    .pt-row,
-    .pt-tile {
+    .pt-row {
         transition: none;
     }
 }
@@ -3592,11 +3492,6 @@ html.pt-themed.pt-backdrop #chat {
     box-shadow: inset 0 0 0 1px var(--pt-border);
 }
 
-.pt-tile-icon .pt-svg {
-    width: 22px;
-    height: 22px;
-}
-
 .pt-menu-row .pt-menu-row-icon {
     width: 21px;
     height: 21px;
@@ -4120,11 +4015,11 @@ html.pt-motion-full .pt-tab-label {
     transition: color var(--pt-dur) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, #options_button, #extensionsMenuButton) {
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, #options_button, #extensionsMenuButton) {
     transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
-html.pt-motion-full :is(.pt-tab, .pt-tile, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #options_button, #extensionsMenuButton):active {
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #options_button, #extensionsMenuButton):active {
     transform: scale(0.95);
 }
 
@@ -5705,25 +5600,10 @@ html.pt-on #UI-presets-block > .pt-inline-note {
     cursor: pointer;
 }
 
-.pt-update-row[disabled] {
-    opacity: 1;
-    cursor: progress;
-}
-
 /* The shortcut for Search everything, shown on a computer. */
-.pt-kbd {
-    margin-inline-start: auto;
-    padding: 4px 8px;
-    border: 1px solid var(--pt-border);
-    border-radius: 8px;
-    background: var(--pt-surface-elevated);
-    color: var(--pt-text-secondary);
-    font-family: inherit;
-    font-size: 12px;
-}
 
 /* Keyboard focus: an accent ring on Pocket Tavern's own controls (SillyTavern rings only its fields). */
-html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-tile, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-ctx-btn, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
+html.pt-on :is(.pt-tab, .pt-ab-btn, .pt-ab-who, .pt-menu-row, .pt-seg, .pt-step, .pt-theme-card, .pt-search-field, .pt-trigger-chip, .pt-prompt-full-btn, .openai-tab-button, .pt-chip-x, .pt-chip-more, .pt-single, .pt-open, .pt-search-clear, .pt-row-btn, .pt-edit, .pt-persona-chip, .pt-ctx-ring, .pt-ctx-btn, .pt-jump, .pt-home-box, .pt-command-copy, .pt-viewer-btn, .pt-banner-btn, .pt-group-main, .pt-group-toggle, .pt-group-action, .pt-persona-card-edit, .pt-pe-btn, .pt-ctool, .pt-more-btn, .pt-find-btn, .pt-gg-instruction, .pt-panel-edge):focus-visible {
     outline: 2px solid var(--pt-accent);
     outline-offset: -2px;
 }
@@ -6149,7 +6029,6 @@ html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) {
     content-visibility: visible;
     animation: pt-fade var(--pt-dur) var(--pt-ease);
 }
-
 
 /* Nothing else from the chat peeks around the editor. */
 html.pt-chat.pt-editing #form_sheld,
@@ -8275,11 +8154,6 @@ html.pt-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#world
     background: var(--pt-accent);
 }
 
-
-
-
-
-
 /* ==========================================================================
    Chat: drag the last reply to swipe
    ========================================================================== */
@@ -8966,7 +8840,6 @@ html.pt-lorecards #world_popup_entries_list .world_entry .world_entry_form > .in
     background: none !important;
     box-shadow: none !important;
 }
-
 
 /* ==========================================================================
    Settings: a list of sections, rows with the switch on the right, and a
@@ -11029,36 +10902,9 @@ html.pt-desktop .pt-tab[data-tab='more'] {
     margin-top: auto;
 }
 
-.pt-tab-page,
-.pt-rail-rule {
-    display: none;
-}
-
-html.pt-desktop .pt-tab-page {
-    display: flex;
-}
-
-html.pt-desktop .pt-rail-rule {
-    display: block;
-    flex: 0 0 1px;
-    width: 40px;
-    margin: 8px auto;
-    background: var(--pt-border);
-}
-
 @media (max-height: 800px) {
     html.pt-desktop {
         --pt-rail-item: 56px;
-    }
-}
-
-@media (max-height: 712px) {
-    html.pt-desktop .pt-tab-page {
-        flex-basis: 48px;
-    }
-
-    html.pt-desktop .pt-tab-page .pt-tab-label {
-        display: none;
     }
 }
 
@@ -11076,13 +10922,6 @@ html.pt-desktop .pt-rail-rule {
         gap: 4px;
     }
 
-    html.pt-desktop .pt-tab-page {
-        flex-basis: 44px;
-    }
-
-    html.pt-desktop .pt-rail-rule {
-        margin: 4px auto;
-    }
 }
 
 /* The pill sits on the active tab's icon (placed by script: the tabs differ in height). */
@@ -11480,8 +11319,6 @@ html.pt-desktop .pt-sheet-open .pt-panel {
     transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur) var(--pt-ease);
 }
 
-
-
 html.pt-desktop.pt-touch dialog.popup:not(.transparent_dialogue_popup) {
     width: min(640px, calc(100vw - 48px)) !important;
     max-width: min(640px, calc(100vw - 48px)) !important;
@@ -11554,7 +11391,7 @@ html.pt-desktop .pt-banner {
 /* -- Hover: a mouse gets the same feedback a tap gets ---------------------- */
 
 @media (hover: hover) {
-    html.pt-desktop :is(.pt-menu-row, .pt-tile, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-step, .pt-seg):hover {
+    html.pt-desktop :is(.pt-menu-row, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-step, .pt-seg):hover {
         background: var(--pt-surface-elevated);
     }
 

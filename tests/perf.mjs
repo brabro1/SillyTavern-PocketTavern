@@ -115,11 +115,9 @@ const scenarios = {
     async 'sit idle in the chat (10 s)'() {
         await page.waitForTimeout(10000);
     },
-    async 'open and close More and Themes'() {
+    async 'open and close Settings and Themes'() {
         for (let i = 0; i < 2; i++) {
-            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]')?.click());
-            await page.waitForTimeout(700);
-            await page.evaluate(() => document.querySelector('#pt-sheet .pt-menu-row-theme')?.click());
+            await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); });
             await page.waitForTimeout(700);
             await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
             await page.waitForTimeout(600);

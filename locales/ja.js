@@ -368,7 +368,7 @@ export default {
     "No chats yet. Chat starts the first one.": "まだチャットはありません。「チャット」で最初のチャットを始めます。",
     "Character preview": "キャラクターのプレビュー",
     "1 message": "1 件のメッセージ",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in More → Themes brings it back.": "Pocket Tavern のテーマがチャットを描くため、有効な間は SillyTavern のチャットスタイル「{style}」はオフになります。その他 → テーマ で SillyTavern のテーマを選ぶと元に戻ります。",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Pocket Tavern のテーマがチャットを描くため、有効な間は SillyTavern のチャットスタイル「{style}」はオフになります。設定 → テーマ で SillyTavern のテーマを選ぶと元に戻ります。",
     "No chats yet.": "まだチャットはありません。",
     "This needs {name}'s chat, so it is open now.": "これには {name} のチャットが必要なので、開きました。",
     "Could not export the character.": "キャラクターを書き出せませんでした。",
@@ -515,12 +515,12 @@ export default {
     "Loading your SillyTavern themes…": "SillyTavern のテーマを読み込み中…",
     "Import a SillyTavern theme": "SillyTavern のテーマを読み込む",
     "A theme file (.json) from SillyTavern": "SillyTavern のテーマファイル（.json）",
-    "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "テーマは その他 → テーマ にあります。Pocket Tavern のテーマと、合うように整えた SillyTavern のテーマです。下の Theme Colors は「あなたのテーマ」を変えます。",
+    "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".": "テーマは 設定 → テーマ にあります。Pocket Tavern のテーマと、合うように整えた SillyTavern のテーマです。下の Theme Colors は「あなたのテーマ」を変えます。",
     "Open Themes": "テーマを開く",
     "SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows.": "SillyTavern のチャットスタイルをフラットにしたので、Pocket Tavern のチャットの見た目が表示されます。",
     "The {theme} theme shows its own background, so chat backgrounds are hidden.": "{theme} テーマが独自の背景を表示しているため、チャット背景は隠れています。",
     "Show chat backgrounds": "チャット背景を表示",
-    "The theme's own background is off now. Turn it back on in More → Themes.": "テーマ独自の背景をオフにしました。その他 → テーマ でまたオンにできます。",
+    "The theme's own background is off now. Turn it back on in Settings → Themes.": "テーマ独自の背景をオフにしました。設定 → テーマ でまたオンにできます。",
     "Showing your background": "あなたの背景を表示中",
     "SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.": "SillyTavern の「{style}」チャットスタイルがオンで、メッセージはそちらが描いています。ここで見た目を選ぶと Pocket Tavern のものに切り替わります。",
 
@@ -598,4 +598,13 @@ export default {
     "Phones get the phone layout; computers and tablets held sideways get the desktop layout.": "スマートフォンではスマートフォン用、パソコンと横向きのタブレットではデスクトップ用のレイアウトになります。",
     "Always the phone layout, on any screen.": "どの画面でも常にスマートフォン用のレイアウトです。",
     "The desktop layout whenever the window is at least 768 pixels wide.": "ウィンドウの幅が 768 ピクセル以上のときはデスクトップ用のレイアウトです。",
+
+    // Places
+    "AI": "AI",
+    "API, presets and formatting": "API、プリセット、書式",
+    "Connect": "接続",
+    "Appearance": "外観",
+    "SillyTavern": "SillyTavern",
+    "Pocket Tavern": "Pocket Tavern",
+    "About": "情報",
 };
