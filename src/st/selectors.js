@@ -15,6 +15,8 @@ export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
 
 /** The chat's scroll container; SillyTavern empties it when a chat loads. */
 export const CHAT = '#chat';
+/** The text box SillyTavern puts in a message while you edit it. */
+export const MESSAGE_EDITOR = '#curEditTextarea';
 
 // ---- Message box ---------------------------------------------------------------------------
 

@@ -1490,15 +1490,6 @@ html.pt-chat #chat .extraMesButtons {
     justify-content: flex-end;
 }
 
-/* Swipe arrows and counter: bigger targets. */
-html.pt-chat #chat .swipe_left,
-html.pt-chat #chat .swipe_right {
-    min-width: 44px;
-    min-height: 44px;
-    font-size: 20px;
-    opacity: 0.7;
-}
-
 /* Message editor: a roomy text area and big confirm/cancel. */
 html.pt-chat #chat #curEditTextarea {
     min-height: 120px;
@@ -1632,11 +1623,6 @@ html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echosty
     padding: 0;
 }
 
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .pt-more-btn {
-    grid-area: more;
-    justify-self: start;
-}
-
 html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .mes_media_wrapper {
     grid-area: media;
 }
@@ -1673,198 +1659,6 @@ html.pt-chat:not(.pt-editing) #chat .mes .mesAvatarWrapper > :is(.mesIDDisplay, 
 
 html.pt-chat:not(.pt-editing) #chat .mes .mesAvatarWrapper > :is(.mesIDDisplay, .mes_timer, .tokenCounterDisplay):empty {
     display: none;
-}
-
-/* Swipes: ‹ 1/3 ›, two round buttons with the count between them, at the end of the card's
-   last row. Each arrow stands on its own (no shared pill), so every state reads right: only ›
-   on the first version, both arrows later, no count when there is one version. › on the last
-   version makes a new one. The arrows are SillyTavern's own; only their place and look change.
-   With SillyTavern's Bubbles or Document style it places them itself, so these rules step back. */
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
-    grid-area: left;
-}
-
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
-    grid-area: right;
-    position: static;
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: center;
-    gap: 4px;
-    height: auto;
-    margin: 8px 0 0 4px;
-    padding: 0;
-    background: none;
-    pointer-events: auto;
-}
-
-/* Pinned (!important): Moonlit Echoes places the arrows absolutely (`right: calc(… + 100px)`,
-   scaled to 80%), which pushed ‹ away from the rest. */
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
-html.pt-chat:not(.pt-editing) #chat .mes > .swipeRightBlock .swipe_right {
-    position: relative !important;
-    inset: auto !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--pt-text-primary) 7%, transparent);
-    color: var(--pt-text-primary);
-    font-size: 14px;
-    opacity: 1;
-    transform: none;
-    transition: background-color var(--pt-dur-fast) var(--pt-ease);
-}
-
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
-    margin-top: 8px;
-}
-
-/* A full 44px to tap. */
-html.pt-chat:not(.pt-editing) #chat .mes > .swipe_left::after,
-html.pt-chat:not(.pt-editing) #chat .mes > .swipeRightBlock .swipe_right::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-}
-
-html.pt-chat:not(.pt-editing) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right):active {
-    background: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
-}
-
-html.pt-chat:not(.pt-editing) #chat .mes .swipes-counter {
-    align-items: center;
-    /* Moonlit Echoes makes it 60px wide with spaced letters, and adds !important margins on older messages. */
-    width: auto;
-    min-width: 0;
-    height: auto;
-    margin: 0 !important;
-    padding: 0 4px;
-    letter-spacing: normal;
-    background: transparent;
-    color: var(--pt-text-secondary);
-    font-size: 12px;
-    font-weight: 650;
-    font-variant-numeric: tabular-nums;
-    opacity: 1;
-}
-
-/* One version only: no "1/1", just › to make a new version. */
-html.pt-chat:not(.pt-editing) #chat .mes.pt-one-swipe .swipes-counter {
-    display: none;
-}
-
-@media (hover: hover) {
-    html.pt-chat:not(.pt-editing) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right):hover {
-        background: color-mix(in srgb, var(--pt-text-primary) 12%, transparent);
-    }
-}
-
-html:is(.pt-motion-off) #chat .mes > :is(.swipe_left, .swipeRightBlock .swipe_right) {
-    transition: none !important;
-    transform: none !important;
-}
-
-/* SillyTavern only makes swipes invisible on messages that can't be swiped,
-   which would leave an empty row on every message; take them out instead. */
-html.pt-chat:not(.pt-editing) body:not(.swipeAllMessages) #chat .mes:not(.last_mes) > :is(.swipe_left, .swipeRightBlock),
-html.pt-chat:not(.pt-editing) #chat .mes:not(.swipes_visible) > .swipe_left,
-html.pt-chat:not(.pt-editing) body.hideAllSwipeButtons #chat .mes > .swipe_left {
-    display: none !important;
-}
-
-/* "Swipes on all messages": an older message with one version gets no arrow from
-   SillyTavern (it is made invisible), so its pill would be an empty circle. */
-html.pt-chat:not(.pt-editing) #chat .mes:not(.swipes_visible):not(.last_swipe) > .swipeRightBlock {
-    display: none !important;
-}
-
-/* Selecting messages to delete: the checkbox sits in the top corner. */
-html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > :is(.del_checkbox, .for_checkbox) {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-}
-
-/* -- The model's thinking: a quiet box that opens with a tap ---------------- */
-
-html.pt-chat #chat .mes .mes_reasoning_details {
-    grid-area: think;
-    margin: 12px 0 0;
-    overflow: hidden;
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
-    background: color-mix(in srgb, var(--pt-text-primary) 4%, transparent);
-}
-
-html.pt-chat #chat .mes .mes_reasoning_details .mes_reasoning_summary {
-    margin-right: 0;
-    align-items: center;
-}
-
-html.pt-chat #chat .mes .mes_reasoning_header {
-    gap: 8px;
-    margin: 0;
-    padding: 8px 32px 8px 12px;
-    border-radius: 0;
-    background: transparent;
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-    font-weight: 600;
-    align-items: center;
-}
-
-html.pt-chat #chat .mes .mes_reasoning_header::before {
-    content: '';
-    flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
-    background: currentColor;
-    -webkit-mask: var(--pt-think-icon) center / contain no-repeat;
-    mask: var(--pt-think-icon) center / contain no-repeat;
-}
-
-html.pt-chat #chat .mes .mes_reasoning_details .mes_reasoning_arrow {
-    right: 12px;
-}
-
-html.pt-chat #chat .mes .mes_reasoning_actions {
-    gap: 4px;
-    padding-right: 8px;
-}
-
-html.pt-chat #chat .mes .mes_reasoning_actions .mes_button {
-    min-width: 32px;
-    min-height: 32px;
-    font-size: 14px;
-}
-
-html.pt-chat #chat .mes .mes_reasoning {
-    max-height: 45vh;
-    margin: 0;
-    padding: 12px 12px 12px;
-    overflow-y: auto;
-    border-top: 1px solid var(--pt-border);
-    color: var(--pt-text-secondary);
-    font-size: 0.9em;
-    line-height: 1.55;
-    overscroll-behavior: contain;
-}
-
-/* While it is still thinking, the title breathes. */
-html.pt-motion-full.pt-chat #chat .mes .mes_reasoning_details[data-state="thinking"] .mes_reasoning_header_title {
-    animation: pt-think 1.6s ease-in-out infinite;
-}
-
-@keyframes pt-think {
-    50% { opacity: 0.45; }
 }
 
 /* Bubbles: your own messages have no picture, so the name starts the header. */
@@ -4367,53 +4161,6 @@ html.pt-chat #send_but.pt-launch {
 /* ==========================================================================
    Phone features
    ========================================================================== */
-
-/* Jump to the latest message. */
-.pt-jump {
-    display: none;
-}
-
-html.pt-on .pt-jump {
-    position: absolute;
-    right: calc(14px + var(--pt-safe-right));
-    bottom: calc(var(--pt-form-h, 64px) + 12px);
-    z-index: 30;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 1px solid var(--pt-border);
-    border-radius: 50%;
-    background: var(--pt-bg);
-    color: var(--pt-text-primary);
-    box-shadow: none;
-    outline: 1px solid var(--pt-border);
-    opacity: 0;
-    transform: translateY(14px) scale(0.8);
-    pointer-events: none;
-    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur-slow) var(--pt-ease);
-    -webkit-tap-highlight-color: transparent;
-}
-
-html.pt-on .pt-jump.pt-jump-on {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-}
-
-html.pt-on .pt-jump:active {
-    background: var(--pt-surface-elevated);
-}
-
-html.pt-page-open .pt-jump {
-    visibility: hidden;
-}
-.pt-jump .pt-svg {
-    width: 22px;
-    height: 22px;
-}
 
 /* Chat text size: a multiple of the message text (15px on phones, 16px on the desktop layout). */
 html.pt-on.pt-desktop {
@@ -7144,98 +6891,6 @@ html.pt-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#world
 }
 
 /* ==========================================================================
-   Chat: drag the last reply to swipe
-   ========================================================================== */
-
-.pt-drag-hint {
-    position: fixed;
-    z-index: 3500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: var(--pt-bg);
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-    font-weight: 700;
-    box-shadow: none;
-    outline: 1px solid var(--pt-border);
-    transform: translateY(-50%);
-    pointer-events: none;
-    transition: color var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
-}
-
-.pt-drag-next {
-    right: 10px;
-}
-
-.pt-drag-previous {
-    left: 10px;
-}
-
-.pt-drag-hint.pt-drag-ready {
-    background: var(--pt-accent);
-    color: var(--pt-on-accent);
-}
-
-.pt-drag-hint .pt-svg {
-    width: 16px;
-    height: 16px;
-}
-
-/* ==========================================================================
-   Chat: folded long messages, "new text" pill
-   ========================================================================== */
-
-html.pt-chat #chat .mes.pt-long:not(.pt-long-open) .mes_text {
-    max-height: 50vh;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(#000 70%, transparent);
-    mask-image: linear-gradient(#000 70%, transparent);
-}
-
-.pt-more-btn {
-    display: none;
-}
-
-html.pt-chat #chat .mes.pt-long .pt-more-btn {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    margin: 8px 0 4px;
-    padding: 0 16px;
-    border: 1px solid var(--pt-border);
-    border-radius: 999px;
-    background: var(--pt-surface-elevated);
-    color: var(--pt-text-primary);
-    font: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.pt-jump-label {
-    display: none;
-}
-
-html.pt-on .pt-jump.pt-jump-new {
-    width: auto;
-    padding: 0 16px 0 12px;
-    gap: 8px;
-    border-color: transparent;
-    border-radius: 999px;
-    background: var(--pt-accent);
-    color: var(--pt-on-accent);
-}
-
-html.pt-on .pt-jump.pt-jump-new .pt-jump-label {
-    display: inline;
-    font-size: 14px;
-    font-weight: 700;
-}
-
-/* ==========================================================================
    Chat: search this chat
    ========================================================================== */
 
@@ -8598,11 +8253,6 @@ html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyl
 
 html.pt-chat.pt-compact #chat .mes_text {
     line-height: 1.5;
-}
-
-html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left,
-html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
-    margin-top: 4px;
 }
 
 /* The message box: a little slimmer. */
@@ -10318,10 +9968,6 @@ html.pt-desktop.pt-on body #toast-container {
     }
 
     html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .mes_text {
-        margin-top: 4px;
-    }
-
-    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > :is(.swipe_left, .swipeRightBlock) {
         margin-top: 4px;
     }
 

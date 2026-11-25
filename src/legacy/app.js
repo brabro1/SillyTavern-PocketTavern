@@ -35,6 +35,7 @@ import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { watchChatLoading } from '../features/chat-loading.js';
+import { atBottom, cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd, onSwipeMove, onSwipeStart, onSwipedEvent, setupMessages, syncJumpButton, unfold, updateJump } from '../views/messages.js';
 import { chatsPage, chatsWelcome } from '../views/chats.js';
 import { chatTitle, chatTitleNode, formatPreview, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
@@ -1694,9 +1695,9 @@ class Shell {
         // Reading the newest message: stay there. (Further up, SillyTavern itself
         // keeps the line at the bottom edge in place when the chat changes height.)
         // (Known while the jump-to-newest button watches the chat; otherwise assume so, as before.)
-        const atBottom = extras.jump ? extras.atBottom !== false : true;
+        const wasAtBottom = atBottom();
         const keepBottom = () => {
-            if (atBottom) chat.scrollTop = chat.scrollHeight;
+            if (wasAtBottom) chat.scrollTop = chat.scrollHeight;
         };
         keepBottom();
         const glide = Math.abs(shift) >= 8 && motionAllowed() && !IS_IOS
@@ -2671,8 +2672,6 @@ const wandDisplay = { saved: false, value: '' };
 
 const extras = {
     wired: false,
-    jump: null,
-    jumpFrame: 0,
     formObserver: null,
     wakeLock: null,
     generating: false,
@@ -2717,54 +2716,6 @@ function onSendClick(event) {
     if (!active) return;
     const button = event.target.closest?.('#send_but');
     if (button) playSendFx(button);
-}
-
-// -- jump to latest
-
-function onChatScroll() {
-    if (extras.jumpFrame) return;
-    extras.jumpFrame = requestAnimationFrame(() => {
-        extras.jumpFrame = 0;
-        const chat = document.getElementById('chat');
-        if (!chat || !extras.jump) return;
-        const distance = chat.scrollHeight - chat.scrollTop - chat.clientHeight;
-        extras.atBottom = distance < 40;
-        // Not on the start screen: there is no "latest message" there, and it covered the chat list.
-        // (No chat open = the start screen; cheaper than searching a long chat on every frame.)
-        const welcome = ctx().getCurrentChatId?.() === undefined;
-        extras.jump.classList.toggle('pt-jump-on', !welcome && (distance > Math.max(320, chat.clientHeight * 0.7) || (extras.generating && distance > 150)));
-        // While a reply streams in below, the button says so.
-        extras.jump.classList.toggle('pt-jump-new', extras.generating && distance > 150);
-    });
-}
-
-function syncJumpButton() {
-    const chat = document.getElementById('chat');
-    const sheld = document.getElementById('sheld');
-    const want = active && settings.jumpButton && chat && sheld;
-    if (!want) {
-        extras.jump?.remove();
-        extras.jump = null;
-        chat?.removeEventListener('scroll', onChatScroll);
-        cancelAnimationFrame(extras.jumpFrame);
-        extras.jumpFrame = 0;
-        return;
-    }
-    if (extras.jump) return;
-    extras.jump = h('button', {
-        type: 'button',
-        class: 'pt-jump',
-        'aria-label': 'Jump to the latest message',
-        title: 'Latest message',
-        onclick: () => {
-            buzz(8);
-            chat.scrollTo({ top: chat.scrollHeight, behavior: motionAllowed() ? 'smooth' : 'auto' });
-        },
-    }, [ui('arrow-down'), h('span', { class: 'pt-jump-label', text: 'New text' })]);
-    shieldFromDrawerAutoClose(extras.jump);
-    sheld.append(extras.jump);
-    chat.addEventListener('scroll', onChatScroll, { passive: true });
-    onChatScroll();
 }
 
 // -- drafts
@@ -2931,7 +2882,7 @@ async function setAwake(on) {
 
 function onGenerating(on) {
     extras.generating = on;
-    onChatScroll();
+    updateJump();
     setAwake(on);
 }
 
@@ -6345,109 +6296,6 @@ function onComposerInput(event) {
     if (event.isTrusted && event.target?.id === 'send_textarea') document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
 }
 
-// -- chat: drag the last reply sideways to swipe
-
-const drag = { mes: null, x: 0, y: 0, dx: 0, active: false, hint: null, started: 0, canPrevious: false, top: 120, frame: 0 };
-
-function onSwipeStart(event) {
-    if (!active || !settings.chatStyle || !settings.dragSwipe || event.touches.length !== 1) return;
-    const mes = event.target.closest?.('#chat .mes.last_mes');
-    if (!mes || mes.getAttribute('is_user') === 'true' || mes.querySelector('#curEditTextarea')) return;
-    if (event.target.closest('textarea, input, button, a, .mes_buttons, .swipe_left, .swipe_right, pre, .mes_reasoning_details')) return;
-    drag.mes = mes;
-    drag.x = event.touches[0].clientX;
-    drag.y = event.touches[0].clientY;
-    drag.dx = 0;
-    drag.active = false;
-    drag.started = Date.now();
-}
-
-function paintSwipe() {
-    drag.frame = 0;
-    if (!drag.mes || !drag.active) return;
-    drag.mes.style.transition = 'none';
-    drag.mes.style.transform = `translate3d(${drag.dx}px, 0, 0) rotate(${drag.dx / 60}deg)`;
-    const kind = drag.dx < 0 ? 'next' : (drag.canPrevious ? 'previous' : 'none');
-    if (!drag.hint || drag.hint.dataset.kind !== kind) {
-        drag.hint?.remove();
-        drag.hint = kind === 'none' ? null : h('div', { class: `pt-drag-hint pt-drag-${kind}`, 'data-kind': kind }, [
-            ui(kind === 'next' ? 'chevron-left' : 'chevron-right'),
-            h('span', { text: kind === 'next' ? 'Another version' : 'Previous version' }),
-        ]);
-        if (drag.hint) {
-            drag.hint.style.top = `${drag.top}px`;
-            document.body.append(drag.hint);
-        }
-    }
-    if (drag.hint) drag.hint.classList.toggle('pt-drag-ready', Math.abs(drag.dx) > 80);
-}
-
-function onSwipeMove(event) {
-    if (!drag.mes) return;
-    const x = event.touches[0].clientX - drag.x;
-    const y = event.touches[0].clientY - drag.y;
-    if (!drag.active) {
-        if (Math.abs(y) > 14 && Math.abs(y) > Math.abs(x)) {
-            drag.mes = null;
-            return;
-        }
-        if (Math.abs(x) < 16) return;
-        drag.active = true;
-        const left = drag.mes.querySelector('.swipe_left');
-        drag.canPrevious = !!(left && getComputedStyle(left).display !== 'none');
-        const rect = drag.mes.getBoundingClientRect();
-        drag.top = Math.max(rect.top, 70) + Math.min(rect.height, 300) / 2;
-    }
-    drag.dx = x > 0 && !drag.canPrevious ? Math.min(24, x * 0.15) : Math.max(-150, Math.min(150, x));
-    if (!drag.frame) drag.frame = requestAnimationFrame(paintSwipe);
-}
-
-function onSwipeEnd() {
-    cancelAnimationFrame(drag.frame);
-    drag.frame = 0;
-    const mes = drag.mes;
-    drag.mes = null;
-    if (!mes || !drag.active) return;
-    const canGo = drag.dx < 0 || drag.canPrevious;
-    const fast = Math.abs(drag.dx) > 40 && Date.now() - drag.started < 250;
-    const go = canGo && (Math.abs(drag.dx) > 80 || fast);
-    mes.style.transition = 'transform 0.25s var(--pt-ease)';
-    mes.style.transform = '';
-    setTimeout(() => {
-        mes.style.transition = '';
-    }, 260);
-    drag.hint?.remove();
-    drag.hint = null;
-    if (!go) return;
-    buzz(12);
-    const button = mes.querySelector(drag.dx < 0 ? '.swipe_right' : '.swipe_left');
-    if (button && getComputedStyle(button).display !== 'none') button.click();
-}
-
-/** SillyTavern's own quick-flick swipe would fire as well; let the drag handle it. */
-function onSwipedEvent(event) {
-    if (active && settings.chatStyle && settings.dragSwipe) event.stopImmediatePropagation();
-}
-
-// -- chat: fold very long messages
-
-const LONG_MESSAGE = 2500;
-
-/**
- * The swipe pill shows "1/3" only when there is more than one version. With
- * one, it is just the round "new version" button.
- */
-function syncSwipeCounters() {
-    requestAnimationFrame(() => {
-        const chat = ctx().chat ?? [];
-        const all = document.body.classList.contains('swipeAllMessages');
-        for (const mes of document.querySelectorAll(all ? '#chat > .mes' : '#chat > .mes.last_mes, #chat > .mes.pt-one-swipe')) {
-            const message = chat[Number(mes.getAttribute('mesid'))];
-            mes.classList.toggle('pt-one-swipe', active && !((message?.swipes?.length ?? 0) > 1));
-        }
-    });
-}
-
 /**
  * "Faster long chats" skips drawing messages that are off screen and guesses
  * their height until they are drawn. Scrolling up into a message drawn for the
@@ -6568,41 +6416,6 @@ function onAvatarError(event) {
     if (mes && img.closest('.avatar')) setTimeout(() => markMissingAvatars(mes), 0);
 }
 
-function foldLongMessages() {
-    if (!active || !settings.chatStyle || !settings.foldLong) {
-        document.querySelectorAll('#chat .mes.pt-long, #chat .mes.pt-long-open').forEach(mes => mes.classList.remove('pt-long', 'pt-long-open'));
-        document.querySelectorAll('.pt-more-btn').forEach(node => node.remove());
-        return;
-    }
-    const chat = ctx().chat ?? [];
-    let changed = false;
-    for (const mes of document.querySelectorAll('#chat > .mes')) {
-        const message = chat[Number(mes.getAttribute('mesid'))];
-        const text = message?.extra?.display_text ?? message?.mes ?? '';
-        const long = text.length > LONG_MESSAGE && !mes.classList.contains('last_mes') && !mes.querySelector('#curEditTextarea');
-        if (mes.classList.contains('pt-long') !== long) changed = true;
-        mes.classList.toggle('pt-long', long);
-        let button = mes.querySelector('.pt-more-btn');
-        if (long && !button) {
-            button = h('button', {
-                type: 'button',
-                class: 'pt-more-btn',
-                onclick: () => {
-                    const open = mes.classList.toggle('pt-long-open');
-                    button.textContent = open ? t('Show less') : t('Show more');
-                    if (!open) mes.scrollIntoView({ block: 'nearest' });
-                },
-            }, [t('Show more')]);
-            mes.querySelector('.mes_text')?.after(button);
-        } else if (!long && button) {
-            button.remove();
-            mes.classList.remove('pt-long-open');
-        }
-    }
-    // Folding changes heights; let the browser remember the new ones.
-    if (changed) primeChatSizes();
-}
-
 // -- chat: search inside the chat
 
 const finder = { bar: null, hits: [], index: -1, marks: [], seq: 0, timer: 0 };
@@ -6688,11 +6501,7 @@ async function showFinderHit(index) {
     const words = normalizeText(finder.bar.querySelector('input').value).split(/\s+/).filter(Boolean);
     if (!words.length) return;
     markInMessage(mes, words);
-    if (mes.classList.contains('pt-long') && !mes.classList.contains('pt-long-open')) {
-        mes.classList.add('pt-long-open');
-        const more = mes.querySelector('.pt-more-btn');
-        if (more) more.textContent = t('Show less');
-    }
+    unfold(mes);
     const firstMark = finder.marks[0];
     (firstMark ?? mes).scrollIntoView({ block: 'center', behavior: motionAllowed() ? 'smooth' : 'auto' });
     mes.classList.remove('pt-flash');
@@ -8842,7 +8651,7 @@ function syncExtras() {
     applyLayoutPrefs();
     syncComposer();
     // (Also takes the one-version marker off again when Pocket Tavern turns off.)
-    syncSwipeCounters();
+    markSingleVersions();
     foldLongMessages();
     markMissingAvatars();
     syncLoreEntries();
@@ -8857,11 +8666,7 @@ function syncExtras() {
         closeChatFinder();
         window.clearTimeout(press.timer);
         press.timer = 0;
-        cancelAnimationFrame(drag.frame);
-        drag.frame = 0;
-        drag.hint?.remove();
-        drag.hint = null;
-        drag.mes = null;
+        cancelSwipe();
         translation.cancel = true;
         clearBanners();
         window.clearTimeout(autoTimer);
@@ -9794,6 +9599,23 @@ function syncConnectionBanner() {
 }
 
 /** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
+/** src/views/messages.js: versions, folding and Jump to latest, with the switches and helpers from here. */
+function setupMessageView() {
+    setupMessages({
+        context: ctx,
+        enabled: () => ({
+            chat: active && settings.chatStyle,
+            fold: active && settings.chatStyle && settings.foldLong,
+            jump: active && settings.jumpButton,
+            drag: active && settings.chatStyle && settings.dragSwipe,
+        }),
+        generating: () => !!extras.generating,
+        motion: motionAllowed,
+        buzz,
+        heightsChanged: () => primeChatSizes(),
+    });
+}
+
 function registerOwnPages() {
     definePage('pt-chats', chatsPage({
         recentChats: recentChatsForHome,
@@ -9845,6 +9667,7 @@ function init() {
         return;
     }
     loadSettings();
+    setupMessageView();
     registerOwnPages();
     // Pick the language before anything is drawn.
     setLocale(ctx().getCurrentLocale?.() ?? navigator.language);
@@ -9930,7 +9753,7 @@ function init() {
         guardKeyboard();
         restoreDraft();
         // A new chat starts at the bottom; hide the jump button until you scroll up.
-        setTimeout(onChatScroll, 300);
+        setTimeout(updateJump, 300);
         // After the messages (and folding, 200 ms) are in.
         primeChatSizes(400);
         holdAtNewest();
@@ -9941,7 +9764,7 @@ function init() {
     let chatTimer = 0;
     const chatChanged = () => {
         if (!active) return;
-        syncSwipeCounters();
+        markSingleVersions();
         window.clearTimeout(chatTimer);
         chatTimer = window.setTimeout(() => {
             foldLongMessages();
