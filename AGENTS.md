@@ -27,7 +27,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | Milestone | Lane and scope | Done when | Status |
 |---|---|---|---|
 | M0 | One lane. `index.js` and `style.css` only import; 2.x code moves to `src/legacy/` and `styles/legacy.css`; `icons.js`, `themes.js`, `i18n.js`, `locales.js` move into `src/` and `locales/`; location-dependent URLs, `check.mjs` and CI follow | `check`, `phone.mjs`, `ios.mjs` (Chrome and WebKit) and `compat.mjs` pass unchanged; screenshots match 2.28.1 | done |
-| M1·0 | One lane, alone (touches everything). Rename `stmui-` → `pt-` everywhere, legacy included; migrate `stmui_*` localStorage keys | Same as M0, with the new names | planned |
+| M1·0 | One lane, alone (touches everything). Rename `stmui-` → `pt-` everywhere, legacy included; migrate `stmui_*` localStorage keys | Same as M0, with the new names | done |
 | M1a | Core/ST. `src/core/lifecycle.js` (mount order, `safe()`, crash fallback, reverse teardown), `src/core/settings.js` (version and migrations), `src/st/selectors.js`, popup watch, translations split per language with a section per area | A forced error falls back to SillyTavern; turning off leaves nothing | planned |
 | M1b | UI, after M1a's lifecycle API. `styles/tokens.css`, `base.css`, every component in `DESIGN.md` → Components, a test page that screenshots each | Component screenshots pass review on both layouts, light, dark, RTL | planned |
 | M1c | Shell, beside M1b. `src/shell/layout.js` (Automatic/Phone/Desktop, the keyboard rule), tab bar and rail, page stacks and back order, sheet/dialog/popover with the shared close, "Use SillyTavern for now" and the Back pill | The new tab bar and rail lead to the existing (legacy) screens | planned |
@@ -44,16 +44,17 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 
 Update the Status column in the same commit that finishes a milestone. Delete this section after 3.0.0 ships.
 
-**Names change in M1.** Old code uses the `stmui` prefix. New code uses `pt`:
+**Names changed in M1·0.** 2.x used the `stmui` prefix; 3.0 uses `pt` everywhere:
 
 | Old (2.x) | New (3.0) |
 |---|---|
-| `html.stmui-on` (plus `stmui-shell`, `stmui-chat`) | `html.pt-on`, `html.pt-in-chat` |
-| `html.stmui-wide` / `html:not(.stmui-wide)` | `html.pt-desktop` / `html.pt-phone` (exactly one is on) |
-| `stmui-touch`, `-compact`, `-docked`, `-glass`, `-rtl`, `-ios-kb`, `-motion-off` | `pt-touch`, `pt-compact`, `pt-docked`, `pt-glass`, `pt-rtl`, `pt-ios-kb`, `pt-motion-off` |
-| `.stmui-*` / `#stmui-*` elements | `.pt-*` / `#pt-*` |
-| `--stmui-*` variables | removed; use `--pt-*` |
-| `stmui_*` localStorage keys | `pt_*`, migrated once on first 3.0 start |
+| `html.stmui-on` | `html.pt-on` |
+| `html.stmui-shell`, `html.stmui-chat` (the app-shell and chat-look switches) | `html.pt-shell`, `html.pt-chat`, until those switches go (M1c, M2). `html.pt-in-chat` (a chat is open) is new in M1c |
+| `html.stmui-wide` | `html.pt-desktop`. `html.pt-phone` arrives with `src/shell/layout.js` (M1c); then exactly one of the two is on |
+| `stmui-touch`, `-compact`, `-docked`, `-glass`, `-rtl`, `-ios-kb`, `-motion-off`, … | `pt-touch`, `pt-compact`, `pt-docked`, `pt-glass`, `pt-rtl`, `pt-ios-kb`, `pt-motion-off`, … |
+| `.stmui-*` / `#stmui-*` / `#stmui_*` elements, `data-stmui-*`, `dataset.stmui*` | `.pt-*` / `#pt-*` / `#pt_*`, `data-pt-*`, `dataset.pt*` |
+| `--stmui-*` aliases of the tokens (`--stmui-surface`, `--stmui-line`, …) | removed; uses point at the token itself (`--pt-bg`, `--pt-border`, …). Other `--stmui-*` variables are now `--pt-*` |
+| `stmui_*` localStorage keys | `pt_*`, copied once by `src/core/settings.js`; the old keys stay so 2.x still works |
 | `mobileUI` settings key | **unchanged, never renamed** (users' saved settings live there) |
 
 ---

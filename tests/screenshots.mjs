@@ -42,30 +42,30 @@ const shot = async name => {
     console.log(`  ✓ ${name}.jpg`);
 };
 const closeSheet = async () => {
-    await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click());
-    await until(() => !document.getElementById('stmui-sheet'));
+    await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
+    await until(() => !document.getElementById('pt-sheet'));
     await settle(300);
 };
 const tab = async id => {
-    await page.evaluate(want => document.querySelector(`.stmui-tab[data-tab="${want}"]`).click(), id);
-    if (id === 'chat') await until(() => !document.documentElement.dataset.stmuiPage);
-    else if (id !== 'more') await until(want => document.documentElement.dataset.stmuiPage === want, id);
+    await page.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
+    if (id === 'chat') await until(() => !document.documentElement.dataset.ptPage);
+    else if (id !== 'more') await until(want => document.documentElement.dataset.ptPage === want, id);
     await settle();
 };
 const openThemes = async () => {
     await tab('more');
-    await page.locator('#stmui-sheet .stmui-menu-row-theme').click();
+    await page.locator('#pt-sheet .pt-menu-row-theme').click();
     await settle();
 };
 const setTheme = async theme => {
     await openThemes();
-    await page.locator(`#stmui-sheet .stmui-theme-card[data-theme="${theme}"]`).click();
+    await page.locator(`#pt-sheet .pt-theme-card[data-theme="${theme}"]`).click();
     await settle(1000);
     await closeSheet();
 };
 const setLook = async label => {
     await openThemes();
-    await page.locator('#stmui-sheet .stmui-look-seg .stmui-seg', { hasText: label }).click();
+    await page.locator('#pt-sheet .pt-look-seg .pt-seg', { hasText: label }).click();
     await settle();
     await closeSheet();
 };
@@ -79,11 +79,11 @@ const setPref = async (id, value) => {
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
 };
 const compactShot = async name => {
-    await setPref('stmui_size', 'compact');
-    await setPref('stmui_composer', 'docked');
+    await setPref('pt_size', 'compact');
+    await setPref('pt_composer', 'docked');
     await shot(name);
-    await setPref('stmui_size', 'auto');
-    await setPref('stmui_composer', 'floating');
+    await setPref('pt_size', 'auto');
+    await setPref('pt_composer', 'floating');
 };
 const openDemoChat = async () => {
     await page.evaluate(async () => {
@@ -99,16 +99,16 @@ const openDemoChat = async () => {
 
 console.log(`Taking screenshots from ${ST_URL}\n`);
 await page.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-await until(() => document.documentElement.classList.contains('stmui-on'), null, 90000);
+await until(() => document.documentElement.classList.contains('pt-on'), null, 90000);
 await page.waitForTimeout(3000);
 await page.evaluate(() => document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(button => button.click()));
-if (await page.locator('#stmui-sheet').count()) await closeSheet();
+if (await page.locator('#pt-sheet').count()) await closeSheet();
 
 // Guided Generations' button stays out of the pictures too (put back at the end).
 const guideButtonWasOn = await page.evaluate(() => {
     // Input History's buttons are switched off the way its own settings do it, so the text keeps its room.
     document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
-    const toggle = document.getElementById('stmui_ggbutton');
+    const toggle = document.getElementById('pt_ggbutton');
     if (!toggle?.checked) return false;
     toggle.click();
     return true;
@@ -143,19 +143,19 @@ await page.evaluate(async () => {
     chat[last].extra = { ...(chat[last].extra ?? {}), model: 'Mistral-Nemo-12B', api: context.mainApi };
 });
 // Opening the Context page reads the record and fills the ring.
-await page.locator('.stmui-ctx-ring').click();
-await until(() => document.querySelector('#stmui-sheet .stmui-ctx-list'));
+await page.locator('.pt-ctx-ring').click();
+await until(() => document.querySelector('#pt-sheet .pt-ctx-list'));
 if (want('context')) await shot('context');
 await closeSheet();
 
 if (want('chat')) await shot('chat');
 
 if (want('tabs-shown')) {
-    await page.locator('.stmui-tabs-btn').click();
-    await until(() => !document.documentElement.classList.contains('stmui-tabs-tucked'));
+    await page.locator('.pt-tabs-btn').click();
+    await until(() => !document.documentElement.classList.contains('pt-tabs-tucked'));
     await shot('tabs-shown');
-    await page.locator('.stmui-tabs-btn').click();
-    await until(() => document.documentElement.classList.contains('stmui-tabs-tucked'));
+    await page.locator('.pt-tabs-btn').click();
+    await until(() => document.documentElement.classList.contains('pt-tabs-tucked'));
 }
 
 if (want('compact')) await compactShot('compact');
@@ -168,12 +168,12 @@ if (want('bubbles')) {
 
 if (want('translate')) {
     // Hold the translate button to pick Spanish, then tap it again afterwards for the original.
-    const button = page.locator('.stmui-ab-translate');
+    const button = page.locator('.pt-ab-translate');
     await button.dispatchEvent('pointerdown');
     await page.waitForTimeout(700);
     await button.dispatchEvent('pointerup');
-    await page.locator('#stmui-sheet .stmui-choice', { hasText: /^Spanish$/ }).first().click();
-    await until(() => SillyTavern.getContext().chat.some(message => message.extra?.stmui_lang === 'es'), null, 30000);
+    await page.locator('#pt-sheet .pt-choice', { hasText: /^Spanish$/ }).first().click();
+    await until(() => SillyTavern.getContext().chat.some(message => message.extra?.pt_lang === 'es'), null, 30000);
     await page.waitForTimeout(2600);
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await shot('translate');
@@ -184,16 +184,16 @@ if (want('translate')) {
 
 if (want('editor')) {
     await page.evaluate(() => [...document.querySelectorAll('#chat .mes:not([is_user="true"]) .mes_edit')].pop()?.click());
-    await until(() => document.documentElement.classList.contains('stmui-editing'));
+    await until(() => document.documentElement.classList.contains('pt-editing'));
     await shot('editor');
     await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click());
-    await until(() => !document.documentElement.classList.contains('stmui-editing'));
+    await until(() => !document.documentElement.classList.contains('pt-editing'));
     await settle(1200);
 }
 
 if (want('card')) {
-    await page.evaluate(() => document.querySelector('.stmui-ab-who').click());
-    await until(() => document.documentElement.dataset.stmuiPage === 'rightNavHolder' && document.getElementById('stmui_card_tabs'));
+    await page.evaluate(() => document.querySelector('.pt-ab-who').click());
+    await until(() => document.documentElement.dataset.ptPage === 'rightNavHolder' && document.getElementById('pt_card_tabs'));
     await shot('card');
     await tab('chat');
 }
@@ -212,7 +212,7 @@ if (want('character-sheet')) {
     await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
     await until(() => document.querySelector('#rm_print_characters_block .character_select'));
     await page.evaluate(() => [...document.querySelectorAll('#rm_print_characters_block .character_select')].find(row => row.querySelector('.ch_name')?.textContent.trim() === 'Seraphina')?.click());
-    await until(() => document.querySelector('#stmui-sheet .stmui-cs-chat .stmui-bubble'));
+    await until(() => document.querySelector('#pt-sheet .pt-cs-chat .pt-bubble'));
     await shot('character-sheet');
     await closeSheet();
     await tab('chat');
@@ -220,7 +220,7 @@ if (want('character-sheet')) {
 
 if (want('history')) {
     await page.evaluate(() => document.getElementById('option_select_chat')?.click());
-    await until(() => document.querySelector('#select_chat_div .select_chat_block.stmui-rc .stmui-bubble'));
+    await until(() => document.querySelector('#select_chat_div .select_chat_block.pt-rc .pt-bubble'));
     await shot('history');
     await page.evaluate(() => document.getElementById('select_chat_cross')?.click());
     await page.waitForTimeout(400);
@@ -246,17 +246,17 @@ if (want('more')) {
 
 if (want('chat-options')) {
     await page.locator('#options_button').tap();
-    await until(() => document.getElementById('stmui-sheet')?.textContent.includes('Manage chat files'));
+    await until(() => document.getElementById('pt-sheet')?.textContent.includes('Manage chat files'));
     await shot('chat-options');
     await closeSheet();
 }
 
 if (want('settings') || want('settings-section')) {
     await page.evaluate(() => document.querySelector('#user-settings-button > .drawer-toggle')?.click());
-    await until(() => document.querySelectorAll('.stmui-set-home .stmui-menu-row').length > 0);
+    await until(() => document.querySelectorAll('.pt-set-home .pt-menu-row').length > 0);
     if (want('settings')) await shot('settings');
-    await page.evaluate(() => [...document.querySelectorAll('.stmui-set-home .stmui-menu-row')].find(row => row.textContent.includes('Display'))?.click());
-    await until(() => document.querySelector('.stmui-ab-title')?.textContent === 'Display');
+    await page.evaluate(() => [...document.querySelectorAll('.pt-set-home .pt-menu-row')].find(row => row.textContent.includes('Display'))?.click());
+    await until(() => document.querySelector('.pt-ab-title')?.textContent === 'Display');
     if (want('settings-section')) await shot('settings-section');
     await tab('chat');
 }
@@ -269,8 +269,8 @@ if (want('themes')) {
 
 if (want('lorebooks')) {
     await tab('WI-SP-button');
-    await page.evaluate(() => document.querySelector('#WorldInfo .stmui-open')?.click());
-    await until(() => document.getElementById('stmui-sheet'));
+    await page.evaluate(() => document.querySelector('#WorldInfo .pt-open')?.click());
+    await until(() => document.getElementById('pt-sheet'));
     await shot('lorebooks');
     await closeSheet();
     await tab('chat');
@@ -294,7 +294,7 @@ if (want('lorebook-entries')) {
 if (want('presets')) {
     await tab('ai-config-button');
     await page.evaluate(() => {
-        const first = [...document.querySelectorAll('.stmui-step-wrap, .range-block-counter.stmui-stepper')].find(el => el.offsetParent);
+        const first = [...document.querySelectorAll('.pt-step-wrap, .range-block-counter.pt-stepper')].find(el => el.offsetParent);
         first?.closest('.flex-container, .range-block')?.scrollIntoView({ block: 'start' });
     });
     await shot('presets');
@@ -315,7 +315,7 @@ if (want('prompt-editor')) {
         await tab('ai-config-button');
         await until(() => document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'));
         await page.evaluate(() => document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action').click());
-        await until(() => document.documentElement.classList.contains('stmui-prompt-editor'));
+        await until(() => document.documentElement.classList.contains('pt-prompt-editor'));
         await shot('prompt-editor');
         await page.evaluate(() => document.getElementById('completion_prompt_manager_popup_entry_form_close')?.click());
         await settle(400);
@@ -329,7 +329,7 @@ if (want('prompt-editor')) {
 
 if (want('personas')) {
     await page.evaluate(() => document.querySelector('#persona-management-button > .drawer-toggle')?.click());
-    await until(() => document.documentElement.dataset.stmuiPage === 'persona-management-button');
+    await until(() => document.documentElement.dataset.ptPage === 'persona-management-button');
     await shot('personas');
     await tab('chat');
 }
@@ -362,12 +362,12 @@ if (want('glass')) {
     const backdrop = await page.evaluate(() => SillyTavern.getContext().extensionSettings.mobileUI.themeBackdrop);
     await page.evaluate(() => [...document.querySelectorAll('#bg_menu_content .bg_example')].find(e => e.getAttribute('bgfile') === 'landscape beach day.png')?.click());
     await openThemes();
-    await until(() => !!document.querySelector('#stmui-sheet .stmui-theme-card[data-theme="st:Azure"]'), null, 15000);
-    await page.locator('#stmui-sheet .stmui-theme-card[data-theme="st:Azure"]').click();
+    await until(() => !!document.querySelector('#pt-sheet .pt-theme-card[data-theme="st:Azure"]'), null, 15000);
+    await page.locator('#pt-sheet .pt-theme-card[data-theme="st:Azure"]').click();
     await settle(1000);
     await closeSheet();
     await openDemoChat();
-    await until(() => document.documentElement.classList.contains('stmui-glass'));
+    await until(() => document.documentElement.classList.contains('pt-glass'));
     await shot('glass');
     if (before) await page.evaluate(file => [...document.querySelectorAll('#bg_menu_content .bg_example')].find(e => e.getAttribute('bgfile') === file)?.click(), before);
     await page.evaluate(() => { delete SillyTavern.getContext().extensionSettings.mobileUI.stTheme; });
@@ -379,19 +379,19 @@ if (want('glass')) {
 await setTheme('st');
 
 if (want('recent')) {
-    await page.locator('.stmui-ab-home').click();
+    await page.locator('.pt-ab-home').click();
     await until(() => document.querySelector('.recentChat'));
     await shot('recent');
 }
 
 if (want('before')) {
     await openDemoChat();
-    await page.evaluate(() => document.getElementById('stmui_enabled').click());
-    await until(() => !document.documentElement.classList.contains('stmui-on'));
+    await page.evaluate(() => document.getElementById('pt_enabled').click());
+    await until(() => !document.documentElement.classList.contains('pt-on'));
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await shot('before');
-    await page.evaluate(() => document.getElementById('stmui_enabled').click());
-    await until(() => document.documentElement.classList.contains('stmui-on'));
+    await page.evaluate(() => document.getElementById('pt_enabled').click());
+    await until(() => document.documentElement.classList.contains('pt-on'));
 }
 
 if (want('desktop')) {
@@ -400,10 +400,10 @@ if (want('desktop')) {
     await desk.addInitScript(hideTestExtensions);
     const tabPage = await desk.newPage();
     await tabPage.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-    await tabPage.waitForFunction(() => document.documentElement.classList.contains('stmui-wide'), null, { timeout: 120000 });
+    await tabPage.waitForFunction(() => document.documentElement.classList.contains('pt-desktop'), null, { timeout: 120000 });
     await tabPage.waitForTimeout(2500);
     await tabPage.evaluate(() => {
-        document.querySelector('#stmui-sheet .stmui-done')?.click();
+        document.querySelector('#pt-sheet .pt-done')?.click();
         document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
     });
     await tabPage.evaluate(async () => {
@@ -411,7 +411,7 @@ if (want('desktop')) {
         await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));
     });
     await tabPage.waitForTimeout(2000);
-    await tabPage.locator('.stmui-tab[data-tab="ai-config-button"]').click();
+    await tabPage.locator('.pt-tab[data-tab="ai-config-button"]').click();
     await tabPage.waitForTimeout(1200);
     await tabPage.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await tabPage.evaluate(() => document.getAnimations().forEach(animation => { try { animation.finish(); } catch {} }));
@@ -432,7 +432,7 @@ if (want('banner')) {
             if (!ids.includes(Number(mes.getAttribute('mesid')))) mes.style.setProperty('display', 'none', 'important');
         });
         document.getElementById('chat').scrollTo(0, 0);
-        document.querySelector('.stmui-jump')?.style.setProperty('display', 'none', 'important');
+        document.querySelector('.pt-jump')?.style.setProperty('display', 'none', 'important');
     }, keep);
     await tab('chat');
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
@@ -440,17 +440,17 @@ if (want('banner')) {
     await onlyMessages(page, lastIds);
     await settle();
     await page.screenshot({ path: `${BRAND}shot-phone.jpg`, type: 'jpeg', quality: 92 });
-    await page.evaluate(() => document.querySelectorAll('#chat .mes, .stmui-jump').forEach(node => node.style.removeProperty('display')));
+    await page.evaluate(() => document.querySelectorAll('#chat .mes, .pt-jump').forEach(node => node.style.removeProperty('display')));
     console.log('  ✓ brand/shot-phone.jpg');
 
     const desk = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
     await desk.addInitScript(hideTestExtensions);
     const deskPage = await desk.newPage();
     await deskPage.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-    await deskPage.waitForFunction(() => document.documentElement.classList.contains('stmui-wide'), null, { timeout: 120000 });
+    await deskPage.waitForFunction(() => document.documentElement.classList.contains('pt-desktop'), null, { timeout: 120000 });
     await deskPage.waitForTimeout(2500);
     await deskPage.evaluate(async () => {
-        document.querySelector('#stmui-sheet .stmui-done')?.click();
+        document.querySelector('#pt-sheet .pt-done')?.click();
         document.querySelectorAll('.stih--buttons').forEach(buttons => buttons.classList.add('stih--hidden'));
         const context = SillyTavern.getContext();
         await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));
@@ -465,7 +465,7 @@ if (want('banner')) {
 }
 
 if (guideButtonWasOn) {
-    await page.evaluate(() => document.getElementById('stmui_ggbutton')?.click());
+    await page.evaluate(() => document.getElementById('pt_ggbutton')?.click());
     await page.waitForTimeout(2500);
 }
 await browser.close();

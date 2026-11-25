@@ -24,10 +24,10 @@ page.on('pageerror', e => errors.push(e.message));
 page.on('popup', p => { console.log('    (popup window opened:', p.url(), ')'); p.close(); });
 page.on('dialog', d => { console.log('    (dialog:', d.message().slice(0, 60), ')'); d.dismiss(); });
 await page.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => document.documentElement.classList.contains('stmui-on'), null, { timeout: 90000 });
+await page.waitForFunction(() => document.documentElement.classList.contains('pt-on'), null, { timeout: 90000 });
 await page.waitForTimeout(5000);
 await page.evaluate(() => document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(b => b.click()));
-await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click());
+await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
 await page.evaluate(async () => {
     const c = SillyTavern.getContext();
     const i = c.characters.findIndex(x => x.name === 'Seraphina');
@@ -52,11 +52,11 @@ const check = async (name, fn) => {
         await page.screenshot({ path: `${OUT}/ggfail-${name.replace(/[^a-z0-9]+/gi, '-').slice(0, 40)}.png` });
     }
 };
-const sheetOpen = () => page.waitForFunction(() => document.querySelector('#stmui-sheet.stmui-sheet-open, #stmui-sheet[open]'), null, { timeout: 4000 });
-const sheetGone = () => page.waitForFunction(() => !document.getElementById('stmui-sheet'), null, { timeout: 4000 });
-const closeSheet = async () => { await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click()); await sheetGone(); };
-const openGuide = async () => { await page.locator('.stmui-gg-btn').click(); await sheetOpen(); await page.waitForTimeout(250); };
-const rowByText = text => page.locator('#stmui-sheet .stmui-menu-row', { hasText: text }).first();
+const sheetOpen = () => page.waitForFunction(() => document.querySelector('#pt-sheet.pt-sheet-open, #pt-sheet[open]'), null, { timeout: 4000 });
+const sheetGone = () => page.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 4000 });
+const closeSheet = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click()); await sheetGone(); };
+const openGuide = async () => { await page.locator('.pt-gg-btn').click(); await sheetOpen(); await page.waitForTimeout(250); };
+const rowByText = text => page.locator('#pt-sheet .pt-menu-row', { hasText: text }).first();
 // Records presses on Guided Generations' own buttons, and (when `block`) stops its action.
 const recorder = block => page.evaluate(blockIt => {
     window.__pressed = [];
@@ -82,12 +82,12 @@ console.log('Guided Generations in Pocket Tavern\n');
 
 await check('patch is on only because GG is installed', async () => {
     const s = await page.evaluate(() => ({
-        on: document.documentElement.classList.contains('stmui-gg'),
+        on: document.documentElement.classList.contains('pt-gg'),
         row: getComputedStyle(document.getElementById('gg-regular-buttons-container')).display,
         menus: getComputedStyle(document.getElementById('gg-menu-buttons-container')).display,
-        btn: (() => { const b = document.querySelector('.stmui-gg-btn').getBoundingClientRect(); return [b.width, b.height]; })(),
-        nextToSend: document.querySelector('.stmui-gg-btn').nextElementSibling?.id,
-        label: document.querySelector('.stmui-gg-btn').getAttribute('aria-label'),
+        btn: (() => { const b = document.querySelector('.pt-gg-btn').getBoundingClientRect(); return [b.width, b.height]; })(),
+        nextToSend: document.querySelector('.pt-gg-btn').nextElementSibling?.id,
+        label: document.querySelector('.pt-gg-btn').getAttribute('aria-label'),
     }));
     if (!s.on || s.row !== 'none' || s.menus !== 'none') throw new Error(JSON.stringify(s));
     if (s.btn[0] < 44 || s.btn[1] < 44) throw new Error(`button ${s.btn}`);
@@ -97,7 +97,7 @@ await check('patch is on only because GG is installed', async () => {
 
 await check('sheet lists the actions GG shows, with names and notes', async () => {
     await openGuide();
-    const text = await page.evaluate(() => document.getElementById('stmui-sheet').innerText);
+    const text = await page.evaluate(() => document.getElementById('pt-sheet').innerText);
     await closeSheet();
     for (const want of ['Guided response', 'Guided swipe', 'Write my message as "I"', 'Persistent guides', 'Tools', 'Guided Generations settings', 'No instruction yet']) {
         if (!text.includes(want)) throw new Error(`missing ${want}`);
@@ -121,9 +121,9 @@ await check('each action row presses the matching GG button (and the sheet close
 await check('typed instruction shows in the sheet, tapping it goes back to the box', async () => {
     await page.locator('#send_textarea').fill('Have her mention the old letter');
     await openGuide();
-    const card = await page.locator('.stmui-gg-instruction').innerText();
+    const card = await page.locator('.pt-gg-instruction').innerText();
     if (!card.includes('Have her mention the old letter')) throw new Error(card);
-    await page.locator('.stmui-gg-instruction').click();
+    await page.locator('.pt-gg-instruction').click();
     await sheetGone();
     const focused = await page.evaluate(() => document.activeElement?.id);
     if (focused !== 'send_textarea') throw new Error(`focus on ${focused}`);
@@ -133,13 +133,13 @@ await check('typed instruction shows in the sheet, tapping it goes back to the b
 await check('hold the guide button runs the last action again', async () => {
     await recorder(true);
     await page.evaluate(() => { window.__pressed = []; });
-    const box = await page.locator('.stmui-gg-btn').boundingBox();
+    const box = await page.locator('.pt-gg-btn').boundingBox();
     await page.mouse.move(box.x + 22, box.y + 22);
     await page.mouse.down();
     await page.waitForTimeout(700);
     await page.mouse.up();
     await page.waitForTimeout(300);
-    const s = await page.evaluate(() => ({ pressed: window.__pressed, sheet: !!document.getElementById('stmui-sheet') }));
+    const s = await page.evaluate(() => ({ pressed: window.__pressed, sheet: !!document.getElementById('pt-sheet') }));
     if (s.pressed.at(-1) !== 'gg_impersonate_button' || s.sheet) throw new Error(JSON.stringify(s));
     return 'repeated "Write my message as I", no sheet';
 });
@@ -149,8 +149,8 @@ await check('guide count shows on the button', async () => {
         const span = document.getElementById('pg_guide_counter_span');
         span.textContent = ' 2';
         await new Promise(r => setTimeout(r, 200));
-        const badge = document.querySelector('.stmui-gg-count');
-        const shown = { text: badge.textContent, hidden: badge.hidden, label: document.querySelector('.stmui-gg-btn').getAttribute('aria-label') };
+        const badge = document.querySelector('.pt-gg-count');
+        const shown = { text: badge.textContent, hidden: badge.hidden, label: document.querySelector('.pt-gg-btn').getAttribute('aria-label') };
         span.textContent = ' 0';
         await new Promise(r => setTimeout(r, 200));
         return { ...shown, after: badge.hidden };
@@ -162,12 +162,12 @@ await check('guide count shows on the button', async () => {
 await check('Persistent guides sub-sheet has every GG guide item', async () => {
     await openGuide();
     await rowByText('Persistent guides').click();
-    await page.waitForFunction(() => document.querySelector('#stmui-sheet')?.innerText.includes('Situational'));
+    await page.waitForFunction(() => document.querySelector('#pt-sheet')?.innerText.includes('Situational'));
     const s = await page.evaluate(() => ({
-        rows: [...document.querySelectorAll('#stmui-sheet .stmui-menu-row')].map(r => r.querySelector('.stmui-row-text > span')?.textContent),
+        rows: [...document.querySelectorAll('#pt-sheet .pt-menu-row')].map(r => r.querySelector('.pt-row-text > span')?.textContent),
         gg: [...document.querySelectorAll('#pg_tools_menu > a')].map(a => a.textContent.trim()),
-        notes: [...document.querySelectorAll('#stmui-sheet .stmui-menu-row small')].filter(n => n.textContent.length > 10).length,
-        tall: [...document.querySelectorAll('#stmui-sheet .stmui-menu-row')].every(r => r.getBoundingClientRect().height >= 44),
+        notes: [...document.querySelectorAll('#pt-sheet .pt-menu-row small')].filter(n => n.textContent.length > 10).length,
+        tall: [...document.querySelectorAll('#pt-sheet .pt-menu-row')].every(r => r.getBoundingClientRect().height >= 44),
     }));
     await closeSheet();
     if (s.rows.join('|') !== s.gg.join('|')) throw new Error(`${s.rows} vs ${s.gg}`);
@@ -185,7 +185,7 @@ const shownGuidedPopup = () => page.evaluate(() => {
 const openPgItem = async item => {
     await openGuide();
     await rowByText('Persistent guides').click();
-    await page.waitForFunction(() => document.querySelector('#stmui-sheet')?.innerText.includes('Situational'));
+    await page.waitForFunction(() => document.querySelector('#pt-sheet')?.innerText.includes('Situational'));
     await rowByText(item).click();
     await sheetGone();
 };
@@ -227,11 +227,11 @@ await check('Tools sub-sheet matches GG tools menu; Clear Input clears the box',
     await page.locator('#send_textarea').fill('to be cleared');
     await openGuide();
     await rowByText('Tools').click();
-    await page.waitForFunction(() => document.querySelector('#stmui-sheet')?.innerText.includes('Spellchecker'));
+    await page.waitForFunction(() => document.querySelector('#pt-sheet')?.innerText.includes('Spellchecker'));
     const s = await page.evaluate(() => ({
-        rows: [...document.querySelectorAll('#stmui-sheet .stmui-menu-row')].map(r => r.querySelector('.stmui-row-text > span')?.textContent),
+        rows: [...document.querySelectorAll('#pt-sheet .pt-menu-row')].map(r => r.querySelector('.pt-row-text > span')?.textContent),
         gg: [...document.querySelectorAll('#gg_tools_menu > a')].map(a => a.textContent.trim()),
-        groups: document.querySelectorAll('#stmui-sheet .stmui-menu-list').length,
+        groups: document.querySelectorAll('#pt-sheet .pt-menu-list').length,
     }));
     if (s.rows.join('|') !== s.gg.join('|')) throw new Error(`${s.rows} vs ${s.gg}`);
     await rowByText('Clear Input').click();
@@ -246,7 +246,7 @@ await check('Tools sub-sheet matches GG tools menu; Clear Input clears the box',
 await check('Tools → Help opens the wiki, page address unchanged', async () => {
     await openGuide();
     await rowByText('Tools').click();
-    await page.waitForFunction(() => document.querySelector('#stmui-sheet')?.innerText.includes('Help'));
+    await page.waitForFunction(() => document.querySelector('#pt-sheet')?.innerText.includes('Help'));
     await rowByText('Help').click();
     await sheetGone();
     const s = await page.evaluate(() => ({ opened: window.__opened, hash: location.hash }));
@@ -256,7 +256,7 @@ await check('Tools → Help opens the wiki, page address unchanged', async () =>
 await check('Tools → Edit Intros: bottom sheet, sub-choices visible, back closes it', async () => {
     await openGuide();
     await rowByText('Tools').click();
-    await page.waitForFunction(() => document.querySelector('#stmui-sheet')?.innerText.includes('Edit Intros'));
+    await page.waitForFunction(() => document.querySelector('#pt-sheet')?.innerText.includes('Edit Intros'));
     await rowByText('Edit Intros').click();
     await sheetGone();
     await page.waitForFunction(() => [...document.querySelectorAll('body > .gg-popup')].some(p => p.style.display !== 'none' && getComputedStyle(p).display !== 'none'), null, { timeout: 6000 });
@@ -279,7 +279,7 @@ await check('a real Guided Swipe runs without breaking the screen (AI blocked)',
     await sheetGone();
     await page.waitForTimeout(3000);
     await closePopups();
-    const s = await page.evaluate(() => ({ scrolled: window.scrollY, bar: document.getElementById('stmui-appbar').getBoundingClientRect().top, box: document.getElementById('send_textarea').value }));
+    const s = await page.evaluate(() => ({ scrolled: window.scrollY, bar: document.getElementById('pt-appbar').getBoundingClientRect().top, box: document.getElementById('send_textarea').value }));
     if (s.scrolled || s.bar < 0) throw new Error(JSON.stringify(s));
     return `box after: "${s.box}"`;
 });
@@ -294,7 +294,7 @@ await check('back gesture closes the guide sheet', async () => {
 await check('Guided Generations settings row opens its settings', async () => {
     await openGuide();
     await rowByText('Guided Generations settings').click();
-    await page.waitForFunction(() => document.documentElement.dataset.stmuiPage === 'extensions-settings-button');
+    await page.waitForFunction(() => document.documentElement.dataset.ptPage === 'extensions-settings-button');
     await page.waitForTimeout(900);
     const s = await page.evaluate(() => {
         const drawer = document.getElementById('gg_versionBadge')?.closest('.inline-drawer');
@@ -303,17 +303,17 @@ await check('Guided Generations settings row opens its settings', async () => {
         return { open: content && getComputedStyle(content).display !== 'none', top: r && Math.round(r.top) };
     });
     await page.screenshot({ path: `${OUT}/gg-settings.png` });
-    await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="chat"]').click());
-    await page.waitForFunction(() => !document.documentElement.dataset.stmuiPage);
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
+    await page.waitForFunction(() => !document.documentElement.dataset.ptPage);
     if (!s.open || s.top > 700) throw new Error(JSON.stringify(s));
 });
 
 await check('switch off: GG row is back and its menus open in the middle with 44px rows', async () => {
-    await page.evaluate(() => { const e = document.getElementById('stmui_ggbutton'); e.click(); });
+    await page.evaluate(() => { const e = document.getElementById('pt_ggbutton'); e.click(); });
     await page.waitForTimeout(500);
     const s = await page.evaluate(async () => {
-        const on = document.documentElement.classList.contains('stmui-gg');
-        const btn = !!document.querySelector('.stmui-gg-btn');
+        const on = document.documentElement.classList.contains('pt-gg');
+        const btn = !!document.querySelector('.pt-gg-btn');
         document.getElementById('gg_menu_button').click();
         await new Promise(r => setTimeout(r, 400));
         const m = document.getElementById('gg_tools_menu').getBoundingClientRect();
@@ -322,7 +322,7 @@ await check('switch off: GG row is back and its menus open in the middle with 44
     });
     await page.screenshot({ path: `${OUT}/gg-off-menu.png` });
     await page.mouse.click(10, 300);
-    await page.evaluate(() => { const e = document.getElementById('stmui_ggbutton'); e.click(); });
+    await page.evaluate(() => { const e = document.getElementById('pt_ggbutton'); e.click(); });
     await page.waitForTimeout(500);
     if (s.on || s.btn) throw new Error('patch still on');
     if (s.top < 0 || s.bottom > s.h || s.minRow < 44) throw new Error(JSON.stringify(s));
@@ -335,10 +335,10 @@ await check('without GG (row removed) the patch steps aside', async () => {
         const parent = row.parentNode; const next = row.nextSibling;
         row.remove();
         await new Promise(r => setTimeout(r, 300));
-        const off = { on: document.documentElement.classList.contains('stmui-gg'), btn: !!document.querySelector('.stmui-gg-btn'), toggle: document.getElementById('stmui_ggbutton')?.closest('label')?.hidden };
+        const off = { on: document.documentElement.classList.contains('pt-gg'), btn: !!document.querySelector('.pt-gg-btn'), toggle: document.getElementById('pt_ggbutton')?.closest('label')?.hidden };
         parent.insertBefore(row, next);
         await new Promise(r => setTimeout(r, 300));
-        return { off, back: document.documentElement.classList.contains('stmui-gg') && !!document.querySelector('.stmui-gg-btn') };
+        return { off, back: document.documentElement.classList.contains('pt-gg') && !!document.querySelector('.pt-gg-btn') };
     });
     if (s.off.on || s.off.btn || !s.off.toggle || !s.back) throw new Error(JSON.stringify(s));
 });
@@ -382,7 +382,7 @@ await check('history list opens readable with 44px rows', async () => {
 });
 
 await check('no page errors from Pocket Tavern', async () => {
-    const ours = errors.filter(e => /stmui|Pocket/i.test(e));
+    const ours = errors.filter(e => /\bpt-[a-z]|Pocket|Mobile-UI/i.test(e));
     if (ours.length) throw new Error(ours.join(' | '));
     return errors.length ? `${errors.length} from other code` : '';
 });

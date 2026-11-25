@@ -394,7 +394,7 @@ export function themeCss(theme, scope) {
 }
 /* A chat background shows: the chat itself is clear and each message is a tinted
    card over the picture. Bars, pages, sheets and the composer stay solid. */
-${scope}.stmui-glass {
+${scope}.pt-glass {
     --SmartThemeChatTintColor: transparent !important;
     --SmartThemeBotMesBlurTintColor: ${see(g.botCard, g.card)} !important;
     --SmartThemeUserMesBlurTintColor: ${see(g.userCard, g.card)} !important;
@@ -405,7 +405,7 @@ ${scope}.stmui-glass {
     ${inkCss}
 }
 /* Looks without cards (Flat, SillyTavern's Document) keep a tinted chat to read on. */
-${scope}.stmui-glass:is([data-stmui-look="flat"], :has(body:is(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle))) {
+${scope}.pt-glass:is([data-pt-look="flat"], :has(body:is(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle))) {
     --SmartThemeChatTintColor: ${see(t.bg, g.card)} !important;
 }
 `;

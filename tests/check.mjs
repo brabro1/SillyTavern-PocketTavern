@@ -52,7 +52,7 @@ try {
     const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
     const problems = [];
     for (const t of THEMES) {
-        const css = themeCss(t, 'html.stmui-themed');
+        const css = themeCss(t, 'html.pt-themed');
         const mutedLow = css.match(/--pt-text-muted:\s*(#[0-9a-f]{6})/i)?.[1];
         const danger = css.match(/--pt-danger:\s*(#[0-9a-f]{6})/i)?.[1];
         const checks = [
@@ -199,11 +199,31 @@ try {
         if (/cubic-bezier|\bease(?:-in|-out|-in-out)?\b(?![-\w])/.test(m[1].replace(/var\([^)]*\)/g, ''))) offMotion.push(m[1].trim());
     }
     if (offMotion.length) scale.push(`motion outside 150-240ms with --pt-ease: ${[...new Set(offMotion)].slice(0, 6).join(' | ')}`);
-    if (/html\.stmui-on\s*\*\s*\{[^}]*scrollbar-width/.test(stripped)) scale.push('scrollbars are hidden on every element');
+    if (/html\.pt-on\s*\*\s*\{[^}]*scrollbar-width/.test(stripped)) scale.push('scrollbars are hidden on every element');
     if (scale.length) fail('the stylesheets follow the DESIGN.md scales', scale.join('; '));
     else ok('the stylesheets follow the type, spacing, radius and motion scales');
 } catch (error) {
     fail('stylesheet static checks', error);
+}
+
+// 3.0 copies the 2.x storage keys (stmui_*) to their new names (pt_*) once, and never overwrites a newer value.
+try {
+    const { migrateStorageKeys } = await import(new URL('src/core/settings.js', root));
+    const store = new Map([['stmui_mode', 'phones'], ['stmui_draft:Seraphina:chat 1', 'Hello'], ['pt_panel_w', '400'], ['stmui_panel_w', '300'], ['other', 'x']]);
+    const storage = { get length() { return store.size; }, key: i => [...store.keys()][i] ?? null, getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) };
+    migrateStorageKeys(storage);
+    store.set('stmui_mode', 'off');
+    migrateStorageKeys(storage);
+    const problems = [];
+    if (store.get('pt_mode') !== 'phones') problems.push(`pt_mode is ${store.get('pt_mode')}`);
+    if (store.get('pt_draft:Seraphina:chat 1') !== 'Hello') problems.push('the draft was not copied');
+    if (store.get('pt_panel_w') !== '400') problems.push('a newer pt_ value was overwritten');
+    if (!store.has('stmui_mode')) problems.push('an old key was removed');
+    migrateStorageKeys(null);
+    if (problems.length) fail('storage keys move from stmui_ to pt_', problems.join('; '));
+    else ok('storage keys move from stmui_ to pt_ once, without overwriting');
+} catch (error) {
+    fail('storage keys move from stmui_ to pt_', error);
 }
 
 // Older iPhones (Safari before iOS 16.4) cannot parse a regex lookbehind; one would stop the whole extension loading there.

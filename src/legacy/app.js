@@ -5,7 +5,7 @@
  * bottom tab bar, full-screen pages that the Android back gesture closes, a
  * restyled chat, and touch-first controls everywhere.
  *
- * Everything is scoped behind classes on <html> (`stmui-on` and feature
+ * Everything is scoped behind classes on <html> (`pt-on` and feature
  * classes). Removing them, or disabling the extension, restores the stock
  * interface. Nothing is moved out of SillyTavern's own DOM: the app bar and tab
  * bar only click SillyTavern's existing drawer toggles.
@@ -26,7 +26,7 @@ import { CHANGES, VERSION } from '../../changelog.js';
 const EXTENSION_ROOT = new URL('../../', import.meta.url);
 
 const MODULE = 'mobileUI';
-const MODE_KEY = 'stmui_mode';
+const MODE_KEY = 'pt_mode';
 const LOG = '[Pocket Tavern]';
 
 const DEFAULTS = Object.freeze({
@@ -104,29 +104,29 @@ const TEXT_SIZES = { small: 'Small', normal: 'Normal', large: 'Large', xl: 'Extr
 
 /** Phone features shown as switches in More → Phone features and in the settings panel. */
 const EXTRAS = [
-    { key: 'ggButton', id: 'stmui_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', when: () => ggPresent() },
-    { key: 'hideTabsInChat', id: 'stmui_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', when: () => !isWide() },
-    { key: 'messageMenu', id: 'stmui_msgmenu', label: 'Message menu', hint: 'Tap ⋯ on a message for a full list of actions with names.' },
-    { key: 'dragSwipe', id: 'stmui_dragswipe', label: 'Drag to swipe', hint: 'Drag the last reply left for another version, right for the previous one.' },
-    { key: 'foldLong', id: 'stmui_foldlong', label: 'Fold long messages', hint: 'Very long older messages get a Show more button.' },
-    { key: 'contextMeter', id: 'stmui_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
-    { key: 'loreCards', id: 'stmui_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },
-    { key: 'sharpPictures', id: 'stmui_sharp', label: 'Sharp character pictures', hint: 'Shows the full-quality picture instead of the small thumbnail, sized for your screen.' },
-    { key: 'animatedPictures', id: 'stmui_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
-    { key: 'charPage', id: 'stmui_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
-    { key: 'charPreview', id: 'stmui_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
-    { key: 'recentTools', id: 'stmui_recenttools', label: 'Chat list helpers', hint: 'Search and swipe in Recent chats; chat history grouped by date.' },
-    { key: 'longPress', id: 'stmui_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
-    { key: 'serverWatch', id: 'stmui_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
-    { key: 'fastChat', id: 'stmui_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
-    { key: 'jumpButton', id: 'stmui_jump', label: 'Jump to latest', hint: 'A button that takes you back to the newest message.' },
-    { key: 'saveDrafts', id: 'stmui_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
-    { key: 'keepAwake', id: 'stmui_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
-    { key: 'imageViewer', id: 'stmui_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
-    { key: 'niceToasts', id: 'stmui_toasts', label: 'Nicer notifications', hint: 'Calm cards with a small coloured icon; swipe one sideways to dismiss it.' },
-    { key: 'sendEffect', id: 'stmui_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
-    { key: 'haptics', id: 'stmui_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
-    { key: 'autoReload', id: 'stmui_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
+    { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', when: () => ggPresent() },
+    { key: 'hideTabsInChat', id: 'pt_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', when: () => !isWide() },
+    { key: 'messageMenu', id: 'pt_msgmenu', label: 'Message menu', hint: 'Tap ⋯ on a message for a full list of actions with names.' },
+    { key: 'dragSwipe', id: 'pt_dragswipe', label: 'Drag to swipe', hint: 'Drag the last reply left for another version, right for the previous one.' },
+    { key: 'foldLong', id: 'pt_foldlong', label: 'Fold long messages', hint: 'Very long older messages get a Show more button.' },
+    { key: 'contextMeter', id: 'pt_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
+    { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },
+    { key: 'sharpPictures', id: 'pt_sharp', label: 'Sharp character pictures', hint: 'Shows the full-quality picture instead of the small thumbnail, sized for your screen.' },
+    { key: 'animatedPictures', id: 'pt_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
+    { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
+    { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
+    { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Search and swipe in Recent chats; chat history grouped by date.' },
+    { key: 'longPress', id: 'pt_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
+    { key: 'serverWatch', id: 'pt_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
+    { key: 'fastChat', id: 'pt_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
+    { key: 'jumpButton', id: 'pt_jump', label: 'Jump to latest', hint: 'A button that takes you back to the newest message.' },
+    { key: 'saveDrafts', id: 'pt_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
+    { key: 'keepAwake', id: 'pt_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
+    { key: 'imageViewer', id: 'pt_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
+    { key: 'niceToasts', id: 'pt_toasts', label: 'Nicer notifications', hint: 'Calm cards with a small coloured icon; swipe one sideways to dismiss it.' },
+    { key: 'sendEffect', id: 'pt_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
+    { key: 'haptics', id: 'pt_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
+    { key: 'autoReload', id: 'pt_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
 ];
 
 /** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */
@@ -234,7 +234,7 @@ const MORE_ORDER = [
 const RAIL_PAGES = MORE_ORDER;
 
 function isWide() {
-    return document.documentElement.classList.contains('stmui-wide');
+    return document.documentElement.classList.contains('pt-desktop');
 }
 
 const LONG_SELECT_MIN_OPTIONS = 14;
@@ -248,7 +248,7 @@ const COMPACT_BELOW = 520;
 const WIDE_QUERY = '(min-width: 960px) and (min-height: 560px)';
 /** Phones narrower than this (most 360px Androids, foldable cover screens) get the compact size on Automatic. */
 const SMALL_PHONE_BELOW = 380;
-const LONG_SELECT_EXCLUDE = '.stmui-native-hidden, .template_element select, #stmui-sheet select, .select2-hidden-accessible, select[multiple]';
+const LONG_SELECT_EXCLUDE = '.pt-native-hidden, .template_element select, #pt-sheet select, .select2-hidden-accessible, select[multiple]';
 
 /** @type {Map<HTMLSelectElement, Picker>} */
 const pickers = new Map();
@@ -418,21 +418,21 @@ class Picker {
 
     build() {
         const { select } = this;
-        this.root = h('div', { class: `stmui-picker ${this.multi ? 'stmui-picker-multi' : 'stmui-picker-single'}`, 'data-stmui': '1' });
+        this.root = h('div', { class: `pt-picker ${this.multi ? 'pt-picker-multi' : 'pt-picker-single'}`, 'data-pt': '1' });
         const anchor = select.nextElementSibling?.classList.contains('select2') ? select.nextElementSibling : select;
         anchor.after(this.root);
-        select.classList.add('stmui-native-hidden');
-        $j()(select).on('change.stmui', this.onChange);
+        select.classList.add('pt-native-hidden');
+        $j()(select).on('change.pt', this.onChange);
         this.optionObserver = new MutationObserver(() => this.render());
         this.optionObserver.observe(select, { childList: true, subtree: true, characterData: true });
         this.render();
     }
 
     destroy() {
-        $j()(this.select).off('change.stmui', this.onChange);
+        $j()(this.select).off('change.pt', this.onChange);
         this.optionObserver?.disconnect();
         this.root?.remove();
-        this.select.classList.remove('stmui-native-hidden');
+        this.select.classList.remove('pt-native-hidden');
         if (sheet?.picker === this) closeSheet();
     }
 
@@ -506,12 +506,12 @@ class Picker {
             root.append(this.renderChips(selected));
             const open = h('button', {
                 type: 'button',
-                class: 'stmui-open menu_button',
+                class: 'pt-open menu_button',
                 onclick: () => openSheet(this),
             }, [
                 icon('fa-book-atlas'),
-                h('span', { class: 'stmui-open-label', text: this.config.buttonLabel ?? 'Choose' }),
-                h('span', { class: 'stmui-count', text: total ? `${selected.length}/${total}` : '0' }),
+                h('span', { class: 'pt-open-label', text: this.config.buttonLabel ?? 'Choose' }),
+                h('span', { class: 'pt-count', text: total ? `${selected.length}/${total}` : '0' }),
             ]);
             root.append(open);
         } else {
@@ -519,21 +519,21 @@ class Picker {
             const hasValue = !!current;
             const button = h('button', {
                 type: 'button',
-                class: `stmui-single text_pole ${hasValue ? '' : 'stmui-single-empty'}`,
+                class: `pt-single text_pole ${hasValue ? '' : 'pt-single-empty'}`,
                 'aria-haspopup': 'dialog',
                 onclick: () => openSheet(this),
             }, [
                 h('span', {
-                    class: 'stmui-single-label',
+                    class: 'pt-single-label',
                     ...(hasValue ? { raw: current.text } : { text: this.config.placeholder ?? this.config.noneLabel ?? 'None' }),
                 }),
-                icon('fa-chevron-down stmui-chevron'),
+                icon('fa-chevron-down pt-chevron'),
             ]);
             root.append(button);
             if (hasValue && this.config.clearable && items.some(item => item.isNone)) {
                 root.append(h('button', {
                     type: 'button',
-                    class: 'stmui-clear menu_button',
+                    class: 'pt-clear menu_button',
                     'aria-label': t('Remove {name}', { name: current.text }),
                     title: 'Remove',
                     onclick: () => {
@@ -547,18 +547,18 @@ class Picker {
     }
 
     renderChips(selected) {
-        const wrap = h('div', { class: 'stmui-chips' });
+        const wrap = h('div', { class: 'pt-chips' });
         if (!selected.length) {
-            wrap.append(h('span', { class: 'stmui-chips-empty', text: this.config.emptyLabel ?? 'Nothing selected' }));
+            wrap.append(h('span', { class: 'pt-chips-empty', text: this.config.emptyLabel ?? 'Nothing selected' }));
             return wrap;
         }
         const visible = selected.slice(0, 8);
         for (const item of visible) {
-            wrap.append(h('span', { class: 'stmui-chip' }, [
-                h('span', { class: 'stmui-chip-text', raw: item.text }),
+            wrap.append(h('span', { class: 'pt-chip' }, [
+                h('span', { class: 'pt-chip-text', raw: item.text }),
                 h('button', {
                     type: 'button',
-                    class: 'stmui-chip-x',
+                    class: 'pt-chip-x',
                     'aria-label': t('Remove {name}', { name: item.text }),
                     onclick: () => this.commit(item.index, false),
                 }, [icon('fa-xmark')]),
@@ -567,7 +567,7 @@ class Picker {
         if (selected.length > visible.length) {
             wrap.append(h('button', {
                 type: 'button',
-                class: 'stmui-chip stmui-chip-more',
+                class: 'pt-chip pt-chip-more',
                 onclick: () => openSheet(this, { filter: 'selected' }),
                 text: t('+{count} more', { count: selected.length - visible.length }),
             }));
@@ -580,13 +580,13 @@ class Picker {
 
 /** Grab handle, title, subtitle and the close button shared by every sheet. */
 function buildSheetHead(target, title, subtitle, doneLabel) {
-    target.title = h('h3', { class: 'stmui-title', text: title });
-    target.subtitle = h('p', { class: 'stmui-subtitle', text: subtitle ?? '' });
-    const done = h('button', { type: 'button', class: 'stmui-done menu_button', onclick: () => closeSheet() }, [doneLabel]);
-    target.head = h('div', { class: 'stmui-head' }, [
-        h('div', { class: 'stmui-grab', 'aria-hidden': 'true' }),
-        h('div', { class: 'stmui-head-row' }, [
-            h('div', { class: 'stmui-head-text' }, [target.title, target.subtitle]),
+    target.title = h('h3', { class: 'pt-title', text: title });
+    target.subtitle = h('p', { class: 'pt-subtitle', text: subtitle ?? '' });
+    const done = h('button', { type: 'button', class: 'pt-done menu_button', onclick: () => closeSheet() }, [doneLabel]);
+    target.head = h('div', { class: 'pt-head' }, [
+        h('div', { class: 'pt-grab', 'aria-hidden': 'true' }),
+        h('div', { class: 'pt-head-row' }, [
+            h('div', { class: 'pt-head-text' }, [target.title, target.subtitle]),
             done,
         ]),
     ]);
@@ -702,15 +702,15 @@ class Sheet {
 
     build() {
         const { picker } = this;
-        this.dialog = h('dialog', { id: 'stmui-sheet', class: 'stmui-sheet', 'aria-label': picker.title });
-        this.panel = h('div', { class: 'stmui-panel', tabindex: '-1' });
-        if (picker.items().length > 6) this.panel.classList.add('stmui-panel-fixed');
+        this.dialog = h('dialog', { id: 'pt-sheet', class: 'pt-sheet', 'aria-label': picker.title });
+        this.panel = h('div', { class: 'pt-panel', tabindex: '-1' });
+        if (picker.items().length > 6) this.panel.classList.add('pt-panel-fixed');
 
         buildSheetHead(this, picker.title, picker.config.subtitle, picker.multi ? 'Done' : 'Close');
 
         this.input = h('input', {
             type: 'search',
-            class: 'stmui-search-input text_pole',
+            class: 'pt-search-input text_pole',
             placeholder: picker.config.searchLabel ?? 'Search lorebooks',
             enterkeyhint: 'search',
             autocomplete: 'off',
@@ -730,7 +730,7 @@ class Sheet {
         });
         this.clearSearch = h('button', {
             type: 'button',
-            class: 'stmui-search-clear',
+            class: 'pt-search-clear',
             'aria-label': 'Clear search',
             onclick: () => {
                 this.input.value = '';
@@ -739,15 +739,15 @@ class Sheet {
                 this.input.focus();
             },
         }, [icon('fa-xmark')]);
-        this.searchBox = h('div', { class: 'stmui-search' }, [icon('fa-magnifying-glass stmui-search-icon'), this.input, this.clearSearch]);
+        this.searchBox = h('div', { class: 'pt-search' }, [icon('fa-magnifying-glass pt-search-icon'), this.input, this.clearSearch]);
 
-        this.tools = h('div', { class: 'stmui-tools' });
-        this.list = h('ul', { class: 'stmui-list', role: 'listbox', 'aria-multiselectable': picker.multi ? 'true' : 'false' });
-        this.status = h('p', { class: 'stmui-status', role: 'status', 'aria-live': 'polite' });
-        this.hint = h('p', { class: 'stmui-hint', text: picker.multi ? 'Changes apply as you tap.' : `Tap to choose${picker.config.noun ? '' : ' a lorebook'}.` });
+        this.tools = h('div', { class: 'pt-tools' });
+        this.list = h('ul', { class: 'pt-list', role: 'listbox', 'aria-multiselectable': picker.multi ? 'true' : 'false' });
+        this.status = h('p', { class: 'pt-status', role: 'status', 'aria-live': 'polite' });
+        this.hint = h('p', { class: 'pt-hint', text: picker.multi ? 'Changes apply as you tap.' : `Tap to choose${picker.config.noun ? '' : ' a lorebook'}.` });
 
-        this.controls = h('div', { class: 'stmui-controls' }, [this.searchBox, this.tools]);
-        this.panel.append(this.head, this.controls, this.list, h('div', { class: 'stmui-foot' }, [this.status, this.hint]));
+        this.controls = h('div', { class: 'pt-controls' }, [this.searchBox, this.tools]);
+        this.panel.append(this.head, this.controls, this.list, h('div', { class: 'pt-foot' }, [this.status, this.hint]));
         this.dialog.append(this.panel);
 
         wireSheet(this);
@@ -757,11 +757,11 @@ class Sheet {
     }
 
     onListClick(event) {
-        const row = event.target.closest('.stmui-row');
+        const row = event.target.closest('.pt-row');
         if (!row) return;
         const index = Number(row.dataset.index);
         const { picker } = this;
-        if (event.target.closest('.stmui-edit')) {
+        if (event.target.closest('.pt-edit')) {
             this.openInEditor(index);
             return;
         }
@@ -771,7 +771,7 @@ class Sheet {
             picker.commit(index, !option.selected);
         } else {
             const already = option.selected;
-            row.classList.add('stmui-row-flash');
+            row.classList.add('pt-row-flash');
             if (!already) picker.commit(index, true);
             else this.refresh();
             setTimeout(() => closeSheet(), 160);
@@ -800,22 +800,22 @@ class Sheet {
         const selectedCount = real.filter(item => item.selected).length;
         const seg = (id, label, count) => h('button', {
             type: 'button',
-            class: `stmui-seg ${this.filter === id ? 'stmui-seg-on' : ''}`,
+            class: `pt-seg ${this.filter === id ? 'pt-seg-on' : ''}`,
             'aria-pressed': String(this.filter === id),
             onclick: () => {
                 this.filter = id;
                 this.renderTools();
                 this.renderList(true);
             },
-        }, [label, h('span', { class: 'stmui-seg-count', raw: String(count) })]);
+        }, [label, h('span', { class: 'pt-seg-count', raw: String(count) })]);
         this.tools.append(
-            h('div', { class: 'stmui-segmented', role: 'group' }, [
+            h('div', { class: 'pt-segmented', role: 'group' }, [
                 seg('all', 'All', real.length),
                 seg('selected', 'Selected', selectedCount),
             ]),
             h('button', {
                 type: 'button',
-                class: 'stmui-clear-all menu_button',
+                class: 'pt-clear-all menu_button',
                 disabled: selectedCount === 0,
                 onclick: () => {
                     picker.clearAll();
@@ -867,27 +867,27 @@ class Sheet {
 
         for (const item of rows) {
             const badges = this.badgesFor(item, badgeCtx);
-            const mark = h('span', { class: 'stmui-mark', 'aria-hidden': 'true' }, [icon(picker.multi ? 'fa-check' : 'fa-circle')]);
-            const name = h('span', { class: `stmui-name ${item.isNone ? 'stmui-name-none' : ''}` }, item.isNone ? [document.createTextNode(t(item.text))] : highlight(item.text, this.query));
-            const main = h('span', { class: 'stmui-main' }, [
+            const mark = h('span', { class: 'pt-mark', 'aria-hidden': 'true' }, [icon(picker.multi ? 'fa-check' : 'fa-circle')]);
+            const name = h('span', { class: `pt-name ${item.isNone ? 'pt-name-none' : ''}` }, item.isNone ? [document.createTextNode(t(item.text))] : highlight(item.text, this.query));
+            const main = h('span', { class: 'pt-main' }, [
                 name,
-                badges.length ? h('span', { class: 'stmui-badges' }, badges.map(text => h('span', { class: 'stmui-badge', text }))) : null,
+                badges.length ? h('span', { class: 'pt-badges' }, badges.map(text => h('span', { class: 'pt-badge', text }))) : null,
             ]);
             const rowButton = h('button', {
                 type: 'button',
-                class: 'stmui-row-btn',
+                class: 'pt-row-btn',
                 role: 'option',
                 'aria-selected': String(item.selected),
             }, [mark, main]);
             const li = h('li', {
                 role: 'presentation',
-                class: `stmui-row ${item.selected ? 'stmui-row-on' : ''} ${item.isNone ? 'stmui-row-none' : ''}`,
+                class: `pt-row ${item.selected ? 'pt-row-on' : ''} ${item.isNone ? 'pt-row-none' : ''}`,
                 'data-index': String(item.index),
             }, [rowButton]);
             if (picker.config.editable && !item.isNone) {
                 li.append(h('button', {
                     type: 'button',
-                    class: 'stmui-edit',
+                    class: 'pt-edit',
                     title: 'Open in lorebook editor',
                     'aria-label': t('Open {name} in the lorebook editor', { name: item.text }),
                 }, [icon('fa-pen-to-square')]));
@@ -903,7 +903,7 @@ class Sheet {
             let message = 'Nothing matches your search.';
             if (!total) message = picker.config.noun ? 'No options available.' : 'No lorebooks found yet. Create one from the Lorebooks page.';
             else if (!q && this.filter === 'selected') message = 'Nothing selected yet.';
-            this.list.append(h('li', { class: 'stmui-empty', text: message }));
+            this.list.append(h('li', { class: 'pt-empty', text: message }));
         }
 
         const total = realItems.length;
@@ -915,7 +915,7 @@ class Sheet {
 
         if (resetScroll) this.list.scrollTop = 0;
         else this.list.scrollTop = previousScroll;
-        const firstSelected = this.list.querySelector('.stmui-row-on:not(.stmui-row-none)');
+        const firstSelected = this.list.querySelector('.pt-row-on:not(.pt-row-none)');
         if (resetScroll && !q && firstSelected && !picker.multi) {
             requestAnimationFrame(() => firstSelected.scrollIntoView({ block: 'center' }));
         }
@@ -931,10 +931,10 @@ class MenuSheet {
         this.picker = null;
         this.closing = false;
         this.fill = fill;
-        this.dialog = h('dialog', { id: 'stmui-sheet', class: 'stmui-sheet stmui-menu-sheet', 'aria-label': title });
-        this.panel = h('div', { class: 'stmui-panel', tabindex: '-1' });
+        this.dialog = h('dialog', { id: 'pt-sheet', class: 'pt-sheet pt-menu-sheet', 'aria-label': title });
+        this.panel = h('div', { class: 'pt-panel', tabindex: '-1' });
         buildSheetHead(this, title, subtitle, 'Close');
-        this.body = h('div', { class: 'stmui-menu-body' });
+        this.body = h('div', { class: 'pt-menu-body' });
         this.panel.append(this.head, this.body);
         this.dialog.append(this.panel);
         wireSheet(this);
@@ -960,9 +960,9 @@ function fitSheetToViewport() {
     if (!vv || !dialog) return;
     const height = `${Math.round(vv.height)}px`;
     const top = `${Math.round(vv.offsetTop)}px`;
-    if (dialog.style.getPropertyValue('--stmui-vv-height') !== height) dialog.style.setProperty('--stmui-vv-height', height);
-    if (dialog.style.getPropertyValue('--stmui-vv-top') !== top) dialog.style.setProperty('--stmui-vv-top', top);
-    dialog.classList.toggle('stmui-compact', vv.height < COMPACT_BELOW);
+    if (dialog.style.getPropertyValue('--pt-vv-height') !== height) dialog.style.setProperty('--pt-vv-height', height);
+    if (dialog.style.getPropertyValue('--pt-vv-top') !== top) dialog.style.setProperty('--pt-vv-top', top);
+    dialog.classList.toggle('pt-compact', vv.height < COMPACT_BELOW);
 }
 
 function viewportFollow() {
@@ -1010,8 +1010,8 @@ function syncToasts() {
 function showSheet(instance) {
     const previousFocus = sheet ? sheet.returnFocus : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     if (sheet) closeSheet(true);
-    // Clean up any fading-out sheet so there is never a duplicate #stmui-sheet ID.
-    for (const stale of document.querySelectorAll('dialog#stmui-sheet')) {
+    // Clean up any fading-out sheet so there is never a duplicate #pt-sheet ID.
+    for (const stale of document.querySelectorAll('dialog#pt-sheet')) {
         if (stale.open) stale.close();
         stale.remove();
     }
@@ -1019,7 +1019,7 @@ function showSheet(instance) {
     sheet.returnFocus = previousFocus;
     // The viewport follower runs all the time Pocket Tavern is on (see applyState);
     // here the new sheet only needs to know whether the screen is short.
-    sheet.dialog.classList.toggle('stmui-compact', (window.visualViewport?.height ?? window.innerHeight) < COMPACT_BELOW);
+    sheet.dialog.classList.toggle('pt-compact', (window.visualViewport?.height ?? window.innerHeight) < COMPACT_BELOW);
     // The language of its labels, so long words (a tile name on a narrow phone) break with a hyphen.
     sheet.dialog.lang = currentLang();
     fitSheetToViewport();
@@ -1028,7 +1028,7 @@ function showSheet(instance) {
     syncToasts();
     // Opening focuses the first field; make sure that did not scroll the sheet.
     sheet.dialog.scrollTop = 0;
-    requestAnimationFrame(() => sheet?.dialog.classList.add('stmui-sheet-open'));
+    requestAnimationFrame(() => sheet?.dialog.classList.add('pt-sheet-open'));
     sheet.panel.focus({ preventScroll: true });
     scheduleHistorySync();
 }
@@ -1059,7 +1059,7 @@ function closeSheet(immediate = false) {
         // New toasts during the fade-out go to the page, not into a dialog about to be removed.
         current.dialog.setAttribute('closing', '');
         syncToasts();
-        current.dialog.classList.remove('stmui-sheet-open');
+        current.dialog.classList.remove('pt-sheet-open');
         setTimeout(finish, 230);
     }
     scheduleHistorySync();
@@ -1132,7 +1132,7 @@ function saveEditor() {
 
 function syncEditorState() {
     const on = active && editorOpen();
-    document.documentElement.classList.toggle('stmui-editing', on);
+    document.documentElement.classList.toggle('pt-editing', on);
     if (on) {
         const box = editingTextarea();
         // SillyTavern sizes the box to its text; the page gives it the whole height instead.
@@ -1187,7 +1187,7 @@ const promptEdit = { open: false, snapshot: '' };
 function promptFormState() {
     const form = document.querySelector('#completion_prompt_manager_popup_edit .completion_prompt_manager_popup_entry_form');
     if (!form) return '';
-    return JSON.stringify(Array.from(form.querySelectorAll('input, select, textarea:not(#stmui_prompt_name)'), field => {
+    return JSON.stringify(Array.from(form.querySelectorAll('input, select, textarea:not(#pt_prompt_name)'), field => {
         if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
         if (field.multiple) return Array.from(field.selectedOptions, option => option.value).join('|');
         return field.value;
@@ -1212,15 +1212,15 @@ function leavePromptEditor(then) {
     showSheet(new MenuSheet({
         title: t('Leave without saving?'),
         subtitle: name || t('New prompt'),
-        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, [
-            actionRow(ui('save', 'stmui-menu-row-icon'), t('Save'), t('Save the prompt, then go on.'), () => {
+        fill: body => body.append(h('div', { class: 'pt-menu-list' }, [
+            actionRow(ui('save', 'pt-menu-row-icon'), t('Save'), t('Save the prompt, then go on.'), () => {
                 closeSheet(true);
                 // SillyTavern's Save also closes the editor.
                 document.getElementById('completion_prompt_manager_popup_entry_form_save')?.click();
                 then?.();
             }),
-            actionRow(ui('pencil', 'stmui-menu-row-icon'), t('Keep editing'), t('Stay in the editor.'), () => closeSheet()),
-            actionRow(ui('trash', 'stmui-menu-row-icon'), t('Discard changes'), t('Close the editor without saving.'), () => {
+            actionRow(ui('pencil', 'pt-menu-row-icon'), t('Keep editing'), t('Stay in the editor.'), () => closeSheet()),
+            actionRow(ui('trash', 'pt-menu-row-icon'), t('Discard changes'), t('Close the editor without saving.'), () => {
                 closeSheet(true);
                 closePromptEditor();
                 then?.();
@@ -1230,13 +1230,13 @@ function leavePromptEditor(then) {
 }
 
 function promptFull() {
-    return document.documentElement.classList.contains('stmui-prompt-full');
+    return document.documentElement.classList.contains('pt-prompt-full');
 }
 
 /** Full screen: the prompt text gets the whole editor (and on a computer, the whole width). */
 function setPromptFull(on) {
     if (promptFull() === on) return;
-    document.documentElement.classList.toggle('stmui-prompt-full', on);
+    document.documentElement.classList.toggle('pt-prompt-full', on);
     syncPromptFullButton();
     // A mouse goes straight to the text; on a phone the keyboard waits for a tap.
     if (on && matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -1246,17 +1246,17 @@ function setPromptFull(on) {
 
 function syncPromptFullButton() {
     const footer = document.querySelector('#completion_prompt_manager_popup_edit .completion_prompt_manager_popup_entry_form_footer');
-    let button = document.getElementById('stmui_prompt_full');
+    let button = document.getElementById('pt_prompt_full');
     if (!active || !settings.appShell || !settings.touchSizing || !footer) {
         button?.remove();
-        document.documentElement.classList.remove('stmui-prompt-full');
+        document.documentElement.classList.remove('pt-prompt-full');
         return;
     }
     if (!button) {
         button = h('button', {
             type: 'button',
-            id: 'stmui_prompt_full',
-            class: 'menu_button stmui-prompt-full-btn',
+            id: 'pt_prompt_full',
+            class: 'menu_button pt-prompt-full-btn',
             onclick: () => {
                 buzz(6);
                 setPromptFull(!promptFull());
@@ -1285,7 +1285,7 @@ function syncPromptEditorSession() {
         promptEdit.open = false;
         promptEdit.snapshot = '';
     }
-    if (mode !== 'edit') document.documentElement.classList.remove('stmui-prompt-full');
+    if (mode !== 'edit') document.documentElement.classList.remove('pt-prompt-full');
     syncPromptFullButton();
 }
 
@@ -1296,17 +1296,17 @@ function syncPromptEditorSession() {
 function syncPromptNameBox() {
     const input = document.getElementById('completion_prompt_manager_popup_entry_form_name');
     if (!input) return;
-    let box = document.getElementById('stmui_prompt_name');
+    let box = document.getElementById('pt_prompt_name');
     const want = active && settings.touchSizing;
     if (!want) {
         box?.remove();
-        input.classList.remove('stmui-native-hidden');
+        input.classList.remove('pt-native-hidden');
         return;
     }
     if (!box) {
         box = h('textarea', {
-            id: 'stmui_prompt_name',
-            class: 'text_pole stmui-prompt-name',
+            id: 'pt_prompt_name',
+            class: 'text_pole pt-prompt-name',
             rows: '1',
             'aria-label': 'Prompt name',
             enterkeyhint: 'done',
@@ -1328,7 +1328,7 @@ function syncPromptNameBox() {
             shell?.update();
         });
         input.after(box);
-        input.classList.add('stmui-native-hidden');
+        input.classList.add('pt-native-hidden');
     }
     if (document.activeElement !== box && box.value !== input.value) box.value = input.value;
     box.disabled = input.disabled;
@@ -1403,7 +1403,7 @@ function syncHistory() {
         if (want > nav.depth) {
             while (nav.depth < want) {
                 nav.depth += 1;
-                history.pushState({ stmui: nav.depth }, '');
+                history.pushState({ pt: nav.depth }, '');
             }
         } else if (want < nav.depth) {
             const steps = nav.depth - want;
@@ -1478,7 +1478,7 @@ function onPopState(event) {
         nav.depth -= 1;
         closeTopLayer();
         scheduleHistorySync(400);
-    } else if (event.state?.stmui) {
+    } else if (event.state?.pt) {
         // A leftover entry from before a reload: nothing is open, so keep going back.
         history.back();
     }
@@ -1617,7 +1617,7 @@ class Shell {
         // ---- top app bar
         this.back = h('button', {
             type: 'button',
-            class: 'stmui-ab-btn stmui-ab-back',
+            class: 'pt-ab-btn pt-ab-back',
             'aria-label': 'Back',
             // Step back one level: prompt full-screen / dirty check first, then settings section, then page.
             onclick: () => {
@@ -1629,17 +1629,17 @@ class Shell {
                 if (!closePageSection()) closePages();
             },
         }, [ui('arrow-left')]);
-        this.avatar = h('span', { class: 'stmui-ab-avatar', 'aria-hidden': 'true' });
-        this.titleEl = h('span', { class: 'stmui-ab-title' });
-        this.subEl = h('span', { class: 'stmui-ab-sub' });
-        this.who = h('button', { type: 'button', class: 'stmui-ab-who', onclick: () => this.onWhoClick() }, [
+        this.avatar = h('span', { class: 'pt-ab-avatar', 'aria-hidden': 'true' });
+        this.titleEl = h('span', { class: 'pt-ab-title' });
+        this.subEl = h('span', { class: 'pt-ab-sub' });
+        this.who = h('button', { type: 'button', class: 'pt-ab-who', onclick: () => this.onWhoClick() }, [
             this.avatar,
-            h('span', { class: 'stmui-ab-text' }, [this.titleEl, this.subEl]),
+            h('span', { class: 'pt-ab-text' }, [this.titleEl, this.subEl]),
         ]);
-        this.translateBadge = h('span', { class: 'stmui-ab-badge', 'aria-hidden': 'true' });
+        this.translateBadge = h('span', { class: 'pt-ab-badge', 'aria-hidden': 'true' });
         this.translateBtn = h('button', {
             type: 'button',
-            class: 'stmui-ab-btn stmui-ab-translate',
+            class: 'pt-ab-btn pt-ab-translate',
             'aria-label': 'Translate chat',
             title: 'Tap to translate, hold to pick the language',
         }, [ui('languages'), this.translateBadge]);
@@ -1671,18 +1671,18 @@ class Shell {
             buzz(6);
             quickTranslate();
         });
-        this.actions = h('div', { class: 'stmui-ab-actions' }, [
+        this.actions = h('div', { class: 'pt-ab-actions' }, [
             this.translateBtn,
             h('button', {
                 type: 'button',
-                class: 'stmui-ab-btn stmui-ab-chats',
+                class: 'pt-ab-btn pt-ab-chats',
                 'aria-label': 'Chat history',
                 title: 'Chat history',
                 onclick: () => document.getElementById('option_select_chat')?.click(),
             }, [ui('history')]),
             h('button', {
                 type: 'button',
-                class: 'stmui-ab-btn stmui-ab-new',
+                class: 'pt-ab-btn pt-ab-new',
                 'aria-label': 'Start a new chat',
                 title: 'New chat',
                 onclick: () => document.getElementById('option_start_new_chat')?.click(),
@@ -1690,7 +1690,7 @@ class Shell {
         ]);
         this.quick = h('button', {
             type: 'button',
-            class: 'stmui-ab-btn stmui-ab-quick',
+            class: 'pt-ab-btn pt-ab-quick',
             'aria-label': t('Quick switch'),
             title: t('Quick switch'),
             onclick: () => {
@@ -1700,32 +1700,32 @@ class Shell {
         }, [ui('zap')]);
         this.search = h('button', {
             type: 'button',
-            class: 'stmui-ab-btn stmui-ab-search',
+            class: 'pt-ab-btn pt-ab-search',
             'aria-label': t('Find a setting'),
             title: t('Find a setting'),
             onclick: () => (currentPageId() ? openSettingSearch() : openGlobalSearch()),
         }, [ui('search')]);
         this.home = h('button', {
             type: 'button',
-            class: 'stmui-ab-btn stmui-ab-home',
+            class: 'pt-ab-btn pt-ab-home',
             'aria-label': 'Recent chats',
             title: 'Recent chats',
             onclick: () => goHome(),
         }, [ui('home')]);
-        this.appbar = h('header', { id: 'stmui-appbar', class: 'stmui-appbar', 'data-stmui': '1' }, [this.back, this.home, this.who, this.search, this.quick, this.actions]);
+        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.home, this.who, this.search, this.quick, this.actions]);
 
         // ---- bottom tab bar
         this.tabs = new Map();
         const tabButtons = TABS.map(tab => {
             const button = h('button', {
                 type: 'button',
-                class: 'stmui-tab',
+                class: 'pt-tab',
                 'data-tab': tab.id,
                 'aria-label': tab.label,
                 onclick: () => this.onTab(tab.id),
             }, [
-                h('span', { class: 'stmui-tab-icon' }, [ui(tab.icon)]),
-                h('span', { class: 'stmui-tab-label', text: tab.label }),
+                h('span', { class: 'pt-tab-icon' }, [ui(tab.icon)]),
+                h('span', { class: 'pt-tab-label', text: tab.label }),
             ]);
             this.tabs.set(tab.id, button);
             return button;
@@ -1736,22 +1736,22 @@ class Shell {
             const info = PAGES[id];
             const button = h('button', {
                 type: 'button',
-                class: 'stmui-tab stmui-tab-page',
+                class: 'pt-tab pt-tab-page',
                 'data-tab': id,
                 'aria-label': info.title,
                 title: info.title,
                 onclick: () => this.onTab(id),
             }, [
-                h('span', { class: 'stmui-tab-icon' }, [ui(info.icon)]),
-                h('span', { class: 'stmui-tab-label', text: info.title }),
+                h('span', { class: 'pt-tab-icon' }, [ui(info.icon)]),
+                h('span', { class: 'pt-tab-label', text: info.title }),
             ]);
             this.pageTabs.set(id, button);
             return button;
         });
-        const rule = h('span', { class: 'stmui-rail-rule', 'aria-hidden': 'true' });
+        const rule = h('span', { class: 'pt-rail-rule', 'aria-hidden': 'true' });
         // One pill slides between tabs instead of each tab fading its own background.
-        this.indicator = h('span', { class: 'stmui-tab-indicator', 'aria-hidden': 'true' });
-        this.tabbar = h('nav', { id: 'stmui-tabbar', class: 'stmui-tabbar', 'aria-label': 'Main', 'data-stmui': '1' }, [
+        this.indicator = h('span', { class: 'pt-tab-indicator', 'aria-hidden': 'true' });
+        this.tabbar = h('nav', { id: 'pt-tabbar', class: 'pt-tabbar', 'aria-label': 'Main', 'data-pt': '1' }, [
             this.indicator, ...tabButtons.slice(0, -1), rule, ...pageButtons, tabButtons[tabButtons.length - 1],
         ]);
 
@@ -1805,20 +1805,20 @@ class Shell {
         const root = document.documentElement;
         const can = this.inChat && tabsTuckable();
         if (!can) this.tabsOut = false;
-        root.classList.toggle('stmui-tabs-tuckable', can);
+        root.classList.toggle('pt-tabs-tuckable', can);
         this.setTucked(can && !this.tabsOut, animate);
         syncTabsButton();
     }
 
     setTucked(on, animate) {
         const root = document.documentElement;
-        if (root.classList.contains('stmui-tabs-tucked') === on) return;
+        if (root.classList.contains('pt-tabs-tucked') === on) return;
         const form = document.getElementById('form_sheld');
         const chat = document.getElementById('chat');
         const atBottom = !!chat && chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
-        const glide = animate && motionAllowed() && form && !root.classList.contains('stmui-keyboard');
+        const glide = animate && motionAllowed() && form && !root.classList.contains('pt-keyboard');
         const before = glide ? form.getBoundingClientRect().top : 0;
-        root.classList.toggle('stmui-tabs-tucked', on);
+        root.classList.toggle('pt-tabs-tucked', on);
         if (atBottom) chat.scrollTop = chat.scrollHeight;
         if (!glide) return;
         // Coming back it slides up from the bottom edge (going away, CSS slides it down).
@@ -1834,7 +1834,7 @@ class Shell {
 
     /** The arrow in the message box: show the tabs, or put them away again. */
     toggleTabs() {
-        this.tabsOut = document.documentElement.classList.contains('stmui-tabs-tucked');
+        this.tabsOut = document.documentElement.classList.contains('pt-tabs-tucked');
         this.syncTuck(true);
     }
 
@@ -1864,9 +1864,9 @@ class Shell {
         this.appbar.remove();
         this.tabbar.remove();
         const root = document.documentElement;
-        root.classList.remove('stmui-page-open', 'stmui-keyboard', 'stmui-prompt-editor', 'stmui-prompt-full', 'stmui-tabs-tucked', 'stmui-tabs-tuckable');
+        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable');
         syncTabsButton();
-        delete root.dataset.stmuiPage;
+        delete root.dataset.ptPage;
     }
 
     /**
@@ -1876,9 +1876,9 @@ class Shell {
      */
     checkKeyboard() {
         const root = document.documentElement;
-        if (root.classList.contains('stmui-wide')) {
+        if (root.classList.contains('pt-desktop')) {
             this.endGlide();
-            root.classList.remove('stmui-keyboard');
+            root.classList.remove('pt-keyboard');
             this.lastHeight = window.innerHeight;
             return;
         }
@@ -1890,7 +1890,7 @@ class Shell {
         // iPhones and iPads keep the page height and shrink only the visible part.
         const visible = IS_IOS && window.visualViewport ? window.visualViewport.height : height;
         const keyboard = typing && visible < (IS_IOS ? height : this.keyboardBase.height) * (IS_IOS ? 0.85 : 0.78);
-        const was = root.classList.contains('stmui-keyboard');
+        const was = root.classList.contains('pt-keyboard');
         const before = this.lastHeight;
         this.lastHeight = height;
         if (height === before && keyboard === was) return;
@@ -1900,7 +1900,7 @@ class Shell {
         // Where the chat ended on the screen before: the window already has its
         // new height here, so take the change back out.
         const oldBottom = sheld ? sheld.getBoundingClientRect().bottom - (height - before) : 0;
-        root.classList.toggle('stmui-keyboard', keyboard);
+        root.classList.toggle('pt-keyboard', keyboard);
         // Tabs that were out when you started typing go away with the keyboard, in the same frame.
         if (keyboard && this.tuckPending) {
             this.tuckPending = false;
@@ -1917,7 +1917,7 @@ class Shell {
         };
         keepBottom();
         const glide = Math.abs(shift) >= 8 && motionAllowed() && !IS_IOS
-            && !root.classList.contains('stmui-editing') && !currentPageId() && !sheet;
+            && !root.classList.contains('pt-editing') && !currentPageId() && !sheet;
         if (!glide) return;
         const timing = { duration: 240, easing: EASE };
         if (shift < 0) {
@@ -1995,9 +1995,9 @@ class Shell {
      */
     placeRailPill() {
         const button = this.tabs.get(this.railTab) ?? this.pageTabs.get(this.railTab);
-        const iconBox = button?.querySelector('.stmui-tab-icon');
+        const iconBox = button?.querySelector('.pt-tab-icon');
         if (!iconBox || !button.offsetParent) return;
-        this.tabbar.style.setProperty('--stmui-tab-y', `${button.offsetTop + iconBox.offsetTop}px`);
+        this.tabbar.style.setProperty('--pt-tab-y', `${button.offsetTop + iconBox.offsetTop}px`);
     }
 
     setSearchLabel(label) {
@@ -2049,8 +2049,8 @@ class Shell {
         if (before && before !== this.titleEl.textContent) {
             // Two classes with the same animation: switching restarts it without forcing a layout.
             this.swapFlip = !this.swapFlip;
-            this.who.classList.toggle('stmui-ab-swap', this.swapFlip);
-            this.who.classList.toggle('stmui-ab-swap-b', !this.swapFlip);
+            this.who.classList.toggle('pt-ab-swap', this.swapFlip);
+            this.who.classList.toggle('pt-ab-swap-b', !this.swapFlip);
         }
     }
 
@@ -2058,17 +2058,17 @@ class Shell {
         const root = document.documentElement;
         // Settings and Formatting open on their list of sections again next time.
         for (const nav of PAGE_SECTIONS) if (nav.pageId !== pageId) nav.reset();
-        root.classList.toggle('stmui-page-open', !!pageId);
-        if (pageId) root.dataset.stmuiPage = pageId;
-        else delete root.dataset.stmuiPage;
+        root.classList.toggle('pt-page-open', !!pageId);
+        if (pageId) root.dataset.ptPage = pageId;
+        else delete root.dataset.ptPage;
 
         const wide = isWide();
         let tabId = 'chat';
         if (pageId) tabId = this.tabs.has(pageId) || (wide && this.pageTabs.has(pageId)) ? pageId : 'more';
-        this.tabbar.style.setProperty('--stmui-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
+        this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
         for (const [id, button] of [...this.tabs, ...this.pageTabs]) {
             const on = id === tabId;
-            button.classList.toggle('stmui-tab-on', on);
+            button.classList.toggle('pt-tab-on', on);
             if (on) button.setAttribute('aria-current', 'page');
             else button.removeAttribute('aria-current');
         }
@@ -2097,10 +2097,10 @@ class Shell {
             const info = drawer ? pageInfo(drawer) : { title: '', icon: 'fa-gear' };
             this.titleEl.textContent = t(info.title);
             this.subEl.textContent = t(info.long ?? '');
-            this.subEl.classList.remove('stmui-ab-offline');
+            this.subEl.classList.remove('pt-ab-offline');
             // Switch back to "Presets" as soon as the editor starts sliding away.
             const editorMode = promptEditorOpen() ? promptEditorMode() : null;
-            root.classList.toggle('stmui-prompt-editor', !!editorMode);
+            root.classList.toggle('pt-prompt-editor', !!editorMode);
             if (editorMode === 'edit') {
                 const name = document.getElementById('completion_prompt_manager_popup_entry_form_name')?.value?.trim();
                 this.titleEl.textContent = t('Edit prompt');
@@ -2128,16 +2128,16 @@ class Shell {
             this.setSearchLabel(t('Find a setting'));
             this.quick.hidden = true;
             this.avatar.replaceChildren(ui(headIcon));
-            this.avatar.classList.add('stmui-ab-avatar-icon');
+            this.avatar.classList.add('pt-ab-avatar-icon');
             this.who.disabled = true;
-            this.appbar.classList.add('stmui-ab-page');
+            this.appbar.classList.add('pt-ab-page');
             this.inChat = false;
             this.syncTuck();
             return;
         }
 
-        this.appbar.classList.remove('stmui-ab-page');
-        root.classList.remove('stmui-prompt-editor');
+        this.appbar.classList.remove('pt-ab-page');
+        root.classList.remove('pt-prompt-editor');
         // Outside a page the same button searches everything (the start screen shows it).
         this.setSearchLabel(t('Search everything'));
         this.quick.hidden = false;
@@ -2163,8 +2163,8 @@ class Shell {
         const connected = status && status !== 'no_connection';
         // Some APIs report "Valid" (the key check) instead of a model name; never translate raw model names.
         this.subEl.textContent = !connected ? t('Not connected') : (/^valid$/i.test(String(status)) ? t('Connected') : String(status));
-        this.subEl.classList.toggle('stmui-ab-offline', !connected);
-        this.avatar.classList.remove('stmui-ab-avatar-icon');
+        this.subEl.classList.toggle('pt-ab-offline', !connected);
+        this.avatar.classList.remove('pt-ab-avatar-icon');
         if (image) {
             const existingImg = this.avatar.firstElementChild;
             if (!(existingImg instanceof HTMLImageElement) || existingImg.getAttribute('src') !== image) {
@@ -2176,7 +2176,7 @@ class Shell {
         this.actions.hidden = !hasChat;
         this.search.hidden = hasChat;
         const shownIn = hasChat ? chatLanguage() : null;
-        this.translateBtn.classList.toggle('stmui-ab-on', !!shownIn);
+        this.translateBtn.classList.toggle('pt-ab-on', !!shownIn);
         const next = shownIn ?? quickLanguage();
         this.translateBadge.textContent = next ? next.split('-')[0].toUpperCase() : '';
         this.translateBadge.hidden = !next;
@@ -2189,18 +2189,18 @@ class Shell {
 
 function tabsTuckable() {
     const root = document.documentElement;
-    return active && settings.appShell && settings.chatStyle && settings.hideTabsInChat && !root.classList.contains('stmui-wide');
+    return active && settings.appShell && settings.chatStyle && settings.hideTabsInChat && !root.classList.contains('pt-desktop');
 }
 
 function syncTabsButton() {
     const button = composer.tabs;
     if (!button) return;
-    const tucked = document.documentElement.classList.contains('stmui-tabs-tucked');
+    const tucked = document.documentElement.classList.contains('pt-tabs-tucked');
     const label = t(tucked ? 'Show tabs' : 'Hide tabs');
     button.setAttribute('aria-expanded', String(!tucked));
     button.setAttribute('aria-label', label);
     button.title = label;
-    button.classList.toggle('stmui-tabs-btn-out', !tucked);
+    button.classList.toggle('pt-tabs-btn-out', !tucked);
 }
 
 function openMoreSheet() {
@@ -2226,46 +2226,46 @@ function openMoreSheet() {
                 if (drawer.id === 'sys-settings-button') note = status && status !== 'no_connection' ? 'Connected' : 'Not connected';
                 return h('button', {
                     type: 'button',
-                    class: `stmui-tile ${openId === drawer.id ? 'stmui-tile-on' : ''} ${drawer.id === 'sys-settings-button' && note === 'Not connected' ? 'stmui-tile-warn' : ''}`,
+                    class: `pt-tile ${openId === drawer.id ? 'pt-tile-on' : ''} ${drawer.id === 'sys-settings-button' && note === 'Not connected' ? 'pt-tile-warn' : ''}`,
                     onclick: () => {
                         closeSheet(true);
                         openPage(drawer.id);
                     },
                 }, [
-                    h('span', { class: 'stmui-tile-icon' }, [ui(info.icon)]),
-                    h('span', { class: 'stmui-tile-label', text: info.title }),
-                    note ? h('span', { class: 'stmui-tile-note', text: note }) : null,
+                    h('span', { class: 'pt-tile-icon' }, [ui(info.icon)]),
+                    h('span', { class: 'pt-tile-label', text: info.title }),
+                    note ? h('span', { class: 'pt-tile-note', text: note }) : null,
                 ]);
             });
             body.append(h('button', {
                 type: 'button',
-                class: 'stmui-search-field',
+                class: 'pt-search-field',
                 onclick: () => openGlobalSearch(),
-            }, [ui('search'), h('span', { text: 'Search everything' }), isWide() ? h('kbd', { class: 'stmui-kbd', text: IS_MAC ? '⌘K' : 'Ctrl K' }) : null]));
+            }, [ui('search'), h('span', { text: 'Search everything' }), isWide() ? h('kbd', { class: 'pt-kbd', text: IS_MAC ? '⌘K' : 'Ctrl K' }) : null]));
             // One or two pages left (the desktop rail lists the rest) read as rows, not a lone tile in a grid.
             const pageRows = tiles.length > 0 && tiles.length < 3 ? drawers.map(drawer => h('button', {
                 type: 'button',
-                class: 'stmui-menu-row',
+                class: 'pt-menu-row',
                 onclick: () => {
                     closeSheet(true);
                     openPage(drawer.id);
                 },
-            }, [ui(pageInfo(drawer).icon, 'stmui-menu-row-icon'), h('span', { text: pageInfo(drawer).title }), ui('chevron-right', 'stmui-menu-row-go')])) : [];
-            if (tiles.length >= 3) body.append(h('div', { class: 'stmui-tiles' }, tiles));
+            }, [ui(pageInfo(drawer).icon, 'pt-menu-row-icon'), h('span', { text: pageInfo(drawer).title }), ui('chevron-right', 'pt-menu-row-go')])) : [];
+            if (tiles.length >= 3) body.append(h('div', { class: 'pt-tiles' }, tiles));
 
             const context = ctx();
             const inChat = !!(context.groupId || context.characterId !== undefined);
             const row = (iconName, label, onclick, disabled = false) => h('button', {
-                type: 'button', class: 'stmui-menu-row', disabled, onclick,
-            }, [ui(iconName, 'stmui-menu-row-icon'), h('span', { text: t(label) }), ui('chevron-right', 'stmui-menu-row-go')]);
+                type: 'button', class: 'pt-menu-row', disabled, onclick,
+            }, [ui(iconName, 'pt-menu-row-icon'), h('span', { text: t(label) }), ui('chevron-right', 'pt-menu-row-go')]);
             const themeName = currentTheme()?.name ?? t('Your theme');
-            body.append(h('div', { class: 'stmui-menu-list' }, [
+            body.append(h('div', { class: 'pt-menu-list' }, [
                 ...pageRows,
                 h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row stmui-menu-row-theme',
+                    class: 'pt-menu-row pt-menu-row-theme',
                     onclick: () => openThemeSheet(),
-                }, [ui('palette', 'stmui-menu-row-icon'), h('span', { text: 'Themes' }), h('small', { class: 'stmui-menu-row-note', text: themeName }), ui('chevron-right', 'stmui-menu-row-go')]),
+                }, [ui('palette', 'pt-menu-row-icon'), h('span', { text: 'Themes' }), h('small', { class: 'pt-menu-row-note', text: themeName }), ui('chevron-right', 'pt-menu-row-go')]),
                 row('home', 'Recent chats', () => {
                     closeSheet(true);
                     goHome();
@@ -2305,7 +2305,7 @@ function openMobileSettings() {
     openPage('extensions-settings-button');
     setTimeout(() => {
         // The container uses `display: contents`, so scroll to the drawer inside it.
-        const drawer = document.querySelector('#stmui_settings .inline-drawer');
+        const drawer = document.querySelector('#pt_settings .inline-drawer');
         if (!drawer) return;
         const content = drawer.querySelector('.inline-drawer-content');
         if (content && getComputedStyle(content).display === 'none') drawer.querySelector('.inline-drawer-toggle')?.click();
@@ -2330,7 +2330,7 @@ function updateRangeFill(input) {
     const max = input.max === '' ? 100 : Number(input.max);
     const value = Number(input.value);
     const percent = max > min ? Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100)) : 0;
-    input.style.setProperty('--stmui-fill', `${percent.toFixed(1)}%`);
+    input.style.setProperty('--pt-fill', `${percent.toFixed(1)}%`);
 }
 
 function fillRanges(root = document) {
@@ -2339,15 +2339,15 @@ function fillRanges(root = document) {
 
 function watchRanges(on) {
     const $ = $j();
-    $(document).off('.stmuiRange');
+    $(document).off('.ptRange');
     if (on) {
         // jQuery delegation sees both real input and SillyTavern's own .trigger('input').
-        $(document).on('input.stmuiRange change.stmuiRange', 'input[type="range"]', function () {
+        $(document).on('input.ptRange change.ptRange', 'input[type="range"]', function () {
             updateRangeFill(this);
         });
         fillRanges();
     } else {
-        for (const input of document.querySelectorAll('input[type="range"]')) input.style.removeProperty('--stmui-fill');
+        for (const input of document.querySelectorAll('input[type="range"]')) input.style.removeProperty('--pt-fill');
     }
 }
 
@@ -2396,10 +2396,10 @@ const TOAST_ICONS = { success: 'circle-check', info: 'info', warning: 'alert-tri
 
 function toastIconCss() {
     return Object.entries(TOAST_ICONS)
-        .map(([type, name]) => `html.stmui-toasts #toast-container > .toast-${type} { --stmui-t-icon: ${iconUrl(name)}; }`)
+        .map(([type, name]) => `html.pt-toasts #toast-container > .toast-${type} { --pt-t-icon: ${iconUrl(name)}; }`)
         .join(' ')
         // A grey magnifier drawn inside search boxes.
-        + ` html.stmui-on { --stmui-search-icon: ${iconUrl('search', '#909090')}; --stmui-think-icon: ${iconUrl('bulb')}; --stmui-regen-icon: ${iconUrl('refresh')}; --stmui-chev-down-icon: ${iconUrl('chevron-down')}; --stmui-chev-up-icon: ${iconUrl('chevron-up')}; --stmui-info-icon: ${iconUrl('info')}; --stmui-warn-icon: ${iconUrl('alert-triangle')}; --stmui-error-icon: ${iconUrl('alert-circle')}; --stmui-ok-icon: ${iconUrl('circle-check')}; }`;
+        + ` html.pt-on { --pt-search-icon: ${iconUrl('search', '#909090')}; --pt-think-icon: ${iconUrl('bulb')}; --pt-regen-icon: ${iconUrl('refresh')}; --pt-chev-down-icon: ${iconUrl('chevron-down')}; --pt-chev-up-icon: ${iconUrl('chevron-up')}; --pt-info-icon: ${iconUrl('info')}; --pt-warn-icon: ${iconUrl('alert-triangle')}; --pt-error-icon: ${iconUrl('alert-circle')}; --pt-ok-icon: ${iconUrl('circle-check')}; }`;
 }
 
 /** A Pocket Tavern theme (not a SillyTavern one): only these have a background of their own. */
@@ -2419,14 +2419,14 @@ function chatBackgroundSet() {
 }
 
 /**
- * A chat background shows (html.stmui-glass): the chat turns clear and messages
+ * A chat background shows (html.pt-glass): the chat turns clear and messages
  * become tinted cards over the picture. Off when a Pocket Tavern theme shows its
  * own background, or when no background picture is set.
  */
 function syncGlass() {
     const root = document.documentElement;
     const own = active && ownThemeOn() && settings.themeBackdrop;
-    root.classList.toggle('stmui-glass', active && !own && chatBackgroundSet());
+    root.classList.toggle('pt-glass', active && !own && chatBackgroundSet());
 }
 
 const glassWatch = { observer: null, frame: 0 };
@@ -2458,27 +2458,27 @@ function watchBackground() {
 function applyAppearance() {
     const root = document.documentElement;
     const theme = active ? currentTheme() : null;
-    root.classList.toggle('stmui-themed', !!theme);
+    root.classList.toggle('pt-themed', !!theme);
     // SillyTavern's themes have no background of their own: your chat background always shows, as in SillyTavern.
-    root.classList.toggle('stmui-backdrop', !!theme && ownThemeOn() && settings.themeBackdrop);
+    root.classList.toggle('pt-backdrop', !!theme && ownThemeOn() && settings.themeBackdrop);
     syncGlass();
     watchBackground();
-    root.classList.toggle('stmui-font', active && settings.modernFont);
-    root.classList.toggle('stmui-icons', active && settings.customIcons);
-    root.classList.toggle('stmui-toasts', active && settings.niceToasts);
-    for (const level of Object.keys(MOTION_LABELS)) root.classList.toggle(`stmui-motion-${level}`, active && settings.motion === level);
-    if (theme) root.dataset.stmuiTheme = theme.id;
-    else delete root.dataset.stmuiTheme;
+    root.classList.toggle('pt-font', active && settings.modernFont);
+    root.classList.toggle('pt-icons', active && settings.customIcons);
+    root.classList.toggle('pt-toasts', active && settings.niceToasts);
+    for (const level of Object.keys(MOTION_LABELS)) root.classList.toggle(`pt-motion-${level}`, active && settings.motion === level);
+    if (theme) root.dataset.ptTheme = theme.id;
+    else delete root.dataset.ptTheme;
 
     if (active) {
-        ensureStyle('stmui-theme-css').textContent = themeCss(theme, 'html.stmui-on.stmui-themed') + toastIconCss();
+        ensureStyle('pt-theme-css').textContent = themeCss(theme, 'html.pt-on.pt-themed') + toastIconCss();
         if (settings.customIcons) {
-            const icons = ensureStyle('stmui-icons-css');
-            if (!icons.textContent) icons.textContent = iconCss('html.stmui-icons');
+            const icons = ensureStyle('pt-icons-css');
+            if (!icons.textContent) icons.textContent = iconCss('html.pt-icons');
         }
     } else {
-        document.getElementById('stmui-theme-css')?.remove();
-        document.getElementById('stmui-icons-css')?.remove();
+        document.getElementById('pt-theme-css')?.remove();
+        document.getElementById('pt-icons-css')?.remove();
     }
     syncThemeColor(theme);
     syncChatStyleForTheme();
@@ -2498,7 +2498,7 @@ function revealChange(origin, change) {
     const x = rect ? rect.left + rect.width / 2 : innerWidth / 2;
     const y = rect ? rect.top + rect.height / 2 : innerHeight / 2;
     const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-    root.classList.add('stmui-vt');
+    root.classList.add('pt-vt');
     // The browser runs the change once it has captured the old look. If that capture
     // is ever delayed (busy or backgrounded page), apply the change anyway.
     let done = false;
@@ -2515,7 +2515,7 @@ function revealChange(origin, change) {
             { duration: 240, easing: EASE, pseudoElement: '::view-transition-new(root)' },
         );
     }).catch(() => {});
-    transition.finished.catch(() => {}).finally(() => root.classList.remove('stmui-vt'));
+    transition.finished.catch(() => {}).finally(() => root.classList.remove('pt-vt'));
 }
 
 function setAppearance(key, value, origin) {
@@ -2623,17 +2623,17 @@ function previewColors(theme) {
 function themeCard(theme, current, raw = null) {
     const id = theme?.id ?? 'st';
     const colors = previewColors(theme);
-    const preview = h('span', { class: 'stmui-theme-preview', 'aria-hidden': 'true' }, [
-        h('span', { class: 'stmui-tp-bar' }, [h('span', { class: 'stmui-tp-dot' }), h('span', { class: 'stmui-tp-line' })]),
-        h('span', { class: 'stmui-tp-msg stmui-tp-bot' }),
-        h('span', { class: 'stmui-tp-msg stmui-tp-user' }),
-        h('span', { class: 'stmui-tp-tabs' }, [h('span', { class: 'stmui-tp-pill' })]),
+    const preview = h('span', { class: 'pt-theme-preview', 'aria-hidden': 'true' }, [
+        h('span', { class: 'pt-tp-bar' }, [h('span', { class: 'pt-tp-dot' }), h('span', { class: 'pt-tp-line' })]),
+        h('span', { class: 'pt-tp-msg pt-tp-bot' }),
+        h('span', { class: 'pt-tp-msg pt-tp-user' }),
+        h('span', { class: 'pt-tp-tabs' }, [h('span', { class: 'pt-tp-pill' })]),
     ]);
     for (const [key, value] of Object.entries(colors)) preview.style.setProperty(`--p-${key}`, value);
     const selected = current === id;
     return h('button', {
         type: 'button',
-        class: `stmui-theme-card ${selected ? 'stmui-theme-on' : ''}`,
+        class: `pt-theme-card ${selected ? 'pt-theme-on' : ''}`,
         'aria-pressed': String(selected),
         'data-theme': id,
         onclick: event => {
@@ -2656,30 +2656,30 @@ function themeCard(theme, current, raw = null) {
         },
     }, [
         preview,
-        h('span', { class: 'stmui-theme-name' }, [
+        h('span', { class: 'pt-theme-name' }, [
             h('span', raw ? { raw: theme.name } : { text: theme?.name ?? 'Your theme' }),
-            selected ? h('span', { class: 'stmui-theme-check' }, [ui('check')]) : null,
+            selected ? h('span', { class: 'pt-theme-check' }, [ui('check')]) : null,
         ]),
-        h('span', { class: 'stmui-theme-note', text: theme?.note ?? 'Your SillyTavern colors' }),
+        h('span', { class: 'pt-theme-note', text: theme?.note ?? 'Your SillyTavern colors' }),
     ]);
 }
 
 function switchRow(key, label, hint) {
-    const input = h('input', { type: 'checkbox', class: 'stmui-switch', role: 'switch' });
+    const input = h('input', { type: 'checkbox', class: 'pt-switch', role: 'switch' });
     input.checked = !!settings[key];
     input.addEventListener('change', () => setAppearance(key, input.checked));
-    return h('label', { class: 'stmui-switch-row' }, [
-        h('span', { class: 'stmui-switch-text' }, [h('span', { text: label }), hint ? h('small', { text: hint }) : null]),
+    return h('label', { class: 'pt-switch-row' }, [
+        h('span', { class: 'pt-switch-text' }, [h('span', { text: label }), hint ? h('small', { text: hint }) : null]),
         input,
     ]);
 }
 
 function motionControl() {
     const names = { full: 'Smooth', light: 'Light', off: 'Off' };
-    return h('div', { class: 'stmui-segmented stmui-motion-seg', role: 'group', 'aria-label': 'Animations' },
+    return h('div', { class: 'pt-segmented pt-motion-seg', role: 'group', 'aria-label': 'Animations' },
         Object.keys(names).map(level => h('button', {
             type: 'button',
-            class: `stmui-seg ${settings.motion === level ? 'stmui-seg-on' : ''}`,
+            class: `pt-seg ${settings.motion === level ? 'pt-seg-on' : ''}`,
             'aria-pressed': String(settings.motion === level),
             onclick: () => setAppearance('motion', level),
         }, [names[level]])));
@@ -2689,14 +2689,14 @@ function motionControl() {
 function chatWidthControl() {
     const source = document.getElementById('chat_width_slider');
     if (!source) return null;
-    const value = h('span', { class: 'stmui-width-value', 'aria-hidden': 'true' });
-    const input = h('input', { type: 'range', class: 'stmui-width-range', min: source.min || '25', max: source.max || '100', step: '1', 'aria-label': 'Chat width' });
+    const value = h('span', { class: 'pt-width-value', 'aria-hidden': 'true' });
+    const input = h('input', { type: 'range', class: 'pt-width-range', min: source.min || '25', max: source.max || '100', step: '1', 'aria-label': 'Chat width' });
     input.value = source.value;
     // The filled part of the track ends under the knob (as a 0–1 share of the range).
     const show = () => {
         const min = Number(input.min);
         const max = Number(input.max);
-        input.style.setProperty('--stmui-share', String(max > min ? (Number(input.value) - min) / (max - min) : 0));
+        input.style.setProperty('--pt-share', String(max > min ? (Number(input.value) - min) / (max - min) : 0));
         value.textContent = `${input.value}%`;
     };
     show();
@@ -2704,15 +2704,15 @@ function chatWidthControl() {
         show();
         $j()(source).val(input.value).trigger('input', { forced: true });
     });
-    return h('div', { class: 'stmui-width-row' }, [input, value]);
+    return h('div', { class: 'pt-width-row' }, [input, value]);
 }
 
 /** A row of choices for one setting, like Size or Message box. */
 function choiceControl(key, names, label) {
-    return h('div', { class: 'stmui-segmented stmui-look-seg', role: 'group', 'aria-label': label },
+    return h('div', { class: 'pt-segmented pt-look-seg', role: 'group', 'aria-label': label },
         Object.entries(names).map(([value, text]) => h('button', {
             type: 'button',
-            class: `stmui-seg ${settings[key] === value ? 'stmui-seg-on' : ''}`,
+            class: `pt-seg ${settings[key] === value ? 'pt-seg-on' : ''}`,
             'aria-pressed': String(settings[key] === value),
             onclick: () => setAppearance(key, value),
         }, [text])));
@@ -2723,47 +2723,47 @@ function openThemeSheet() {
         if (sheet && sheet.fill === fill && !sheet.closing) sheet.refresh();
     };
     const fill = body => {
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Pocket Tavern' }));
-            body.append(h('div', { class: 'stmui-themes' }, THEMES.map(theme => themeCard(theme, settings.theme))));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Pocket Tavern' }));
+            body.append(h('div', { class: 'pt-themes' }, THEMES.map(theme => themeCard(theme, settings.theme))));
             // SillyTavern's UI themes live here instead of in Settings → Look, made to fit.
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'From SillyTavern' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'From SillyTavern' }));
             const fromSt = (stThemes.list ?? []).map(raw => [themeFromSillyTavern(raw), raw]).filter(([theme]) => theme);
-            body.append(h('div', { class: 'stmui-themes stmui-themes-st' }, [themeCard(null, settings.theme), ...fromSt.map(([theme, raw]) => themeCard(theme, settings.theme, raw))]));
-            body.append(h('p', { class: 'stmui-menu-foot', text: stThemes.list ? "Your SillyTavern themes with Pocket Tavern's look. \"Your theme\" keeps SillyTavern's colors exactly as they are." : 'Loading your SillyTavern themes…' }));
+            body.append(h('div', { class: 'pt-themes pt-themes-st' }, [themeCard(null, settings.theme), ...fromSt.map(([theme, raw]) => themeCard(theme, settings.theme, raw))]));
+            body.append(h('p', { class: 'pt-menu-foot', text: stThemes.list ? "Your SillyTavern themes with Pocket Tavern's look. \"Your theme\" keeps SillyTavern's colors exactly as they are." : 'Loading your SillyTavern themes…' }));
             if (document.getElementById('ui_preset_import_button')) {
-                body.append(h('div', { class: 'stmui-menu-list' }, [h('button', {
+                body.append(h('div', { class: 'pt-menu-list' }, [h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row stmui-st-import',
+                    class: 'pt-menu-row pt-st-import',
                     onclick: () => importSillyTavernTheme(refresh),
-                }, [ui('file-import', 'stmui-menu-row-icon'), h('span', { class: 'stmui-row-text' }, [h('span', { text: 'Import a SillyTavern theme' }), h('small', { text: 'A theme file (.json) from SillyTavern' })])])]));
+                }, [ui('file-import', 'pt-menu-row-icon'), h('span', { class: 'pt-row-text' }, [h('span', { text: 'Import a SillyTavern theme' }), h('small', { text: 'A theme file (.json) from SillyTavern' })])])]));
             }
             if (!stThemes.list) loadSillyTavernThemes().then(refresh);
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Look and feel' }));
-            body.append(h('div', { class: 'stmui-menu-list' }, [
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Look and feel' }));
+            body.append(h('div', { class: 'pt-menu-list' }, [
                 switchRow('themeBackdrop', 'Theme background', 'Use the theme\'s backdrop instead of your chat background.'),
                 switchRow('modernFont', 'Modern font', isWide() ? "Your computer's own system font, crisp at every size." : 'Your phone\'s own system font, crisp at every size.'),
                 switchRow('customIcons', 'New icons', 'Rounded line icons everywhere.'),
             ]));
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Chat look' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Chat look' }));
             body.append(chatLookControl());
             const stStyle = stChatStyleName();
-            if (stStyle) body.append(h('p', { class: 'stmui-menu-foot', text: t("SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.", { style: t(stStyle) }) }));
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Size' }));
+            if (stStyle) body.append(h('p', { class: 'pt-menu-foot', text: t("SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.", { style: t(stStyle) }) }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Size' }));
             body.append(choiceControl('uiSize', SIZES, 'Size'));
-            body.append(h('p', { class: 'stmui-menu-foot', text: SIZE_NOTES[settings.uiSize] ?? '' }));
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Message box' }));
+            body.append(h('p', { class: 'pt-menu-foot', text: SIZE_NOTES[settings.uiSize] ?? '' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Message box' }));
             body.append(choiceControl('composerStyle', COMPOSER_STYLES, 'Message box'));
-            body.append(h('p', { class: 'stmui-menu-foot', text: COMPOSER_NOTES[settings.composerStyle] ?? '' }));
+            body.append(h('p', { class: 'pt-menu-foot', text: COMPOSER_NOTES[settings.composerStyle] ?? '' }));
             // The desktop layout (a computer, a tablet held sideways): how wide the chat column is.
-            const width = document.documentElement.classList.contains('stmui-wide') ? chatWidthControl() : null;
+            const width = document.documentElement.classList.contains('pt-desktop') ? chatWidthControl() : null;
             if (width) {
-                body.append(h('p', { class: 'stmui-menu-heading', text: 'Chat width' }));
+                body.append(h('p', { class: 'pt-menu-heading', text: 'Chat width' }));
                 body.append(width);
-                body.append(h('p', { class: 'stmui-menu-foot', text: "How much of a wide screen the chat uses. The same as Chat width in SillyTavern's settings." }));
+                body.append(h('p', { class: 'pt-menu-foot', text: "How much of a wide screen the chat uses. The same as Chat width in SillyTavern's settings." }));
             }
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Animations' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Animations' }));
             body.append(motionControl());
-            body.append(h('p', { class: 'stmui-menu-foot', text: MOTION_LABELS[settings.motion] }));
+            body.append(h('p', { class: 'pt-menu-foot', text: MOTION_LABELS[settings.motion] }));
     };
     showSheet(new MenuSheet({
         title: 'Themes',
@@ -2811,7 +2811,7 @@ function longSelectConfig(select) {
 // ------------------------------------------------------------------ scan
 
 function matchTarget(select) {
-    if (select.closest('.template_element, #character_world_template, #stmui-sheet')) return null;
+    if (select.closest('.template_element, #character_world_template, #pt-sheet')) return null;
     for (const target of LOREBOOK_TARGETS) {
         if (select.matches(target.selector)) return target;
     }
@@ -2841,7 +2841,7 @@ function scan() {
     if (settings.longSelects) {
         for (const select of document.querySelectorAll('select:not([multiple])')) {
             if (pickers.has(select) || select.matches(LONG_SELECT_EXCLUDE)) continue;
-            if (select.closest('#stmui-sheet, .stmui-settings') || select.options.length < LONG_SELECT_MIN_OPTIONS) continue;
+            if (select.closest('#pt-sheet, .pt-settings') || select.options.length < LONG_SELECT_MIN_OPTIONS) continue;
             pickers.set(select, new Picker(select, longSelectConfig(select)));
         }
     }
@@ -2906,7 +2906,7 @@ function stopObserver() {
 // ------------------------------------------------------------- wand entry
 
 function syncWandShortcut() {
-    const existing = document.getElementById('stmui_wand_container');
+    const existing = document.getElementById('pt_wand_container');
     const want = active && settings.wandShortcut && settings.lorebookPicker;
     if (!want) {
         if (existing) {
@@ -2922,7 +2922,7 @@ function syncWandShortcut() {
     const menu = document.getElementById('extensionsMenu');
     if (!menu) return;
     const item = h('div', {
-        id: 'stmui_wand_lorebooks',
+        id: 'pt_wand_lorebooks',
         class: 'list-group-item flex-container flexGap5 interactable',
         tabindex: '0',
         role: 'button',
@@ -2940,7 +2940,7 @@ function syncWandShortcut() {
             }
         },
     }, [h('div', { class: 'fa-solid fa-book-atlas extensionsMenuExtensionButton' }), h('span', { text: 'Lorebooks' })]);
-    menu.append(h('div', { id: 'stmui_wand_container', class: 'extension_container' }, [item]));
+    menu.append(h('div', { id: 'pt_wand_container', class: 'extension_container' }, [item]));
     const button = document.getElementById('extensionsMenuButton');
     if (button) {
         wandDisplay.value = button.style.display;
@@ -2985,11 +2985,11 @@ function buzz(pattern = 10) {
 /** A short press on the send button when you send (Light motion and Smooth alike). */
 function playSendFx(button) {
     if (!active || !settings.sendEffect || !settings.chatStyle || !motionAllowed()) return;
-    button.classList.remove('stmui-launch');
+    button.classList.remove('pt-launch');
     void button.offsetWidth;
-    button.classList.add('stmui-launch');
+    button.classList.add('pt-launch');
     window.clearTimeout(playSendFx.timer);
-    playSendFx.timer = window.setTimeout(() => button.classList.remove('stmui-launch'), 300);
+    playSendFx.timer = window.setTimeout(() => button.classList.remove('pt-launch'), 300);
 }
 
 function onSendPointerDown(event) {
@@ -3016,9 +3016,9 @@ function onChatScroll() {
         // Not on the start screen: there is no "latest message" there, and it covered the chat list.
         // (No chat open = the start screen; cheaper than searching a long chat on every frame.)
         const welcome = ctx().getCurrentChatId?.() === undefined;
-        extras.jump.classList.toggle('stmui-jump-on', !welcome && (distance > Math.max(320, chat.clientHeight * 0.7) || (extras.generating && distance > 150)));
+        extras.jump.classList.toggle('pt-jump-on', !welcome && (distance > Math.max(320, chat.clientHeight * 0.7) || (extras.generating && distance > 150)));
         // While a reply streams in below, the button says so.
-        extras.jump.classList.toggle('stmui-jump-new', extras.generating && distance > 150);
+        extras.jump.classList.toggle('pt-jump-new', extras.generating && distance > 150);
     });
 }
 
@@ -3037,14 +3037,14 @@ function syncJumpButton() {
     if (extras.jump) return;
     extras.jump = h('button', {
         type: 'button',
-        class: 'stmui-jump',
+        class: 'pt-jump',
         'aria-label': 'Jump to the latest message',
         title: 'Latest message',
         onclick: () => {
             buzz(8);
             chat.scrollTo({ top: chat.scrollHeight, behavior: motionAllowed() ? 'smooth' : 'auto' });
         },
-    }, [ui('arrow-down'), h('span', { class: 'stmui-jump-label', text: 'New text' })]);
+    }, [ui('arrow-down'), h('span', { class: 'pt-jump-label', text: 'New text' })]);
     shieldFromDrawerAutoClose(extras.jump);
     sheld.append(extras.jump);
     chat.addEventListener('scroll', onChatScroll, { passive: true });
@@ -3058,7 +3058,7 @@ function draftKeyNow() {
     const chatId = context.getCurrentChatId?.() ?? context.chatId;
     if (!chatId) return null;
     const owner = context.groupId ? `g:${context.groupId}` : (context.characterId !== undefined ? `c:${context.characters?.[context.characterId]?.avatar ?? context.characterId}` : null);
-    return owner ? `stmui_draft:${owner}:${chatId}` : null;
+    return owner ? `pt_draft:${owner}:${chatId}` : null;
 }
 
 function readDraft(key) {
@@ -3087,7 +3087,7 @@ function writeDraft(key, value) {
 const focusGuard = { until: 0, tapped: 0, target: null, at: 0 };
 
 /** Where SillyTavern (and Pocket Tavern) put text you edit. */
-const EDIT_AREAS = '#chat, #WorldInfo, #world_popup, #completion_prompt_manager_popup, #persona-management-block, #rm_ch_create_block, #stmui-sheet';
+const EDIT_AREAS = '#chat, #WorldInfo, #world_popup, #completion_prompt_manager_popup, #persona-management-block, #rm_ch_create_block, #pt-sheet';
 
 function guardKeyboard(ms = 2500) {
     focusGuard.until = Date.now() + ms;
@@ -3101,13 +3101,13 @@ function onFocusGuardPointer(event) {
     focusGuard.at = Date.now();
     if (target.closest('#send_form')) focusGuard.tapped = Date.now();
     // Opening a chat from a list: the focus that follows is not yours.
-    else if (target.closest('.recentChat, .stmui-group-main, .character_select, .group_select, .select_chat_block, .stmui-choice, .stmui-search-hit')) guardKeyboard(3500);
+    else if (target.closest('.recentChat, .pt-group-main, .character_select, .group_select, .select_chat_block, .pt-choice, .pt-search-hit')) guardKeyboard(3500);
 }
 
 function onFocusGuardFocus(event) {
     const box = event.target;
     if (!active || isWide() || !(box instanceof HTMLTextAreaElement)) return;
-    if (box.dataset.stmuiCopy) return;
+    if (box.dataset.ptCopy) return;
     const now = Date.now();
     if (box.id === 'send_textarea') {
         if (now < focusGuard.until && now - focusGuard.tapped > 1200) box.blur();
@@ -3168,7 +3168,7 @@ function draftKeyWithText(text, except) {
     try {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key?.startsWith('stmui_draft:') && key !== except && localStorage.getItem(key) === text) return key;
+            if (key?.startsWith('pt_draft:') && key !== except && localStorage.getItem(key) === text) return key;
         }
     } catch {
         // Storage blocked.
@@ -3258,10 +3258,10 @@ function onEditCopyClick(event) {
     showSheet(new MenuSheet({
         title: 'Copy',
         subtitle: 'What would you like to do?',
-        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, [
+        fill: body => body.append(h('div', { class: 'pt-menu-list' }, [
             h('button', {
                 type: 'button',
-                class: 'stmui-menu-row',
+                class: 'pt-menu-row',
                 onclick: async () => {
                     const text = textOf();
                     closeSheet(true);
@@ -3269,13 +3269,13 @@ function onEditCopyClick(event) {
                     if (ok) globalThis.toastr?.success(t('Text copied.'), '', { timeOut: 2000 });
                     else globalThis.toastr?.error(t('Your browser blocked copying. Select the text and copy it instead.'), t('Could not copy'));
                 },
-            }, [ui('copy', 'stmui-menu-row-icon'), h('span', { class: 'stmui-row-text' }, [
+            }, [ui('copy', 'pt-menu-row-icon'), h('span', { class: 'pt-row-text' }, [
                 h('span', { text: 'Copy text' }),
                 h('small', { text: 'Put the message text on the clipboard.' }),
             ])]),
             h('button', {
                 type: 'button',
-                class: 'stmui-menu-row',
+                class: 'pt-menu-row',
                 onclick: () => {
                     closeSheet(true);
                     const chatId = ctx().getCurrentChatId?.();
@@ -3294,7 +3294,7 @@ function onEditCopyClick(event) {
                     };
                     check();
                 },
-            }, [ui('file-plus', 'stmui-menu-row-icon'), h('span', { class: 'stmui-row-text' }, [
+            }, [ui('file-plus', 'pt-menu-row-icon'), h('span', { class: 'pt-row-text' }, [
                 h('span', { text: 'Duplicate message' }),
                 h('small', { text: 'Add a second copy of this message to the chat, right below it.' }),
             ])]),
@@ -3319,7 +3319,7 @@ function onMessageMenuClick(event) {
  * network address (http://192.168...) is not a "secure" page, so Chrome hides it.
  */
 function copyWithFallback(text) {
-    const area = h('textarea', { readonly: '', 'aria-hidden': 'true', 'data-stmui-copy': '1' });
+    const area = h('textarea', { readonly: '', 'aria-hidden': 'true', 'data-pt-copy': '1' });
     area.value = text;
     // Off screen, 16px so Android does not zoom, inside the topmost open dialog so it can be focused.
     area.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0;font-size:16px;';
@@ -3369,7 +3369,7 @@ function patchClipboard() {
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
             value: {
-                stmui: true,
+                pt: true,
                 writeText: text => (copyWithFallback(String(text)) ? Promise.resolve() : Promise.reject(new Error('Copy failed'))),
                 // Reading needs a secure page; fail the way a browser would instead of throwing "not a function".
                 readText: () => Promise.reject(new DOMException('Reading the clipboard needs HTTPS', 'NotAllowedError')),
@@ -3382,7 +3382,7 @@ function patchClipboard() {
 
 /** Turning Pocket Tavern off takes back the stand-in clipboard. */
 function unpatchClipboard() {
-    if (!navigator.clipboard?.stmui) return;
+    if (!navigator.clipboard?.pt) return;
     try {
         delete navigator.clipboard;
     } catch {
@@ -3408,7 +3408,7 @@ function openMessageMenu(message) {
         subtitle: preview.length > 90 ? `${preview.slice(0, 90)}…` : preview,
         fill: body => {
             if (!message.isConnected) {
-                body.append(h('p', { class: 'stmui-menu-foot', text: 'This message is no longer in the chat.' }));
+                body.append(h('p', { class: 'pt-menu-foot', text: 'This message is no longer in the chat.' }));
                 return;
             }
             const buttons = Array.from(message.querySelectorAll('.mes_buttons .mes_button'))
@@ -3420,8 +3420,8 @@ function openMessageMenu(message) {
             buttons.sort((a, b) => rank(a) - rank(b));
             const rows = buttons.map(button => {
                 const faClass = Array.from(button.classList).find(name => name.startsWith('fa-') && !['fa-solid', 'fa-regular', 'fa-fw', 'fa-xs', 'fa-sm', 'fa-lg'].includes(name));
-                return h('button', { type: 'button', class: 'stmui-menu-row', onclick: () => run(button) }, [
-                    faClass ? ui(faClass, 'stmui-menu-row-icon') : ui('puzzle', 'stmui-menu-row-icon'),
+                return h('button', { type: 'button', class: 'pt-menu-row', onclick: () => run(button) }, [
+                    faClass ? ui(faClass, 'pt-menu-row-icon') : ui('puzzle', 'pt-menu-row-icon'),
                     h('span', { text: messageActionLabel(button) }),
                 ]);
             });
@@ -3429,7 +3429,7 @@ function openMessageMenu(message) {
             if (edit && getComputedStyle(edit).display !== 'none') {
                 rows.push(h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row stmui-menu-row-danger',
+                    class: 'pt-menu-row pt-menu-row-danger',
                     onclick: () => {
                         closeSheet(true);
                         // SillyTavern deletes from edit mode and asks to confirm first. The editor
@@ -3442,9 +3442,9 @@ function openMessageMenu(message) {
                         };
                         setTimeout(pressDelete, 60);
                     },
-                }, [ui('trash', 'stmui-menu-row-icon'), h('span', { text: 'Delete message' })]));
+                }, [ui('trash', 'pt-menu-row-icon'), h('span', { text: 'Delete message' })]));
             }
-            body.append(h('div', { class: 'stmui-menu-list' }, rows));
+            body.append(h('div', { class: 'pt-menu-list' }, rows));
         },
     }));
 }
@@ -3463,22 +3463,22 @@ const PERSONA_TOOLS = [
 
 function syncPersonaTabs() {
     const block = document.getElementById('persona-management-block');
-    let bar = document.getElementById('stmui_persona_tabs');
+    let bar = document.getElementById('pt_persona_tabs');
     const want = active && settings.touchSizing && block;
     // With the new character pages on, personas look like them: picture cards and a card with labeled tools.
     const look = !!(want && settings.charPage);
-    document.documentElement.classList.toggle('stmui-personapage', look);
+    document.documentElement.classList.toggle('pt-personapage', look);
     for (const [selector, label] of PERSONA_TOOLS) {
         const button = document.querySelector(selector);
-        const tag = button?.querySelector(':scope > .stmui-btn-label');
-        if (look && button && !tag) button.append(h('span', { class: 'stmui-btn-label', text: label }));
+        const tag = button?.querySelector(':scope > .pt-btn-label');
+        if (look && button && !tag) button.append(h('span', { class: 'pt-btn-label', text: label }));
         else if (!look) tag?.remove();
     }
-    if (!look) document.querySelectorAll('#user_avatar_block .stmui-default-badge').forEach(node => node.remove());
+    if (!look) document.querySelectorAll('#user_avatar_block .pt-default-badge').forEach(node => node.remove());
     if (!want) {
         bar?.remove();
-        document.querySelector('#persona_controls .stmui-persona-face')?.remove();
-        block?.classList.remove('stmui-persona-split', 'stmui-persona-edit');
+        document.querySelector('#persona_controls .pt-persona-face')?.remove();
+        block?.classList.remove('pt-persona-split', 'pt-persona-edit');
         extras.personaObserver?.disconnect();
         extras.personaObserver = null;
         return;
@@ -3487,20 +3487,20 @@ function syncPersonaTabs() {
         const tab = (mode, iconName, label) => h('button', {
             type: 'button',
             role: 'tab',
-            class: 'stmui-seg',
+            class: 'pt-seg',
             'data-mode': mode,
             onclick: () => {
-                block.classList.toggle('stmui-persona-edit', mode === 'edit');
+                block.classList.toggle('pt-persona-edit', mode === 'edit');
                 updatePersonaTabs();
                 block.closest('.drawer-content')?.scrollTo?.({ top: 0 });
             },
-        }, [ui(iconName), h('span', { class: 'stmui-seg-text', text: label })]);
-        bar = h('div', { id: 'stmui_persona_tabs', class: 'stmui-segmented stmui-persona-tabs', role: 'tablist' }, [
+        }, [ui(iconName), h('span', { class: 'pt-seg-text', text: label })]);
+        bar = h('div', { id: 'pt_persona_tabs', class: 'pt-segmented pt-persona-tabs', role: 'tablist' }, [
             tab('list', 'users', 'All personas'),
             tab('edit', 'pencil', 'Edit current'),
         ]);
         block.before(bar);
-        block.classList.add('stmui-persona-split');
+        block.classList.add('pt-persona-split');
         // The list re-renders when you pick someone, and the name changes with it.
         extras.personaObserver = new MutationObserver(updatePersonaTabs);
         const name = document.getElementById('your_name');
@@ -3513,26 +3513,26 @@ function syncPersonaTabs() {
 
 function updatePersonaTabs() {
     const block = document.getElementById('persona-management-block');
-    const bar = document.getElementById('stmui_persona_tabs');
+    const bar = document.getElementById('pt_persona_tabs');
     if (!block || !bar) return;
-    const editing = block.classList.contains('stmui-persona-edit');
+    const editing = block.classList.contains('pt-persona-edit');
     const name = document.getElementById('your_name')?.textContent?.trim();
-    for (const button of bar.querySelectorAll('.stmui-seg')) {
+    for (const button of bar.querySelectorAll('.pt-seg')) {
         const on = (button.dataset.mode === 'edit') === editing;
-        button.classList.toggle('stmui-seg-on', on);
+        button.classList.toggle('pt-seg-on', on);
         button.setAttribute('aria-selected', String(on));
         if (button.dataset.mode === 'edit') {
             const label = name && name !== '[Persona Name]' ? t('Edit {name}', { name }) : t('Edit current');
-            const text = button.querySelector('.stmui-seg-text');
+            const text = button.querySelector('.pt-seg-text');
             if (text.textContent !== label) text.textContent = label;
         }
     }
     // Picture cards: a crown on your default persona (SillyTavern only rings its picture in gold).
-    if (document.documentElement.classList.contains('stmui-personapage')) {
+    if (document.documentElement.classList.contains('pt-personapage')) {
         for (const card of document.querySelectorAll('#user_avatar_block .avatar-container')) {
-            const badge = card.querySelector(':scope > .stmui-default-badge');
+            const badge = card.querySelector(':scope > .pt-default-badge');
             const isDefault = card.classList.contains('default_persona');
-            if (isDefault && !badge) card.append(h('span', { class: 'stmui-default-badge', title: t('Default persona'), 'aria-label': t('Default persona') }, [ui('crown')]));
+            if (isDefault && !badge) card.append(h('span', { class: 'pt-default-badge', title: t('Default persona'), 'aria-label': t('Default persona') }, [ui('crown')]));
             else if (!isDefault && badge) badge.remove();
         }
     }
@@ -3540,9 +3540,9 @@ function updatePersonaTabs() {
     const controls = document.getElementById('persona_controls');
     const src = document.querySelector('#user_avatar_block .avatar-container.selected img')?.getAttribute('src');
     if (controls) {
-        let face = controls.querySelector('.stmui-persona-face');
+        let face = controls.querySelector('.pt-persona-face');
         if (!face) {
-            face = h('span', { class: 'stmui-persona-face', 'aria-hidden': 'true' }, [h('img', { alt: '' })]);
+            face = h('span', { class: 'pt-persona-face', 'aria-hidden': 'true' }, [h('img', { alt: '' })]);
             controls.prepend(face);
         }
         const img = face.querySelector('img');
@@ -3625,7 +3625,7 @@ function onAvatarClick(event) {
     const shown = img.getAttribute('src');
     // Sharp pictures put a small scaled copy (a blob: URL) in the avatar; the
     // thumbnail SillyTavern asked for still tells us which original to open.
-    const source = shown.startsWith('blob:') && img.dataset.stmuiThumb ? img.dataset.stmuiThumb : shown;
+    const source = shown.startsWith('blob:') && img.dataset.ptThumb ? img.dataset.ptThumb : shown;
     openViewer({
         thumb: shown,
         full: fullImageUrl(source),
@@ -3643,7 +3643,7 @@ class Viewer {
         this.lastTap = { t: 0, x: 0, y: 0 };
         this.tapTimer = 0;
 
-        this.img = h('img', { class: 'stmui-viewer-img', alt: title, draggable: 'false', src: thumb });
+        this.img = h('img', { class: 'pt-viewer-img', alt: title, draggable: 'false', src: thumb });
         if (full && full !== thumb) {
             const loader = new Image();
             loader.onload = () => {
@@ -3652,17 +3652,17 @@ class Viewer {
             loader.src = full;
         }
         const button = (iconName, label, onclick, extra = '') => h('button', {
-            type: 'button', class: `stmui-viewer-btn ${extra}`, 'aria-label': label, title: label, onclick,
+            type: 'button', class: `pt-viewer-btn ${extra}`, 'aria-label': label, title: label, onclick,
         }, [ui(iconName)]);
         this.zoomButton = button('zoom-in', 'Zoom in', () => this.toggleZoom());
-        this.stage = h('div', { class: 'stmui-viewer-stage' }, [this.img]);
-        this.dialog = h('dialog', { class: 'stmui-viewer', 'aria-label': title, lang: currentLang() }, [
-            h('div', { class: 'stmui-viewer-top' }, [
-                h('span', { class: 'stmui-viewer-title', raw: title }),
-                button('x', 'Close', () => closeViewer(), 'stmui-viewer-close'),
+        this.stage = h('div', { class: 'pt-viewer-stage' }, [this.img]);
+        this.dialog = h('dialog', { class: 'pt-viewer', 'aria-label': title, lang: currentLang() }, [
+            h('div', { class: 'pt-viewer-top' }, [
+                h('span', { class: 'pt-viewer-title', raw: title }),
+                button('x', 'Close', () => closeViewer(), 'pt-viewer-close'),
             ]),
             this.stage,
-            h('div', { class: 'stmui-viewer-bar' }, [
+            h('div', { class: 'pt-viewer-bar' }, [
                 this.zoomButton,
                 button('rotate-cw', 'Rotate', () => this.rotate()),
                 button('external', 'Open full size', () => window.open(this.full, '_blank', 'noopener')),
@@ -3692,7 +3692,7 @@ class Viewer {
         const { scale, x, y, rot } = this.state;
         this.img.style.transition = animate ? 'transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
         this.img.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rot}deg)`;
-        this.dialog.classList.toggle('stmui-viewer-zoomed', scale > 1.01);
+        this.dialog.classList.toggle('pt-viewer-zoomed', scale > 1.01);
         const icon = scale > 1.01 ? 'zoom-out' : 'zoom-in';
         if (this.zoomButton.dataset.icon !== icon) {
             this.zoomButton.dataset.icon = icon;
@@ -3798,7 +3798,7 @@ class Viewer {
             this.dismissY = dy;
             this.img.style.transition = 'none';
             this.img.style.transform = `translate(0, ${dy}px) scale(${1 - Math.min(dy, 300) / 1500}) rotate(${this.state.rot}deg)`;
-            this.dialog.style.setProperty('--stmui-viewer-fade', String(Math.max(0, 1 - dy / 350)));
+            this.dialog.style.setProperty('--pt-viewer-fade', String(Math.max(0, 1 - dy / 350)));
         }
     }
 
@@ -3820,7 +3820,7 @@ class Viewer {
         }
         if (this.dismissY) {
             this.dismissY = 0;
-            this.dialog.style.removeProperty('--stmui-viewer-fade');
+            this.dialog.style.removeProperty('--pt-viewer-fade');
             this.apply(true);
             return;
         }
@@ -3835,7 +3835,7 @@ class Viewer {
             return;
         }
         this.lastTap = { t: now, x: event.clientX, y: event.clientY };
-        this.tapTimer = window.setTimeout(() => this.dialog.classList.toggle('stmui-viewer-bare'), 300);
+        this.tapTimer = window.setTimeout(() => this.dialog.classList.toggle('pt-viewer-bare'), 300);
     }
 }
 
@@ -3847,7 +3847,7 @@ function openViewer(options) {
     document.body.append(viewer.dialog);
     viewer.dialog.showModal();
     syncToasts();
-    requestAnimationFrame(() => viewer?.dialog.classList.add('stmui-viewer-open'));
+    requestAnimationFrame(() => viewer?.dialog.classList.add('pt-viewer-open'));
     scheduleHistorySync();
 }
 
@@ -3872,7 +3872,7 @@ function closeViewer(immediate = false) {
         // New toasts during the fade-out go to the page, not into a dialog about to be removed.
         current.dialog.setAttribute('closing', '');
         syncToasts();
-        current.dialog.classList.remove('stmui-viewer-open');
+        current.dialog.classList.remove('pt-viewer-open');
         setTimeout(finish, 220);
     }
     scheduleHistorySync();
@@ -3923,7 +3923,7 @@ function chatLanguage() {
     const chat = ctx().chat ?? [];
     const translated = chat.find(message => message?.extra?.display_text);
     if (!translated) return null;
-    return translated.extra.stmui_lang ?? translateSettings()?.target_language ?? null;
+    return translated.extra.pt_lang ?? translateSettings()?.target_language ?? null;
 }
 
 function setTargetLanguage(code) {
@@ -3941,12 +3941,12 @@ function setTargetLanguage(code) {
 function translateStatus(text, { done = false, failed = false } = {}) {
     let status = translation.status;
     if (!status) {
-        status = h('div', { class: 'stmui-banner stmui-banner-info', role: 'status', 'aria-live': 'polite' }, [
-            ui('languages', 'stmui-banner-icon'),
-            h('span', { class: 'stmui-banner-text' }, [h('b'), h('small')]),
+        status = h('div', { class: 'pt-banner pt-banner-info', role: 'status', 'aria-live': 'polite' }, [
+            ui('languages', 'pt-banner-icon'),
+            h('span', { class: 'pt-banner-text' }, [h('b'), h('small')]),
             h('button', {
                 type: 'button',
-                class: 'stmui-banner-btn',
+                class: 'pt-banner-btn',
                 onclick: () => {
                     translation.cancel = true;
                 },
@@ -3956,19 +3956,19 @@ function translateStatus(text, { done = false, failed = false } = {}) {
         document.body.append(status);
         translation.status = status;
     }
-    const [title, note] = status.querySelectorAll('.stmui-banner-text > *');
+    const [title, note] = status.querySelectorAll('.pt-banner-text > *');
     title.textContent = text;
     note.textContent = failed ? t('Some messages could not be translated. Check your internet connection.') : '';
     note.hidden = !failed;
-    status.querySelector('.stmui-banner-btn').hidden = done;
-    status.classList.toggle('stmui-banner-ok', done && !failed);
+    status.querySelector('.pt-banner-btn').hidden = done;
+    status.classList.toggle('pt-banner-ok', done && !failed);
     window.clearTimeout(translation.hideTimer);
     translation.hideTimer = 0;
     if (done) {
         translation.hideTimer = window.setTimeout(() => {
             translation.hideTimer = 0;
             if (translation.status !== status || translation.running) return;
-            status.classList.add('stmui-banner-out');
+            status.classList.add('pt-banner-out');
             setTimeout(() => status.remove(), 250);
             translation.status = null;
         }, failed ? 5000 : 1800);
@@ -4048,7 +4048,7 @@ function messageSource(message) {
 function applyTranslation(id, message, code, text) {
     if (typeof message.extra !== 'object' || !message.extra) message.extra = {};
     message.extra.display_text = text;
-    message.extra.stmui_lang = code;
+    message.extra.pt_lang = code;
     ctx().updateMessageBlock?.(Number(id), message);
 }
 
@@ -4152,7 +4152,7 @@ async function translateChat(code) {
     for (let id = chat.length - 1; id >= 0; id--) {
         const message = chat[id];
         if (!message || message.is_system || !String(message.mes ?? '').trim()) continue;
-        if (message.extra?.display_text && message.extra?.stmui_lang === code) continue;
+        if (message.extra?.display_text && message.extra?.pt_lang === code) continue;
         todo.push(id);
     }
     const name = languageName(code);
@@ -4216,9 +4216,9 @@ function queueAutoTranslate(id) {
 /** An edited or swiped message must not keep showing its old translation. */
 function dropTranslation(id) {
     const message = ctx().chat?.[Number(id)];
-    if (!message?.extra?.stmui_lang) return;
+    if (!message?.extra?.pt_lang) return;
     delete message.extra.display_text;
-    delete message.extra.stmui_lang;
+    delete message.extra.pt_lang;
 }
 
 async function showOriginal() {
@@ -4229,7 +4229,7 @@ async function showOriginal() {
         if (!message?.extra?.display_text && !message?.extra?.reasoning_display_text) return;
         delete message.extra.display_text;
         delete message.extra.reasoning_display_text;
-        delete message.extra.stmui_lang;
+        delete message.extra.pt_lang;
         context.updateMessageBlock?.(id, message);
         changed = true;
     });
@@ -4300,46 +4300,46 @@ function openTranslateSheet() {
         subtitle: current ? t('Showing {lang}. The original text is kept.', { lang: languageName(current) }) : t('Pick a language. The original text is kept.'),
         fill: body => {
             if (!inChat) {
-                body.append(h('p', { class: 'stmui-menu-foot', text: t('Open a chat first.') }));
+                body.append(h('p', { class: 'pt-menu-foot', text: t('Open a chat first.') }));
                 return;
             }
             const top = [];
             if (current) {
                 top.push(h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => {
                         closeSheet(true);
                         showOriginal();
                     },
-                }, [ui('reset', 'stmui-menu-row-icon'), h('span', { text: t('Show original') })]));
+                }, [ui('reset', 'pt-menu-row-icon'), h('span', { text: t('Show original') })]));
             }
-            const auto = h('input', { type: 'checkbox', class: 'stmui-switch', role: 'switch' });
+            const auto = h('input', { type: 'checkbox', class: 'pt-switch', role: 'switch' });
             auto.checked = !!settings.autoTranslate;
             auto.addEventListener('change', () => setAutoTranslate(auto.checked));
-            top.push(h('label', { class: 'stmui-switch-row' }, [
-                h('span', { class: 'stmui-switch-text' }, [h('span', { text: t('Translate new replies too') }), h('small', { text: t('Each new reply is shown in the chosen language.') })]),
+            top.push(h('label', { class: 'pt-switch-row' }, [
+                h('span', { class: 'pt-switch-text' }, [h('span', { text: t('Translate new replies too') }), h('small', { text: t('Each new reply is shown in the chosen language.') })]),
                 auto,
             ]));
-            body.append(h('div', { class: 'stmui-menu-list' }, top));
+            body.append(h('div', { class: 'pt-menu-list' }, top));
 
             const all = languageOptions();
             const recent = (settings.recentLanguages ?? []).map(code => all.find(language => language.value === code)).filter(Boolean);
             const languageRow = language => h('button', {
                 type: 'button',
-                class: `stmui-menu-row stmui-choice ${language.value === current ? 'stmui-choice-on' : ''}`,
+                class: `pt-menu-row pt-choice ${language.value === current ? 'pt-choice-on' : ''}`,
                 'data-search': normalizeText(`${language.label} ${language.value}`),
                 onclick: () => {
                     closeSheet(true);
                     buzz(8);
                     translateChat(language.value);
                 },
-            }, [h('span', { raw: language.label }), language.value === current ? ui('check', 'stmui-menu-row-icon') : null]);
-            const search = h('input', { type: 'search', class: 'text_pole stmui-choice-search', placeholder: t('Search languages'), 'aria-label': t('Search languages') });
-            const recentBlock = recent.length ? [h('p', { class: 'stmui-menu-heading', text: t('Recent') }), h('div', { class: 'stmui-menu-list' }, recent.map(languageRow))] : [];
+            }, [h('span', { raw: language.label }), language.value === current ? ui('check', 'pt-menu-row-icon') : null]);
+            const search = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Search languages'), 'aria-label': t('Search languages') });
+            const recentBlock = recent.length ? [h('p', { class: 'pt-menu-heading', text: t('Recent') }), h('div', { class: 'pt-menu-list' }, recent.map(languageRow))] : [];
             const allRows = all.map(languageRow);
-            const allHeading = h('p', { class: 'stmui-menu-heading', text: t('All languages') });
-            const empty = h('p', { class: 'stmui-empty', text: 'Nothing matches that.', hidden: true });
+            const allHeading = h('p', { class: 'pt-menu-heading', text: t('All languages') });
+            const empty = h('p', { class: 'pt-empty', text: 'Nothing matches that.', hidden: true });
             search.addEventListener('input', () => {
                 const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
                 let shown = 0;
@@ -4351,13 +4351,13 @@ function openTranslateSheet() {
                 for (const element of recentBlock) element.hidden = words.length > 0;
                 empty.hidden = shown > 0;
             });
-            body.append(h('p', { class: 'stmui-menu-heading', text: t('Languages') }), search, ...recentBlock, allHeading, h('div', { class: 'stmui-menu-list' }, allRows), empty);
+            body.append(h('p', { class: 'pt-menu-heading', text: t('Languages') }), search, ...recentBlock, allHeading, h('div', { class: 'pt-menu-list' }, allRows), empty);
             const provider = translateSettings()?.provider ?? 'google';
             const providerName = { google: 'Google Translate', deepl: 'DeepL', bing: 'Bing', yandex: 'Yandex', libre: 'LibreTranslate', lingva: 'Lingva', deeplx: 'DeepLX', oneringtranslator: 'OneRingTranslator' }[provider] ?? provider;
-            body.append(h('p', { class: 'stmui-menu-foot', text: t('Tip: tap the translate button to switch between your language and the original. Hold it to open this list.') }));
+            body.append(h('p', { class: 'pt-menu-foot', text: t('Tip: tap the translate button to switch between your language and the original. Hold it to open this list.') }));
             // Google is asked straight from this browser (see GOOGLE_URL); the others go through SillyTavern's server.
             body.append(h('p', {
-                class: 'stmui-menu-foot',
+                class: 'pt-menu-foot',
                 text: provider === 'google'
                     ? t('Uses Google Translate, asked straight from this browser. You can pick another service in Extensions → Chat Translation.')
                     : t('Uses {provider} through your SillyTavern server. You can change it in Extensions → Chat Translation.', { provider: providerName }),
@@ -4400,13 +4400,13 @@ function onExportClick(event) {
         }
         document.querySelector(`#export_format_popup .export_format[data-format="${format}"]`)?.click();
     };
-    const row = (format, iconName, note) => h('button', { type: 'button', class: 'stmui-menu-row', onclick: () => pick(format) }, [
-        ui(iconName, 'stmui-menu-row-icon'),
-        h('span', { class: 'stmui-row-text' }, [h('span', { raw: format.toUpperCase() }), h('small', { text: note })]),
+    const row = (format, iconName, note) => h('button', { type: 'button', class: 'pt-menu-row', onclick: () => pick(format) }, [
+        ui(iconName, 'pt-menu-row-icon'),
+        h('span', { class: 'pt-row-text' }, [h('span', { raw: format.toUpperCase() }), h('small', { text: note })]),
     ]);
     showSheet(new MenuSheet({
         title: t('Export character'),
-        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, [
+        fill: body => body.append(h('div', { class: 'pt-menu-list' }, [
             row('png', 'image', 'A picture card with everything inside. Most apps can open it.'),
             row('json', 'file-text', "The character's details as a text file."),
         ])),
@@ -4523,7 +4523,7 @@ async function editCharacter(chid) {
         const tags = await import('/scripts/tags.js').catch(() => null);
         tags?.applyTagsOnCharacterSelect?.(chid);
         chars.peek = { chid: String(chid), avatar: context.characters[chid]?.avatar };
-        document.documentElement.classList.add('stmui-card-peek');
+        document.documentElement.classList.add('pt-card-peek');
         syncCharacterPage();
         shell?.update();
     } catch (error) {
@@ -4553,7 +4553,7 @@ function peekedChid() {
 function endCardPeek() {
     const had = !!chars.peek;
     chars.peek = null;
-    document.documentElement.classList.remove('stmui-card-peek');
+    document.documentElement.classList.remove('pt-card-peek');
     if (!had) return;
     const context = ctx();
     if (context.groupId || context.characterId === undefined) return;
@@ -4649,7 +4649,7 @@ async function exportCardCharacter(format) {
 function buildCardGo() {
     const chat = h('button', {
         type: 'button',
-        class: 'stmui-card-go-btn stmui-card-go-chat',
+        class: 'pt-card-go-btn pt-card-go-chat',
         onclick: () => {
             buzz(6);
             const chid = peekedChid() ?? ctx().characterId;
@@ -4658,13 +4658,13 @@ function buildCardGo() {
     }, [ui('chat'), h('span', { text: 'Chat' })]);
     const recent = h('button', {
         type: 'button',
-        class: 'stmui-card-go-btn',
+        class: 'pt-card-go-btn',
         onclick: () => {
             buzz(6);
             openCardChats();
         },
     }, [ui('history'), h('span', { text: 'Recent chats' })]);
-    return h('div', { id: 'stmui_card_go', class: 'stmui-card-go' }, [chat, recent]);
+    return h('div', { id: 'pt_card_go', class: 'pt-card-go' }, [chat, recent]);
 }
 
 /** The card's character's chats, newest first; picking one keeps you in it. */
@@ -4678,31 +4678,31 @@ function openCardChats() {
         title: 'Recent chats',
         fill: body => {
             if (!state.chats) {
-                body.append(h('p', { class: 'stmui-menu-foot', text: 'Loading chats…' }));
+                body.append(h('p', { class: 'pt-menu-foot', text: 'Loading chats…' }));
                 return;
             }
             if (!state.chats.length) {
-                body.append(h('p', { class: 'stmui-menu-foot', text: 'No chats yet.' }));
+                body.append(h('p', { class: 'pt-menu-foot', text: 'No chats yet.' }));
                 return;
             }
-            const list = h('div', { class: 'stmui-cs-chats' });
+            const list = h('div', { class: 'pt-cs-chats' });
             for (const chat of state.chats.slice(0, 20)) {
                 const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
                 const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
-                const line = h('span', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileId), h('small', { class: 'stmui-rc-when', raw: when })]);
-                if (String(ctx().characterId) === String(chid) && ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
-                const meta = h('small', { class: 'stmui-rc-meta' });
+                const line = h('span', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
+                if (String(ctx().characterId) === String(chid) && ctx().getCurrentChatId?.() === fileId) line.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
+                const meta = h('small', { class: 'pt-rc-meta' });
                 const count = Number(chat.chat_items);
                 if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
                 list.append(h('button', {
                     type: 'button',
-                    class: 'stmui-rc stmui-cs-chat',
+                    class: 'pt-rc pt-cs-chat',
                     onclick: () => {
                         buzz(6);
                         closeSheet(true);
                         openCharacterChatFor(chid, { fileId });
                     },
-                }, [h('span', { class: 'stmui-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
+                }, [h('span', { class: 'pt-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
             }
             body.append(list);
         },
@@ -4736,7 +4736,7 @@ function openCharacterSheet(entry, chid) {
         title: 'Character',
         fill: body => fillCharacterSheet(body, { entry, chid, character, chats: state.chats }),
     });
-    instance.dialog.classList.add('stmui-char-sheet');
+    instance.dialog.classList.add('pt-char-sheet');
     // A character's name is shown as it is, never translated.
     instance.title.textContent = character.name;
     instance.title.dir = 'auto';
@@ -4751,13 +4751,13 @@ function openCharacterSheet(entry, chid) {
 function fillCharacterSheet(body, { entry, chid, character, chats }) {
     const context = ctx();
     // Who they are.
-    const picture = h('img', { class: 'stmui-cs-avatar', alt: '', loading: 'lazy' });
+    const picture = h('img', { class: 'pt-cs-avatar', alt: '', loading: 'lazy' });
     picture.src = context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`;
-    picture.addEventListener('error', () => picture.classList.add('stmui-cs-avatar-missing'), { once: true });
+    picture.addEventListener('error', () => picture.classList.add('pt-cs-avatar-missing'), { once: true });
     const about = aboutCharacter(character);
-    const hero = h('div', { class: 'stmui-cs-hero' }, [picture]);
+    const hero = h('div', { class: 'pt-cs-hero' }, [picture]);
     if (about) {
-        const text = h('p', { class: 'stmui-cs-about' });
+        const text = h('p', { class: 'pt-cs-about' });
         text.append(formatPreview(about));
         text.dir = 'auto';
         hero.append(text);
@@ -4767,51 +4767,51 @@ function fillCharacterSheet(body, { entry, chid, character, chats }) {
     // What to do.
     const action = (iconName, label, run, primary = false) => h('button', {
         type: 'button',
-        class: `stmui-cs-action${primary ? ' stmui-cs-primary' : ''}`,
+        class: `pt-cs-action${primary ? ' pt-cs-primary' : ''}`,
         onclick: () => {
             buzz(6);
             run();
         },
     }, [ui(iconName), h('span', { text: label })]);
-    body.append(h('div', { class: 'stmui-cs-actions' }, [
+    body.append(h('div', { class: 'pt-cs-actions' }, [
         action('chat', 'Chat', () => chatWithCharacter(entry, chid, null), true),
         action('chat-plus', 'New chat', () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_start_new_chat')?.click())),
         action('pencil', 'Edit', () => editCharacter(chid)),
     ]));
 
     // Their chats, newest first.
-    body.append(h('p', { class: 'stmui-recent-heading stmui-cs-heading', text: 'Recent chats' }));
+    body.append(h('p', { class: 'pt-recent-heading pt-cs-heading', text: 'Recent chats' }));
     if (!chats) {
-        body.append(h('p', { class: 'stmui-menu-foot', text: 'Loading chats…' }));
+        body.append(h('p', { class: 'pt-menu-foot', text: 'Loading chats…' }));
         return;
     }
     if (!chats.length) {
-        body.append(h('p', { class: 'stmui-menu-foot', text: 'No chats yet. Chat starts the first one.' }));
+        body.append(h('p', { class: 'pt-menu-foot', text: 'No chats yet. Chat starts the first one.' }));
         return;
     }
-    const list = h('div', { class: 'stmui-cs-chats' });
+    const list = h('div', { class: 'pt-cs-chats' });
     for (const chat of chats.slice(0, 5)) {
         const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
         const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
-        const line = h('span', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileId), h('small', { class: 'stmui-rc-when', raw: when })]);
-        if (character.chat === fileId) line.append(h('span', { class: 'stmui-rc-now', text: 'Latest' }));
-        const meta = h('small', { class: 'stmui-rc-meta' });
+        const line = h('span', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
+        if (character.chat === fileId) line.append(h('span', { class: 'pt-rc-now', text: 'Latest' }));
+        const meta = h('small', { class: 'pt-rc-meta' });
         const count = Number(chat.chat_items);
         if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
         list.append(h('button', {
             type: 'button',
-            class: 'stmui-rc stmui-cs-chat',
+            class: 'pt-rc pt-cs-chat',
             onclick: () => {
                 buzz(6);
                 chatWithCharacter(entry, chid, fileId);
             },
-        }, [h('span', { class: 'stmui-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
+        }, [h('span', { class: 'pt-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
     }
     body.append(list);
     if (chats.length > 5) {
         body.append(h('button', {
             type: 'button',
-            class: 'stmui-cs-all menu_button',
+            class: 'pt-cs-all menu_button',
             onclick: () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_select_chat')?.click()),
         }, [ui('history'), h('span', { text: t('All chats ({count})', { count: chats.length }) })]));
     }
@@ -4824,15 +4824,15 @@ function displayName(title) {
 function syncCharacterPage() {
     const form = document.getElementById('form_create');
     const want = active && settings.touchSizing && settings.charPage;
-    document.documentElement.classList.toggle('stmui-charpage', !!want);
+    document.documentElement.classList.toggle('pt-charpage', !!want);
     if (!want) {
         window.clearTimeout(chars.azTimer);
         chars.azTimer = 0;
         restoreCharToolbar();
-        document.getElementById('rm_characters_block')?.classList.remove('stmui-one-page');
-        document.querySelectorAll('.stmui-btn-label, #stmui_card_tabs, .stmui-hero-name, #stmui_card_go, .stmui-cap, #stmui_az, #stmui_az_bubble').forEach(node => node.remove());
+        document.getElementById('rm_characters_block')?.classList.remove('pt-one-page');
+        document.querySelectorAll('.pt-btn-label, #pt_card_tabs, .pt-hero-name, #pt_card_go, .pt-cap, #pt_az, #pt_az_bubble').forEach(node => node.remove());
         endCardPeek();
-        form?.classList.remove('stmui-ctab-desc', 'stmui-ctab-greet', 'stmui-ctab-notes');
+        form?.classList.remove('pt-ctab-desc', 'pt-ctab-greet', 'pt-ctab-notes');
         chars.observer?.disconnect();
         chars.listObserver?.disconnect();
         chars.observer = null;
@@ -4846,15 +4846,15 @@ function syncCharacterPage() {
     // Each card tool gets a short label under its icon.
     for (const [selector, label] of CARD_TOOLS) {
         const button = form.querySelector(selector);
-        if (button && !button.querySelector('.stmui-btn-label')) button.append(h('span', { class: 'stmui-btn-label', text: label }));
+        if (button && !button.querySelector('.pt-btn-label')) button.append(h('span', { class: 'pt-btn-label', text: label }));
     }
 
 
     // The name, big, under the avatar.
     const avatarLabel = document.getElementById('avatar_div_div');
-    let heroName = form.querySelector('.stmui-hero-name');
+    let heroName = form.querySelector('.pt-hero-name');
     if (avatarLabel && !heroName) {
-        heroName = h('div', { class: 'stmui-hero-name' });
+        heroName = h('div', { class: 'pt-hero-name' });
         avatarLabel.after(heroName);
     }
     if (heroName) {
@@ -4862,7 +4862,7 @@ function syncCharacterPage() {
         heroName.hidden = creating;
         heroName.textContent = document.getElementById('character_name_pole')?.value?.trim() || '';
         // Chat and Recent chats, while editing a character (not a new one, not a group member).
-        let go = document.getElementById('stmui_card_go');
+        let go = document.getElementById('pt_card_go');
         if (!go) {
             go = buildCardGo();
             heroName.after(go);
@@ -4871,12 +4871,12 @@ function syncCharacterPage() {
     }
 
     // Description, first message and notes on tabs instead of one long scroll.
-    if (!document.getElementById('stmui_card_tabs')) {
-        const bar = h('div', { id: 'stmui_card_tabs', class: 'stmui-segmented stmui-card-tabs', role: 'tablist' },
+    if (!document.getElementById('pt_card_tabs')) {
+        const bar = h('div', { id: 'pt_card_tabs', class: 'pt-segmented pt-card-tabs', role: 'tablist' },
             CARD_TABS.map(([key, label]) => h('button', {
                 type: 'button',
                 role: 'tab',
-                class: 'stmui-seg',
+                class: 'pt-seg',
                 'data-tab': key,
                 onclick: () => setCardTab(key),
             }, [label])));
@@ -4921,26 +4921,26 @@ function buildCharToolbar() {
     const top = document.getElementById('charListFixedTop');
     const search = document.getElementById('character_search_bar');
     if (!top || !search) return;
-    let bar = document.getElementById('stmui_char_toolbar');
+    let bar = document.getElementById('pt_char_toolbar');
     if (!bar) {
         const button = (iconName, label, onclick, extra = '') => h('button', {
-            type: 'button', class: `stmui-ctool ${extra}`, 'aria-label': label, title: label, onclick,
+            type: 'button', class: `pt-ctool ${extra}`, 'aria-label': label, title: label, onclick,
         }, [ui(iconName)]);
-        bar = h('div', { id: 'stmui_char_toolbar', class: 'stmui-char-toolbar' }, [
-            h('div', { class: 'stmui-ctool-search' }),
-            button('sort', 'Sort', () => openSortSheet(), 'stmui-ctool-sort'),
+        bar = h('div', { id: 'pt_char_toolbar', class: 'pt-char-toolbar' }, [
+            h('div', { class: 'pt-ctool-search' }),
+            button('sort', 'Sort', () => openSortSheet(), 'pt-ctool-sort'),
             button('grid', 'Grid or list', () => {
                 buzz(6);
                 document.getElementById('charListGridToggle')?.click();
                 setTimeout(updateCharToolbar, 50);
-            }, 'stmui-ctool-view'),
-            button('plus', 'Add and more', () => openCharActions(), 'stmui-ctool-add'),
+            }, 'pt-ctool-view'),
+            button('plus', 'Add and more', () => openCharActions(), 'pt-ctool-add'),
         ]);
         shieldFromDrawerAutoClose(bar);
         top.prepend(bar);
     }
     // SillyTavern's search box moves into the row (it goes back when Pocket Tavern is turned off).
-    const slot = bar.querySelector('.stmui-ctool-search');
+    const slot = bar.querySelector('.pt-ctool-search');
     if (search.parentElement !== slot) {
         // Where it was, so turning off puts it back in the same place, not at the end of the form.
         charSearchHome.parent = search.parentElement;
@@ -4953,10 +4953,10 @@ function buildCharToolbar() {
 const charSearchHome = { parent: null, next: null };
 
 function updateCharToolbar() {
-    const bar = document.getElementById('stmui_char_toolbar');
+    const bar = document.getElementById('pt_char_toolbar');
     if (!bar) return;
     const grid = document.body.classList.contains('charListGrid');
-    const view = bar.querySelector('.stmui-ctool-view');
+    const view = bar.querySelector('.pt-ctool-view');
     const icon = grid ? 'list' : 'grid';
     if (view && view.dataset.icon !== icon) {
         view.dataset.icon = icon;
@@ -4966,7 +4966,7 @@ function updateCharToolbar() {
         view.setAttribute('title', label);
     }
     const sort = document.getElementById('character_sort_order');
-    const sortButton = bar.querySelector('.stmui-ctool-sort');
+    const sortButton = bar.querySelector('.pt-ctool-sort');
     if (sort && sortButton) sortButton.title = `${t('Sort')}: ${sort.selectedOptions[0]?.textContent.trim() ?? ''}`;
 }
 
@@ -4977,7 +4977,7 @@ function restoreCharToolbar() {
     if (search && parent?.isConnected && search.parentElement !== parent) parent.insertBefore(search, next?.parentNode === parent ? next : null);
     else if (search && form && !form.contains(search)) form.append(search);
     charSearchHome.parent = charSearchHome.next = null;
-    document.getElementById('stmui_char_toolbar')?.remove();
+    document.getElementById('pt_char_toolbar')?.remove();
 }
 
 function openSortSheet() {
@@ -5018,25 +5018,25 @@ function openCharActions() {
                 const faClass = Array.from(button.classList).find(name => name.startsWith('fa-') && !['fa-solid', 'fa-regular', 'fa-fw'].includes(name));
                 return h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => {
                         closeSheet(true);
                         button.click();
                     },
-                }, [faClass ? ui(faClass, 'stmui-menu-row-icon') : ui('plus', 'stmui-menu-row-icon'), h('span', { text: nameOf(button) })]);
+                }, [faClass ? ui(faClass, 'pt-menu-row-icon') : ui('plus', 'pt-menu-row-icon'), h('span', { text: nameOf(button) })]);
             });
             const bulk = document.getElementById('bulkEditButton');
             if (bulk) {
                 rows.push(h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => {
                         closeSheet(true);
                         bulk.click();
                     },
-                }, [ui('check', 'stmui-menu-row-icon'), h('span', { text: t('Select several') })]));
+                }, [ui('check', 'pt-menu-row-icon'), h('span', { text: t('Select several') })]));
             }
-            body.append(h('div', { class: 'stmui-menu-list' }, rows));
+            body.append(h('div', { class: 'pt-menu-list' }, rows));
         },
     }));
 }
@@ -5056,27 +5056,27 @@ function updateCharPaging() {
     const many = box?.querySelectorAll('li.paginationjs-page').length > 1
         || can('.paginationjs-prev') || can('.paginationjs-next')
         || (numbers.length >= 3 && numbers[1] < numbers[2]);
-    holder.classList.toggle('stmui-one-page', !many);
+    holder.classList.toggle('pt-one-page', !many);
 }
 
 function setCardTab(key, scroll = true) {
     chars.tab = key;
     const form = document.getElementById('form_create');
     if (!form) return;
-    for (const [name] of CARD_TABS) form.classList.toggle(`stmui-ctab-${name}`, name === key);
-    for (const button of document.querySelectorAll('#stmui_card_tabs .stmui-seg')) {
+    for (const [name] of CARD_TABS) form.classList.toggle(`pt-ctab-${name}`, name === key);
+    for (const button of document.querySelectorAll('#pt_card_tabs .pt-seg')) {
         const on = button.dataset.tab === key;
-        button.classList.toggle('stmui-seg-on', on);
+        button.classList.toggle('pt-seg-on', on);
         button.setAttribute('aria-selected', String(on));
     }
-    if (scroll) document.getElementById('stmui_card_tabs')?.scrollIntoView({ block: 'nearest' });
+    if (scroll) document.getElementById('pt_card_tabs')?.scrollIntoView({ block: 'nearest' });
 }
 
 function captionFavorites() {
     for (const avatar of document.querySelectorAll('#HotSwapWrapper .hotswap .avatar')) {
-        if (avatar.querySelector('.stmui-cap')) continue;
+        if (avatar.querySelector('.pt-cap')) continue;
         const name = displayName(avatar.getAttribute('title'));
-        if (name) avatar.append(h('span', { class: 'stmui-cap', raw: name }));
+        if (name) avatar.append(h('span', { class: 'pt-cap', raw: name }));
     }
 }
 
@@ -5089,10 +5089,10 @@ function letterOf(name) {
 function buildAzStrip() {
     const holder = document.getElementById('rm_characters_block');
     const list = document.getElementById('rm_print_characters_block');
-    const old = document.getElementById('stmui_az');
+    const old = document.getElementById('pt_az');
     const none = () => {
         old?.remove();
-        document.getElementById('stmui_az_bubble')?.remove();
+        document.getElementById('pt_az_bubble')?.remove();
     };
     if (!active || !settings.touchSizing || !settings.charPage || !holder || !list) return none();
     const sort = document.getElementById('character_sort_order')?.selectedOptions[0];
@@ -5108,21 +5108,21 @@ function buildAzStrip() {
     const letters = Array.from(firstOf.keys());
     // Same letters as before (the list was only redrawn): keep the strip, just point it at the new entries.
     if (old && old.parentElement === holder && old.dataset.letters === letters.join('')) {
-        old.stmuiFirst = firstOf;
+        old.ptFirst = firstOf;
         placeAzStrip(old, list, letters.length);
         return;
     }
     old?.remove();
-    const strip = h('div', { id: 'stmui_az', class: 'stmui-az', role: 'navigation', 'aria-label': 'Jump to letter', 'data-letters': letters.join('') }, [
+    const strip = h('div', { id: 'pt_az', class: 'pt-az', role: 'navigation', 'aria-label': 'Jump to letter', 'data-letters': letters.join('') }, [
         // A soft light that glides to the letter under your finger (or mouse).
-        h('i', { class: 'stmui-az-glow', 'aria-hidden': 'true' }),
+        h('i', { class: 'pt-az-glow', 'aria-hidden': 'true' }),
         ...letters.map(letter => h('span', { raw: letter, 'data-letter': letter })),
     ]);
-    strip.stmuiFirst = firstOf;
+    strip.ptFirst = firstOf;
     const spans = Array.from(strip.querySelectorAll('span'));
-    let bubble = document.getElementById('stmui_az_bubble');
+    let bubble = document.getElementById('pt_az_bubble');
     if (!bubble) {
-        bubble = h('div', { id: 'stmui_az_bubble', class: 'stmui-az-bubble', 'aria-hidden': 'true' });
+        bubble = h('div', { id: 'pt_az_bubble', class: 'pt-az-bubble', 'aria-hidden': 'true' });
         holder.append(bubble);
     }
     let current = -1;
@@ -5143,8 +5143,8 @@ function buildAzStrip() {
             const distance = index < 0 ? '' : String(Math.min(4, Math.abs(i - index)));
             if (span.dataset.d !== distance) span.dataset.d = distance;
         });
-        if (index >= 0) strip.style.setProperty('--stmui-az-y', `${spans[index].offsetTop + spans[index].offsetHeight / 2}px`);
-        strip.classList.toggle('stmui-az-on', index >= 0);
+        if (index >= 0) strip.style.setProperty('--pt-az-y', `${spans[index].offsetTop + spans[index].offsetHeight / 2}px`);
+        strip.classList.toggle('pt-az-on', index >= 0);
     };
     const jump = clientY => {
         const index = indexAt(clientY);
@@ -5158,10 +5158,10 @@ function buildAzStrip() {
         const letter = letters[index];
         if (letter === last) return;
         last = letter;
-        const target = strip.stmuiFirst.get(letter);
+        const target = strip.ptFirst.get(letter);
         if (target?.isConnected) list.scrollTop += target.getBoundingClientRect().top - list.getBoundingClientRect().top - 2;
         bubble.textContent = letter;
-        bubble.classList.add('stmui-az-bubble-on');
+        bubble.classList.add('pt-az-bubble-on');
         buzz(4);
     };
     // Pointer moves come many per frame; act on the latest once a frame.
@@ -5183,7 +5183,7 @@ function buildAzStrip() {
         }
         dragging = true;
         last = '';
-        strip.classList.add('stmui-az-active');
+        strip.classList.add('pt-az-active');
         jump(event.clientY);
     });
     strip.addEventListener('pointermove', event => {
@@ -5194,8 +5194,8 @@ function buildAzStrip() {
     const end = event => {
         dragging = false;
         last = '';
-        strip.classList.remove('stmui-az-active');
-        bubble.classList.remove('stmui-az-bubble-on');
+        strip.classList.remove('pt-az-active');
+        bubble.classList.remove('pt-az-bubble-on');
         // Only a mouse still over the strip keeps the lens. A finger lifts away, and phones keep
         // :hover on the last thing touched, so a touch always puts the strip back to rest.
         if (event?.pointerType !== 'mouse' || !strip.matches(':hover')) mark(-1);
@@ -5227,10 +5227,10 @@ const home = { observer: null };
 
 function syncHomeBox() {
     const root = document.documentElement;
-    let button = document.getElementById('stmui_home_box');
+    let button = document.getElementById('pt_home_box');
     if (!active || !settings.chatStyle) {
         button?.remove();
-        root.classList.remove('stmui-home-nobox');
+        root.classList.remove('pt-home-nobox');
         home.observer?.disconnect();
         home.observer = null;
         return;
@@ -5243,14 +5243,14 @@ function syncHomeBox() {
     }
     const panel = document.querySelector('#chat .welcomePanel');
     const hidden = !!settings.homeHideBox;
-    root.classList.toggle('stmui-home-nobox', hidden && !!panel);
+    root.classList.toggle('pt-home-nobox', hidden && !!panel);
     const header = panel?.querySelector('.welcomeHeaderTitle');
     if (!header) return;
     if (!button || !header.contains(button)) {
         button?.remove();
         button = h('div', {
-            id: 'stmui_home_box',
-            class: 'mes_button stmui-home-box',
+            id: 'pt_home_box',
+            class: 'mes_button pt-home-box',
             role: 'button',
             tabindex: '0',
             onclick: () => toggleHomeBox(),
@@ -5287,15 +5287,15 @@ function syncWelcome() {
     if (!want) {
         welcome.observer?.disconnect();
         welcome.observer = null;
-        for (const group of document.querySelectorAll('.stmui-chat-group')) {
+        for (const group of document.querySelectorAll('.pt-chat-group')) {
             group.querySelectorAll('.recentChat').forEach(card => group.before(card));
             group.remove();
         }
-        document.querySelectorAll('.showMoreChats.stmui-native-hidden').forEach(node => node.classList.remove('stmui-native-hidden'));
-        document.querySelectorAll('.stmui-recent-search, .stmui-recent-heading, .stmui-recent-empty, .stmui-swipe-hint').forEach(node => node.remove());
-        document.querySelectorAll('.recentChat.stmui-match, .recentChat.stmui-nomatch').forEach(node => node.classList.remove('stmui-match', 'stmui-nomatch'));
-        document.querySelectorAll('.recentChatList.stmui-searching').forEach(node => node.classList.remove('stmui-searching'));
-        document.querySelectorAll('.welcomePanel[data-stmui]').forEach(node => delete node.dataset.stmui);
+        document.querySelectorAll('.showMoreChats.pt-native-hidden').forEach(node => node.classList.remove('pt-native-hidden'));
+        document.querySelectorAll('.pt-recent-search, .pt-recent-heading, .pt-recent-empty, .pt-swipe-hint').forEach(node => node.remove());
+        document.querySelectorAll('.recentChat.pt-match, .recentChat.pt-nomatch').forEach(node => node.classList.remove('pt-match', 'pt-nomatch'));
+        document.querySelectorAll('.recentChatList.pt-searching').forEach(node => node.classList.remove('pt-searching'));
+        document.querySelectorAll('.welcomePanel[data-pt]').forEach(node => delete node.dataset.pt);
         undecorateRows(document.querySelector('#chat .welcomePanel') ?? document.createElement('div'));
         return;
     }
@@ -5308,16 +5308,16 @@ function syncWelcome() {
 
 function enhanceWelcome() {
     const panel = document.querySelector('#chat .welcomePanel');
-    if (!panel || panel.dataset.stmui === '1') return;
+    if (!panel || panel.dataset.pt === '1') return;
     const list = panel.querySelector('.recentChatList');
     if (!list) return;
-    panel.dataset.stmui = '1';
+    panel.dataset.pt = '1';
     const cards = Array.from(list.querySelectorAll('.recentChat'));
 
     // Pinned chats first under their own heading, as they are.
     const pinned = cards.filter(card => card.querySelector('.recentChatPinned'));
     const rest = cards.filter(card => !pinned.includes(card));
-    if (pinned.length) pinned[0].before(h('p', { class: 'stmui-recent-heading', text: 'Pinned' }));
+    if (pinned.length) pinned[0].before(h('p', { class: 'pt-recent-heading', text: 'Pinned' }));
 
     // The rest grouped by character (or group chat): one card each, newest first.
     const groups = new Map();
@@ -5329,36 +5329,36 @@ function enhanceWelcome() {
     if (groups.size) {
         onChatScroll();
         // A placeholder marks the spot: the rows themselves move into the groups.
-        const spot = document.createComment('stmui-groups');
+        const spot = document.createComment('pt-groups');
         rest[0].before(spot);
-        if (pinned.length) spot.before(h('p', { class: 'stmui-recent-heading', text: 'Recent' }));
+        if (pinned.length) spot.before(h('p', { class: 'pt-recent-heading', text: 'Recent' }));
         for (const chats of groups.values()) spot.before(buildChatGroup(chats));
         spot.remove();
     }
     // SillyTavern's own "show more" folds chats away; the groups show them all.
-    list.querySelector('.showMoreChats')?.classList.add('stmui-native-hidden');
+    list.querySelector('.showMoreChats')?.classList.add('pt-native-hidden');
 
     if (cards.length > 3) {
-        const empty = h('p', { class: 'stmui-recent-empty', text: 'No chat matches that.', hidden: true });
-        const search = h('input', { type: 'search', class: 'text_pole stmui-recent-search', placeholder: 'Search recent chats', 'aria-label': 'Search recent chats', enterkeyhint: 'search' });
+        const empty = h('p', { class: 'pt-recent-empty', text: 'No chat matches that.', hidden: true });
+        const search = h('input', { type: 'search', class: 'text_pole pt-recent-search', placeholder: 'Search recent chats', 'aria-label': 'Search recent chats', enterkeyhint: 'search' });
         search.addEventListener('input', () => {
             const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
             let shown = 0;
             for (const card of cards) {
                 if (!card.isConnected) continue;
                 // A chat matches by its own text or its character's name.
-                const group = card.closest('.stmui-chat-group');
+                const group = card.closest('.pt-chat-group');
                 const text = normalizeText(`${card.textContent} ${group?.dataset.name ?? ''}`);
                 const match = !words.length || words.every(word => text.includes(word));
-                card.classList.toggle('stmui-match', words.length > 0 && match);
-                card.classList.toggle('stmui-nomatch', !match);
+                card.classList.toggle('pt-match', words.length > 0 && match);
+                card.classList.toggle('pt-nomatch', !match);
                 if (match) shown++;
             }
-            for (const group of list.querySelectorAll('.stmui-chat-group')) {
-                group.hidden = words.length > 0 && !group.querySelector('.recentChat:not(.stmui-nomatch)');
-                group.classList.toggle('stmui-group-found', words.length > 0 && !group.hidden);
+            for (const group of list.querySelectorAll('.pt-chat-group')) {
+                group.hidden = words.length > 0 && !group.querySelector('.recentChat:not(.pt-nomatch)');
+                group.classList.toggle('pt-group-found', words.length > 0 && !group.hidden);
             }
-            list.classList.toggle('stmui-searching', words.length > 0);
+            list.classList.toggle('pt-searching', words.length > 0);
             empty.hidden = shown > 0;
         });
         list.before(search);
@@ -5472,11 +5472,11 @@ function formatPreview(text) {
 /** A message bubble with the preview in it, styled like the chat's message cards. */
 function previewBubble(text) {
     // The words sit in their own box so the line limit never shows a sliver of the next line.
-    const words = h('span', { class: 'stmui-bubble-text' });
+    const words = h('span', { class: 'pt-bubble-text' });
     // Its own direction from its words, so a cut line ends with … on the right side in any language.
     words.dir = 'auto';
     words.append(formatPreview(text));
-    return h('span', { class: 'stmui-bubble' }, [words]);
+    return h('span', { class: 'pt-bubble' }, [words]);
 }
 
 /** "1 message", "5 messages". */
@@ -5510,14 +5510,14 @@ function titleNode(tag, className, fileName) {
 function openChatRowMenu(fileName, items) {
     const instance = new MenuSheet({
         title: 'Chat',
-        fill: body => body.append(h('div', { class: 'stmui-menu-list' }, items.filter(Boolean).map(item => h('button', {
+        fill: body => body.append(h('div', { class: 'pt-menu-list' }, items.filter(Boolean).map(item => h('button', {
             type: 'button',
-            class: `stmui-menu-row${item.danger ? ' stmui-danger' : ''}`,
+            class: `pt-menu-row${item.danger ? ' pt-danger' : ''}`,
             onclick: () => {
                 closeSheet(true);
                 item.run();
             },
-        }, [ui(item.icon, 'stmui-menu-row-icon'), h('span', { text: item.label })])))),
+        }, [ui(item.icon, 'pt-menu-row-icon'), h('span', { text: item.label })])))),
     });
     // The chat's name is shown as it is.
     instance.title.textContent = chatTitle(fileName).text;
@@ -5528,7 +5528,7 @@ function openChatRowMenu(fileName, items) {
 function moreButton(label, onOpen) {
     const button = h('button', {
         type: 'button',
-        class: 'stmui-rc-more',
+        class: 'pt-rc-more',
         'aria-label': label,
         title: label,
         onclick: event => {
@@ -5549,20 +5549,20 @@ function moreButton(label, onOpen) {
  * so tapping opens the chat and its pin, rename and delete buttons do the work.
  */
 function decorateRecentRow(card) {
-    if (card.querySelector(':scope > .stmui-rc-body')) return;
-    card.classList.add('stmui-rc');
-    const inGroup = !!card.closest('.stmui-group-chats');
+    if (card.querySelector(':scope > .pt-rc-body')) return;
+    card.classList.add('pt-rc');
+    const inGroup = !!card.closest('.pt-group-chats');
     const name = card.querySelector('.characterName')?.textContent.trim() ?? '';
-    const head = h('div', { class: 'stmui-rc-line' });
+    const head = h('div', { class: 'pt-rc-line' });
     if (inGroup) {
-        head.append(titleNode('b', 'stmui-rc-title', card.dataset.file));
+        head.append(titleNode('b', 'pt-rc-title', card.dataset.file));
     } else {
-        const who = h('b', { class: 'stmui-rc-title', raw: name });
+        const who = h('b', { class: 'pt-rc-title', raw: name });
         who.dir = 'auto';
         head.append(who);
     }
     const date = card.querySelector('.chatDate');
-    const when = h('small', { class: 'stmui-rc-when', raw: date?.textContent.trim() ?? '' });
+    const when = h('small', { class: 'pt-rc-when', raw: date?.textContent.trim() ?? '' });
     if (date?.title) when.title = date.title;
     const pinned = () => !!card.querySelector('.pinChat.active, .recentChatPinned');
     head.append(when, moreButton('Chat options', () => openChatRowMenu(card.dataset.file, [
@@ -5571,17 +5571,17 @@ function decorateRecentRow(card) {
         { icon: 'trash', label: 'Delete', danger: true, run: () => card.querySelector('.deleteChat')?.click() },
     ])));
     const count = Number.parseInt(card.querySelector('.counterBlock small')?.textContent ?? '', 10);
-    const meta = h('small', { class: 'stmui-rc-meta' });
-    if (!inGroup && card.dataset.file) meta.append(titleNode('span', 'stmui-rc-chat', card.dataset.file));
+    const meta = h('small', { class: 'pt-rc-meta' });
+    if (!inGroup && card.dataset.file) meta.append(titleNode('span', 'pt-rc-chat', card.dataset.file));
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-    const body = h('div', { class: 'stmui-rc-body' }, [head, previewBubble(card.querySelector('.chatMessage')?.textContent ?? '')]);
+    const body = h('div', { class: 'pt-rc-body' }, [head, previewBubble(card.querySelector('.chatMessage')?.textContent ?? '')]);
     if (meta.childElementCount) body.append(meta);
     card.append(body);
 }
 
 function undecorateRows(root = document) {
-    root.querySelectorAll('.stmui-rc-body').forEach(node => node.remove());
-    root.querySelectorAll('.stmui-rc').forEach(node => node.classList.remove('stmui-rc'));
+    root.querySelectorAll('.pt-rc-body').forEach(node => node.remove());
+    root.querySelectorAll('.pt-rc').forEach(node => node.classList.remove('pt-rc'));
 }
 
 /**
@@ -5589,11 +5589,11 @@ function undecorateRows(root = document) {
  * how many messages, the last message as a bubble, and ⋯ for rename, export and delete.
  */
 function decorateHistoryRow(block) {
-    if (block.querySelector(':scope > .stmui-rc-body')) return;
-    block.classList.add('stmui-rc');
+    if (block.querySelector(':scope > .pt-rc-body')) return;
+    block.classList.add('pt-rc');
     const fileName = block.getAttribute('file_name') ?? '';
-    const head = h('div', { class: 'stmui-rc-line' }, [titleNode('b', 'stmui-rc-title', fileName)]);
-    if (block.hasAttribute('highlight')) head.append(h('span', { class: 'stmui-rc-now', text: 'Open now' }));
+    const head = h('div', { class: 'pt-rc-line' }, [titleNode('b', 'pt-rc-title', fileName)]);
+    if (block.hasAttribute('highlight')) head.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
     const button = selector => () => block.querySelector(selector)?.click();
     head.append(moreButton('Chat options', () => openChatRowMenu(fileName, [
         { icon: 'pencil', label: 'Rename', run: button('.renameChatButton') },
@@ -5601,10 +5601,10 @@ function decorateHistoryRow(block) {
         { icon: 'file-text', label: 'Download as text', run: button('.exportChatButton') },
         { icon: 'trash', label: 'Delete', danger: true, run: button('.PastChat_cross') },
     ])));
-    const meta = h('small', { class: 'stmui-rc-meta' }, [h('span', { raw: block.querySelector('.chat_messages_date')?.textContent.trim() ?? '' })]);
+    const meta = h('small', { class: 'pt-rc-meta' }, [h('span', { raw: block.querySelector('.chat_messages_date')?.textContent.trim() ?? '' })]);
     const count = Number.parseInt((block.querySelector('.chat_messages_num')?.textContent ?? '').replace(/\D+/g, ' '), 10);
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-    block.append(h('div', { class: 'stmui-rc-body' }, [head, previewBubble(block.querySelector('.select_chat_block_mes')?.textContent ?? ''), meta]));
+    block.append(h('div', { class: 'pt-rc-body' }, [head, previewBubble(block.querySelector('.select_chat_block_mes')?.textContent ?? ''), meta]));
 }
 
 /**
@@ -5619,13 +5619,13 @@ function buildChatGroup(chats) {
     const isGroupChat = latest.classList.contains('group');
     const key = isGroupChat ? `g:${latest.dataset.group}` : `c:${latest.dataset.avatar}`;
     const name = latest.querySelector('.characterName')?.textContent.trim() ?? '';
-    const group = h('section', { class: 'stmui-chat-group', 'data-name': name });
-    if (isGroupChat) group.classList.add('stmui-chat-group-group');
+    const group = h('section', { class: 'pt-chat-group', 'data-name': name });
+    if (isGroupChat) group.classList.add('pt-chat-group-group');
 
     // The top row: open the latest chat.
     const main = h('button', {
         type: 'button',
-        class: 'stmui-group-main',
+        class: 'pt-group-main',
         onclick: () => {
             buzz(6);
             latest.click();
@@ -5633,29 +5633,29 @@ function buildChatGroup(chats) {
     });
     main.setAttribute('aria-label', t('Open the latest chat with {name}', { name }));
     const picture = latest.querySelector(':scope > .avatar')?.cloneNode(true);
-    const face = h('span', { class: 'stmui-group-face' });
+    const face = h('span', { class: 'pt-group-face' });
     if (picture) {
-        picture.classList.add('stmui-group-avatar');
+        picture.classList.add('pt-group-avatar');
         picture.removeAttribute('title');
         face.append(picture);
     }
-    if (chats.length > 1) face.append(h('span', { class: 'stmui-group-badge', text: String(chats.length) }));
-    const title = h('b', { class: 'stmui-group-name' });
+    if (chats.length > 1) face.append(h('span', { class: 'pt-group-badge', text: String(chats.length) }));
+    const title = h('b', { class: 'pt-group-name' });
     title.textContent = name;
-    const when = h('small', { class: 'stmui-group-when' });
+    const when = h('small', { class: 'pt-group-when' });
     when.textContent = latest.querySelector('.chatDate')?.textContent.trim() ?? '';
     const last = previewBubble(latest.querySelector('.chatMessage')?.textContent ?? '');
-    last.classList.add('stmui-group-last');
-    main.append(face, h('span', { class: 'stmui-group-text' }, [h('span', { class: 'stmui-group-line' }, [title, when]), last]));
+    last.classList.add('pt-group-last');
+    main.append(face, h('span', { class: 'pt-group-text' }, [h('span', { class: 'pt-group-line' }, [title, when]), last]));
 
     // The arrow: open or close the list.
     const toggle = h('button', {
         type: 'button',
-        class: 'stmui-group-toggle',
+        class: 'pt-group-toggle',
         'aria-label': t('Show chats with {name}', { name }),
         onclick: () => {
             buzz(4);
-            setOpen(!group.classList.contains('stmui-group-open'), true);
+            setOpen(!group.classList.contains('pt-group-open'), true);
         },
     }, [ui('chevron-down')]);
     const setOpen = (open, animate = false) => {
@@ -5664,7 +5664,7 @@ function buildChatGroup(chats) {
         // growing frame by frame.
         const below = animate && motionAllowed() ? followingCards(group) : [];
         const before = below.map(card => card.getBoundingClientRect().top);
-        group.classList.toggle('stmui-group-open', open);
+        group.classList.toggle('pt-group-open', open);
         toggle.setAttribute('aria-expanded', String(open));
         if (open) openChatGroups.add(key);
         else openChatGroups.delete(key);
@@ -5683,28 +5683,28 @@ function buildChatGroup(chats) {
     // Inside: quick actions, then the chats.
     const action = (iconName, label, run) => h('button', {
         type: 'button',
-        class: 'stmui-group-action',
+        class: 'pt-group-action',
         onclick: () => {
             buzz(6);
             openRecentThen(latest, run);
         },
     }, [ui(iconName), h('span', { text: label })]);
-    const actions = h('div', { class: 'stmui-group-actions' }, [
+    const actions = h('div', { class: 'pt-group-actions' }, [
         action('plus', 'New chat', () => document.getElementById('option_start_new_chat')?.click()),
         action('history', 'All chats', () => document.getElementById('option_select_chat')?.click()),
         isGroupChat ? null : action('user', 'Character', () => openPage('rightNavHolder')),
     ]);
-    const list = h('div', { class: 'stmui-group-chats' }, chats);
-    const panel = h('div', { class: 'stmui-group-panel' }, [h('div', { class: 'stmui-group-inner' }, [actions, list])]);
-    group.append(h('div', { class: 'stmui-group-head' }, [main, toggle]), panel);
+    const list = h('div', { class: 'pt-group-chats' }, chats);
+    const panel = h('div', { class: 'pt-group-panel' }, [h('div', { class: 'pt-group-inner' }, [actions, list])]);
+    group.append(h('div', { class: 'pt-group-head' }, [main, toggle]), panel);
     setOpen(openChatGroups.has(key));
     return group;
 }
 
 /** Swipe a recent chat right to pin or unpin it, left to delete it (SillyTavern asks first). */
 function wireSwipe(card) {
-    if (card.dataset.stmuiSwipe) return;
-    card.dataset.stmuiSwipe = '1';
+    if (card.dataset.ptSwipe) return;
+    card.dataset.ptSwipe = '1';
     let startX = 0;
     let startY = 0;
     let dx = 0;
@@ -5723,7 +5723,7 @@ function wireSwipe(card) {
         const kind = dx > 0 ? 'pin' : 'delete';
         if (!hint || hint.dataset.kind !== kind) {
             hint?.remove();
-            hint = h('div', { class: `stmui-swipe-hint stmui-swipe-${kind}`, 'data-kind': kind }, [
+            hint = h('div', { class: `pt-swipe-hint pt-swipe-${kind}`, 'data-kind': kind }, [
                 ui(kind === 'pin' ? 'bookmark' : 'trash'),
                 h('span', { text: kind === 'pin' ? (pinnedNow ? 'Unpin' : 'Pin') : 'Delete' }),
             ]);
@@ -5731,12 +5731,12 @@ function wireSwipe(card) {
             hint.style.height = `${cardHeight}px`;
             card.parentElement?.append(hint);
         }
-        hint.classList.toggle('stmui-swipe-ready', Math.abs(dx) > 90);
+        hint.classList.toggle('pt-swipe-ready', Math.abs(dx) > 90);
     };
     const reset = () => {
         cancelAnimationFrame(frame);
         frame = 0;
-        card.style.transition = 'transform 0.22s var(--stmui-ease)';
+        card.style.transition = 'transform 0.22s var(--pt-ease)';
         card.style.transform = '';
         hint?.remove();
         hint = null;
@@ -5821,7 +5821,7 @@ function dateGroup(date) {
 function groupChatHistory() {
     const list = document.getElementById('select_chat_div');
     if (!list) return;
-    list.querySelectorAll('.stmui-date-heading').forEach(node => node.remove());
+    list.querySelectorAll('.pt-date-heading').forEach(node => node.remove());
     if (!active || !settings.touchSizing || !settings.recentTools) return;
     let lastGroup = null;
     for (const wrapper of list.querySelectorAll(':scope > .select_chat_block_wrapper')) {
@@ -5830,7 +5830,7 @@ function groupChatHistory() {
         if (block) decorateHistoryRow(block);
         const group = dateGroup(block ? chatDateOf(block) : null);
         if (group !== lastGroup) {
-            wrapper.before(h('p', { class: 'stmui-date-heading', text: group }));
+            wrapper.before(h('p', { class: 'pt-date-heading', text: group }));
             lastGroup = group;
         }
     }
@@ -5841,14 +5841,14 @@ function syncChatHistory() {
     if (!active || !settings.touchSizing || !settings.recentTools) {
         chatList.observer?.disconnect();
         chatList.observer = null;
-        list?.querySelectorAll('.stmui-date-heading').forEach(node => node.remove());
+        list?.querySelectorAll('.pt-date-heading').forEach(node => node.remove());
         if (list) undecorateRows(list);
         return;
     }
     if (list && !chatList.observer) {
         chatList.observer = new MutationObserver(records => {
             // Ignore our own headings.
-            if (records.every(record => [...record.addedNodes, ...record.removedNodes].every(node => node.classList?.contains('stmui-date-heading')))) return;
+            if (records.every(record => [...record.addedNodes, ...record.removedNodes].every(node => node.classList?.contains('pt-date-heading')))) return;
             window.clearTimeout(chatList.timer);
             chatList.timer = window.setTimeout(groupChatHistory, 80);
         });
@@ -5941,12 +5941,12 @@ function openGlobalSearch() {
         title: t('Search everything'),
         subtitle: t('Characters, chats, lorebooks and settings'),
         fill: body => {
-            const input = h('input', { type: 'search', class: 'text_pole stmui-choice-search', placeholder: t('Type to search…'), 'aria-label': t('Search everything'), enterkeyhint: 'search' });
-            const results = h('div', { class: 'stmui-search-results' });
-            const section = (title, rows) => (rows.length ? [h('p', { class: 'stmui-menu-heading', text: title }), h('div', { class: 'stmui-menu-list' }, rows)] : []);
-            const row = (iconOrImage, label, note, onclick) => h('button', { type: 'button', class: 'stmui-menu-row', onclick }, [
-                iconOrImage.startsWith('/') ? h('img', { class: 'stmui-choice-img', src: iconOrImage, alt: '', loading: 'lazy' }) : ui(iconOrImage, 'stmui-menu-row-icon'),
-                h('span', { class: 'stmui-row-text' }, [h('span', { raw: label }), note ? h('small', { raw: note }) : null]),
+            const input = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Type to search…'), 'aria-label': t('Search everything'), enterkeyhint: 'search' });
+            const results = h('div', { class: 'pt-search-results' });
+            const section = (title, rows) => (rows.length ? [h('p', { class: 'pt-menu-heading', text: title }), h('div', { class: 'pt-menu-list' }, rows)] : []);
+            const row = (iconOrImage, label, note, onclick) => h('button', { type: 'button', class: 'pt-menu-row', onclick }, [
+                iconOrImage.startsWith('/') ? h('img', { class: 'pt-choice-img', src: iconOrImage, alt: '', loading: 'lazy' }) : ui(iconOrImage, 'pt-menu-row-icon'),
+                h('span', { class: 'pt-row-text' }, [h('span', { raw: label }), note ? h('small', { raw: note }) : null]),
             ]);
             const charByAvatar = new Map(characters.map(c => [c.avatar, c.name]));
             const groupById = new Map(groups.map(g => [String(g.id), g.name]));
@@ -5954,7 +5954,7 @@ function openGlobalSearch() {
             const render = () => {
                 const words = normalizeText(input.value).split(/\s+/).filter(Boolean);
                 if (!words.length) {
-                    results.replaceChildren(h('p', { class: 'stmui-menu-foot', text: t('Find a character, a chat by its name or last message, a lorebook or a setting.') }));
+                    results.replaceChildren(h('p', { class: 'pt-menu-foot', text: t('Find a character, a chat by its name or last message, a lorebook or a setting.') }));
                     return;
                 }
                 const hit = text => {
@@ -5992,15 +5992,15 @@ function openGlobalSearch() {
                     ...section(t('Lorebooks'), loreRows),
                     ...section(t('Settings'), settingRows),
                 ];
-                if (chats === null) blocks.push(h('p', { class: 'stmui-menu-foot', text: t('Loading chats…') }));
-                results.replaceChildren(...(blocks.length ? blocks : [h('p', { class: 'stmui-menu-foot', text: t('Nothing matches that.') })]));
+                if (chats === null) blocks.push(h('p', { class: 'pt-menu-foot', text: t('Loading chats…') }));
+                results.replaceChildren(...(blocks.length ? blocks : [h('p', { class: 'pt-menu-foot', text: t('Nothing matches that.') })]));
             };
             input.addEventListener('input', render);
             // Enter opens the first result, so Ctrl+K, a few letters and Enter gets you there.
             input.addEventListener('keydown', event => {
                 if (event.key !== 'Enter' || event.isComposing) return;
                 event.preventDefault();
-                results.querySelector('.stmui-menu-row')?.click();
+                results.querySelector('.pt-menu-row')?.click();
             });
             load.then(() => {
                 if (input.isConnected) render();
@@ -6020,7 +6020,7 @@ function openGlobalSearch() {
  * scaled down in the browser to exactly the size the screen needs (so memory
  * stays low), and characters can have an animated GIF/WebP picture.
  */
-const GIF_KEY = 'stmui_animated_avatar';
+const GIF_KEY = 'pt_animated_avatar';
 const pictures = {
     observer: null,
     seen: null,
@@ -6056,7 +6056,7 @@ function pictureSpot(img) {
 
 function rememberPicture(img, url) {
     const spot = pictureSpot(img);
-    const info = img.dataset.stmuiThumb ? thumbInfo(img.dataset.stmuiThumb) : null;
+    const info = img.dataset.ptThumb ? thumbInfo(img.dataset.ptThumb) : null;
     if (spot && info) pictures.last.set(`${spot}|${info.type}|${info.file}`, url);
 }
 
@@ -6075,7 +6075,7 @@ function restoreKnownPicture(img) {
     if (!url) return false;
     if (url.startsWith('blob:') && !settings.sharpPictures) return false;
     if (!url.startsWith('blob:') && !settings.animatedPictures) return false;
-    img.dataset.stmuiThumb = src;
+    img.dataset.ptThumb = src;
     img.setAttribute('src', url);
     return true;
 }
@@ -6100,7 +6100,7 @@ function swapPicture(img, url) {
             const swaps = [...pictures.swaps];
             pictures.swaps.clear();
             for (const [image, src] of swaps) {
-                if (image.isConnected && (image.getAttribute('src') === image.dataset.stmuiThumb || thumbInfo(image.getAttribute('src') ?? ''))) {
+                if (image.isConnected && (image.getAttribute('src') === image.dataset.ptThumb || thumbInfo(image.getAttribute('src') ?? ''))) {
                     image.setAttribute('src', src);
                     rememberPicture(image, src);
                 }
@@ -6203,9 +6203,9 @@ function upgradePicture(img) {
     if (!active) return;
     const current = img.getAttribute('src') ?? '';
     // SillyTavern sometimes sets the thumbnail again; remember what it asked for.
-    const info = thumbInfo(current) ?? (img.dataset.stmuiThumb ? thumbInfo(img.dataset.stmuiThumb) : null);
+    const info = thumbInfo(current) ?? (img.dataset.ptThumb ? thumbInfo(img.dataset.ptThumb) : null);
     if (!info) return;
-    if (thumbInfo(current)) img.dataset.stmuiThumb = current;
+    if (thumbInfo(current)) img.dataset.ptThumb = current;
     const animated = info.type === 'avatar' && settings.animatedPictures ? animatedPictureFor(info.file) : null;
     if (animated) {
         if (current !== animated) img.setAttribute('src', animated);
@@ -6213,7 +6213,7 @@ function upgradePicture(img) {
         return;
     }
     if (!settings.sharpPictures) {
-        if (img.dataset.stmuiThumb && current !== img.dataset.stmuiThumb) img.setAttribute('src', img.dataset.stmuiThumb);
+        if (img.dataset.ptThumb && current !== img.dataset.ptThumb) img.setAttribute('src', img.dataset.ptThumb);
         return;
     }
     const shown = img.getBoundingClientRect().width || img.clientWidth;
@@ -6231,22 +6231,22 @@ function upgradePicture(img) {
  */
 function onPictureError(event) {
     const img = event.target;
-    if (!(img instanceof HTMLImageElement) || !img.dataset.stmuiThumb) return;
+    if (!(img instanceof HTMLImageElement) || !img.dataset.ptThumb) return;
     const src = img.getAttribute('src') ?? '';
-    const info = thumbInfo(img.dataset.stmuiThumb);
-    if (!src || !info || src === img.dataset.stmuiThumb) return;
+    const info = thumbInfo(img.dataset.ptThumb);
+    if (!src || !info || src === img.dataset.ptThumb) return;
     event.stopImmediatePropagation();
     if (src.startsWith('blob:')) pictures.noSharp.add(info.file);
     else pictures.broken.add(src);
     for (const map of [pictures.cache, pictures.last]) {
         for (const [key, url] of map) if (url === src) map.delete(key);
     }
-    img.setAttribute('src', img.dataset.stmuiThumb);
+    img.setAttribute('src', img.dataset.ptThumb);
 }
 
 function watchPicture(img) {
-    if (!img.dataset.stmuiWatched) {
-        img.dataset.stmuiWatched = '1';
+    if (!img.dataset.ptWatched) {
+        img.dataset.ptWatched = '1';
         pictures.seen?.observe(img);
     }
     scheduleVisibleCheck();
@@ -6268,7 +6268,7 @@ function scheduleVisibleCheck(event) {
                 pictures.near.delete(img);
                 continue;
             }
-            if (thumbInfo(img.getAttribute('src') ?? '') || (img.dataset.stmuiThumb && img.getAttribute('src') === img.dataset.stmuiThumb)) upgradePicture(img);
+            if (thumbInfo(img.getAttribute('src') ?? '') || (img.dataset.ptThumb && img.getAttribute('src') === img.dataset.ptThumb)) upgradePicture(img);
         }
     }, 150);
 }
@@ -6279,7 +6279,7 @@ function scanPictures(root = document) {
     for (const img of images) {
         const src = img.getAttribute('src') ?? '';
         if (thumbInfo(src)) restoreKnownPicture(img);
-        if (thumbInfo(src) || img.dataset.stmuiThumb) watchPicture(img);
+        if (thumbInfo(src) || img.dataset.ptThumb) watchPicture(img);
     }
 }
 
@@ -6306,20 +6306,20 @@ function syncPictures() {
         pictures.swaps.clear();
         pictures.last.clear();
         // Put SillyTavern's own thumbnails back.
-        for (const img of document.querySelectorAll('img[data-stmui-thumb]')) {
-            img.setAttribute('src', img.dataset.stmuiThumb);
-            delete img.dataset.stmuiThumb;
-            delete img.dataset.stmuiWatched;
+        for (const img of document.querySelectorAll('img[data-pt-thumb]')) {
+            img.setAttribute('src', img.dataset.ptThumb);
+            delete img.dataset.ptThumb;
+            delete img.dataset.ptWatched;
         }
-        document.querySelectorAll('img[data-stmui-watched]').forEach(img => delete img.dataset.stmuiWatched);
+        document.querySelectorAll('img[data-pt-watched]').forEach(img => delete img.dataset.ptWatched);
         for (const url of pictures.cache.values()) URL.revokeObjectURL(url);
         pictures.cache.clear();
         return;
     }
     if (!settings.sharpPictures && pictures.cache.size) {
         pictures.queue.length = 0;
-        for (const img of document.querySelectorAll('img[data-stmui-thumb]')) {
-            if ((img.getAttribute('src') ?? '').startsWith('blob:')) img.setAttribute('src', img.dataset.stmuiThumb);
+        for (const img of document.querySelectorAll('img[data-pt-thumb]')) {
+            if ((img.getAttribute('src') ?? '').startsWith('blob:')) img.setAttribute('src', img.dataset.ptThumb);
         }
         for (const [key, url] of pictures.last) if (url.startsWith('blob:')) pictures.last.delete(key);
         for (const url of pictures.cache.values()) URL.revokeObjectURL(url);
@@ -6327,9 +6327,9 @@ function syncPictures() {
     }
     if (!settings.animatedPictures) {
         for (const [key, url] of pictures.last) if (!url.startsWith('blob:')) pictures.last.delete(key);
-        for (const img of document.querySelectorAll('img[data-stmui-thumb]')) {
+        for (const img of document.querySelectorAll('img[data-pt-thumb]')) {
             const src = img.getAttribute('src') ?? '';
-            if (src && !src.startsWith('blob:') && src !== img.dataset.stmuiThumb) img.setAttribute('src', img.dataset.stmuiThumb);
+            if (src && !src.startsWith('blob:') && src !== img.dataset.ptThumb) img.setAttribute('src', img.dataset.ptThumb);
         }
     }
     if (!pictures.seen) {
@@ -6350,9 +6350,9 @@ function syncPictures() {
                     const img = record.target;
                     // SillyTavern put a thumbnail back (re-render): upgrade again.
                     if (thumbInfo(img.getAttribute('src') ?? '')) {
-                        img.dataset.stmuiThumb = img.getAttribute('src');
+                        img.dataset.ptThumb = img.getAttribute('src');
                         if (restoreKnownPicture(img)) continue;
-                        if (img.dataset.stmuiWatched) {
+                        if (img.dataset.ptWatched) {
                             pictures.seen?.unobserve(img);
                             pictures.seen?.observe(img);
                         } else watchPicture(img);
@@ -6380,7 +6380,7 @@ function syncPictures() {
         document.addEventListener('error', onPictureError, { capture: true });
     }
     // Pictures already on the page, and a refresh after the animated picture changed.
-    for (const img of document.querySelectorAll('img[data-stmui-watched]')) {
+    for (const img of document.querySelectorAll('img[data-pt-watched]')) {
         pictures.seen.unobserve(img);
         pictures.seen.observe(img);
     }
@@ -6390,9 +6390,9 @@ function syncPictures() {
 /** Re-check every picture of one character (after its animated picture changed). */
 function refreshPicturesFor(file) {
     for (const img of document.querySelectorAll('img')) {
-        const info = thumbInfo(img.getAttribute('src') ?? '') ?? (img.dataset.stmuiThumb ? thumbInfo(img.dataset.stmuiThumb) : null);
+        const info = thumbInfo(img.getAttribute('src') ?? '') ?? (img.dataset.ptThumb ? thumbInfo(img.dataset.ptThumb) : null);
         if (info?.file !== file) continue;
-        if (!animatedPictureFor(file) && img.dataset.stmuiThumb) img.setAttribute('src', img.dataset.stmuiThumb);
+        if (!animatedPictureFor(file) && img.dataset.ptThumb) img.setAttribute('src', img.dataset.ptThumb);
         upgradePicture(img);
     }
     shell?.update();
@@ -6442,7 +6442,7 @@ async function isAnimatedImage(file) {
 
 async function uploadAnimatedFile(file, baseName) {
     const extension = (file.type.split('/')[1] ?? 'gif').replace('apng', 'png').replace(/[^a-z0-9]/gi, '') || 'gif';
-    const safeName = `stmui-${String(baseName || 'character').replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '_')}-${Date.now()}.${extension}`;
+    const safeName = `pt-${String(baseName || 'character').replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '_')}-${Date.now()}.${extension}`;
     const response = await fetch('/api/files/upload', {
         method: 'POST',
         headers: ctx().getRequestHeaders(),
@@ -6568,26 +6568,26 @@ async function updatePersonaButton() {
     const src = personaPicture(avatar);
     if (img.getAttribute('src') !== src) img.setAttribute('src', src);
     // Set as plain text: a persona's name is never translated.
-    button.querySelector('.stmui-persona-name').textContent = name;
+    button.querySelector('.pt-persona-name').textContent = name;
     button.setAttribute('aria-label', name ? t('You are {name}. Tap to switch persona.', { name }) : t('Switch persona'));
 }
 
 function buildContextRing() {
     const ring = h('button', {
         type: 'button',
-        class: 'stmui-ctx-ring stmui-ctx-empty',
+        class: 'pt-ctx-ring pt-ctx-empty',
         onclick: () => {
             buzz(6);
             openContextSheet();
         },
-    }, [h('span', { class: 'stmui-ctx-num', 'aria-hidden': 'true' })]);
-    ring.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="stmui-ctx-track" cx="18" cy="18" r="15"/><circle class="stmui-ctx-fill" cx="18" cy="18" r="15" pathLength="100"/></svg>');
+    }, [h('span', { class: 'pt-ctx-num', 'aria-hidden': 'true' })]);
+    ring.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="pt-ctx-track" cx="18" cy="18" r="15"/><circle class="pt-ctx-fill" cx="18" cy="18" r="15" pathLength="100"/></svg>');
     return ring;
 }
 
 /**
  * The message box floats over the chat, so the chat scrolls behind it. Its
- * height (it grows as you type) is kept in --stmui-form-h: the chat leaves that
+ * height (it grows as you type) is kept in --pt-form-h: the chat leaves that
  * much room at the bottom, and the jump button sits just above it.
  */
 function watchFormHeight(on) {
@@ -6596,7 +6596,7 @@ function watchFormHeight(on) {
     if (!on || !sheld || !form || !('ResizeObserver' in window)) {
         composer.formObserver?.disconnect();
         composer.formObserver = null;
-        sheld?.style.removeProperty('--stmui-form-h');
+        sheld?.style.removeProperty('--pt-form-h');
         return;
     }
     if (composer.formObserver) return;
@@ -6610,7 +6610,7 @@ function watchFormHeight(on) {
         last = height;
         // Written on the next frame, outside the size notification (Safari warned about a loop otherwise).
         requestAnimationFrame(() => {
-            sheld.style.setProperty('--stmui-form-h', `${height}px`);
+            sheld.style.setProperty('--pt-form-h', `${height}px`);
             if (atBottom) chat.scrollTo(0, chat.scrollHeight);
         });
     });
@@ -6633,7 +6633,7 @@ function syncComposer() {
     if (!want) {
         composer.persona?.remove();
         composer.persona = null;
-        document.getElementById('nonQRFormItems')?.classList.remove('stmui-ih-browse');
+        document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
         syncGuided();
         return;
     }
@@ -6641,13 +6641,13 @@ function syncComposer() {
         composer.persona?.remove();
         composer.persona = h('button', {
             type: 'button',
-            class: 'stmui-persona-chip',
+            class: 'pt-persona-chip',
             title: 'Switch persona',
             onclick: () => {
                 buzz(6);
                 openPersonaChooser();
             },
-        }, [h('img', { class: 'stmui-persona-img', alt: '' }), h('span', { class: 'stmui-persona-name' })]);
+        }, [h('img', { class: 'pt-persona-img', alt: '' }), h('span', { class: 'pt-persona-name' })]);
         left.prepend(composer.persona);
     }
     if (settings.appShell && settings.hideTabsInChat) {
@@ -6655,8 +6655,8 @@ function syncComposer() {
             composer.tabs?.remove();
             composer.tabs = h('button', {
                 type: 'button',
-                class: 'stmui-tabs-btn',
-                'aria-controls': 'stmui-tabbar',
+                class: 'pt-tabs-btn',
+                'aria-controls': 'pt-tabbar',
                 onclick: () => {
                     buzz(6);
                     shell?.toggleTabs();
@@ -6715,9 +6715,9 @@ function syncGuided() {
     const right = document.getElementById('rightSendForm');
     const watching = active && settings.chatStyle;
     const on = watching && settings.ggButton && ggPresent() && !!right;
-    root.classList.toggle('stmui-gg', on);
+    root.classList.toggle('pt-gg', on);
     // Its switch in Pocket Tavern's settings only shows when Guided Generations is installed.
-    const switchRowLabel = document.getElementById('stmui_ggbutton')?.closest('label');
+    const switchRowLabel = document.getElementById('pt_ggbutton')?.closest('label');
     if (switchRowLabel) switchRowLabel.hidden = !ggPresent();
     watchGuided(watching);
     if (!on) {
@@ -6727,8 +6727,8 @@ function syncGuided() {
     }
     if (!guided.button || !guided.button.isConnected) {
         guided.button?.remove();
-        guided.count = h('span', { class: 'stmui-gg-count', 'aria-hidden': 'true', hidden: true });
-        guided.button = h('button', { type: 'button', class: 'stmui-gg-btn' }, [ui('compass'), guided.count]);
+        guided.count = h('span', { class: 'pt-gg-count', 'aria-hidden': 'true', hidden: true });
+        guided.button = h('button', { type: 'button', class: 'pt-gg-btn' }, [ui('compass'), guided.count]);
         wireGuideButton(guided.button);
     }
     // Right next to Send: it is the other way to send.
@@ -6839,50 +6839,50 @@ function openGuidedSheet() {
         subtitle: '',
         fill: body => {
             const typed = document.getElementById('send_textarea')?.value.trim() ?? '';
-            const preview = h('span', { class: 'stmui-gg-instruction-text' });
+            const preview = h('span', { class: 'pt-gg-instruction-text' });
             // Your own words, never translated.
             preview.textContent = typed || t('Type in the message box how the AI should steer, then pick an action. With nothing typed, each action works like the normal one.');
             body.append(h('button', {
                 type: 'button',
-                class: `stmui-gg-instruction${typed ? '' : ' stmui-gg-instruction-empty'}`,
+                class: `pt-gg-instruction${typed ? '' : ' pt-gg-instruction-empty'}`,
                 'aria-label': typed ? t('Your instruction. Tap to edit it.') : t('No instruction yet. Tap to type one.'),
                 onclick: () => {
                     closeSheet(true);
                     document.getElementById('send_textarea')?.focus();
                 },
-            }, [h('span', { class: 'stmui-gg-instruction-label', text: typed ? 'Your instruction' : 'No instruction yet' }), preview]));
+            }, [h('span', { class: 'pt-gg-instruction-label', text: typed ? 'Your instruction' : 'No instruction yet' }), preview]));
 
             const rowsFor = group => GG_ACTIONS
                 .filter(action => action.group === group)
                 .map(action => ({ action, element: document.getElementById(action.id) }))
                 .filter(({ element }) => element && row.contains(element))
-                .map(({ action, element }) => actionRow(ui(action.icon, 'stmui-menu-row-icon'), t(action.label), t(action.note), () => runGuided(element, action.id)));
+                .map(({ action, element }) => actionRow(ui(action.icon, 'pt-menu-row-icon'), t(action.label), t(action.note), () => runGuided(element, action.id)));
             const reply = rowsFor('reply');
             const mine = rowsFor('mine');
-            if (reply.length) body.append(h('p', { class: 'stmui-menu-heading', text: 'Steer the reply' }), h('div', { class: 'stmui-menu-list' }, reply));
-            if (mine.length) body.append(h('p', { class: 'stmui-menu-heading', text: 'Your message' }), h('div', { class: 'stmui-menu-list' }, mine));
+            if (reply.length) body.append(h('p', { class: 'pt-menu-heading', text: 'Steer the reply' }), h('div', { class: 'pt-menu-list' }, reply));
+            if (mine.length) body.append(h('p', { class: 'pt-menu-heading', text: 'Your message' }), h('div', { class: 'pt-menu-list' }, mine));
 
             // Buttons it adds that Pocket Tavern has no name for yet.
             const known = new Set(GG_ACTIONS.map(action => action.id));
             const other = [...row.querySelectorAll('.gg-action-button')]
                 .filter(button => !known.has(button.id) && !GG_MENU_COPIES.has(button.id))
                 .map(button => actionRow(faIcon(wrapIcon(button)), button.title || button.id, '', () => runGuided(button, '')));
-            if (other.length) body.append(h('p', { class: 'stmui-menu-heading', text: 'More actions' }), h('div', { class: 'stmui-menu-list' }, other));
+            if (other.length) body.append(h('p', { class: 'pt-menu-heading', text: 'More actions' }), h('div', { class: 'pt-menu-list' }, other));
 
             const count = guideCount();
             const more = [];
             if (document.getElementById('pg_tools_menu')) {
-                more.push(actionRow(ui('book', 'stmui-menu-row-icon'), t('Persistent guides'), count ? t('{count} active', { count }) : t('None active'), () => openGuidedMenu('pg_tools_menu', 'Persistent guides', 'Notes the AI keeps in mind for this chat')));
+                more.push(actionRow(ui('book', 'pt-menu-row-icon'), t('Persistent guides'), count ? t('{count} active', { count }) : t('None active'), () => openGuidedMenu('pg_tools_menu', 'Persistent guides', 'Notes the AI keeps in mind for this chat')));
             }
             if (document.getElementById('gg_tools_menu')) {
-                more.push(actionRow(ui('list', 'stmui-menu-row-icon'), t('Tools'), t('Simple send, spellchecker, corrections and more'), () => openGuidedMenu('gg_tools_menu', 'Guided Generations tools', '')));
+                more.push(actionRow(ui('list', 'pt-menu-row-icon'), t('Tools'), t('Simple send, spellchecker, corrections and more'), () => openGuidedMenu('gg_tools_menu', 'Guided Generations tools', '')));
             }
-            more.push(actionRow(ui('settings', 'stmui-menu-row-icon'), t('Guided Generations settings'), t('Choose which actions show and how they work'), () => openGuidedSettings()));
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'More' }), h('div', { class: 'stmui-menu-list' }, more));
+            more.push(actionRow(ui('settings', 'pt-menu-row-icon'), t('Guided Generations settings'), t('Choose which actions show and how they work'), () => openGuidedSettings()));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'More' }), h('div', { class: 'pt-menu-list' }, more));
 
             const last = lastGuidedAction();
             body.append(h('p', {
-                class: 'stmui-menu-foot',
+                class: 'pt-menu-foot',
                 text: last ? t('Hold the guide button to run {action} again.', { action: t(last.label) }) : t('After you use an action, hold the guide button to run it again.'),
             }));
         },
@@ -6908,7 +6908,7 @@ function openGuidedMenu(menuId, title, subtitle) {
         fill: body => {
             let rows = [];
             const flush = () => {
-                if (rows.length) body.append(h('div', { class: 'stmui-menu-list' }, rows));
+                if (rows.length) body.append(h('div', { class: 'pt-menu-list' }, rows));
                 rows = [];
             };
             for (const node of menu.children) {
@@ -6941,12 +6941,12 @@ function openGuidedSettings() {
 /** After its arrows bring back an earlier message they stay until you type your own words. */
 function onInputHistoryClick(event) {
     if (!active || !settings.chatStyle) return;
-    if (event.target.closest?.('#nonQRFormItems .stih--arrows')) document.getElementById('nonQRFormItems')?.classList.add('stmui-ih-browse');
+    if (event.target.closest?.('#nonQRFormItems .stih--arrows')) document.getElementById('nonQRFormItems')?.classList.add('pt-ih-browse');
 }
 
 function onComposerInput(event) {
     if (!active) return;
-    if (event.isTrusted && event.target?.id === 'send_textarea') document.getElementById('nonQRFormItems')?.classList.remove('stmui-ih-browse');
+    if (event.isTrusted && event.target?.id === 'send_textarea') document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
 }
 
 // -- chat: drag the last reply sideways to swipe
@@ -6974,7 +6974,7 @@ function paintSwipe() {
     const kind = drag.dx < 0 ? 'next' : (drag.canPrevious ? 'previous' : 'none');
     if (!drag.hint || drag.hint.dataset.kind !== kind) {
         drag.hint?.remove();
-        drag.hint = kind === 'none' ? null : h('div', { class: `stmui-drag-hint stmui-drag-${kind}`, 'data-kind': kind }, [
+        drag.hint = kind === 'none' ? null : h('div', { class: `pt-drag-hint pt-drag-${kind}`, 'data-kind': kind }, [
             ui(kind === 'next' ? 'chevron-left' : 'chevron-right'),
             h('span', { text: kind === 'next' ? 'Another version' : 'Previous version' }),
         ]);
@@ -6983,7 +6983,7 @@ function paintSwipe() {
             document.body.append(drag.hint);
         }
     }
-    if (drag.hint) drag.hint.classList.toggle('stmui-drag-ready', Math.abs(drag.dx) > 80);
+    if (drag.hint) drag.hint.classList.toggle('pt-drag-ready', Math.abs(drag.dx) > 80);
 }
 
 function onSwipeMove(event) {
@@ -7015,7 +7015,7 @@ function onSwipeEnd() {
     const canGo = drag.dx < 0 || drag.canPrevious;
     const fast = Math.abs(drag.dx) > 40 && Date.now() - drag.started < 250;
     const go = canGo && (Math.abs(drag.dx) > 80 || fast);
-    mes.style.transition = 'transform 0.25s var(--stmui-ease)';
+    mes.style.transition = 'transform 0.25s var(--pt-ease)';
     mes.style.transform = '';
     setTimeout(() => {
         mes.style.transition = '';
@@ -7045,9 +7045,9 @@ function syncSwipeCounters() {
     requestAnimationFrame(() => {
         const chat = ctx().chat ?? [];
         const all = document.body.classList.contains('swipeAllMessages');
-        for (const mes of document.querySelectorAll(all ? '#chat > .mes' : '#chat > .mes.last_mes, #chat > .mes.stmui-one-swipe')) {
+        for (const mes of document.querySelectorAll(all ? '#chat > .mes' : '#chat > .mes.last_mes, #chat > .mes.pt-one-swipe')) {
             const message = chat[Number(mes.getAttribute('mesid'))];
-            mes.classList.toggle('stmui-one-swipe', active && !((message?.swipes?.length ?? 0) > 1));
+            mes.classList.toggle('pt-one-swipe', active && !((message?.swipes?.length ?? 0) > 1));
         }
     });
 }
@@ -7066,10 +7066,10 @@ function primeChatSizes(delay = 0) {
     fastChat.timer = window.setTimeout(() => {
         const chat = document.getElementById('chat');
         if (!active || !settings.fastChat || !chat) return;
-        chat.classList.add('stmui-fast-prime');
+        chat.classList.add('pt-fast-prime');
         // Drawn in the next frame (heights are remembered then), skipped again after it.
         requestAnimationFrame(() => requestAnimationFrame(() => {
-            chat.classList.remove('stmui-fast-prime');
+            chat.classList.remove('pt-fast-prime');
             keepAtNewest();
         }));
     }, delay);
@@ -7152,15 +7152,15 @@ function markMissingAvatars(root = document.getElementById('chat')) {
     const want = active && settings.chatStyle;
     for (const icon of root?.querySelectorAll('.mes .avatar > .missing-avatar') ?? []) {
         if (!want) {
-            delete icon.dataset.stmuiInitials;
-            icon.style.removeProperty('--stmui-hue');
+            delete icon.dataset.ptInitials;
+            icon.style.removeProperty('--pt-hue');
             continue;
         }
         const name = icon.closest('.mes')?.getAttribute('ch_name') ?? '';
         const initials = initialsOf(name);
-        if (icon.dataset.stmuiInitials === initials) continue;
-        icon.dataset.stmuiInitials = initials;
-        icon.style.setProperty('--stmui-hue', String(nameHue(name)));
+        if (icon.dataset.ptInitials === initials) continue;
+        icon.dataset.ptInitials = initials;
+        icon.style.setProperty('--pt-hue', String(nameHue(name)));
     }
 }
 
@@ -7174,8 +7174,8 @@ function onAvatarError(event) {
 
 function foldLongMessages() {
     if (!active || !settings.chatStyle || !settings.foldLong) {
-        document.querySelectorAll('#chat .mes.stmui-long, #chat .mes.stmui-long-open').forEach(mes => mes.classList.remove('stmui-long', 'stmui-long-open'));
-        document.querySelectorAll('.stmui-more-btn').forEach(node => node.remove());
+        document.querySelectorAll('#chat .mes.pt-long, #chat .mes.pt-long-open').forEach(mes => mes.classList.remove('pt-long', 'pt-long-open'));
+        document.querySelectorAll('.pt-more-btn').forEach(node => node.remove());
         return;
     }
     const chat = ctx().chat ?? [];
@@ -7184,15 +7184,15 @@ function foldLongMessages() {
         const message = chat[Number(mes.getAttribute('mesid'))];
         const text = message?.extra?.display_text ?? message?.mes ?? '';
         const long = text.length > LONG_MESSAGE && !mes.classList.contains('last_mes') && !mes.querySelector('#curEditTextarea');
-        if (mes.classList.contains('stmui-long') !== long) changed = true;
-        mes.classList.toggle('stmui-long', long);
-        let button = mes.querySelector('.stmui-more-btn');
+        if (mes.classList.contains('pt-long') !== long) changed = true;
+        mes.classList.toggle('pt-long', long);
+        let button = mes.querySelector('.pt-more-btn');
         if (long && !button) {
             button = h('button', {
                 type: 'button',
-                class: 'stmui-more-btn',
+                class: 'pt-more-btn',
                 onclick: () => {
-                    const open = mes.classList.toggle('stmui-long-open');
+                    const open = mes.classList.toggle('pt-long-open');
                     button.textContent = open ? t('Show less') : t('Show more');
                     if (!open) mes.scrollIntoView({ block: 'nearest' });
                 },
@@ -7200,7 +7200,7 @@ function foldLongMessages() {
             mes.querySelector('.mes_text')?.after(button);
         } else if (!long && button) {
             button.remove();
-            mes.classList.remove('stmui-long-open');
+            mes.classList.remove('pt-long-open');
         }
     }
     // Folding changes heights; let the browser remember the new ones.
@@ -7220,7 +7220,7 @@ function closeChatFinder() {
     window.clearTimeout(finder.timer);
     finder.timer = 0;
     clearFinderMarks();
-    document.querySelectorAll('#chat .mes.stmui-flash').forEach(mes => mes.classList.remove('stmui-flash'));
+    document.querySelectorAll('#chat .mes.pt-flash').forEach(mes => mes.classList.remove('pt-flash'));
     finder.bar?.remove();
     finder.bar = null;
     finder.hits = [];
@@ -7261,7 +7261,7 @@ function markInMessage(mes, words) {
             const start = match.index;
             const end = start + match[0].length;
             fragment.append(document.createTextNode(value.slice(last, start)));
-            const mark = h('mark', { class: 'stmui-find-mark', raw: value.slice(start, end) });
+            const mark = h('mark', { class: 'pt-find-mark', raw: value.slice(start, end) });
             finder.marks.push(mark);
             fragment.append(mark);
             last = end;
@@ -7276,7 +7276,7 @@ async function showFinderHit(index) {
     const token = ++finder.seq;
     finder.index = (index + finder.hits.length) % finder.hits.length;
     const id = finder.hits[finder.index];
-    finder.bar.querySelector('.stmui-find-count').textContent = `${finder.index + 1}/${finder.hits.length}`;
+    finder.bar.querySelector('.pt-find-count').textContent = `${finder.index + 1}/${finder.hits.length}`;
     // Older messages may not be on the page yet: ask SillyTavern to load more.
     for (let tries = 0; tries < 60 && !document.querySelector(`#chat .mes[mesid="${id}"]`); tries++) {
         if (finder.seq !== token || !finder.bar || !active) return;
@@ -7292,17 +7292,17 @@ async function showFinderHit(index) {
     const words = normalizeText(finder.bar.querySelector('input').value).split(/\s+/).filter(Boolean);
     if (!words.length) return;
     markInMessage(mes, words);
-    if (mes.classList.contains('stmui-long') && !mes.classList.contains('stmui-long-open')) {
-        mes.classList.add('stmui-long-open');
-        const more = mes.querySelector('.stmui-more-btn');
+    if (mes.classList.contains('pt-long') && !mes.classList.contains('pt-long-open')) {
+        mes.classList.add('pt-long-open');
+        const more = mes.querySelector('.pt-more-btn');
         if (more) more.textContent = t('Show less');
     }
     const firstMark = finder.marks[0];
     (firstMark ?? mes).scrollIntoView({ block: 'center', behavior: motionAllowed() ? 'smooth' : 'auto' });
-    mes.classList.remove('stmui-flash');
+    mes.classList.remove('pt-flash');
     void mes.offsetWidth;
-    mes.classList.add('stmui-flash');
-    window.setTimeout(() => mes.classList.remove('stmui-flash'), 1600);
+    mes.classList.add('pt-flash');
+    window.setTimeout(() => mes.classList.remove('pt-flash'), 1600);
 }
 
 function runChatSearch() {
@@ -7318,7 +7318,7 @@ function runChatSearch() {
             if (words.every(word => text.includes(word))) finder.hits.push(id);
         });
     }
-    const count = finder.bar.querySelector('.stmui-find-count');
+    const count = finder.bar.querySelector('.pt-find-count');
     if (!words.length) count.textContent = '';
     else if (!finder.hits.length) count.textContent = t('None');
     if (finder.hits.length) showFinderHit(finder.hits.length - 1);
@@ -7354,10 +7354,10 @@ function openChatFinder() {
             closeChatFinder();
         }
     });
-    const button = (iconName, label, onclick) => h('button', { type: 'button', class: 'stmui-find-btn', 'aria-label': label, title: label, onclick }, [ui(iconName)]);
-    finder.bar = h('div', { class: 'stmui-chat-finder', role: 'search' }, [
+    const button = (iconName, label, onclick) => h('button', { type: 'button', class: 'pt-find-btn', 'aria-label': label, title: label, onclick }, [ui(iconName)]);
+    finder.bar = h('div', { class: 'pt-chat-finder', role: 'search' }, [
         input,
-        h('span', { class: 'stmui-find-count' }),
+        h('span', { class: 'pt-find-count' }),
         button('chevron-up', 'Older match', () => showFinderHit(finder.index - 1)),
         button('chevron-down', 'Newer match', () => showFinderHit(finder.index + 1)),
         button('x', 'Close search', () => closeChatFinder()),
@@ -7411,7 +7411,7 @@ const CTX_PARTS = {
     character: { label: 'Character, persona and scenario', color: '#a78bfa' },
     examples: { label: 'Example messages', color: '#f5b942' },
     lore: { label: 'Lorebooks', color: '#2dd4bf' },
-    history: { label: 'Chat history', color: 'var(--stmui-accent)' },
+    history: { label: 'Chat history', color: 'var(--pt-accent)' },
     notes: { label: "Author's note and extras", color: '#f472b6' },
     bias: { label: 'Bias', color: '#cbd5e1' },
     other: { label: 'Other', color: '#64748b' },
@@ -7517,12 +7517,12 @@ function contextShare() {
 function paintRing(ring, share, empty) {
     const percent = Math.round(share * 100);
     // A style, not an attribute: the stylesheet's starting value would win over an attribute.
-    const fill = ring.querySelector('.stmui-ctx-fill');
+    const fill = ring.querySelector('.pt-ctx-fill');
     if (fill) fill.style.strokeDasharray = `${empty ? 0 : Math.max(2, percent)} 100`;
-    ring.classList.toggle('stmui-ctx-empty', empty);
-    ring.classList.toggle('stmui-ctx-warn', !empty && share > 0.85 && share <= 0.98);
-    ring.classList.toggle('stmui-ctx-full', !empty && share > 0.98);
-    const num = ring.querySelector('.stmui-ctx-num');
+    ring.classList.toggle('pt-ctx-empty', empty);
+    ring.classList.toggle('pt-ctx-warn', !empty && share > 0.85 && share <= 0.98);
+    ring.classList.toggle('pt-ctx-full', !empty && share > 0.98);
+    const num = ring.querySelector('.pt-ctx-num');
     if (num) num.textContent = empty ? '' : `${percent}%`;
 }
 
@@ -7577,7 +7577,7 @@ function openContextSheet() {
 
 function fillContextSheet(body, { inChat, info, loading, failed }) {
     if (!inChat) {
-        body.append(h('p', { class: 'stmui-menu-foot', text: t('Open a chat first.') }));
+        body.append(h('p', { class: 'pt-menu-foot', text: t('Open a chat first.') }));
         return;
     }
     const fmt = value => Number(value || 0).toLocaleString();
@@ -7588,14 +7588,14 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
     const share = empty ? 0 : Math.min(1, total / available);
 
     // The big ring and the headline.
-    const big = h('div', { class: 'stmui-ctx-big' }, [
-        h('span', { class: 'stmui-ctx-num' }),
-        h('small', { class: 'stmui-ctx-unit', text: empty ? '' : t('full') }),
+    const big = h('div', { class: 'pt-ctx-big' }, [
+        h('span', { class: 'pt-ctx-num' }),
+        h('small', { class: 'pt-ctx-unit', text: empty ? '' : t('full') }),
     ]);
-    big.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="stmui-ctx-track" cx="18" cy="18" r="15"/><circle class="stmui-ctx-fill" cx="18" cy="18" r="15" pathLength="100"/></svg>');
+    big.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="pt-ctx-track" cx="18" cy="18" r="15"/><circle class="pt-ctx-fill" cx="18" cy="18" r="15" pathLength="100"/></svg>');
     paintRing(big, share, empty);
-    if (empty) big.querySelector('.stmui-ctx-num').textContent = '–';
-    const head = h('div', { class: 'stmui-ctx-head' });
+    if (empty) big.querySelector('.pt-ctx-num').textContent = '–';
+    const head = h('div', { class: 'pt-ctx-head' });
     if (loading) {
         head.append(h('b', { text: t('Counting…') }));
     } else if (empty) {
@@ -7604,15 +7604,15 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
         head.append(
             h('b', { text: t('{used} tokens', { used: fmt(total) }) }),
             h('small', { text: t('of {available} the model can read', { available: fmt(available) }) }),
-            h('small', { class: 'stmui-ctx-sub', text: t('{max} context, {reply} kept for the reply', { max: fmt(available + reply), reply: fmt(reply) }) }),
+            h('small', { class: 'pt-ctx-sub', text: t('{max} context, {reply} kept for the reply', { max: fmt(available + reply), reply: fmt(reply) }) }),
         );
     }
-    body.append(h('div', { class: 'stmui-ctx-hero' }, [big, head]));
+    body.append(h('div', { class: 'pt-ctx-hero' }, [big, head]));
     if (loading) return;
 
     // What filled it: one bar, then one row per part.
     if (info?.parts?.length && !empty) {
-        const bar = h('div', { class: 'stmui-ctx-bar', role: 'img', 'aria-label': t('What filled the context') });
+        const bar = h('div', { class: 'pt-ctx-bar', role: 'img', 'aria-label': t('What filled the context') });
         for (const part of info.parts) {
             const span = h('span');
             span.style.setProperty('--c', CTX_PARTS[part.key].color);
@@ -7621,9 +7621,9 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
         }
         body.append(bar);
         const rows = info.parts.map(part => {
-            const dot = h('span', { class: 'stmui-ctx-dot' });
+            const dot = h('span', { class: 'pt-ctx-dot' });
             dot.style.setProperty('--c', CTX_PARTS[part.key].color);
-            const text = h('span', { class: 'stmui-ctx-name' }, [h('span', { text: CTX_PARTS[part.key].label })]);
+            const text = h('span', { class: 'pt-ctx-name' }, [h('span', { text: CTX_PARTS[part.key].label })]);
             if (part.key === 'character') {
                 const pieces = Object.entries(info.character).filter(([, tokens]) => tokens > 0).map(([name, tokens]) => `${t(name)} ${fmt(tokens)}`);
                 if (pieces.length) text.append(h('small', { text: pieces.join(', ') }));
@@ -7632,20 +7632,20 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
                 const count = info.facts.find(([name]) => name === 'Messages in context')?.[1];
                 if (count) text.append(h('small', { text: t('{count} messages', { count }) }));
             }
-            return h('div', { class: 'stmui-ctx-row' }, [
+            return h('div', { class: 'pt-ctx-row' }, [
                 dot,
                 text,
-                h('span', { class: 'stmui-ctx-tok' }, [h('b', { text: fmt(part.tokens) }), h('small', { text: `${Math.max(1, Math.round((part.tokens / available) * 100))}%` })]),
+                h('span', { class: 'pt-ctx-tok' }, [h('b', { text: fmt(part.tokens) }), h('small', { text: `${Math.max(1, Math.round((part.tokens / available) * 100))}%` })]),
             ]);
         });
         const free = Math.max(0, available - total);
-        const freeDot = h('span', { class: 'stmui-ctx-dot stmui-ctx-dot-free' });
-        rows.push(h('div', { class: 'stmui-ctx-row stmui-ctx-row-free' }, [
+        const freeDot = h('span', { class: 'pt-ctx-dot pt-ctx-dot-free' });
+        rows.push(h('div', { class: 'pt-ctx-row pt-ctx-row-free' }, [
             freeDot,
-            h('span', { class: 'stmui-ctx-name' }, [h('span', { text: t('Free space') })]),
-            h('span', { class: 'stmui-ctx-tok' }, [h('b', { text: fmt(free) }), h('small', { text: `${Math.round((free / available) * 100)}%` })]),
+            h('span', { class: 'pt-ctx-name' }, [h('span', { text: t('Free space') })]),
+            h('span', { class: 'pt-ctx-tok' }, [h('b', { text: fmt(free) }), h('small', { text: `${Math.round((free / available) * 100)}%` })]),
         ]));
-        body.append(h('div', { class: 'stmui-ctx-list' }, rows));
+        body.append(h('div', { class: 'pt-ctx-list' }, rows));
     }
 
     // A plain-words note on what this means.
@@ -7654,15 +7654,15 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
         const note = warn
             ? t('Almost full: the oldest messages are left out so the newest ones fit.')
             : t('Room for about {free} more tokens before older messages start to drop out.', { free: fmt(Math.max(0, available - total)) });
-        body.append(h('p', { class: `stmui-ctx-note ${warn ? 'stmui-ctx-note-warn' : ''}`, text: note }));
+        body.append(h('p', { class: `pt-ctx-note ${warn ? 'pt-ctx-note-warn' : ''}`, text: note }));
     }
-    if (failed) body.append(h('p', { class: 'stmui-ctx-note stmui-ctx-note-warn', text: t('Could not read the details of the last reply.') }));
+    if (failed) body.append(h('p', { class: 'pt-ctx-note pt-ctx-note-warn', text: t('Could not read the details of the last reply.') }));
 
     // Facts about the last reply and the settings.
     const facts = [...(info?.facts ?? []).filter(([name]) => name !== 'Messages in context' || !info?.parts?.length)];
     facts.push(['Context size', fmt(available + reply)], ['Kept for the reply', fmt(reply)]);
-    body.append(h('div', { class: 'stmui-ctx-facts' }, facts.map(([name, value]) => {
-        const fact = h('div', { class: 'stmui-ctx-fact' }, [h('small', { text: name })]);
+    body.append(h('div', { class: 'pt-ctx-facts' }, facts.map(([name, value]) => {
+        const fact = h('div', { class: 'pt-ctx-fact' }, [h('small', { text: name })]);
         // Values (model and preset names) are shown as they are, not translated.
         const strong = document.createElement('b');
         strong.textContent = String(value);
@@ -7674,7 +7674,7 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
     if (info?.showPrompt) {
         actions.push(h('button', {
             type: 'button',
-            class: 'stmui-ctx-btn',
+            class: 'pt-ctx-btn',
             onclick: () => {
                 closeSheet(true);
                 info.showPrompt();
@@ -7683,14 +7683,14 @@ function fillContextSheet(body, { inChat, info, loading, failed }) {
     }
     actions.push(h('button', {
         type: 'button',
-        class: 'stmui-ctx-btn',
+        class: 'pt-ctx-btn',
         onclick: () => {
             closeSheet(true);
             openPage('ai-config-button');
         },
     }, [ui('sliders'), h('span', { text: 'Change context size' })]));
-    body.append(h('div', { class: 'stmui-ctx-actions' }, actions));
-    if (info) body.append(h('p', { class: 'stmui-menu-foot', text: t('Counted from the last reply in this chat.') }));
+    body.append(h('div', { class: 'pt-ctx-actions' }, actions));
+    if (info) body.append(h('p', { class: 'pt-menu-foot', text: t('Counted from the last reply in this chat.') }));
 }
 
 function meterText() {
@@ -7702,20 +7702,20 @@ function meterText() {
 
 function applyChatLook() {
     const root = document.documentElement;
-    if (active && settings.chatStyle && settings.chatLook && settings.chatLook !== 'cards') root.dataset.stmuiLook = settings.chatLook;
-    else delete root.dataset.stmuiLook;
+    if (active && settings.chatStyle && settings.chatLook && settings.chatLook !== 'cards') root.dataset.ptLook = settings.chatLook;
+    else delete root.dataset.ptLook;
 }
 
 function chatLookControl() {
     const names = { cards: 'Cards', bubbles: 'Bubbles', flat: 'Flat' };
     // SillyTavern's own Bubbles or Document style draws the messages itself: then none of these is on.
     const paused = !!stChatStyleName();
-    return h('div', { class: 'stmui-segmented stmui-look-seg', role: 'group', 'aria-label': 'Chat look' },
+    return h('div', { class: 'pt-segmented pt-look-seg', role: 'group', 'aria-label': 'Chat look' },
         Object.entries(names).map(([look, label]) => {
             const on = !paused && (settings.chatLook || 'cards') === look;
             return h('button', {
                 type: 'button',
-                class: `stmui-seg ${on ? 'stmui-seg-on' : ''}`,
+                class: `pt-seg ${on ? 'pt-seg-on' : ''}`,
                 'aria-pressed': String(on),
                 onclick: () => pickChatLook(look),
             }, [label]);
@@ -7779,16 +7779,16 @@ function useFlatChatStyle() {
 }
 
 function themeNote(id, key, text, actions = []) {
-    return h('div', { id, class: 'stmui-inline-note', 'data-stmui': '1', 'data-key': key }, [
+    return h('div', { id, class: 'pt-inline-note', 'data-pt': '1', 'data-key': key }, [
         h('p', { text }),
-        actions.length ? h('div', { class: 'stmui-inline-note-actions' }, actions.map(([label, onclick]) => h('button', { type: 'button', class: 'stmui-inline-note-btn', onclick }, [label]))) : null,
+        actions.length ? h('div', { class: 'pt-inline-note-actions' }, actions.map(([label, onclick]) => h('button', { type: 'button', class: 'pt-inline-note-btn', onclick }, [label]))) : null,
     ]);
 }
 
 /** On the Backgrounds page: a Pocket Tavern theme's own background is covering chat backgrounds. */
 function syncBackgroundNote() {
     const header = document.getElementById('bg-header-fixed');
-    let note = document.getElementById('stmui_bg_note');
+    let note = document.getElementById('pt_bg_note');
     const theme = active ? currentTheme() : null;
     const key = theme && ownThemeOn() && settings.themeBackdrop ? `theme:${theme.id}` : '';
     if (!header || !key) {
@@ -7797,7 +7797,7 @@ function syncBackgroundNote() {
     }
     if (note?.dataset.key === key) return;
     note?.remove();
-    note = themeNote('stmui_bg_note', key, t('The {theme} theme shows its own background, so chat backgrounds are hidden.', { theme: t(theme.name) }), [
+    note = themeNote('pt_bg_note', key, t('The {theme} theme shows its own background, so chat backgrounds are hidden.', { theme: t(theme.name) }), [
         ['Show chat backgrounds', () => setAppearance('themeBackdrop', false)],
     ]);
     header.prepend(note);
@@ -7809,13 +7809,13 @@ function syncBackgroundNote() {
  */
 function syncLookNote() {
     const block = document.getElementById('UI-presets-block');
-    let note = document.getElementById('stmui_look_note');
+    let note = document.getElementById('pt_look_note');
     if (!block || !active) {
         note?.remove();
         return;
     }
     if (note) return;
-    note = themeNote('stmui_look_note', 'moved', "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
+    note = themeNote('pt_look_note', 'moved', "Themes are in More → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
         ['Open Themes', () => openThemeSheet()],
     ]);
     block.prepend(note);
@@ -7886,33 +7886,33 @@ async function decorateEntries(forceRefresh = false) {
         // The content block uses the same class, so ask for the one in the header.
         const header = entry.querySelector('.inline-drawer-header > .world_entry_thin_controls');
         if (!header) continue;
-        let chips = header.querySelector('.stmui-entry-keys');
+        let chips = header.querySelector('.pt-entry-keys');
         if (!chips) {
-            chips = h('div', { class: 'stmui-entry-keys' });
+            chips = h('div', { class: 'pt-entry-keys' });
             header.append(chips);
         }
         const keys = entryKeys(entry);
         const signature = keys.join('\u0001');
         if (chips.dataset.keys !== signature) {
             chips.dataset.keys = signature;
-            chips.replaceChildren(...keys.slice(0, 8).map(key => h('span', { class: 'stmui-key-chip', raw: key })),
-                ...(keys.length > 8 ? [h('span', { class: 'stmui-key-chip stmui-key-more', raw: `+${keys.length - 8}` })] : []));
+            chips.replaceChildren(...keys.slice(0, 8).map(key => h('span', { class: 'pt-key-chip', raw: key })),
+                ...(keys.length > 8 ? [h('span', { class: 'pt-key-chip pt-key-more', raw: `+${keys.length - 8}` })] : []));
             chips.hidden = !keys.length;
         }
         const content = entry.querySelector('.inline-drawer-content');
         const open = !!content && content.style.display !== 'none' && getComputedStyle(content).display !== 'none';
-        if (entry.classList.contains('stmui-entry-open') !== open) {
-            entry.classList.toggle('stmui-entry-open', open);
+        if (entry.classList.contains('pt-entry-open') !== open) {
+            entry.classList.toggle('pt-entry-open', open);
             scheduleHistorySync();
         }
     }
-    const anyOpen = !!list.querySelector('.world_entry.stmui-entry-open');
+    const anyOpen = !!list.querySelector('.world_entry.pt-entry-open');
     if (anyOpen) lore.edited = true;
-    document.documentElement.classList.toggle('stmui-entry-editing', anyOpen);
+    document.documentElement.classList.toggle('pt-entry-editing', anyOpen);
 }
 
 function openLoreEntry() {
-    return document.querySelector('#world_popup_entries_list .world_entry.stmui-entry-open');
+    return document.querySelector('#world_popup_entries_list .world_entry.pt-entry-open');
 }
 
 function closeLoreEntry() {
@@ -7925,21 +7925,21 @@ function closeLoreEntry() {
 function syncLoreEntries() {
     const list = document.getElementById('world_popup_entries_list');
     const want = active && settings.touchSizing && settings.loreCards;
-    document.documentElement.classList.toggle('stmui-lorecards', !!want);
+    document.documentElement.classList.toggle('pt-lorecards', !!want);
     if (!want) {
         window.clearTimeout(lore.timer);
         lore.timer = 0;
         lore.observer?.disconnect();
         lore.observer = null;
         lore.edited = false;
-        document.querySelectorAll('.stmui-entry-keys').forEach(node => node.remove());
-        document.querySelectorAll('.world_entry.stmui-entry-open').forEach(node => node.classList.remove('stmui-entry-open'));
-        document.documentElement.classList.remove('stmui-entry-editing');
+        document.querySelectorAll('.pt-entry-keys').forEach(node => node.remove());
+        document.querySelectorAll('.world_entry.pt-entry-open').forEach(node => node.classList.remove('pt-entry-open'));
+        document.documentElement.classList.remove('pt-entry-editing');
         return;
     }
     if (list && !lore.observer) {
         lore.observer = new MutationObserver(records => {
-            if (records.every(record => record.target.closest?.('.stmui-entry-keys'))) return;
+            if (records.every(record => record.target.closest?.('.pt-entry-keys'))) return;
             window.clearTimeout(lore.timer);
             lore.timer = window.setTimeout(() => decorateEntries(false), 120);
         });
@@ -7970,20 +7970,20 @@ const presetTabs = { tab: 'params', bar: null, marked: [] };
 function teardownPresetTabs() {
     presetTabs.bar?.remove();
     presetTabs.bar = null;
-    for (const node of presetTabs.marked) node.classList.remove('stmui-ptab-path', 'stmui-ptab-prompts');
+    for (const node of presetTabs.marked) node.classList.remove('pt-ptab-path', 'pt-ptab-prompts');
     presetTabs.marked = [];
     const panel = document.getElementById('left-nav-panel');
-    if (panel) delete panel.dataset.stmuiPtab;
-    document.documentElement.classList.remove('stmui-ptabs');
+    if (panel) delete panel.dataset.ptPtab;
+    document.documentElement.classList.remove('pt-ptabs');
 }
 
 function setPresetTab(tab) {
     presetTabs.tab = tab;
     const panel = document.getElementById('left-nav-panel');
-    if (panel) panel.dataset.stmuiPtab = tab;
+    if (panel) panel.dataset.ptPtab = tab;
     for (const button of presetTabs.bar?.children ?? []) {
-        const on = button.id === `stmui_ptab_${tab}`;
-        button.classList.toggle('stmui-seg-on', on);
+        const on = button.id === `pt_ptab_${tab}`;
+        button.classList.toggle('pt-seg-on', on);
         button.setAttribute('aria-selected', String(on));
     }
 }
@@ -8003,36 +8003,36 @@ function syncPresetTabs() {
         teardownPresetTabs();
         // The prompt list's block, and each box between it and the page's list of settings.
         const block = manager.closest('.range-block') ?? manager;
-        block.classList.add('stmui-ptab-prompts');
+        block.classList.add('pt-ptab-prompts');
         presetTabs.marked.push(block);
         for (let node = block.parentElement; node && node !== scope; node = node.parentElement) {
-            node.classList.add('stmui-ptab-path');
+            node.classList.add('pt-ptab-path');
             presetTabs.marked.push(node);
         }
-        presetTabs.bar = h('div', { class: 'stmui-segmented stmui-ptabs', role: 'tablist', 'aria-label': 'Presets', 'data-stmui': '1' },
+        presetTabs.bar = h('div', { class: 'pt-segmented pt-ptabs', role: 'tablist', 'aria-label': 'Presets', 'data-pt': '1' },
             [['params', 'Parameters', 'sliders'], ['prompts', 'Prompts', 'note']].map(([id, label, icon]) => h('button', {
-                type: 'button', id: `stmui_ptab_${id}`, class: 'stmui-seg', role: 'tab', onclick: () => setPresetTab(id),
+                type: 'button', id: `pt_ptab_${id}`, class: 'pt-seg', role: 'tab', onclick: () => setPresetTab(id),
             }, [ui(icon), h('span', { text: label })])));
         head.after(presetTabs.bar);
     }
     setPresetTab(presetTabs.tab);
-    document.documentElement.classList.add('stmui-ptabs');
+    document.documentElement.classList.add('pt-ptabs');
 }
 
 function syncTriggerChips() {
     const select = document.getElementById('completion_prompt_manager_popup_entry_form_injection_trigger');
     if (!select) return;
-    let chips = document.getElementById('stmui_trigger_chips');
+    let chips = document.getElementById('pt_trigger_chips');
     const want = active && settings.touchSizing;
     if (!want) {
         chips?.remove();
-        select.classList.remove('stmui-native-hidden');
+        select.classList.remove('pt-native-hidden');
         return;
     }
     if (!chips) {
-        chips = h('div', { id: 'stmui_trigger_chips', class: 'stmui-trigger-chips', role: 'group', 'aria-label': 'Triggers' });
+        chips = h('div', { id: 'pt_trigger_chips', class: 'pt-trigger-chips', role: 'group', 'aria-label': 'Triggers' });
         chips.addEventListener('click', event => {
-            const chip = event.target.closest('.stmui-trigger-chip');
+            const chip = event.target.closest('.pt-trigger-chip');
             if (!chip) return;
             const option = Array.from(select.options).find(item => item.value === chip.dataset.value);
             if (!option) return;
@@ -8042,15 +8042,15 @@ function syncTriggerChips() {
             syncTriggerChips();
         });
         select.after(chips);
-        select.classList.add('stmui-native-hidden');
+        select.classList.add('pt-native-hidden');
     }
     const none = !Array.from(select.options).some(option => option.selected);
     chips.replaceChildren(...Array.from(select.options).map(option => h('button', {
         type: 'button',
-        class: `stmui-trigger-chip ${option.selected ? 'stmui-trigger-on' : ''}`,
+        class: `pt-trigger-chip ${option.selected ? 'pt-trigger-on' : ''}`,
         'data-value': option.value,
         'aria-pressed': String(option.selected),
-    }, [option.textContent.trim()])), h('small', { class: 'stmui-trigger-note', text: none ? t('None picked: used for every kind of reply.') : '' }));
+    }, [option.textContent.trim()])), h('small', { class: 'pt-trigger-note', text: none ? t('None picked: used for every kind of reply.') : '' }));
 }
 
 // -- sliders: − and + beside the number
@@ -8077,8 +8077,8 @@ function stepButton(input, direction) {
         else $j()(input).trigger('input').trigger('change');
     };
     return direction > 0
-        ? h('button', { type: 'button', class: 'stmui-step stmui-step-up', 'aria-label': 'More', onclick }, ['+'])
-        : h('button', { type: 'button', class: 'stmui-step stmui-step-down', 'aria-label': 'Less', onclick }, ['−']);
+        ? h('button', { type: 'button', class: 'pt-step pt-step-up', 'aria-label': 'More', onclick }, ['+'])
+        : h('button', { type: 'button', class: 'pt-step pt-step-down', 'aria-label': 'Less', onclick }, ['−']);
 }
 
 function addSliderSteppers(root = document) {
@@ -8086,28 +8086,28 @@ function addSliderSteppers(root = document) {
     // Chat Completion sliders keep their number in a .range-block-counter box.
     for (const counter of root.querySelectorAll('.range-block-counter')) {
         const input = counter.querySelector('input[type="number"]');
-        if (!input || counter.querySelector('.stmui-step')) continue;
-        counter.classList.add('stmui-stepper');
+        if (!input || counter.querySelector('.pt-step')) continue;
+        counter.classList.add('pt-stepper');
         counter.prepend(stepButton(input, -1));
         counter.append(stepButton(input, 1));
     }
     // Text Completion, KoboldAI and NovelAI sliders have a bare number box; wrap it.
     for (const input of root.querySelectorAll('input.neo-range-input[type="number"]')) {
-        if (input.closest('.range-block-counter, .stmui-step-wrap')) continue;
-        const wrap = h('span', { class: 'stmui-step-wrap' });
+        if (input.closest('.range-block-counter, .pt-step-wrap')) continue;
+        const wrap = h('span', { class: 'pt-step-wrap' });
         input.before(wrap);
         wrap.append(stepButton(input, -1), input, stepButton(input, 1));
     }
 }
 
 function removeSliderSteppers() {
-    document.querySelectorAll('.stmui-step-wrap').forEach(wrap => {
+    document.querySelectorAll('.pt-step-wrap').forEach(wrap => {
         const input = wrap.querySelector('input');
         if (input) wrap.before(input);
         wrap.remove();
     });
-    document.querySelectorAll('.stmui-step').forEach(node => node.remove());
-    document.querySelectorAll('.range-block-counter.stmui-stepper').forEach(node => node.classList.remove('stmui-stepper'));
+    document.querySelectorAll('.pt-step').forEach(node => node.remove());
+    document.querySelectorAll('.range-block-counter.pt-stepper').forEach(node => node.classList.remove('pt-stepper'));
 }
 
 // -- long-press a message for its menu
@@ -8147,7 +8147,7 @@ function onMessagePressEnd() {
 /** After a long-press opened the menu, swallow the stray tap/contextmenu on the chat (never inside the opened sheet). */
 function onPressAfterEffects(event) {
     if (press.fired && Date.now() - press.fired < 700) {
-        if (event.target instanceof Element && event.target.closest('#stmui-sheet')) return;
+        if (event.target instanceof Element && event.target.closest('#pt-sheet')) return;
         event.preventDefault();
         event.stopImmediatePropagation();
     }
@@ -8205,14 +8205,14 @@ function showServerBanner(back = false) {
     const offlineHint = !isWide() && !IS_IOS
         ? t('Is Termux still running? This reconnects by itself when the server is back.')
         : t('Make sure SillyTavern is still running, then try again.');
-    const banner = h('div', { class: `stmui-banner ${back ? 'stmui-banner-ok' : ''}`, role: 'status', 'aria-live': 'polite' }, [
-        ui(back ? 'circle-check' : 'plug', 'stmui-banner-icon'),
-        h('span', { class: 'stmui-banner-text' }, back
+    const banner = h('div', { class: `pt-banner ${back ? 'pt-banner-ok' : ''}`, role: 'status', 'aria-live': 'polite' }, [
+        ui(back ? 'circle-check' : 'plug', 'pt-banner-icon'),
+        h('span', { class: 'pt-banner-text' }, back
             ? [h('b', { text: t('Back online') })]
             : [h('b', { text: t("Can't reach SillyTavern") }), h('small', { raw: offlineHint })]),
         back ? null : h('button', {
             type: 'button',
-            class: 'stmui-banner-btn',
+            class: 'pt-banner-btn',
             onclick: () => {
                 buzz(8);
                 checkServer();
@@ -8225,7 +8225,7 @@ function showServerBanner(back = false) {
     if (back) {
         setTimeout(() => {
             if (server.banner === banner) {
-                banner.classList.add('stmui-banner-out');
+                banner.classList.add('pt-banner-out');
                 setTimeout(() => banner.remove(), 250);
                 server.banner = null;
             }
@@ -8258,7 +8258,7 @@ function openChoiceSheet({ title, subtitle = '', options, current, onPick }) {
                 const on = option.value === current;
                 return h('button', {
                     type: 'button',
-                    class: `stmui-menu-row stmui-choice ${on ? 'stmui-choice-on' : ''}`,
+                    class: `pt-menu-row pt-choice ${on ? 'pt-choice-on' : ''}`,
                     'data-search': normalizeText(`${option.label} ${option.note ?? ''}`),
                     'aria-pressed': String(on),
                     onclick: () => {
@@ -8266,17 +8266,17 @@ function openChoiceSheet({ title, subtitle = '', options, current, onPick }) {
                         if (option.value !== current) onPick(option.value);
                     },
                 }, [
-                    option.image ? h('img', { class: 'stmui-choice-img', src: option.image, alt: '', loading: 'lazy' }) : null,
-                    h('span', { class: 'stmui-row-text' }, [
+                    option.image ? h('img', { class: 'pt-choice-img', src: option.image, alt: '', loading: 'lazy' }) : null,
+                    h('span', { class: 'pt-row-text' }, [
                         h('span', { raw: option.label }),
                         option.note ? h('small', { raw: option.note }) : null,
                     ]),
-                    on ? ui('check', 'stmui-menu-row-icon') : null,
+                    on ? ui('check', 'pt-menu-row-icon') : null,
                 ]);
             });
-            const empty = h('p', { class: 'stmui-empty', text: 'Nothing matches that.', hidden: true });
+            const empty = h('p', { class: 'pt-empty', text: 'Nothing matches that.', hidden: true });
             if (options.length > 8) {
-                const search = h('input', { type: 'search', class: 'text_pole stmui-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
+                const search = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
                 search.addEventListener('input', () => {
                     const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
                     let shown = 0;
@@ -8289,9 +8289,9 @@ function openChoiceSheet({ title, subtitle = '', options, current, onPick }) {
                 });
                 body.append(search);
             }
-            if (!options.length) body.append(h('p', { class: 'stmui-menu-foot', text: t('Nothing to choose from here yet.') }));
-            body.append(h('div', { class: 'stmui-menu-list' }, rows), empty);
-            requestAnimationFrame(() => body.querySelector('.stmui-choice-on')?.scrollIntoView({ block: 'center' }));
+            if (!options.length) body.append(h('p', { class: 'pt-menu-foot', text: t('Nothing to choose from here yet.') }));
+            body.append(h('div', { class: 'pt-menu-list' }, rows), empty);
+            requestAnimationFrame(() => body.querySelector('.pt-choice-on')?.scrollIntoView({ block: 'center' }));
         },
     }));
 }
@@ -8380,16 +8380,16 @@ async function openPersonaChooser() {
             const current = module?.user_avatar || currentPersona();
             const all = personaChoices();
             const description = ctx().powerUserSettings?.persona_descriptions?.[current]?.description ?? '';
-            const name = h('b', { class: 'stmui-persona-card-name' });
+            const name = h('b', { class: 'pt-persona-card-name' });
             name.textContent = personaName(current) || t('No name');
-            const note = h('small', { class: 'stmui-persona-card-desc' });
+            const note = h('small', { class: 'pt-persona-card-desc' });
             note.textContent = description.replace(/\s+/g, ' ').trim() || t('No description yet.');
-            body.append(h('div', { class: 'stmui-persona-card' }, [
-                h('img', { class: 'stmui-persona-card-img', src: personaPicture(current), alt: '' }),
-                h('span', { class: 'stmui-persona-card-text' }, [name, note]),
+            body.append(h('div', { class: 'pt-persona-card' }, [
+                h('img', { class: 'pt-persona-card-img', src: personaPicture(current), alt: '' }),
+                h('span', { class: 'pt-persona-card-text' }, [name, note]),
                 current ? h('button', {
                     type: 'button',
-                    class: 'stmui-persona-card-edit',
+                    class: 'pt-persona-card-edit',
                     onclick: () => {
                         buzz(6);
                         openPersonaEditor(current);
@@ -8398,10 +8398,10 @@ async function openPersonaChooser() {
             ]));
             const others = all.filter(option => option.value !== current);
             if (others.length) {
-                body.append(h('p', { class: 'stmui-menu-heading', text: t('Switch to') }));
+                body.append(h('p', { class: 'pt-menu-heading', text: t('Switch to') }));
                 const rows = others.map(option => h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row stmui-choice',
+                    class: 'pt-menu-row pt-choice',
                     'data-search': normalizeText(`${option.label} ${option.note ?? ''}`),
                     onclick: async () => {
                         // Stay open: you see the switch and can switch again.
@@ -8410,12 +8410,12 @@ async function openPersonaChooser() {
                         if (sheet === instance) instance.refresh();
                     },
                 }, [
-                    h('img', { class: 'stmui-choice-img', src: option.image, alt: '', loading: 'lazy' }),
-                    h('span', { class: 'stmui-row-text' }, [h('span', { raw: option.label }), option.note ? h('small', { raw: option.note }) : null]),
+                    h('img', { class: 'pt-choice-img', src: option.image, alt: '', loading: 'lazy' }),
+                    h('span', { class: 'pt-row-text' }, [h('span', { raw: option.label }), option.note ? h('small', { raw: option.note }) : null]),
                 ]));
-                const empty = h('p', { class: 'stmui-empty', text: 'Nothing matches that.', hidden: true });
+                const empty = h('p', { class: 'pt-empty', text: 'Nothing matches that.', hidden: true });
                 if (others.length > 8) {
-                    const search = h('input', { type: 'search', class: 'text_pole stmui-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
+                    const search = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
                     search.addEventListener('input', () => {
                         const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
                         let shown = 0;
@@ -8428,16 +8428,16 @@ async function openPersonaChooser() {
                     });
                     body.append(search);
                 }
-                body.append(h('div', { class: 'stmui-menu-list' }, rows), empty);
+                body.append(h('div', { class: 'pt-menu-list' }, rows), empty);
             }
-            body.append(h('div', { class: 'stmui-menu-list' }, [h('button', {
+            body.append(h('div', { class: 'pt-menu-list' }, [h('button', {
                 type: 'button',
-                class: 'stmui-menu-row',
+                class: 'pt-menu-row',
                 onclick: () => {
                     closeSheet(true);
                     openPage('persona-management-button');
                 },
-            }, [ui('settings', 'stmui-menu-row-icon'), h('span', { text: 'All persona settings' }), ui('chevron-right', 'stmui-menu-row-go')])]));
+            }, [ui('settings', 'pt-menu-row-icon'), h('span', { text: 'All persona settings' }), ui('chevron-right', 'pt-menu-row-go')])]));
         },
     });
     showSheet(instance);
@@ -8449,9 +8449,9 @@ function openPersonaEditor(avatar) {
     const power = ctx().powerUserSettings ?? {};
     const startName = power.personas?.[avatar] ?? '';
     const startText = power.persona_descriptions?.[avatar]?.description ?? (avatar === currentPersona() ? power.persona_description ?? '' : '');
-    const nameInput = h('input', { type: 'text', class: 'text_pole stmui-pe-name', 'aria-label': t('Name'), maxlength: '100', enterkeyhint: 'next' });
+    const nameInput = h('input', { type: 'text', class: 'text_pole pt-pe-name', 'aria-label': t('Name'), maxlength: '100', enterkeyhint: 'next' });
     nameInput.value = startName;
-    const textInput = h('textarea', { class: 'text_pole stmui-pe-text', rows: '8', 'aria-label': t('Description'), placeholder: t('Who are you? Looks, personality, anything the character should know about you.') });
+    const textInput = h('textarea', { class: 'text_pole pt-pe-text', rows: '8', 'aria-label': t('Description'), placeholder: t('Who are you? Looks, personality, anything the character should know about you.') });
     textInput.value = startText;
     nameInput.addEventListener('keydown', event => {
         if (event.key === 'Enter' && !event.isComposing) {
@@ -8459,7 +8459,7 @@ function openPersonaEditor(avatar) {
             textInput.focus();
         }
     });
-    const count = h('small', { class: 'stmui-pe-count' });
+    const count = h('small', { class: 'pt-pe-count' });
     let countTimer = 0;
     const recount = () => {
         window.clearTimeout(countTimer);
@@ -8496,15 +8496,15 @@ function openPersonaEditor(avatar) {
         title: t('Edit persona'),
         subtitle: t('Name and description'),
         fill: body => {
-            body.append(h('div', { class: 'stmui-pe' }, [
-                h('div', { class: 'stmui-pe-top' }, [
-                    h('img', { class: 'stmui-persona-card-img', src: personaPicture(avatar), alt: '' }),
-                    h('label', { class: 'stmui-pe-field' }, [h('small', { text: 'Name' }), nameInput]),
+            body.append(h('div', { class: 'pt-pe' }, [
+                h('div', { class: 'pt-pe-top' }, [
+                    h('img', { class: 'pt-persona-card-img', src: personaPicture(avatar), alt: '' }),
+                    h('label', { class: 'pt-pe-field' }, [h('small', { text: 'Name' }), nameInput]),
                 ]),
-                h('label', { class: 'stmui-pe-field' }, [h('span', { class: 'stmui-pe-label' }, [h('small', { text: 'Description' }), count]), textInput]),
-                h('div', { class: 'stmui-pe-actions' }, [
-                    h('button', { type: 'button', class: 'stmui-pe-btn', onclick: () => closeSheet() }, [h('span', { text: 'Cancel' })]),
-                    h('button', { type: 'button', class: 'stmui-pe-btn stmui-pe-save', onclick: save }, [ui('check'), h('span', { text: 'Save' })]),
+                h('label', { class: 'pt-pe-field' }, [h('span', { class: 'pt-pe-label' }, [h('small', { text: 'Description' }), count]), textInput]),
+                h('div', { class: 'pt-pe-actions' }, [
+                    h('button', { type: 'button', class: 'pt-pe-btn', onclick: () => closeSheet() }, [h('span', { text: 'Cancel' })]),
+                    h('button', { type: 'button', class: 'pt-pe-btn pt-pe-save', onclick: save }, [ui('check'), h('span', { text: 'Save' })]),
                 ]),
             ]));
             requestAnimationFrame(() => fitTextarea(textInput));
@@ -8552,11 +8552,11 @@ function openQuickSwitch() {
         fill: body => {
             const rows = [];
             const row = (iconName, label, value, onclick, disabled = false) => h('button', {
-                type: 'button', class: 'stmui-menu-row', disabled, onclick,
+                type: 'button', class: 'pt-menu-row', disabled, onclick,
             }, [
-                ui(iconName, 'stmui-menu-row-icon'),
-                h('span', { class: 'stmui-row-text' }, [h('span', { text: label }), h('small', { raw: value || t('Not set') })]),
-                ui('chevron-right', 'stmui-menu-row-go'),
+                ui(iconName, 'pt-menu-row-icon'),
+                h('span', { class: 'pt-row-text' }, [h('span', { text: label }), h('small', { raw: value || t('Not set') })]),
+                ui('chevron-right', 'pt-menu-row-go'),
             ]);
             const currentPersonaName = document.getElementById('your_name')?.textContent?.trim();
             rows.push(row('smile', t('Persona'), currentPersonaName, () => openPersonaChooser()));
@@ -8596,7 +8596,7 @@ function openQuickSwitch() {
                 closeSheet(true);
                 openPage('sys-settings-button');
             }));
-            body.append(h('div', { class: 'stmui-menu-list' }, rows));
+            body.append(h('div', { class: 'pt-menu-list' }, rows));
         },
     }));
 }
@@ -8608,7 +8608,7 @@ const SEARCH_PAGES = ['ai-config-button', 'sys-settings-button', 'advanced-forma
 function ownText(element) {
     let text = '';
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
-        acceptNode: node => (node.parentElement?.closest('select, option, textarea, script, style, .stmui-skip') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+        acceptNode: node => (node.parentElement?.closest('select, option, textarea, script, style, .pt-skip') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
     });
     while (walker.nextNode() && text.length < 160) text += ` ${walker.currentNode.nodeValue}`;
     return text.replace(/\s+/g, ' ').trim();
@@ -8638,7 +8638,7 @@ function settingItems(root) {
     const labels = new Set();
     const headings = Array.from(root.querySelectorAll('h2, h3, h4, h5, .standoutHeader'));
     for (const control of root.querySelectorAll('input:not([type="hidden"]):not([type="file"]), select, textarea, .menu_button, .checkbox_label')) {
-        if (control.closest('.template_element, #stmui-sheet')) continue;
+        if (control.closest('.template_element, #pt-sheet')) continue;
         // Include controls inside collapsed .inline-drawer-content (revealSetting opens them on tap).
         if (!inActiveSection(control, root, true)) continue;
         let row = control;
@@ -8663,8 +8663,8 @@ function revealSetting(row) {
     const tab = row.closest('.openai-tab-content:not(.active)');
     if (tab) document.getElementById(tab.id.replace('-content-', '-btn-'))?.click();
     // Pocket Tavern's own Parameters / Prompts tabs, the same way.
-    if (presetTabs.bar && row.closest('#ai_response_configuration') && !row.closest('#respective-presets-block')) setPresetTab(row.closest('.stmui-ptab-prompts') ? 'prompts' : 'params');
-    const section = row.closest('[data-stmui-sec]')?.dataset.stmuiSec;
+    if (presetTabs.bar && row.closest('#ai_response_configuration') && !row.closest('#respective-presets-block')) setPresetTab(row.closest('.pt-ptab-prompts') ? 'prompts' : 'params');
+    const section = row.closest('[data-pt-sec]')?.dataset.ptSec;
     const nav = pageSections();
     if (section && nav?.home && nav.view !== section) nav.open(section);
     // Open any folded sections around it first.
@@ -8675,10 +8675,10 @@ function revealSetting(row) {
     }
     setTimeout(() => {
         row.scrollIntoView({ block: 'center', behavior: motionAllowed() ? 'smooth' : 'auto' });
-        row.classList.remove('stmui-flash');
+        row.classList.remove('pt-flash');
         void row.offsetWidth;
-        row.classList.add('stmui-flash');
-        setTimeout(() => row.classList.remove('stmui-flash'), 2000);
+        row.classList.add('pt-flash');
+        setTimeout(() => row.classList.remove('pt-flash'), 2000);
     }, 260);
 }
 
@@ -8689,25 +8689,25 @@ function openSettingSearch() {
     const items = settingItems(root);
     const title = pageInfo(drawerById(pageId)).title;
     // The search box is the header (Kahvana's feedback: a "Find a setting" title above it only repeated it).
-    const input = h('input', { type: 'search', class: 'text_pole stmui-choice-search stmui-head-search', placeholder: t('Find a setting in {page}', { page: t(title) }), 'aria-label': t('Find a setting'), enterkeyhint: 'search' });
+    const input = h('input', { type: 'search', class: 'text_pole pt-choice-search pt-head-search', placeholder: t('Find a setting in {page}', { page: t(title) }), 'aria-label': t('Find a setting'), enterkeyhint: 'search' });
     const finder = new MenuSheet({
         title: t('Find a setting'),
         fill: body => {
-            const list = h('div', { class: 'stmui-menu-list' });
-            const foot = h('p', { class: 'stmui-menu-foot' });
+            const list = h('div', { class: 'pt-menu-list' });
+            const foot = h('p', { class: 'pt-menu-foot' });
             const render = () => {
                 const words = normalizeText(input.value).split(/\s+/).filter(Boolean);
                 const hits = words.length ? items.filter(item => words.every(word => item.search.includes(word))).slice(0, 60) : [];
                 list.replaceChildren(...hits.map(item => h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => {
                         closeSheet(true);
                         revealSetting(item.row);
                     },
                 }, [
-                    ui('search', 'stmui-menu-row-icon'),
-                    h('span', { class: 'stmui-row-text' }, [h('span', { raw: item.label }), item.section ? h('small', { raw: item.section }) : null]),
+                    ui('search', 'pt-menu-row-icon'),
+                    h('span', { class: 'pt-row-text' }, [h('span', { raw: item.label }), item.section ? h('small', { raw: item.section }) : null]),
                 ])));
                 list.hidden = !hits.length;
                 foot.textContent = !words.length ? t('{count} settings on this page.', { count: items.length }) : (hits.length ? '' : t('No setting matches that.'));
@@ -8717,13 +8717,13 @@ function openSettingSearch() {
             input.onkeydown = event => {
                 if (event.key !== 'Enter' || event.isComposing) return;
                 event.preventDefault();
-                list.querySelector('.stmui-menu-row')?.click();
+                list.querySelector('.pt-menu-row')?.click();
             };
             body.append(list, foot);
             render();
         },
     });
-    finder.head.querySelector('.stmui-head-text')?.replaceWith(input);
+    finder.head.querySelector('.pt-head-text')?.replaceWith(input);
     showSheet(finder);
     setTimeout(() => input.focus(), 250);
 }
@@ -8734,7 +8734,7 @@ function openSettingSearch() {
  * Some SillyTavern pages are one long list of controls (User Settings has about a hundred).
  * They open on a short list of sections instead, like a phone's own Settings app, and a
  * section shows only its own controls; Back returns to the list. Nothing is moved: each
- * block is marked with its section and the others are hidden (`.stmui-sec-off`).
+ * block is marked with its section and the others are hidden (`.pt-sec-off`).
  */
 class PageSections {
     /**
@@ -8755,13 +8755,13 @@ class PageSections {
     }
 
     markAs(element, id) {
-        if (!element || element.dataset.stmuiSec) return;
-        element.dataset.stmuiSec = id;
+        if (!element || element.dataset.ptSec) return;
+        element.dataset.ptSec = id;
         this.marked.push(element);
     }
 
     has(id) {
-        return this.marked.some(element => element.dataset.stmuiSec === id);
+        return this.marked.some(element => element.dataset.ptSec === id);
     }
 
     current() {
@@ -8769,23 +8769,23 @@ class PageSections {
     }
 
     row(iconName, title, note, onclick) {
-        return h('button', { type: 'button', class: 'stmui-menu-row', onclick }, [
-            ui(iconName, 'stmui-menu-row-icon'),
-            h('span', { class: 'stmui-row-text' }, [h('span', { text: title }), h('small', { text: note })]),
-            ui('chevron-right', 'stmui-menu-row-go'),
+        return h('button', { type: 'button', class: 'pt-menu-row', onclick }, [
+            ui(iconName, 'pt-menu-row-icon'),
+            h('span', { class: 'pt-row-text' }, [h('span', { text: title }), h('small', { text: note })]),
+            ui('chevron-right', 'pt-menu-row-go'),
         ]);
     }
 
     sectionList() {
-        return h('div', { class: 'stmui-menu-list' }, this.sections.filter(section => this.has(section.id))
+        return h('div', { class: 'pt-menu-list' }, this.sections.filter(section => this.has(section.id))
             .map(section => this.row(section.icon, section.title, section.note, () => this.open(section.id))));
     }
 
     apply() {
         const block = this.block();
         if (!block || !this.home) return;
-        block.dataset.stmuiView = this.view;
-        for (const element of this.marked) element.classList.toggle('stmui-sec-off', element.dataset.stmuiSec !== this.view);
+        block.dataset.ptView = this.view;
+        for (const element of this.marked) element.classList.toggle('pt-sec-off', element.dataset.ptSec !== this.view);
     }
 
     scrollTop() {
@@ -8826,15 +8826,15 @@ class PageSections {
 
     teardown() {
         for (const element of this.marked) {
-            delete element.dataset.stmuiSec;
-            element.classList.remove('stmui-sec-off');
+            delete element.dataset.ptSec;
+            element.classList.remove('pt-sec-off');
         }
         this.marked = [];
         this.home?.remove();
         this.home = null;
         this.view = 'home';
         const block = this.block();
-        if (block) delete block.dataset.stmuiView;
+        if (block) delete block.dataset.ptView;
         document.documentElement.classList.remove(this.rootClass);
     }
 
@@ -8850,7 +8850,7 @@ class PageSections {
             this.teardown();
             return;
         }
-        this.home = h('div', { class: 'stmui-set-home', 'data-stmui': '1' });
+        this.home = h('div', { class: 'pt-set-home', 'data-pt': '1' });
         this.place(this, block, this.home);
         document.documentElement.classList.add(this.rootClass);
         this.apply();
@@ -8869,7 +8869,7 @@ const SETTINGS_SECTIONS = [
 
 const setnav = new PageSections({
     pageId: 'user-settings-button',
-    rootClass: 'stmui-setnav',
+    rootClass: 'pt-setnav',
     pageTitle: 'Settings',
     sections: SETTINGS_SECTIONS,
     block: () => document.getElementById('user-settings-block'),
@@ -8891,8 +8891,8 @@ const setnav = new PageSections({
         // Anything else (a newer SillyTavern, another extension) goes to "Sounds and more", so nothing gets lost.
         const sweep = parent => {
             for (const child of parent.children) {
-                if (child.dataset.stmuiSec) continue;
-                if (child.querySelector('[data-stmui-sec]')) sweep(child);
+                if (child.dataset.ptSec) continue;
+                if (child.querySelector('[data-pt-sec]')) sweep(child);
                 else nav.markAs(child, 'other');
             }
         };
@@ -8901,9 +8901,9 @@ const setnav = new PageSections({
     },
     place: (nav, block, list) => {
         list.append(
-            h('button', { type: 'button', class: 'stmui-search-field', onclick: () => openSettingSearch() }, [ui('search'), h('span', { text: 'Search settings' })]),
+            h('button', { type: 'button', class: 'pt-search-field', onclick: () => openSettingSearch() }, [ui('search'), h('span', { text: 'Search settings' })]),
             nav.sectionList(),
-            h('div', { class: 'stmui-menu-list' }, [isWide()
+            h('div', { class: 'pt-menu-list' }, [isWide()
                 ? nav.row('desktop', 'Pocket Tavern', 'Desktop layout, helpers and themes', () => openMobileSettings())
                 : nav.row('phone', 'Pocket Tavern', 'Phone layout, gestures and helpers', () => openMobileSettings())]),
         );
@@ -8931,7 +8931,7 @@ const FORMATTING_SECTIONS = [
 
 const afnav = new PageSections({
     pageId: 'advanced-formatting-button',
-    rootClass: 'stmui-afnav',
+    rootClass: 'pt-afnav',
     pageTitle: 'Formatting',
     sections: FORMATTING_SECTIONS,
     block: () => document.getElementById('AdvancedFormatting'),
@@ -8948,7 +8948,7 @@ const afnav = new PageSections({
             else nav.markAs(child, 'misc');
         }
         // A newer SillyTavern's extra column goes to Miscellaneous, so nothing gets lost.
-        for (const child of columns.children) if (!child.querySelector('[data-stmui-sec]')) nav.markAs(child, 'misc');
+        for (const child of columns.children) if (!child.querySelector('[data-pt-sec]')) nav.markAs(child, 'misc');
         return nav.has('context') && nav.has('reasoning');
     },
     place: (nav, block, list) => {
@@ -8967,7 +8967,7 @@ const afnav = new PageSections({
 const extnav = {
     pageId: 'extensions-settings-button',
     pageTitle: 'Extensions',
-    rootClass: 'stmui-extnav',
+    rootClass: 'pt-extnav',
     /** The open extension's fold-out (`.inline-drawer`), or null on the list. */
     drawer: null,
     rows: [],
@@ -8994,14 +8994,14 @@ const extnav = {
     enter(drawer) {
         this.leave({ fold: true, render: false });
         this.drawer = drawer;
-        drawer.classList.add('stmui-ext-open');
+        drawer.classList.add('pt-ext-open');
         // Each box between the fold-out and the list, so CSS can hide everything beside it.
         for (let node = drawer.parentElement; node && !node.classList.contains('extensions_block'); node = node.parentElement) {
-            node.classList.add('stmui-ext-path');
+            node.classList.add('pt-ext-path');
         }
         const block = this.block();
         if (block) {
-            block.dataset.stmuiView = 'ext';
+            block.dataset.ptView = 'ext';
             block.scrollTop = 0;
         }
         shell?.render(currentPageId());
@@ -9011,10 +9011,10 @@ const extnav = {
         const drawer = this.drawer;
         if (!drawer) return false;
         this.drawer = null;
-        drawer.classList.remove('stmui-ext-open');
-        document.querySelectorAll('.stmui-ext-path').forEach(node => node.classList.remove('stmui-ext-path'));
+        drawer.classList.remove('pt-ext-open');
+        document.querySelectorAll('.pt-ext-path').forEach(node => node.classList.remove('pt-ext-path'));
         const block = this.block();
-        if (block) block.dataset.stmuiView = 'home';
+        if (block) block.dataset.ptView = 'home';
         if (fold && this.shown(drawer)) this.headerOf(drawer)?.click();
         if (render) {
             shell?.render(currentPageId());
@@ -9043,10 +9043,10 @@ const extnav = {
     },
     teardown() {
         this.leave({ fold: false, render: false });
-        for (const node of document.querySelectorAll('.stmui-ext-row, .stmui-ext-list')) node.classList.remove('stmui-ext-row', 'stmui-ext-list');
+        for (const node of document.querySelectorAll('.pt-ext-row, .pt-ext-list')) node.classList.remove('pt-ext-row', 'pt-ext-list');
         this.rows = [];
         const block = this.block();
-        if (block) delete block.dataset.stmuiView;
+        if (block) delete block.dataset.ptView;
         document.documentElement.classList.remove(this.rootClass);
     },
     sync() {
@@ -9060,8 +9060,8 @@ const extnav = {
         for (const list of this.lists()) {
             // An extension's fold-outs: the outermost ones in the list (not the ones inside its settings).
             const rows = [...list.querySelectorAll('.inline-drawer')].filter(drawer => !drawer.parentElement.closest('.inline-drawer'));
-            for (const drawer of rows) drawer.classList.add('stmui-ext-row');
-            list.classList.toggle('stmui-ext-list', rows.length > 0);
+            for (const drawer of rows) drawer.classList.add('pt-ext-row');
+            list.classList.toggle('pt-ext-list', rows.length > 0);
             this.rows.push(...rows);
         }
         if (!this.rows.length) {
@@ -9070,7 +9070,7 @@ const extnav = {
         }
         // Only a click opens a page: a fold-out still sliding shut after Back looks open here.
         if (this.drawer && !this.rows.includes(this.drawer)) this.leave({ fold: false, render: false });
-        if (!this.drawer) block.dataset.stmuiView = 'home';
+        if (!this.drawer) block.dataset.ptView = 'home';
         document.documentElement.classList.add(this.rootClass);
     },
 };
@@ -9109,50 +9109,50 @@ function describeSettings(root) {
         const b = plain(label).toLowerCase().replace(/[:：]$/, '');
         return a.length >= 6 && a !== b && !b.includes(a);
     };
-    const help = text => h('small', { class: 'stmui-help stmui-skip', 'data-stmui': '1', text: plain(text) });
-    const skip = '.template_element, #stmui-sheet, .world_entry, .inline-drawer-header';
+    const help = text => h('small', { class: 'pt-help pt-skip', 'data-pt': '1', text: plain(text) });
+    const skip = '.template_element, #pt-sheet, .world_entry, .inline-drawer-header';
     for (const label of root.querySelectorAll('label.checkbox_label')) {
-        if (label.dataset.stmuiRow || label.closest(skip)) continue;
+        if (label.dataset.ptRow || label.closest(skip)) continue;
         if (!label.querySelector(':scope > input[type="checkbox"]') || label.querySelectorAll('input, select, textarea').length !== 1) continue;
         // Icon-only toggles (Formatting's "Bind to context" and the like) keep their look.
         if (!plain(label.textContent)) continue;
-        label.dataset.stmuiRow = '1';
-        label.classList.add('stmui-setrow');
-        if (label.classList.contains('stmui-check')) continue;
+        label.dataset.ptRow = '1';
+        label.classList.add('pt-setrow');
+        if (label.classList.contains('pt-check')) continue;
         const icon = label.querySelector('.fa-circle-info[title]');
         const tip = label.getAttribute('title') || icon?.getAttribute('title') || '';
         if (!useful(tip, label.textContent)) continue;
         label.append(help(tip));
-        icon?.classList.add('stmui-tip-shown');
+        icon?.classList.add('pt-tip-shown');
     }
     // "Avatars: [Circle]" and similar rows on the Settings page.
     for (const select of root.querySelectorAll('#user-settings-block-content .flex-container > select, #UI-language-block > select')) {
         const row = select.parentElement;
-        if (row.dataset.stmuiRow || !row.querySelector(':scope > span, :scope > label')) continue;
-        row.dataset.stmuiRow = '1';
-        row.classList.add('stmui-selrow');
+        if (row.dataset.ptRow || !row.querySelector(':scope > span, :scope > label')) continue;
+        row.dataset.ptRow = '1';
+        row.classList.add('pt-selrow');
         const tip = row.getAttribute('title') || '';
         if (useful(tip, row.querySelector(':scope > span, :scope > label')?.textContent)) row.append(help(tip));
     }
     // Sliders and other settings keep their explanation in an ⓘ icon.
     for (const icon of root.querySelectorAll('.fa-circle-info[title]')) {
-        if (icon.classList.contains('stmui-tip-shown') || icon.closest(`${skip}, label.checkbox_label, .stmui-set-home`)) continue;
+        if (icon.classList.contains('pt-tip-shown') || icon.closest(`${skip}, label.checkbox_label, .pt-set-home`)) continue;
         const holder = icon.parentElement;
         if (!holder || holder === root) continue;
         const tip = icon.getAttribute('title');
         if (!useful(tip, holder.textContent)) continue;
         holder.after(help(tip));
-        icon.classList.add('stmui-tip-shown');
+        icon.classList.add('pt-tip-shown');
     }
 }
 
 function removeSettingDescriptions() {
-    document.querySelectorAll('.stmui-help, .stmui-ext-note').forEach(node => node.remove());
-    document.querySelectorAll('[data-stmui-row]').forEach(node => {
-        delete node.dataset.stmuiRow;
-        node.classList.remove('stmui-setrow', 'stmui-selrow');
+    document.querySelectorAll('.pt-help, .pt-ext-note').forEach(node => node.remove());
+    document.querySelectorAll('[data-pt-row]').forEach(node => {
+        delete node.dataset.ptRow;
+        node.classList.remove('pt-setrow', 'pt-selrow');
     });
-    document.querySelectorAll('.stmui-tip-shown').forEach(node => node.classList.remove('stmui-tip-shown'));
+    document.querySelectorAll('.pt-tip-shown').forEach(node => node.classList.remove('pt-tip-shown'));
 }
 
 /** One line on what each built-in extension does, under its name on the Extensions page. */
@@ -9167,20 +9167,20 @@ const EXTENSION_NOTES = {
     summarize_container: 'Keeps a running summary of long chats',
     regex_container: 'Find-and-replace rules for messages and prompts',
     vectors_container: 'Lets the AI recall older messages and files',
-    stmui_settings: 'The phone layout you are using now',
+    pt_settings: 'The phone layout you are using now',
 };
 
 /** The same notes where they differ on the desktop layout. */
 const EXTENSION_NOTES_WIDE = {
-    stmui_settings: 'The desktop layout you are using now',
+    pt_settings: 'The desktop layout you are using now',
 };
 
 function describeExtensions() {
     if (!active || !settings.touchSizing) return;
     for (const [id, note] of Object.entries({ ...EXTENSION_NOTES, ...(isWide() ? EXTENSION_NOTES_WIDE : {}) })) {
         const header = document.querySelector(`#${id} .inline-drawer-header`);
-        if (!header || header.querySelector('.stmui-ext-note')) continue;
-        header.append(h('small', { class: 'stmui-ext-note stmui-skip', 'data-stmui': '1', text: note }));
+        if (!header || header.querySelector('.pt-ext-note')) continue;
+        header.append(h('small', { class: 'pt-ext-note pt-skip', 'data-pt': '1', text: note }));
     }
 }
 
@@ -9225,9 +9225,9 @@ function menuItemShown(element, stop) {
 }
 
 function actionRow(iconNode, label, note, onclick, danger = false) {
-    return h('button', { type: 'button', class: `stmui-menu-row stmui-action-row${danger ? ' stmui-menu-row-danger' : ''}`, onclick }, [
+    return h('button', { type: 'button', class: `pt-menu-row pt-action-row${danger ? ' pt-menu-row-danger' : ''}`, onclick }, [
         iconNode,
-        h('span', { class: 'stmui-row-text' }, [h('span', { text: label }), note ? h('small', { text: note }) : null]),
+        h('span', { class: 'pt-row-text' }, [h('span', { text: label }), note ? h('small', { text: note }) : null]),
     ]);
 }
 
@@ -9245,11 +9245,11 @@ function itemLabel(element) {
 /** The item's own Font Awesome icon (Pocket Tavern restyles those), or a neutral one. */
 function faIcon(element) {
     const source = element.querySelector('.extensionsMenuExtensionButton, i[class*="fa-"], div[class*="fa-"]');
-    if (!source) return ui('puzzle', 'stmui-menu-row-icon');
+    if (!source) return ui('puzzle', 'pt-menu-row-icon');
     const copy = source.cloneNode(false);
     copy.removeAttribute('id');
     copy.removeAttribute('title');
-    copy.classList.add('stmui-menu-row-icon', 'stmui-fa-icon');
+    copy.classList.add('pt-menu-row-icon', 'pt-fa-icon');
     copy.setAttribute('aria-hidden', 'true');
     return copy;
 }
@@ -9276,15 +9276,15 @@ async function openChatOptions() {
                     known.add(item.id);
                     if (group.chat && !inChat) continue;
                     const element = [...menu.querySelectorAll(`[id="${item.id}"]`)].find(node => menuItemShown(node, menu));
-                    if (element) rows.push(actionRow(ui(item.icon, 'stmui-menu-row-icon'), itemLabel(element), item.note, () => pressMenuItem(element), item.danger));
+                    if (element) rows.push(actionRow(ui(item.icon, 'pt-menu-row-icon'), itemLabel(element), item.note, () => pressMenuItem(element), item.danger));
                 }
-                if (rows.length) body.append(h('h4', { class: 'stmui-menu-heading', text: group.title }), h('div', { class: 'stmui-menu-list' }, rows));
+                if (rows.length) body.append(h('h4', { class: 'pt-menu-heading', text: group.title }), h('div', { class: 'pt-menu-list' }, rows));
             }
             // Items other extensions put in the menu.
             const extra = [...menu.querySelectorAll('.options-content > :not(hr)')]
                 .filter(node => !known.has(node.id) && menuItemShown(node, menu))
                 .map(node => actionRow(faIcon(node), itemLabel(node), '', () => pressMenuItem(node)));
-            if (extra.length) body.append(h('h4', { class: 'stmui-menu-heading', text: 'From extensions' }), h('div', { class: 'stmui-menu-list' }, extra));
+            if (extra.length) body.append(h('h4', { class: 'pt-menu-heading', text: 'From extensions' }), h('div', { class: 'pt-menu-list' }, extra));
         },
     }));
 }
@@ -9300,7 +9300,7 @@ const TOOL_NOTES = {
     token_counter: 'Count the tokens in any text',
     translate_chat: 'Translate every message in this chat',
     translate_input_message: 'Translate the message you are typing',
-    stmui_wand_lorebooks: 'Choose the lorebooks for all chats',
+    pt_wand_lorebooks: 'Choose the lorebooks for all chats',
     'sp-st-restore': 'Characters, mood and quests in this scene',
 };
 
@@ -9311,10 +9311,10 @@ function scenePulseRow() {
     const art = button.querySelector('svg')?.cloneNode(true);
     if (art) {
         art.querySelectorAll('[class]').forEach(node => node.removeAttribute('class'));
-        art.setAttribute('class', 'stmui-menu-row-icon');
+        art.setAttribute('class', 'pt-menu-row-icon');
         art.setAttribute('aria-hidden', 'true');
     }
-    return actionRow(art ?? ui('puzzle', 'stmui-menu-row-icon'), 'ScenePulse', TOOL_NOTES['sp-st-restore'], () => pressMenuItem(button));
+    return actionRow(art ?? ui('puzzle', 'pt-menu-row-icon'), 'ScenePulse', TOOL_NOTES['sp-st-restore'], () => pressMenuItem(button));
 }
 
 const PICTURE_NOTES = {
@@ -9343,7 +9343,7 @@ function openToolsSheet() {
                 }));
             const pulse = scenePulseRow();
             if (pulse) rows.push(pulse);
-            body.append(rows.length ? h('div', { class: 'stmui-menu-list' }, rows) : h('p', { class: 'stmui-menu-foot', text: 'No extension has added a tool yet.' }));
+            body.append(rows.length ? h('div', { class: 'pt-menu-list' }, rows) : h('p', { class: 'pt-menu-foot', text: 'No extension has added a tool yet.' }));
         },
     }));
 }
@@ -9356,8 +9356,8 @@ function openPictureSheet() {
         fill: body => {
             const rows = [...dropdown.querySelectorAll('[id]')]
                 .filter(item => menuItemShown(item, dropdown))
-                .map(item => actionRow(ui('image', 'stmui-menu-row-icon'), itemLabel(item), PICTURE_NOTES[item.id] ?? '', () => pressMenuItem(item)));
-            body.append(h('div', { class: 'stmui-menu-list' }, rows));
+                .map(item => actionRow(ui('image', 'pt-menu-row-icon'), itemLabel(item), PICTURE_NOTES[item.id] ?? '', () => pressMenuItem(item)));
+            body.append(h('div', { class: 'pt-menu-list' }, rows));
         },
     }));
 }
@@ -9366,11 +9366,11 @@ function openPictureSheet() {
 function onMenuButtonClick(event) {
     if (!active || !settings.touchSizing) return;
     // A long explanation shows two lines; a tap shows all of it (and does not flip the switch it belongs to).
-    const tip = event.target.closest?.('.stmui-help');
+    const tip = event.target.closest?.('.pt-help');
     if (tip) {
         event.preventDefault();
         event.stopPropagation();
-        tip.classList.toggle('stmui-help-open');
+        tip.classList.toggle('pt-help-open');
         return;
     }
     const options = event.target.closest?.('#options_button');
@@ -9400,7 +9400,7 @@ function syncManifest() {
     const want = active ? ours : install.originalManifest;
     if (want === null) link.removeAttribute('href');
     else if (link.getAttribute('href') !== want) link.setAttribute('href', want);
-    document.documentElement.classList.toggle('stmui-standalone', active && isStandalone());
+    document.documentElement.classList.toggle('pt-standalone', active && isStandalone());
 }
 
 async function installApp() {
@@ -9415,19 +9415,19 @@ async function installApp() {
         title: t('Install as an app'),
         subtitle: t('Open SillyTavern from your home screen, full screen, without the browser bar.'),
         // Each device installs a site its own way: Safari on iPhone and iPad, Chrome on Android, a computer's browser.
-        fill: body => body.append(h('div', { class: 'stmui-steps' }, IS_IOS ? [
+        fill: body => body.append(h('div', { class: 'pt-steps' }, IS_IOS ? [
             h('p', { text: t('1. Tap Safari\'s Share button (the square with an arrow).') }),
             h('p', { text: t('2. Tap "Add to Home Screen".') }),
             h('p', { text: t('3. Tap Add. SillyTavern now has its own icon.') }),
         ] : isWide() ? [
             h('p', { text: t('1. In Chrome or Edge, click the install icon at the right of the address bar, or open the browser menu.') }),
             h('p', { text: t('2. Choose "Install" or "Install page as app".') }),
-            h('p', { class: 'stmui-menu-foot', text: t('Firefox cannot install sites as apps; open SillyTavern in Chrome or Edge for this.') }),
+            h('p', { class: 'pt-menu-foot', text: t('Firefox cannot install sites as apps; open SillyTavern in Chrome or Edge for this.') }),
         ] : [
             h('p', { text: t('1. Tap Chrome\'s ⋮ menu (top right).') }),
             h('p', { text: t('2. Tap "Add to Home screen" or "Install app".') }),
             h('p', { text: t('3. Tap Install. SillyTavern now has its own icon.') }),
-            h('p', { class: 'stmui-menu-foot', text: t('Keep Termux running in the background as usual; the app opens the same SillyTavern.') }),
+            h('p', { class: 'pt-menu-foot', text: t('Keep Termux running in the background as usual; the app opens the same SillyTavern.') }),
         ])),
     }));
 }
@@ -9451,8 +9451,8 @@ function openWhatsNew(since) {
         subtitle: t('Pocket Tavern {version}', { version: VERSION }),
         fill: body => {
             for (const entry of (entries.length ? entries : CHANGES.slice(0, 1))) {
-                body.append(h('p', { class: 'stmui-menu-heading', text: entry.version }));
-                body.append(h('ul', { class: 'stmui-news' }, entry.items.map(item => h('li', { text: t(item) }))));
+                body.append(h('p', { class: 'pt-menu-heading', text: entry.version }));
+                body.append(h('ul', { class: 'pt-news' }, entry.items.map(item => h('li', { text: t(item) }))));
             }
         },
     }));
@@ -9473,24 +9473,24 @@ function maybeShowDesktopNotice() {
         title: 'Pocket Tavern is on here too',
         subtitle: 'It now switches on by itself on computers and tablets. Wide screens get the desktop layout.',
         fill: body => {
-            body.append(h('div', { class: 'stmui-menu-list' }, [
+            body.append(h('div', { class: 'pt-menu-list' }, [
                 h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => closeSheet(),
-                }, [ui('check', 'stmui-menu-row-icon'), h('span', { text: 'Keep it on' })]),
+                }, [ui('check', 'pt-menu-row-icon'), h('span', { text: 'Keep it on' })]),
                 h('button', {
                     type: 'button',
-                    class: 'stmui-menu-row',
+                    class: 'pt-menu-row',
                     onclick: () => {
                         writeMode('phone');
                         closeSheet(true);
                         applyState();
                         syncSettingsMode();
                     },
-                }, [ui('phone', 'stmui-menu-row-icon'), h('span', { text: 'Use it on phones only' })]),
+                }, [ui('phone', 'pt-menu-row-icon'), h('span', { text: 'Use it on phones only' })]),
             ]));
-            body.append(h('p', { class: 'stmui-menu-foot', text: 'You can change this any time in Extensions → Pocket Tavern.' }));
+            body.append(h('p', { class: 'pt-menu-foot', text: 'You can change this any time in Extensions → Pocket Tavern.' }));
         },
     }));
     }, 1200);
@@ -9498,7 +9498,7 @@ function maybeShowDesktopNotice() {
 }
 
 function syncSettingsMode() {
-    const select = document.getElementById('stmui_mode');
+    const select = document.getElementById('pt_mode');
     if (select) select.value = readMode();
     updateStatusLine();
 }
@@ -9521,20 +9521,20 @@ function maybeShowWhatsNew() {
 function applyLanguage() {
     setLocale(ctx().getCurrentLocale?.() ?? navigator.language);
     const root = document.documentElement;
-    root.classList.toggle('stmui-rtl', active && isRtl());
+    root.classList.toggle('pt-rtl', active && isRtl());
     if (active) {
-        root.style.setProperty('--stmui-l-save', JSON.stringify(t('Save')));
-        root.style.setProperty('--stmui-l-cancel', JSON.stringify(t('Cancel')));
+        root.style.setProperty('--pt-l-save', JSON.stringify(t('Save')));
+        root.style.setProperty('--pt-l-cancel', JSON.stringify(t('Cancel')));
     } else {
-        root.style.removeProperty('--stmui-l-save');
-        root.style.removeProperty('--stmui-l-cancel');
+        root.style.removeProperty('--pt-l-save');
+        root.style.removeProperty('--pt-l-cancel');
     }
 }
 
 function applyTextSize() {
     const root = document.documentElement;
-    if (active && settings.textSize && settings.textSize !== 'normal') root.dataset.stmuiText = settings.textSize;
-    else delete root.dataset.stmuiText;
+    if (active && settings.textSize && settings.textSize !== 'normal') root.dataset.ptText = settings.textSize;
+    else delete root.dataset.ptText;
 }
 
 function isCompact() {
@@ -9549,8 +9549,8 @@ function isCompact() {
 /** Size (compact or comfortable), the message box style and the tucked tabs. */
 function applyLayoutPrefs() {
     const root = document.documentElement;
-    root.classList.toggle('stmui-compact', active && isCompact());
-    root.classList.toggle('stmui-docked', active && settings.chatStyle && settings.composerStyle === 'docked');
+    root.classList.toggle('pt-compact', active && isCompact());
+    root.classList.toggle('pt-docked', active && settings.chatStyle && settings.composerStyle === 'docked');
     shell?.syncTuck();
 }
 
@@ -9619,13 +9619,13 @@ function syncExtras() {
     syncServerWatch();
     syncManifest();
     const fastOn = active && settings.fastChat;
-    if (fastOn && !document.documentElement.classList.contains('stmui-fast-chat')) primeChatSizes();
-    document.documentElement.classList.toggle('stmui-fast-chat', fastOn);
+    if (fastOn && !document.documentElement.classList.contains('pt-fast-chat')) primeChatSizes();
+    document.documentElement.classList.toggle('pt-fast-chat', fastOn);
     if (fastOn) window.addEventListener('resize', onChatWidthChange);
     else {
         window.removeEventListener('resize', onChatWidthChange);
         window.clearTimeout(fastChat.timer);
-        document.getElementById('chat')?.classList.remove('stmui-fast-prime');
+        document.getElementById('chat')?.classList.remove('pt-fast-prime');
     }
     syncJumpButton();
     syncPersonaTabs();
@@ -9702,14 +9702,14 @@ function syncExtras() {
 }
 
 function textSizeControl() {
-    return h('div', { class: 'stmui-segmented stmui-text-seg', role: 'group', 'aria-label': 'Chat text size' },
+    return h('div', { class: 'pt-segmented pt-text-seg', role: 'group', 'aria-label': 'Chat text size' },
         Object.entries(TEXT_SIZES).map(([size, label]) => h('button', {
             type: 'button',
-            class: `stmui-seg ${settings.textSize === size ? 'stmui-seg-on' : ''}`,
+            class: `pt-seg ${settings.textSize === size ? 'pt-seg-on' : ''}`,
             'aria-pressed': String(settings.textSize === size),
             'aria-label': label,
             onclick: () => setAppearance('textSize', size),
-        }, [h('span', { class: `stmui-aa stmui-aa-${size}`, text: 'Aa' })])));
+        }, [h('span', { class: `pt-aa pt-aa-${size}`, text: 'Aa' })])));
 }
 
 function openExtrasSheet() {
@@ -9717,10 +9717,10 @@ function openExtrasSheet() {
         title: isWide() ? 'Features' : 'Phone features',
         subtitle: isWide() ? 'Small helpers that make SillyTavern nicer to use.' : 'Small helpers that make SillyTavern nicer on a phone.',
         fill: body => {
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Chat text size' }));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Chat text size' }));
             body.append(textSizeControl());
-            body.append(h('p', { class: 'stmui-menu-heading', text: 'Helpers' }));
-            body.append(h('div', { class: 'stmui-menu-list' }, EXTRAS.filter(extra => !extra.when || extra.when()).map(extra => switchRow(extra.key, extra.label, extra.hint))));
+            body.append(h('p', { class: 'pt-menu-heading', text: 'Helpers' }));
+            body.append(h('div', { class: 'pt-menu-list' }, EXTRAS.filter(extra => !extra.when || extra.when()).map(extra => switchRow(extra.key, extra.label, extra.hint))));
         },
     }));
 }
@@ -9729,11 +9729,11 @@ function openExtrasSheet() {
 
 function setFeatureClasses() {
     const root = document.documentElement;
-    root.classList.toggle('stmui-on', active);
-    root.classList.toggle('stmui-touch', active && settings.touchSizing);
-    root.classList.toggle('stmui-shell', active && settings.appShell);
-    root.classList.toggle('stmui-chat', active && settings.chatStyle);
-    root.classList.toggle('stmui-wide', active && settings.appShell && matchMedia(WIDE_QUERY).matches);
+    root.classList.toggle('pt-on', active);
+    root.classList.toggle('pt-touch', active && settings.touchSizing);
+    root.classList.toggle('pt-shell', active && settings.appShell);
+    root.classList.toggle('pt-chat', active && settings.chatStyle);
+    root.classList.toggle('pt-desktop', active && settings.appShell && matchMedia(WIDE_QUERY).matches);
 }
 
 const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -9752,18 +9752,18 @@ const ios = { frame: 0 };
 function syncIosViewport() {
     const root = document.documentElement;
     const on = active && IS_IOS;
-    root.classList.toggle('stmui-ios', on);
+    root.classList.toggle('pt-ios', on);
     const vv = window.visualViewport;
     const keyboard = on && !!vv && isTypingField(document.activeElement) && vv.height < window.innerHeight * 0.85;
-    root.classList.toggle('stmui-ios-kb', keyboard);
+    root.classList.toggle('pt-ios-kb', keyboard);
     if (keyboard) {
         const top = `${Math.round(vv.offsetTop)}px`;
         const visible = `${Math.round(vv.height)}px`;
-        if (root.style.getPropertyValue('--stmui-ios-top') !== top) root.style.setProperty('--stmui-ios-top', top);
-        if (root.style.getPropertyValue('--stmui-ios-h') !== visible) root.style.setProperty('--stmui-ios-h', visible);
+        if (root.style.getPropertyValue('--pt-ios-top') !== top) root.style.setProperty('--pt-ios-top', top);
+        if (root.style.getPropertyValue('--pt-ios-h') !== visible) root.style.setProperty('--pt-ios-h', visible);
     } else {
-        root.style.removeProperty('--stmui-ios-top');
-        root.style.removeProperty('--stmui-ios-h');
+        root.style.removeProperty('--pt-ios-top');
+        root.style.removeProperty('--pt-ios-h');
     }
 }
 
@@ -9811,7 +9811,7 @@ const keptOpen = [];
  */
 function onChatMouseDown(event) {
     const root = document.documentElement;
-    if (!active || !root.classList.contains('stmui-wide') || !root.classList.contains('stmui-page-open')) return;
+    if (!active || !root.classList.contains('pt-desktop') || !root.classList.contains('pt-page-open')) return;
     if (event.target.closest?.('.drawer-content')) return;
     for (const drawer of document.querySelectorAll('.openDrawer:not(.pinnedOpen)')) {
         drawer.classList.add('pinnedOpen');
@@ -9890,13 +9890,13 @@ async function extensionRequest(endpoint, global) {
 function updateRow() {
     return h('button', {
         type: 'button',
-        class: 'stmui-menu-row stmui-update-row',
+        class: 'pt-menu-row pt-update-row',
         onclick: event => updatePocketTavern(event.currentTarget),
     }, [
-        ui('download', 'stmui-menu-row-icon'),
+        ui('download', 'pt-menu-row-icon'),
         h('span', { text: 'Update Pocket Tavern' }),
-        h('small', { class: 'stmui-menu-row-note', text: `v${VERSION}` }),
-        ui('chevron-right', 'stmui-menu-row-go'),
+        h('small', { class: 'pt-menu-row-note', text: `v${VERSION}` }),
+        ui('chevron-right', 'pt-menu-row-go'),
     ]);
 }
 
@@ -9906,7 +9906,7 @@ function updateRow() {
  */
 async function updatePocketTavern(button) {
     if (button.disabled) return;
-    const note = button.querySelector('.stmui-menu-row-note');
+    const note = button.querySelector('.pt-menu-row-note');
     const before = note?.textContent ?? '';
     button.disabled = true;
     if (note) note.textContent = t('Checking…');
@@ -9953,11 +9953,11 @@ async function updatePocketTavern(button) {
  */
 async function openSillyTavernUpdates() {
     const state = { local: null, latest: null, failed: false };
-    const commandRow = (label, command) => h('div', { class: 'stmui-command' }, [
+    const commandRow = (label, command) => h('div', { class: 'pt-command' }, [
         h('code', { text: command }),
         h('button', {
             type: 'button',
-            class: 'stmui-command-copy',
+            class: 'pt-command-copy',
             'aria-label': t('Copy {label}', { label }),
             title: t('Copy'),
             onclick: async () => {
@@ -9978,16 +9978,16 @@ async function openSillyTavernUpdates() {
                     : t('You have the newest SillyTavern ({local}).', { local: state.local });
             }
             body.append(
-                h('p', { class: 'stmui-update-status', text: status }),
-                h('p', { class: 'stmui-menu-heading', text: t('On Android (Termux)') }),
-                h('p', { class: 'stmui-menu-foot', text: t('Tap the "Update SillyTavern" shortcut on your home screen (from the one-tap start setup), or run this in Termux:') }),
+                h('p', { class: 'pt-update-status', text: status }),
+                h('p', { class: 'pt-menu-heading', text: t('On Android (Termux)') }),
+                h('p', { class: 'pt-menu-foot', text: t('Tap the "Update SillyTavern" shortcut on your home screen (from the one-tap start setup), or run this in Termux:') }),
                 commandRow('Termux', 'cd ~/SillyTavern && git pull && npm install'),
-                h('p', { class: 'stmui-menu-heading', text: t('On Windows') }),
-                h('p', { class: 'stmui-menu-foot', text: t('Close SillyTavern, then double-click UpdateAndStart.bat in its folder (or use Update in SillyTavern Launcher).') }),
-                h('p', { class: 'stmui-menu-heading', text: t('On macOS or Linux') }),
-                h('p', { class: 'stmui-menu-foot', text: t('Close SillyTavern, then run this in its folder and start it again:') }),
+                h('p', { class: 'pt-menu-heading', text: t('On Windows') }),
+                h('p', { class: 'pt-menu-foot', text: t('Close SillyTavern, then double-click UpdateAndStart.bat in its folder (or use Update in SillyTavern Launcher).') }),
+                h('p', { class: 'pt-menu-heading', text: t('On macOS or Linux') }),
+                h('p', { class: 'pt-menu-foot', text: t('Close SillyTavern, then run this in its folder and start it again:') }),
                 commandRow('macOS or Linux', 'git pull && npm install'),
-                h('p', { class: 'stmui-menu-foot', text: t('Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.') }),
+                h('p', { class: 'pt-menu-foot', text: t('Using SillyTavern from an iPhone or iPad? Update it on the computer or phone it runs on.') }),
             );
         },
     });
@@ -10009,7 +10009,7 @@ async function openSillyTavernUpdates() {
 
 // -- desktop: drag the panel's edge to make it wider
 
-const PANEL_WIDTH_KEY = 'stmui_panel_w';
+const PANEL_WIDTH_KEY = 'pt_panel_w';
 const PANEL_MIN = 360;
 let panelEdge = null;
 let panelEdgeFrame = 0;
@@ -10025,9 +10025,9 @@ function savedPanelWidth() {
 /** The stylesheet keeps it between 360px and what leaves the chat 480px. */
 function applyPanelWidth(width) {
     const root = document.documentElement;
-    if (width) root.style.setProperty('--stmui-panel-saved', `${Math.round(width)}px`);
-    else root.style.removeProperty('--stmui-panel-saved');
-    root.classList.toggle('stmui-panel-sized', !!width);
+    if (width) root.style.setProperty('--pt-panel-saved', `${Math.round(width)}px`);
+    else root.style.removeProperty('--pt-panel-saved');
+    root.classList.toggle('pt-panel-sized', !!width);
     if (panelEdge) panelEdge.setAttribute('aria-valuenow', String(Math.round(width || panelWidthNow() || PANEL_MIN)));
 }
 
@@ -10052,14 +10052,14 @@ function syncPanelEdge() {
         panelEdge?.remove();
         panelEdge = null;
         applyPanelWidth(0);
-        document.documentElement.classList.remove('stmui-resizing');
+        document.documentElement.classList.remove('pt-resizing');
         return;
     }
     applyPanelWidth(savedPanelWidth());
     if (panelEdge) return;
     panelEdge = h('div', {
-        id: 'stmui-panel-edge',
-        class: 'stmui-panel-edge',
+        id: 'pt-panel-edge',
+        class: 'pt-panel-edge',
         role: 'separator',
         'aria-orientation': 'vertical',
         'aria-label': 'Panel width',
@@ -10068,14 +10068,14 @@ function syncPanelEdge() {
         'aria-valuenow': String(Math.round(savedPanelWidth() || PANEL_MIN)),
         title: 'Drag to change the width. Double-click to reset.',
         tabindex: '0',
-        'data-stmui': '1',
+        'data-pt': '1',
     });
     shieldFromDrawerAutoClose(panelEdge);
     let dragX = 0;
     // Where on the edge it was grabbed, so the edge stays under the pointer instead of jumping to it.
     let grab = 0;
     let moved = false;
-    const railRight = () => document.getElementById('stmui-tabbar')?.getBoundingClientRect().right ?? 88;
+    const railRight = () => document.getElementById('pt-tabbar')?.getBoundingClientRect().right ?? 88;
     const dragged = () => Math.max(PANEL_MIN, dragX - grab - railRight());
     const onMove = event => {
         dragX = event.clientX;
@@ -10097,7 +10097,7 @@ function syncPanelEdge() {
         panelEdge?.removeEventListener('pointercancel', onUp);
         cancelAnimationFrame(panelEdgeFrame);
         panelEdgeFrame = 0;
-        document.documentElement.classList.remove('stmui-resizing');
+        document.documentElement.classList.remove('pt-resizing');
         // A click without a drag (half of a double-click) changes nothing.
         if (!moved || !active) return;
         applyPanelWidth(dragged());
@@ -10117,7 +10117,7 @@ function syncPanelEdge() {
         } catch {
             // Carry on without capture.
         }
-        document.documentElement.classList.add('stmui-resizing');
+        document.documentElement.classList.add('pt-resizing');
         panelEdge.addEventListener('pointermove', onMove);
         panelEdge.addEventListener('pointerup', onUp);
         panelEdge.addEventListener('pointercancel', onUp);
@@ -10165,17 +10165,17 @@ function layoutToolPanels() {
     tools.frame = 0;
     const open = active && settings.appShell ? dockedToolPanels() : [];
     const openSet = new Set(open);
-    document.documentElement.classList.toggle('stmui-tools-open', open.length > 0);
+    document.documentElement.classList.toggle('pt-tools-open', open.length > 0);
     // Two or more share the column, one above the other. Clear stale properties on closed panels.
     for (const panel of document.querySelectorAll(TOOL_PANELS)) {
         if (!openSet.has(panel)) {
-            panel.style.removeProperty('--stmui-tool-i');
-            panel.style.removeProperty('--stmui-tool-n');
+            panel.style.removeProperty('--pt-tool-i');
+            panel.style.removeProperty('--pt-tool-n');
         }
     }
     open.forEach((panel, index) => {
-        if (panel.style.getPropertyValue('--stmui-tool-i') !== String(index)) panel.style.setProperty('--stmui-tool-i', String(index));
-        if (panel.style.getPropertyValue('--stmui-tool-n') !== String(open.length)) panel.style.setProperty('--stmui-tool-n', String(open.length));
+        if (panel.style.getPropertyValue('--pt-tool-i') !== String(index)) panel.style.setProperty('--pt-tool-i', String(index));
+        if (panel.style.getPropertyValue('--pt-tool-n') !== String(open.length)) panel.style.setProperty('--pt-tool-n', String(open.length));
     });
 }
 
@@ -10193,10 +10193,10 @@ function syncToolPanels() {
         tools.observer?.disconnect();
         tools.observer = null;
         tools.watched = new WeakSet();
-        document.documentElement.classList.remove('stmui-tools-open');
+        document.documentElement.classList.remove('pt-tools-open');
         document.querySelectorAll(TOOL_PANELS).forEach(panel => {
-            panel.style.removeProperty('--stmui-tool-i');
-            panel.style.removeProperty('--stmui-tool-n');
+            panel.style.removeProperty('--pt-tool-i');
+            panel.style.removeProperty('--pt-tool-n');
         });
         return;
     }
@@ -10245,7 +10245,7 @@ function onWideShortcut(event) {
 /** Escape on the desktop layout: back one step (a settings section, then the page). */
 function onWideKeyDown(event) {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
-    if (!document.documentElement.classList.contains('stmui-wide')) return;
+    if (!document.documentElement.classList.contains('pt-desktop')) return;
     // Open sheets and SillyTavern's popups close themselves on Escape.
     if (sheet || viewer || document.querySelector('dialog[open]') || editorOpen()) return;
     // The prompt editor: full screen first, then the editor (asking if there are unsaved changes).
@@ -10324,90 +10324,90 @@ function applyState() {
 // ------------------------------------------------------------- settings UI
 
 function updateStatusLine() {
-    const line = document.getElementById('stmui_status');
+    const line = document.getElementById('pt_status');
     if (!line) return;
     const mode = readMode();
     let text;
     if (!settings.enabled) text = t('Pocket Tavern is off.');
     else if (mode === 'never') text = t('Off on this device (set to "Off on this device").');
     else if (mode === 'phone') text = detectPhone() ? t('Active on this device (phone layout).') : t('Off on this device (phones only — your screen is {width}px wide).', { width: window.innerWidth });
-    else if (document.documentElement.classList.contains('stmui-wide')) text = t('Active on this device (desktop layout).');
+    else if (document.documentElement.classList.contains('pt-desktop')) text = t('Active on this device (desktop layout).');
     else text = t('Active on this device (phone layout).');
     line.textContent = text;
-    line.classList.toggle('stmui-status-active', active);
+    line.classList.toggle('pt-status-active', active);
 }
 
 function buildSettings() {
-    if (document.getElementById('stmui_settings')) return;
+    if (document.getElementById('pt_settings')) return;
     const container = document.getElementById('extensions_settings2') ?? document.getElementById('extensions_settings');
     if (!container) return;
 
-    const check = (id, label, hint) => h('label', { class: 'checkbox_label stmui-check', for: id }, [
+    const check = (id, label, hint) => h('label', { class: 'checkbox_label pt-check', for: id }, [
         h('input', { type: 'checkbox', id }),
-        h('span', { class: 'stmui-check-text' }, [
-            h('span', { class: 'stmui-check-label', text: label }),
-            hint ? h('small', { class: 'stmui-check-hint', text: hint }) : null,
+        h('span', { class: 'pt-check-text' }, [
+            h('span', { class: 'pt-check-label', text: label }),
+            hint ? h('small', { class: 'pt-check-hint', text: hint }) : null,
         ]),
     ]);
 
-    const modeSelect = h('select', { id: 'stmui_mode', class: 'text_pole' }, [
+    const modeSelect = h('select', { id: 'pt_mode', class: 'text_pole' }, [
         h('option', { value: 'auto', text: 'Automatic: phones and computers' }),
         h('option', { value: 'phone', text: 'Phones only' }),
         h('option', { value: 'never', text: 'Off on this device' }),
     ]);
 
-    const panel = h('div', { id: 'stmui_settings', class: 'stmui-settings extension_container' }, [
+    const panel = h('div', { id: 'pt_settings', class: 'pt-settings extension_container' }, [
         h('div', { class: 'inline-drawer' }, [
             h('div', { class: 'inline-drawer-toggle inline-drawer-header' }, [
                 h('b', { text: 'Pocket Tavern' }),
                 h('div', { class: 'inline-drawer-icon fa-solid fa-circle-chevron-down down' }),
             ]),
             h('div', { class: 'inline-drawer-content' }, [
-                check('stmui_enabled', 'Enable Pocket Tavern', 'Off brings back the original interface.'),
-                h('p', { id: 'stmui_status', class: 'stmui-status-line' }),
-                h('label', { class: 'stmui-field', for: 'stmui_mode' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Use it on this device' }),
+                check('pt_enabled', 'Enable Pocket Tavern', 'Off brings back the original interface.'),
+                h('p', { id: 'pt_status', class: 'pt-status-line' }),
+                h('label', { class: 'pt-field', for: 'pt_mode' }, [
+                    h('span', { class: 'pt-field-label', text: 'Use it on this device' }),
                     modeSelect,
                 ]),
-                h('small', { class: 'stmui-note', text: 'Phones get the phone layout and wide screens the desktop layout, on their own. Pick "Phones only" to keep the original interface on this computer.' }),
+                h('small', { class: 'pt-note', text: 'Phones get the phone layout and wide screens the desktop layout, on their own. Pick "Phones only" to keep the original interface on this computer.' }),
                 h('hr'),
-                h('label', { class: 'stmui-field', for: 'stmui_theme' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Theme' }),
-                    h('select', { id: 'stmui_theme', class: 'text_pole' }, [
+                h('label', { class: 'pt-field', for: 'pt_theme' }, [
+                    h('span', { class: 'pt-field-label', text: 'Theme' }),
+                    h('select', { id: 'pt_theme', class: 'text_pole' }, [
                         h('option', { value: 'st', text: 'Your SillyTavern theme' }),
                         ...THEMES.map(theme => h('option', { value: theme.id, text: `${theme.name}: ${theme.note}` })),
                     ]),
                 ]),
-                h('label', { class: 'stmui-field', for: 'stmui_motion' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Animations' }),
-                    h('select', { id: 'stmui_motion', class: 'text_pole' }, Object.entries(MOTION_LABELS).map(([value, text]) => h('option', { value, text }))),
+                h('label', { class: 'pt-field', for: 'pt_motion' }, [
+                    h('span', { class: 'pt-field-label', text: 'Animations' }),
+                    h('select', { id: 'pt_motion', class: 'text_pole' }, Object.entries(MOTION_LABELS).map(([value, text]) => h('option', { value, text }))),
                 ]),
-                check('stmui_backdrop', 'Theme background', "Use the theme's backdrop instead of your chat background."),
-                check('stmui_font', 'Modern font', matchMedia(WIDE_QUERY).matches ? "Your computer's own system font." : "Your phone's own system font."),
-                check('stmui_icons', 'New icons', 'Rounded line icons everywhere.'),
-                h('label', { class: 'stmui-field', for: 'stmui_size' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Size' }),
-                    h('select', { id: 'stmui_size', class: 'text_pole' }, Object.entries(SIZES).map(([value, text]) => h('option', { value, text }))),
+                check('pt_backdrop', 'Theme background', "Use the theme's backdrop instead of your chat background."),
+                check('pt_font', 'Modern font', matchMedia(WIDE_QUERY).matches ? "Your computer's own system font." : "Your phone's own system font."),
+                check('pt_icons', 'New icons', 'Rounded line icons everywhere.'),
+                h('label', { class: 'pt-field', for: 'pt_size' }, [
+                    h('span', { class: 'pt-field-label', text: 'Size' }),
+                    h('select', { id: 'pt_size', class: 'text_pole' }, Object.entries(SIZES).map(([value, text]) => h('option', { value, text }))),
                 ]),
-                h('label', { class: 'stmui-field', for: 'stmui_composer' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Message box' }),
-                    h('select', { id: 'stmui_composer', class: 'text_pole' }, Object.entries(COMPOSER_STYLES).map(([value, text]) => h('option', { value, text }))),
+                h('label', { class: 'pt-field', for: 'pt_composer' }, [
+                    h('span', { class: 'pt-field-label', text: 'Message box' }),
+                    h('select', { id: 'pt_composer', class: 'text_pole' }, Object.entries(COMPOSER_STYLES).map(([value, text]) => h('option', { value, text }))),
                 ]),
-                h('label', { class: 'stmui-field', for: 'stmui_textsize' }, [
-                    h('span', { class: 'stmui-field-label', text: 'Chat text size' }),
-                    h('select', { id: 'stmui_textsize', class: 'text_pole' }, Object.entries(TEXT_SIZES).map(([value, text]) => h('option', { value, text }))),
+                h('label', { class: 'pt-field', for: 'pt_textsize' }, [
+                    h('span', { class: 'pt-field-label', text: 'Chat text size' }),
+                    h('select', { id: 'pt_textsize', class: 'text_pole' }, Object.entries(TEXT_SIZES).map(([value, text]) => h('option', { value, text }))),
                 ]),
                 h('hr'),
                 ...EXTRAS.map(extra => check(extra.id, extra.label, extra.hint)),
                 h('hr'),
-                check('stmui_shell', 'App navigation', 'Top bar with the current character, and tabs at the bottom.'),
-                check('stmui_chat', 'Modern chat look', 'Message cards, bigger text and a rounded message box.'),
-                check('stmui_touch', 'Touch-friendly panels', 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.'),
-                check('stmui_back', 'Back gesture closes panels', 'Android back closes the open page, popup or sheet first.'),
-                check('stmui_lorebook', 'Easy lorebook picker', 'Searchable list for global, character, chat and persona lorebooks.'),
-                check('stmui_wand', 'Lorebooks shortcut in the ✨ menu', ''),
-                check('stmui_long', 'Searchable long dropdowns (experimental)', 'Use the same list for any dropdown with 14 or more choices.'),
-                h('small', { class: 'stmui-note', text: 'Changes apply right away. Nothing here changes your characters, chats or lorebooks.' }),
+                check('pt_shell', 'App navigation', 'Top bar with the current character, and tabs at the bottom.'),
+                check('pt_chat', 'Modern chat look', 'Message cards, bigger text and a rounded message box.'),
+                check('pt_touch', 'Touch-friendly panels', 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.'),
+                check('pt_back', 'Back gesture closes panels', 'Android back closes the open page, popup or sheet first.'),
+                check('pt_lorebook', 'Easy lorebook picker', 'Searchable list for global, character, chat and persona lorebooks.'),
+                check('pt_wand', 'Lorebooks shortcut in the ✨ menu', ''),
+                check('pt_long', 'Searchable long dropdowns (experimental)', 'Use the same list for any dropdown with 14 or more choices.'),
+                h('small', { class: 'pt-note', text: 'Changes apply right away. Nothing here changes your characters, chats or lorebooks.' }),
             ]),
         ]),
     ]);
@@ -10426,21 +10426,21 @@ function buildSettings() {
             applyState();
         });
     };
-    bind('stmui_enabled', 'enabled');
-    bind('stmui_shell', 'appShell');
-    bind('stmui_chat', 'chatStyle');
-    bind('stmui_touch', 'touchSizing');
-    bind('stmui_back', 'backGesture');
-    bind('stmui_lorebook', 'lorebookPicker');
-    bind('stmui_wand', 'wandShortcut');
-    bind('stmui_long', 'longSelects');
-    bind('stmui_backdrop', 'themeBackdrop', true);
-    bind('stmui_font', 'modernFont', true);
-    bind('stmui_icons', 'customIcons', true);
+    bind('pt_enabled', 'enabled');
+    bind('pt_shell', 'appShell');
+    bind('pt_chat', 'chatStyle');
+    bind('pt_touch', 'touchSizing');
+    bind('pt_back', 'backGesture');
+    bind('pt_lorebook', 'lorebookPicker');
+    bind('pt_wand', 'wandShortcut');
+    bind('pt_long', 'longSelects');
+    bind('pt_backdrop', 'themeBackdrop', true);
+    bind('pt_font', 'modernFont', true);
+    bind('pt_icons', 'customIcons', true);
     for (const extra of EXTRAS) bind(extra.id, extra.key, true);
-    for (const [id, key] of [['stmui_theme', 'theme'], ['stmui_motion', 'motion'], ['stmui_textsize', 'textSize'], ['stmui_size', 'uiSize'], ['stmui_composer', 'composerStyle']]) {
+    for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle']]) {
         const select = document.getElementById(id);
-        if (id === 'stmui_theme') syncSettingsThemeOption(select);
+        if (id === 'pt_theme') syncSettingsThemeOption(select);
         else select.value = settings[key];
         select.addEventListener('change', () => setAppearance(key, select.value));
     }
@@ -10455,24 +10455,24 @@ function buildSettings() {
 
 function syncSettingsThemeOption(select) {
     if (!select) return;
-    select.querySelector('option[data-stmui-st]')?.remove();
+    select.querySelector('option[data-pt-st]')?.remove();
     const id = settings.theme;
     if (typeof id === 'string' && id.startsWith('st:')) {
-        select.append(h('option', { value: id, 'data-stmui-st': '1', raw: `${id.slice(3)} (${t('From SillyTavern')})` }));
+        select.append(h('option', { value: id, 'data-pt-st': '1', raw: `${id.slice(3)} (${t('From SillyTavern')})` }));
     }
     select.value = id;
 }
 
 /** Keeps the Extensions-panel controls in step when settings change from a sheet. */
 function syncSettingsInputs() {
-    const pairs = { stmui_backdrop: 'themeBackdrop', stmui_font: 'modernFont', stmui_icons: 'customIcons' };
+    const pairs = { pt_backdrop: 'themeBackdrop', pt_font: 'modernFont', pt_icons: 'customIcons' };
     for (const extra of EXTRAS) pairs[extra.id] = extra.key;
     for (const [id, key] of Object.entries(pairs)) {
         const input = document.getElementById(id);
         if (input) input.checked = !!settings[key];
     }
-    syncSettingsThemeOption(document.getElementById('stmui_theme'));
-    for (const [id, key] of [['stmui_motion', 'motion'], ['stmui_textsize', 'textSize'], ['stmui_size', 'uiSize'], ['stmui_composer', 'composerStyle']]) {
+    syncSettingsThemeOption(document.getElementById('pt_theme'));
+    for (const [id, key] of [['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle']]) {
         const select = document.getElementById(id);
         if (select) select.value = settings[key];
     }

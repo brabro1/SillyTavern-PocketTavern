@@ -21,7 +21,7 @@ for (const size of sizes) {
     const page = await context.newPage();
     const logs = [];
     page.on('pageerror', e => logs.push(`pageerror: ${e.message}`));
-    page.on('console', m => { if (['error', 'warning'].includes(m.type()) && /stmui|Pocket|Mobile-UI|index\.js/i.test(m.text() + (m.location()?.url ?? ''))) logs.push(`${m.type()}: ${m.text().slice(0, 160)}`); });
+    page.on('console', m => { if (['error', 'warning'].includes(m.type()) && /\bpt-[a-z]|Pocket|Mobile-UI|index\.js/i.test(m.text() + (m.location()?.url ?? ''))) logs.push(`${m.type()}: ${m.text().slice(0, 160)}`); });
     const settle = ms => page.waitForTimeout(ms);
     const shot = async name => {
         await settle(700);
@@ -46,23 +46,23 @@ for (const size of sizes) {
         if (wide.length) report.push(`${size.name}/${name}: wider than screen: ${wide.join(' | ')}`);
         await page.screenshot({ path: `${OUT}/${size.name}-${name}.png` });
     };
-    const tab = async id => { await page.evaluate(want => document.querySelector(`.stmui-tab[data-tab="${want}"]`)?.click(), id); await settle(900); };
-    const close = async () => { await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click()); await settle(400); };
+    const tab = async id => { await page.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`)?.click(), id); await settle(900); };
+    const close = async () => { await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click()); await settle(400); };
     await page.goto(process.env.ST_URL ?? 'http://127.0.0.1:8000', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => document.documentElement.classList.contains('stmui-on'), null, { timeout: 120000 }).catch(() => {});
+    await page.waitForFunction(() => document.documentElement.classList.contains('pt-on'), null, { timeout: 120000 }).catch(() => {});
     await settle(3500);
     await close();
-    if (!await page.evaluate(() => document.documentElement.classList.contains('stmui-on'))) { report.push(`${size.name}: Pocket Tavern not on`); await context.close(); continue; }
+    if (!await page.evaluate(() => document.documentElement.classList.contains('pt-on'))) { report.push(`${size.name}: Pocket Tavern not on`); await context.close(); continue; }
     await shot('welcome');
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Seraphina'))); });
     await settle(2500);
     await page.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await shot('chat');
-    await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="more"]').click()); await shot('more'); await close();
-    await page.evaluate(() => document.querySelector('.stmui-ab-quick')?.click()); await shot('quick'); await close();
-    await page.evaluate(() => document.querySelector('.stmui-ctx-ring')?.click()); await shot('context'); await close();
-    await page.evaluate(() => document.querySelector('.stmui-persona-chip')?.click()); await shot('persona');
-    await page.evaluate(() => document.querySelector('.stmui-persona-card-edit')?.click()); await shot('persona-edit'); await close();
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]').click()); await shot('more'); await close();
+    await page.evaluate(() => document.querySelector('.pt-ab-quick')?.click()); await shot('quick'); await close();
+    await page.evaluate(() => document.querySelector('.pt-ctx-ring')?.click()); await shot('context'); await close();
+    await page.evaluate(() => document.querySelector('.pt-persona-chip')?.click()); await shot('persona');
+    await page.evaluate(() => document.querySelector('.pt-persona-card-edit')?.click()); await shot('persona-edit'); await close();
     await page.evaluate(() => [...document.querySelectorAll('#chat .mes .extraMesButtonsHint')].pop()?.click()); await shot('mesmenu'); await close();
     await page.evaluate(() => [...document.querySelectorAll('#chat .mes .mes_edit')].pop()?.click()); await shot('editor');
     await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel')?.click()); await settle(500);
@@ -83,8 +83,8 @@ for (const size of sizes) {
     await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-extensions');
     await page.evaluate(() => document.querySelector('#rm_api_block')?.closest('.drawer')?.querySelector('.drawer-toggle')?.click()); await settle(900); await shot('page-api');
     await tab('chat');
-    await page.evaluate(() => document.querySelector('.stmui-ab-home')?.click()); await settle(1500);
-    await page.evaluate(() => document.querySelector('.stmui-group-toggle')?.click()); await shot('recent-open');
+    await page.evaluate(() => document.querySelector('.pt-ab-home')?.click()); await settle(1500);
+    await page.evaluate(() => document.querySelector('.pt-group-toggle')?.click()); await shot('recent-open');
     await page.evaluate(() => document.getElementById('option_select_chat')?.click()); await shot('history');
     await page.goBack().catch(() => {}); await settle(600);
     if (logs.length) report.push(`${size.name}: console: ${[...new Set(logs)].join(' || ')}`);

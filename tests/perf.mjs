@@ -117,11 +117,11 @@ const scenarios = {
     },
     async 'open and close More and Themes'() {
         for (let i = 0; i < 2; i++) {
-            await page.evaluate(() => document.querySelector('.stmui-tab[data-tab="more"]')?.click());
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="more"]')?.click());
             await page.waitForTimeout(700);
-            await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-menu-row-theme')?.click());
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-menu-row-theme')?.click());
             await page.waitForTimeout(700);
-            await page.evaluate(() => document.querySelector('#stmui-sheet .stmui-done')?.click());
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-done')?.click());
             await page.waitForTimeout(600);
         }
     },
@@ -146,11 +146,11 @@ const scenarios = {
 
 async function setup() {
     await page.goto(ST_URL, { waitUntil: 'domcontentloaded' });
-    await until(() => document.documentElement.classList.contains('stmui-on'), null, 90000);
+    await until(() => document.documentElement.classList.contains('pt-on'), null, 90000);
     await page.waitForTimeout(3000);
     await page.evaluate(() => {
         document.querySelectorAll('dialog.popup[open] .popup-button-cancel').forEach(button => button.click());
-        document.querySelector('#stmui-sheet .stmui-done')?.click();
+        document.querySelector('#pt-sheet .pt-done')?.click();
     });
     // Open the demo chat and make it long: 150 messages, only in this page.
     await page.evaluate(async () => {
@@ -175,10 +175,10 @@ async function setup() {
 
 const setPocketTavern = async on => {
     await page.evaluate(want => {
-        const box = document.getElementById('stmui_enabled');
+        const box = document.getElementById('pt_enabled');
         if (box.checked !== want) box.click();
     }, on);
-    await until(want => document.documentElement.classList.contains('stmui-on') === want, on);
+    await until(want => document.documentElement.classList.contains('pt-on') === want, on);
     await page.waitForTimeout(1500);
 };
 

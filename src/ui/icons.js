@@ -245,7 +245,7 @@ export function svgIcon(name, className = '') {
     const holder = document.createElement('span');
     holder.innerHTML = `${SVG_OPEN}${ICONS[name] ?? ICONS.grid}</svg>`;
     const svg = holder.firstElementChild;
-    svg.setAttribute('class', `stmui-svg ${className}`.trim());
+    svg.setAttribute('class', `pt-svg ${className}`.trim());
     return svg;
 }
 
@@ -269,11 +269,11 @@ export function iconCss(scope) {
     height: 1em;
     vertical-align: -0.14em;
     background-color: currentColor;
-    -webkit-mask: var(--stmui-icon) center / contain no-repeat;
-    mask: var(--stmui-icon) center / contain no-repeat;
+    -webkit-mask: var(--pt-icon) center / contain no-repeat;
+    mask: var(--pt-icon) center / contain no-repeat;
 }\n`;
     for (const [name, classes] of byIcon) {
-        css += `${classes.map(fa => `${scope} .${fa}`).join(', ')} { --stmui-icon: ${maskFor(name)}; }\n`;
+        css += `${classes.map(fa => `${scope} .${fa}`).join(', ')} { --pt-icon: ${maskFor(name)}; }\n`;
     }
     return css;
 }
