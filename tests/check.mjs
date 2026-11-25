@@ -249,6 +249,9 @@ try {
     if (old.settingsVersion !== SETTINGS_VERSION || old.enabled !== false || old.someFutureKey !== 1) problems.push(`2.x settings came out as ${JSON.stringify(old)}`);
     if (migrateSettings(null).settingsVersion !== SETTINGS_VERSION) problems.push('missing settings did not get a version');
     if (migrateSettings({ settingsVersion: SETTINGS_VERSION + 5 }).settingsVersion !== SETTINGS_VERSION + 5) problems.push('newer settings were changed');
+    // Version 2: a retired switch goes (what it switched is always on); the six that stay are kept.
+    const retired = migrateSettings({ settingsVersion: 1, sharpPictures: false, saveDrafts: false });
+    if ('sharpPictures' in retired || retired.saveDrafts !== false) problems.push(`retired switches came out as ${JSON.stringify(retired)}`);
     if (problems.length) fail('settings migrations', problems.join('; '));
     else ok(`settings migrate to version ${SETTINGS_VERSION} without losing keys`);
 } catch (error) {

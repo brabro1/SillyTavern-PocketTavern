@@ -69,7 +69,7 @@ const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', pas
  * (a dialog on a computer) instead; picking a format clicks SillyTavern's own choice.
  */
 export function onExportClick(event) {
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().charPage) return;
+    if (!deps.active() || !deps.settings().touchSizing) return;
     if (!event.target.closest?.('#export_button')) return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -102,7 +102,7 @@ export function onExportClick(event) {
  * the favourite star keep SillyTavern's own behaviour.
  */
 export function onCharacterTap(event) {
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().charPage || !deps.settings().charPreview || chars.passTap) return;
+    if (!deps.active() || !deps.settings().touchSizing || chars.passTap) return;
     const entry = event.target.closest?.('#rm_print_characters_block .character_select');
     if (!entry || event.target.closest('.ch_fav_icon, .tag, .bulk_select_checkbox')) return;
     if (document.querySelector('#rm_print_characters_block.group_overlay_mode_select')) return;
@@ -468,7 +468,7 @@ function displayName(title) {
 
 export function syncCharacterPage() {
     const form = document.getElementById('form_create');
-    const want = deps.active() && deps.settings().touchSizing && deps.settings().charPage;
+    const want = deps.active() && deps.settings().touchSizing;
     document.documentElement.classList.toggle('pt-charpage', !!want);
     if (!want) {
         window.clearTimeout(chars.azTimer);
@@ -688,7 +688,7 @@ function openCharActions() {
 
 /** Paging controls only matter when there is more than one page. */
 function updateCharPaging() {
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().charPage) return;
+    if (!deps.active() || !deps.settings().touchSizing) return;
     const holder = document.getElementById('rm_characters_block');
     if (!holder) return;
     const box = document.getElementById('rm_print_characters_pagination');
@@ -739,7 +739,7 @@ function buildAzStrip() {
         old?.remove();
         document.getElementById('pt_az_bubble')?.remove();
     };
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().charPage || !holder || !list) return none();
+    if (!deps.active() || !deps.settings().touchSizing || !holder || !list) return none();
     const sort = document.getElementById('character_sort_order')?.selectedOptions[0];
     if (sort?.dataset.field !== 'name' || sort?.dataset.order === 'random') return none();
     const entries = Array.from(list.querySelectorAll(':scope > .character_select, :scope > .group_select, :scope > .bogus_folder_select'));

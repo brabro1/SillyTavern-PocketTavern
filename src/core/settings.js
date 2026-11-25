@@ -6,9 +6,16 @@
  * settings (2.x) to version 1. Add a step for every change to the shape; never edit an old one.
  * @type {((saved: Record<string, unknown>) => void)[]}
  */
+/** Behaviour switches that are now simply how Pocket Tavern works (DESIGN.md → Decisions: six switches). */
+const RETIRED_SWITCHES = ['messageMenu', 'dragSwipe', 'foldLong', 'contextMeter', 'loreCards', 'sharpPictures', 'animatedPictures', 'charPage', 'charPreview', 'recentTools', 'fastChat', 'jumpButton', 'imageViewer', 'niceToasts', 'autoReload', 'sendEffect', 'customIcons', 'wandShortcut'];
+
 const STEPS = [
     // 1: 2.x settings are the 3.0 baseline; nothing changes yet.
     () => {},
+    // 2: the retired switches go; what they switched is always on now.
+    settings => {
+        for (const key of RETIRED_SWITCHES) delete settings[key];
+    },
 ];
 export const SETTINGS_VERSION = STEPS.length;
 
