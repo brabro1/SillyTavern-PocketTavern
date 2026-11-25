@@ -182,8 +182,6 @@ export default {
     "Delete": "删除",
     "Create": "创建",
     "Description": "描述",
-    "First message": "第一条消息",
-    "Notes & tags": "备注和标签",
     "Jump to letter": "跳到字母",
     "Pinned": "已置顶",
     "Pin": "置顶",
@@ -348,9 +346,7 @@ export default {
 
     // Chat options (☰)
     "Chat from {date}": "{date} 的聊天",
-    "All chats ({count})": "全部聊天（{count}）",
     "Open now": "当前打开",
-    "Latest": "最新",
     "Export as JSONL": "导出为 JSONL",
     "Download as text": "下载为文本",
     "No chats yet. Chat starts the first one.": "还没有聊天。点“聊天”开始第一个。",
@@ -628,4 +624,14 @@ export default {
     "Ask the Assistant": "询问助手",
     "Show chats": "显示聊天",
     "Close the chat": "关闭聊天",
+
+    // The character page
+    "This character is no longer here.": "这个角色已经不在了。",
+    "Filter chats": "筛选聊天",
+    "Could not load the chats.": "无法加载聊天。",
+    "Add to favourites": "加入收藏",
+    "Remove from favourites": "取消收藏",
+    "External media": "外部媒体",
+    "Greetings": "问候语",
+    "Details": "详情",
 };

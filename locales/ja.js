@@ -182,8 +182,6 @@ export default {
     "Delete": "削除",
     "Create": "作成",
     "Description": "説明",
-    "First message": "最初のメッセージ",
-    "Notes & tags": "メモとタグ",
     "Jump to letter": "文字へ移動",
     "Pinned": "ピン留め",
     "Pin": "ピン留め",
@@ -348,9 +346,7 @@ export default {
 
     // Chat options (☰)
     "Chat from {date}": "{date} のチャット",
-    "All chats ({count})": "すべてのチャット（{count}）",
     "Open now": "表示中",
-    "Latest": "最新",
     "Export as JSONL": "JSONL で書き出す",
     "Download as text": "テキストでダウンロード",
     "No chats yet. Chat starts the first one.": "まだチャットはありません。「チャット」で最初のチャットを始めます。",
@@ -628,4 +624,14 @@ export default {
     "Ask the Assistant": "アシスタントに質問",
     "Show chats": "チャットを表示",
     "Close the chat": "チャットを閉じる",
+
+    // The character page
+    "This character is no longer here.": "このキャラクターはもういません。",
+    "Filter chats": "チャットを絞り込む",
+    "Could not load the chats.": "チャットを読み込めませんでした。",
+    "Add to favourites": "お気に入りに追加",
+    "Remove from favourites": "お気に入りから外す",
+    "External media": "外部メディア",
+    "Greetings": "あいさつ",
+    "Details": "詳細",
 };

@@ -6047,119 +6047,8 @@ html.pt-charpage #form_create.pt-ctab-notes #spoiler_free_desc .inline-drawer-co
 }
 
 /* ==========================================================================
-   A character's sheet: its heading and its chats
+   A character's recent chats (the editor's Recent chats sheet)
    ========================================================================== */
-
-html.pt-chat .pt-recent-heading {
-    margin: 8px 4px 0;
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-    font-weight: 700;
-}
-
-/* -- A character's sheet: who they are, what to do, their recent chats --------- */
-
-.pt-cs-hero {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin: 4px 4px 16px;
-}
-
-.pt-cs-avatar {
-    flex: 0 0 auto;
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: var(--pt-surface-elevated);
-    box-shadow: 0 0 0 1px var(--pt-border);
-    object-fit: cover;
-}
-
-.pt-cs-avatar-missing {
-    visibility: hidden;
-}
-
-.pt-cs-about {
-    display: -webkit-box;
-    flex: 1 1 auto;
-    min-width: 0;
-    margin: 0;
-    overflow: hidden;
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-    line-height: 1.5;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-}
-
-.pt-cs-about em {
-    color: var(--SmartThemeEmColor, var(--pt-text-secondary));
-}
-
-.pt-cs-about q {
-    color: var(--SmartThemeQuoteColor, var(--pt-accent));
-    quotes: none;
-}
-
-.pt-cs-about q::before,
-.pt-cs-about q::after {
-    content: none;
-}
-
-.pt-cs-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin: 0 4px 16px;
-}
-
-.pt-cs-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-width: 0;
-    height: 64px;
-    margin: 0;
-    padding: 0 4px;
-    border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius-sm);
-    background: var(--pt-surface);
-    color: var(--pt-text-primary);
-    font: inherit;
-    font-size: 14px;
-    font-weight: 650;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.pt-cs-action span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.pt-cs-action .pt-svg {
-    width: 20px;
-    height: 20px;
-}
-
-.pt-cs-action.pt-cs-primary {
-    border-color: transparent;
-    background: var(--pt-accent);
-    color: var(--pt-on-accent);
-}
-
-.pt-cs-action:active {
-    transform: scale(0.97);
-}
-
-.pt-cs-heading {
-    margin: 0 4px 8px;
-}
 
 .pt-cs-chats {
     display: flex;
@@ -6191,19 +6080,8 @@ html.pt-chat .pt-recent-heading {
     --pt-clamp: 2;
 }
 
-.pt-cs-all {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: calc(100% - 8px);
-    height: 44px;
-    margin: 12px 4px 4px;
-    border-radius: var(--pt-radius-sm);
-}
-
 @media (hover: hover) {
-    :is(.pt-cs-action:not(.pt-cs-primary), .pt-cs-chat):hover {
+    .pt-cs-chat:hover {
         background: var(--pt-surface-elevated);
     }
 

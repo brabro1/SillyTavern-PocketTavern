@@ -1,0 +1,110 @@
+/* A character's page (DESIGN.md → Key screens → Character page; src/views/character.js). */
+
+.pt-character-hero {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-4);
+}
+
+.pt-character-head {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pt-character-title {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-1);
+}
+
+.pt-character-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-lg);
+    font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+/* ★ filled and warm while the character is a favourite. */
+.pt-character-star--on {
+    color: var(--pt-warn);
+}
+
+.pt-character-star--on .pt-svg {
+    fill: currentColor;
+}
+
+/* A few words about them: three lines, then More. */
+.pt-character-about-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pt-space-1);
+    margin-top: calc(-1 * var(--pt-space-3));
+}
+
+.pt-character-about {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.pt-character-about--open {
+    display: block;
+}
+
+.pt-character-about em {
+    color: var(--SmartThemeEmColor, var(--pt-text-secondary));
+}
+
+.pt-character-about q {
+    color: var(--SmartThemeQuoteColor, var(--pt-accent));
+    quotes: none;
+}
+
+.pt-character-more {
+    min-height: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pt-accent);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pt-character-more[hidden] {
+    display: none;
+}
+
+/* Chat · New chat · Edit on one row (they wrap on the narrowest phones). */
+.pt-character-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pt-space-2);
+}
+
+.pt-character-actions > .pt-button {
+    flex: 1 1 0;
+    min-width: max-content;
+}
+
+/* A chat of theirs is shown by its name, with a quiet chat icon in place of the picture. */
+.pt-character-chat-icon {
+    width: 24px;
+    height: 24px;
+    margin: var(--pt-space-2);
+    color: var(--pt-text-secondary);
+}

@@ -37,6 +37,7 @@ import { plusMenu } from '../views/plus-menu.js';
 import { watchChatLoading } from '../features/chat-loading.js';
 import { atBottom, cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd, onSwipeMove, onSwipeStart, onSwipedEvent, setupMessages, syncJumpButton, unfold, updateJump } from '../views/messages.js';
 import { chatsPage, chatsWelcome } from '../views/chats.js';
+import { characterPage } from '../views/character.js';
 import { chatTitle, chatTitleNode, formatPreview, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
@@ -247,6 +248,7 @@ const TABS = [
 /** The place a SillyTavern page belongs to: its tab stays lit, and Back from it returns to that place. */
 function placeOf(pageId) {
     if (!pageId || pageId === 'pt-chats') return 'chat';
+    if (pageId === 'pt-character') return 'rightNavHolder';
     if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
     if (AI_PAGES.includes(pageId)) return 'pt-ai';
     return 'pt-settings';
@@ -1373,8 +1375,10 @@ function closeDrawers() {
 function backFromPage() {
     const id = currentPageId();
     const place = id ? placeOf(id) : null;
-    if (place && place !== id && isOwnPage(place)) openPage(place);
-    else closePages();
+    if (place && place !== id && (isOwnPage(place) || drawerById(place))) {
+        if (place === 'rightNavHolder') showCharacterList();
+        openPage(place);
+    } else closePages();
 }
 
 /** Leaves the open chat for SillyTavern's start screen with the recent chats. */
@@ -1913,7 +1917,8 @@ class Shell {
                 this.aiConnected = isConnected();
                 refreshOwnPage();
             }
-            this.titleEl.textContent = t(info.title);
+            if (typeof info.rawTitle === 'function') this.titleEl.textContent = info.rawTitle();
+            else this.titleEl.textContent = t(info.title);
             this.subEl.textContent = t(info.long ?? '');
             this.subEl.classList.remove('pt-ab-offline');
             // Switch back to "Presets" as soon as the editor starts sliding away.
@@ -4020,7 +4025,9 @@ const CARD_TOOLS = [
     ['#delete_button', 'Delete'],
     ['#create_button_label', 'Create'],
 ];
-const CARD_TABS = [['desc', 'Description'], ['greet', 'First message'], ['notes', 'Notes & tags']];
+// DESIGN.md → Character editor: Description, Greetings, Details. SillyTavern's Advanced definitions (personality,
+// scenario, examples, prompt overrides) stay in its own popup, opened by the labelled Advanced button.
+const CARD_TABS = [['desc', 'Description'], ['greet', 'Greetings'], ['notes', 'Details']];
 const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null };
 
 /**
@@ -4057,10 +4064,9 @@ function onExportClick(event) {
 // -- characters page: a character's sheet before its chat
 
 /**
- * Tapping a character in the list shows its sheet (a dialog on a computer): picture, a few
- * words about them, Chat, New chat and Edit, and their recent chats with the last message of
- * each. Nothing changes until you pick something. Groups, bulk select and the favourite star
- * keep SillyTavern's own behaviour.
+ * Tapping a character in the list opens their page (src/views/character.js): pushed over the list on a
+ * phone, in the panel on a computer. Nothing changes until you pick something. Groups, bulk select and
+ * the favourite star keep SillyTavern's own behaviour.
  */
 function onCharacterTap(event) {
     if (!active || !settings.touchSizing || !settings.charPage || !settings.charPreview || chars.passTap) return;
@@ -4072,7 +4078,7 @@ function onCharacterTap(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
     buzz(6);
-    openCharacterSheet(entry, chid);
+    openCharacterPage(chid);
 }
 
 async function fetchCharacterChats(avatar) {
@@ -4102,39 +4108,6 @@ function afterChatChange(then) {
     };
     if (eventName) context.eventSource?.on?.(eventName, once);
     setTimeout(once, 2500);
-}
-
-/**
- * Opens a chat with this character: the list tap SillyTavern and Pocket Tavern already know
- * (on a phone the page closes into the chat; on a computer the card stays beside it), then the
- * chosen chat if it is not their latest, then `then`.
- */
-function chatWithCharacter(entry, chid, fileId, then) {
-    closeSheet(true);
-    const context = ctx();
-    const same = !context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid);
-    const finish = async () => {
-        try {
-            if (fileId && ctx().characters[chid]?.chat !== fileId) await ctx().openCharacterChat(fileId);
-        } catch (error) {
-            console.warn(LOG, 'Could not open that chat', error);
-        }
-        then?.();
-    };
-    if (!same) afterChatChange(finish);
-    chars.passTap = true;
-    try {
-        if (entry?.isConnected) entry.click();
-        else context.selectCharacterById(String(chid));
-    } finally {
-        chars.passTap = false;
-    }
-    // Already their chat: no switch happens, so carry on now (on a phone, back to the chat).
-    if (same) {
-        finish().then(() => {
-            if (!isWide()) closePages();
-        });
-    }
 }
 
 /**
@@ -4262,7 +4235,12 @@ function onCardPeekPress(event) {
 /** Export on the card-only view: SillyTavern's export, for this character. */
 async function exportCardCharacter(format) {
     const chid = peekedChid();
-    const character = chid === null ? null : ctx().characters[chid];
+    return chid === null ? false : exportCharacterFile(chid, format);
+}
+
+/** SillyTavern's own export endpoint, for one character: downloads its PNG or JSON. */
+async function exportCharacterFile(chid, format) {
+    const character = ctx().characters[chid];
     if (!character) return false;
     try {
         const response = await fetch('/api/characters/export', {
@@ -4369,93 +4347,86 @@ function aboutCharacter(character) {
     return text.length > 280 ? `${text.slice(0, 280).trimEnd()}…` : text;
 }
 
-function openCharacterSheet(entry, chid) {
-    const context = ctx();
-    const character = context.characters[chid];
-    const state = { chats: null };
-    const instance = new MenuSheet({
-        title: 'Character',
-        fill: body => fillCharacterSheet(body, { entry, chid, character, chats: state.chats }),
-    });
-    instance.dialog.classList.add('pt-char-sheet');
-    // A character's name is shown as it is, never translated.
-    instance.title.textContent = character.name;
-    instance.title.dir = 'auto';
-    instance.dialog.setAttribute('aria-label', character.name);
-    showSheet(instance);
-    fetchCharacterChats(character.avatar).catch(() => []).then(chats => {
-        state.chats = chats;
-        if (sheet === instance && !instance.closing) instance.refresh();
-    });
+/** The character the character page shows (src/views/character.js). */
+const characterTarget = { chid: null };
+
+function openCharacterPage(chid) {
+    characterTarget.chid = String(chid);
+    if (currentPageId() === 'pt-character') refreshOwnPage();
+    else openPage('pt-character');
 }
 
-function fillCharacterSheet(body, { entry, chid, character, chats }) {
+function targetCharacter() {
+    const chid = characterTarget.chid;
+    return chid === null ? null : ctx().characters?.[chid] ?? null;
+}
+
+function isCurrentCharacter(chid) {
     const context = ctx();
-    // Who they are.
-    const picture = h('img', { class: 'pt-cs-avatar', alt: '', loading: 'lazy' });
-    picture.src = context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`;
-    picture.addEventListener('error', () => picture.classList.add('pt-cs-avatar-missing'), { once: true });
-    const about = aboutCharacter(character);
-    const hero = h('div', { class: 'pt-cs-hero' }, [picture]);
-    if (about) {
-        const text = h('p', { class: 'pt-cs-about' });
-        text.append(formatPreview(about));
-        text.dir = 'auto';
-        hero.append(text);
-    }
-    body.append(hero);
+    return !context.groupId && context.characterId !== undefined && String(context.characterId) === String(chid);
+}
 
-    // What to do.
-    const action = (iconName, label, run, primary = false) => h('button', {
-        type: 'button',
-        class: `pt-cs-action${primary ? ' pt-cs-primary' : ''}`,
-        onclick: () => {
-            buzz(6);
+/**
+ * A control of SillyTavern's that acts on its *current* character (Delete, Duplicate, Lore, External
+ * media, Favorite): for another character, their chat opens first, then the control is pressed, so it
+ * can never act on the wrong one (DESIGN.md → Character editor).
+ */
+function pressForCharacter(chid, selector) {
+    const press = () => document.querySelector(selector)?.click();
+    if (isCurrentCharacter(chid)) {
+        press();
+        return;
+    }
+    const name = ctx().characters[chid]?.name ?? '';
+    globalThis.toastr?.info(t("This needs {name}'s chat, so it is open now.", { name }), '', { timeOut: 4000 });
+    openCharacterChatFor(chid, { stay: true, then: press });
+}
+
+/** The page's ⋯: Export, Duplicate, Lorebooks, External media, then Delete in red. */
+function openCharacterMenu(anchor) {
+    const chid = characterTarget.chid;
+    const character = targetCharacter();
+    if (!character) return;
+    const row = (icon, title, run, danger = false) => {
+        const node = listRow({ title, icon, end: 'none', onClick: () => {
+            closeSheet(true);
             run();
+        } });
+        if (danger) node.classList.add('pt-list-row--danger');
+        return node;
+    };
+    const instance = new MenuSheet({
+        title: 'Character',
+        anchor,
+        fill: body => {
+            body.append(listGroup({ rows: [
+                row('file-export', 'Export', () => openExportSheet(chid)),
+                row('copy', 'Duplicate', () => pressForCharacter(chid, '#dupe_button')),
+                row('book', 'Lorebooks', () => pressForCharacter(chid, '#world_button')),
+                row('image', 'External media', () => pressForCharacter(chid, '#character_open_media_overrides')),
+            ] }));
+            body.append(listGroup({ rows: [row('trash', 'Delete', () => pressForCharacter(chid, '#delete_button'), true)] }));
         },
-    }, [ui(iconName), h('span', { text: label })]);
-    body.append(h('div', { class: 'pt-cs-actions' }, [
-        action('chat', 'Chat', () => chatWithCharacter(entry, chid, null), true),
-        action('chat-plus', 'New chat', () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_start_new_chat')?.click())),
-        action('pencil', 'Edit', () => editCharacter(chid)),
-    ]));
+    });
+    // The character's name is shown as it is.
+    instance.title.textContent = character.name;
+    instance.title.dir = 'auto';
+    showSheet(instance);
+}
 
-    // Their chats, newest first.
-    body.append(h('p', { class: 'pt-recent-heading pt-cs-heading', text: 'Recent chats' }));
-    if (!chats) {
-        body.append(h('p', { class: 'pt-menu-foot', text: 'Loading chats…' }));
-        return;
-    }
-    if (!chats.length) {
-        body.append(h('p', { class: 'pt-menu-foot', text: 'No chats yet. Chat starts the first one.' }));
-        return;
-    }
-    const list = h('div', { class: 'pt-cs-chats' });
-    for (const chat of chats.slice(0, 5)) {
-        const fileId = String(chat.file_id ?? chat.file_name).replace(/\.jsonl$/i, '');
-        const when = Number(chat.last_mes) ? new Date(Number(chat.last_mes)).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
-        const line = h('span', { class: 'pt-rc-line' }, [chatTitleNode('b', 'pt-rc-title', fileId), h('small', { class: 'pt-rc-when', raw: when })]);
-        if (character.chat === fileId) line.append(h('span', { class: 'pt-rc-now', text: 'Latest' }));
-        const meta = h('small', { class: 'pt-rc-meta' });
-        const count = Number(chat.chat_items);
-        if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-        list.append(h('button', {
-            type: 'button',
-            class: 'pt-rc pt-cs-chat',
-            onclick: () => {
-                buzz(6);
-                chatWithCharacter(entry, chid, fileId);
-            },
-        }, [h('span', { class: 'pt-rc-body' }, [line, previewBubble(chat.mes ?? ''), meta])]));
-    }
-    body.append(list);
-    if (chats.length > 5) {
-        body.append(h('button', {
-            type: 'button',
-            class: 'pt-cs-all menu_button',
-            onclick: () => chatWithCharacter(entry, chid, null, () => document.getElementById('option_select_chat')?.click()),
-        }, [ui('history'), h('span', { text: t('All chats ({count})', { count: chats.length }) })]));
-    }
+/** Export: PNG or JSON, through SillyTavern's own export, for this character. */
+function openExportSheet(chid) {
+    const pick = format => {
+        closeSheet(true);
+        exportCharacterFile(chid, format);
+    };
+    showSheet(new MenuSheet({
+        title: t('Export character'),
+        fill: body => body.append(listGroup({ rows: [
+            listRow({ rawTitle: 'PNG', subtitle: 'A picture card with everything inside. Most apps can open it.', icon: 'image', end: 'none', onClick: () => pick('png') }),
+            listRow({ rawTitle: 'JSON', subtitle: "The character's details as a text file.", icon: 'file-text', end: 'none', onClick: () => pick('json') }),
+        ] })),
+    }));
 }
 
 function displayName(title) {
@@ -9636,6 +9607,33 @@ function registerOwnPages() {
         },
     }));
     loadStartModules();
+    definePage('pt-character', characterPage({
+        character: () => {
+            const character = targetCharacter();
+            if (!character) return null;
+            return {
+                name: character.name,
+                picture: ctx().getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`,
+                about: aboutCharacter(character),
+                favorite: character.fav === true || character.fav === 'true',
+                latest: character.chat,
+            };
+        },
+        chats: () => fetchCharacterChats(targetCharacter()?.avatar ?? ''),
+        isOpen: fileId => isCurrentCharacter(characterTarget.chid) && ctx().getCurrentChatId?.() === fileId,
+        chat: fileId => openCharacterChatFor(characterTarget.chid, { fileId }),
+        newChat: () => openCharacterChatFor(characterTarget.chid, { then: () => document.getElementById('option_start_new_chat')?.click() }),
+        // SillyTavern's Characters page opens first, then its form is filled for this character: the other
+        // way round, the page change ended the card-only view before the form was even showing.
+        edit: async () => {
+            const chid = characterTarget.chid;
+            openPage('rightNavHolder');
+            await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 60)));
+            await editCharacter(chid);
+        },
+        favorite: () => pressForCharacter(characterTarget.chid, '#favorite_button'),
+        menu: anchor => openCharacterMenu(anchor),
+    }));
     definePage('pt-ai', aiPage({ openPage, connected: isConnected }));
     definePage('pt-settings', settingsPage({
         openPage,
@@ -9743,6 +9741,11 @@ function init() {
         fadeInChat();
     });
     if (event_types.CHAT_LOADED) eventSource?.on?.(event_types.CHAT_LOADED, () => chatLoading?.loaded());
+    for (const name of ['CHARACTER_EDITED', 'CHARACTER_DELETED', 'CHARACTER_RENAMED', 'CHAT_CHANGED']) {
+        if (event_types[name]) eventSource?.on?.(event_types[name], () => {
+            if (active && currentPageId() === 'pt-character') setTimeout(refreshOwnPage, 200);
+        });
+    }
     for (const name of ['CHAT_DELETED', 'GROUP_CHAT_DELETED', 'CHAT_RENAMED', 'CHAT_CREATED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], refreshChatsHome);
     }

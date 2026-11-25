@@ -531,20 +531,20 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 ### Character page
 - **Top:**
   - Picture (96, SillyTavern's shape) and name (`title`).
-  - Header actions: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, Delete).
+  - Beside the name: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, then Delete in red). ★, Duplicate, Lorebooks, External media and Delete act on SillyTavern's *current* character, so for another character their chat opens first (with a short note saying so). Export downloads that character's file directly.
   - A short about (creator's note or description), clamped to three lines with "More".
 - **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row.
-- **Chats:** every chat with this character as chat rows, newest first, with a filter field when there are more than eight.
+- **Chats:** every chat with this character as chat rows (the chat's name, its last message, how many messages), newest first, with a filter field when there are more than eight.
 - **Nothing changes** until the user picks something.
 - **Where it opens:** on a phone, as a pushed page. On desktop, in the panel, with the chat staying beside it.
 
 ### Character editor
 - **Where:** full screen on a phone, the widened panel on desktop. Header: the name and ✕.
-- **Fields:** SillyTavern's own form, restyled, in at most four segmented tabs:
+- **Fields:** SillyTavern's own form, restyled, in three segmented tabs:
   - **Description**
   - **Greetings** (first message and alternates)
-  - **Details** (personality, scenario, examples, notes, tags, creator)
-  - **Advanced** (prompt overrides, lorebook links, extension data)
+  - **Details** (creator's note and tags)
+  - SillyTavern's Advanced definitions (personality, scenario, examples, prompt overrides) stay in its own popup, opened by the labelled **Advanced** button: showing them as a tab would mean moving SillyTavern's nodes (AGENTS.md → Rules, 4).
 - **Saving:** changes save as you type, through SillyTavern.
 - **Editing without opening the chat:** SillyTavern's form is filled for that character, and saves go to it. Controls that act on SillyTavern's *current* character (delete, duplicate, persona links) open that character's chat first. Never point SillyTavern's current character at another character without opening its chat, or the open chat saves into the wrong folder.
 

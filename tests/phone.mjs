@@ -1153,7 +1153,7 @@ await step('the prompt editor reaches the tabs, opens full screen and asks befor
     }
 });
 
-await step('a long lorebook shows every entry, and the Notes & tags tab keeps the tabs their size', async () => {
+await step('a long lorebook shows every entry, and the Details tab keeps the tabs their size', async () => {
     const name = 'Pocket Tavern test lorebook';
     try {
         await page.evaluate(async name => {
@@ -1214,7 +1214,7 @@ await step('a long lorebook shows every entry, and the Notes & tags tab keeps th
         await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]')?.click());
         await page.waitForTimeout(400);
     }
-    // The character card's tabs: Notes & tags has no big text box, and the tabs grew to fill the space.
+    // The character card's tabs: Details has no big text box, and the tabs grew to fill the space.
     await page.evaluate(async () => {
         const context = SillyTavern.getContext();
         if (context.characterId === undefined && !context.groupId) await context.selectCharacterById('0');
@@ -1231,7 +1231,7 @@ await step('a long lorebook shows every entry, and the Notes & tags tab keeps th
     await page.locator('#pt_card_tabs .pt-seg[data-tab="desc"]').click();
     await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]')?.click());
     await page.waitForTimeout(400);
-    if (tabs > 60) throw new Error(`the card's tabs are ${tabs}px tall on Notes & tags`);
+    if (tabs > 60) throw new Error(`the card's tabs are ${tabs}px tall on Details`);
 });
 
 await step('the character list view keeps rows apart, and closing the chat shows the Chats page without the message box', async () => {
@@ -1804,11 +1804,11 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await tab.evaluate(() => document.getElementById('rm_button_characters')?.click());
         await settle(800);
         await tab.locator('#rm_print_characters_block .character_select').first().click();
-        // Their sheet first; Chat opens the chat beside the page.
-        await tab.waitForFunction(() => !!document.querySelector('#pt-sheet.pt-char-sheet .pt-cs-primary'), null, { timeout: 5000 });
-        await tab.locator('#pt-sheet .pt-cs-primary').click();
+        // Their page first; Chat opens the chat beside it.
+        await tab.waitForFunction(() => !!document.querySelector('#pt-page[data-page="pt-character"] .pt-character-actions .pt-button--primary'), null, { timeout: 5000 });
+        await tab.locator('#pt-page .pt-character-actions .pt-button--primary').click();
         await settle(2500);
-        if (await tab.evaluate(() => document.documentElement.dataset.ptPage) !== 'rightNavHolder') throw new Error('picking a character closed the page');
+        if (await tab.evaluate(() => document.documentElement.dataset.ptPage) !== 'pt-character') throw new Error('picking a character closed the page');
         // Personas: labeled tools like a character card, and on a wide page the list and the card side by side.
         await openStPage(tab, 'persona-management-button');
         await settle(600);
@@ -2419,7 +2419,7 @@ await step("More… on a character card stays above the Description tabs at 1920
     }
 });
 
-await step('tapping a character shows its sheet (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
+await step('tapping a character shows its page (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
     await ensureCharacters([['Aria', 'Hello, I am Aria.'], ['Seraphina', '*She smiles and sets down her cup.* "Welcome, traveler."']]);
     await ensureChat('Seraphina');
     await ensureChat('Aria');
@@ -2442,22 +2442,21 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
     const before = await chatId();
     await goCharacters();
     await tapCharacter('Seraphina');
-    await until(() => !!document.querySelector('#pt-sheet.pt-char-sheet'));
-    const sheetState = await page.evaluate(() => ({
-        title: document.querySelector('#pt-sheet .pt-overlay-title')?.textContent,
-        actions: [...document.querySelectorAll('#pt-sheet .pt-cs-action')].map(button => button.textContent.trim()),
-        page: document.documentElement.dataset.ptPage,
+    await until(() => !!document.querySelector('#pt-page[data-page="pt-character"]'));
+    const pageState = await page.evaluate(() => ({
+        name: document.querySelector('#pt-page .pt-character-name')?.textContent,
+        actions: [...document.querySelectorAll('#pt-page .pt-character-actions .pt-button')].map(button => button.textContent.trim()),
     }));
-    if (sheetState.title !== 'Seraphina') throw new Error(`the sheet is titled ${sheetState.title}`);
-    if (sheetState.actions.join('|') !== 'Chat|New chat|Edit') throw new Error(`actions: ${sheetState.actions.join(', ')}`);
+    if (pageState.name !== 'Seraphina') throw new Error(`the page shows ${pageState.name}`);
+    if (pageState.actions.join('|') !== 'Chat|New chat|Edit') throw new Error(`actions: ${pageState.actions.join(', ')}`);
     if (await chatId() !== before) throw new Error('tapping a character switched chats');
-    // Its recent chats come in with their last message as a bubble.
-    await until(() => !!document.querySelector('#pt-sheet .pt-cs-chat .pt-bubble'));
-    const narration = await page.evaluate(() => !!document.querySelector('#pt-sheet .pt-cs-chat .pt-bubble em'));
+    // Its chats come in with their last message as a bubble.
+    await until(() => !!document.querySelector('#pt-page .pt-chat-row .pt-bubble'));
+    const narration = await page.evaluate(() => !!document.querySelector('#pt-page .pt-chat-row .pt-bubble em'));
     if (!narration) throw new Error("the preview does not draw *narration* like the chat");
     // Edit: their card, without their chat (the chat you are in stays open behind it).
-    await page.locator('#pt-sheet .pt-cs-action', { hasText: 'Edit' }).click();
-    await until(() => !document.getElementById('pt-sheet') && document.getElementById('character_name_pole')?.value === 'Seraphina');
+    await page.locator('#pt-page .pt-character-actions .pt-button', { hasText: 'Edit' }).click();
+    await until(() => document.getElementById('character_name_pole')?.value === 'Seraphina' && document.documentElement.dataset.ptPage === 'rightNavHolder');
     await page.waitForTimeout(800);
     if (await page.evaluate(() => document.documentElement.dataset.ptPage) !== 'rightNavHolder') throw new Error('Edit left the Characters page');
     if (!(await page.evaluate(() => !!document.getElementById('pt_card_tabs')?.getBoundingClientRect().height))) throw new Error('Edit did not show the card');
@@ -2471,19 +2470,19 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
     // Leaving a card without pressing Chat leaves you in your chat, with SillyTavern's card back on it.
     await goCharacters();
     await tapCharacter('Seraphina');
-    await until(() => !!document.querySelector('#pt-sheet .pt-cs-action'));
-    await page.locator('#pt-sheet .pt-cs-action', { hasText: 'Edit' }).click();
+    await until(() => !!document.querySelector('#pt-page .pt-character-actions .pt-button'));
+    await page.locator('#pt-page .pt-character-actions .pt-button', { hasText: 'Edit' }).click();
     await until(() => document.getElementById('character_name_pole')?.value === 'Seraphina');
     await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
     await until(() => document.getElementById('character_name_pole')?.value === 'Aria' && !document.documentElement.classList.contains('pt-card-peek'), null, 8000);
     if (await chatId() !== before) throw new Error('leaving the card changed the chat');
-    // Chat from the sheet: on a phone it lands in the chat.
+    // Chat from the page: on a phone it lands in the chat.
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
     await page.waitForTimeout(1200);
     await goCharacters();
     await tapCharacter('Seraphina');
-    await until(() => !!document.querySelector('#pt-sheet .pt-cs-primary'));
-    await page.locator('#pt-sheet .pt-cs-primary').click();
+    await until(() => !!document.querySelector('#pt-page .pt-character-actions .pt-button--primary'));
+    await page.locator('#pt-page .pt-character-actions .pt-button--primary').click();
     await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina' && !document.documentElement.dataset.ptPage, null, 10000);
     // Turned off, a tap opens the chat at once, as before.
     await page.evaluate(() => {
@@ -2495,7 +2494,7 @@ await step('tapping a character shows its sheet (not its chat); Chat, Edit and a
         await goCharacters();
         await tapCharacter('Aria');
         await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Aria', null, 10000);
-        if (await page.locator('#pt-sheet.pt-char-sheet').count()) throw new Error('the sheet opened with Character preview off');
+        if (await page.locator('#pt-page[data-page="pt-character"]').count()) throw new Error('the character page opened with Character preview off');
     } finally {
         await page.evaluate(() => {
             const box = document.getElementById('pt_charpreview');

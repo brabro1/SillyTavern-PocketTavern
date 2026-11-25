@@ -182,8 +182,6 @@ export default {
     "Delete": "Удалить",
     "Create": "Создать",
     "Description": "Описание",
-    "First message": "Первое сообщение",
-    "Notes & tags": "Заметки и теги",
     "Jump to letter": "Перейти к букве",
     "Pinned": "Закреплённые",
     "Pin": "Закрепить",
@@ -348,9 +346,7 @@ export default {
 
     // Chat options (☰)
     "Chat from {date}": "Чат от {date}",
-    "All chats ({count})": "Все чаты ({count})",
     "Open now": "Открыт сейчас",
-    "Latest": "Последний",
     "Export as JSONL": "Экспорт в JSONL",
     "Download as text": "Скачать как текст",
     "No chats yet. Chat starts the first one.": "Чатов пока нет. «Чат» начнёт первый.",
@@ -628,4 +624,14 @@ export default {
     "Ask the Assistant": "Спросить Ассистента",
     "Show chats": "Показать чаты",
     "Close the chat": "Закрыть чат",
+
+    // The character page
+    "This character is no longer here.": "Этого персонажа больше нет.",
+    "Filter chats": "Фильтр чатов",
+    "Could not load the chats.": "Не удалось загрузить чаты.",
+    "Add to favourites": "Добавить в избранное",
+    "Remove from favourites": "Убрать из избранного",
+    "External media": "Внешние медиа",
+    "Greetings": "Приветствия",
+    "Details": "Подробности",
 };

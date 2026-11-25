@@ -182,8 +182,6 @@ export default {
     "Delete": "Borrar",
     "Create": "Crear",
     "Description": "Descripción",
-    "First message": "Primer mensaje",
-    "Notes & tags": "Notas y etiquetas",
     "Jump to letter": "Ir a la letra",
     "Pinned": "Fijados",
     "Pin": "Fijar",
@@ -348,9 +346,7 @@ export default {
 
     // Chat options (☰)
     "Chat from {date}": "Chat del {date}",
-    "All chats ({count})": "Todos los chats ({count})",
     "Open now": "Abierto ahora",
-    "Latest": "Último",
     "Export as JSONL": "Exportar como JSONL",
     "Download as text": "Descargar como texto",
     "No chats yet. Chat starts the first one.": "Aún no hay chats. Chat empieza el primero.",
@@ -628,4 +624,14 @@ export default {
     "Ask the Assistant": "Preguntar al Asistente",
     "Show chats": "Mostrar chats",
     "Close the chat": "Cerrar el chat",
+
+    // The character page
+    "This character is no longer here.": "Este personaje ya no está.",
+    "Filter chats": "Filtrar chats",
+    "Could not load the chats.": "No se pudieron cargar los chats.",
+    "Add to favourites": "Añadir a favoritos",
+    "Remove from favourites": "Quitar de favoritos",
+    "External media": "Medios externos",
+    "Greetings": "Saludos",
+    "Details": "Detalles",
 };

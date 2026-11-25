@@ -182,8 +182,6 @@ export default {
     "Delete": "حذف",
     "Create": "إنشاء",
     "Description": "الوصف",
-    "First message": "الرسالة الأولى",
-    "Notes & tags": "ملاحظات ووسوم",
     "Jump to letter": "الانتقال إلى حرف",
     "Pinned": "المثبتة",
     "Pin": "تثبيت",
@@ -348,9 +346,7 @@ export default {
 
     // Chat options (☰)
     "Chat from {date}": "دردشة {date}",
-    "All chats ({count})": "كل الدردشات ({count})",
     "Open now": "مفتوحة الآن",
-    "Latest": "الأحدث",
     "Export as JSONL": "تصدير بصيغة JSONL",
     "Download as text": "تنزيل كنص",
     "No chats yet. Chat starts the first one.": "لا توجد دردشات بعد. «دردشة» تبدأ الأولى.",
@@ -628,4 +624,14 @@ export default {
     "Ask the Assistant": "اسأل المساعد",
     "Show chats": "عرض الدردشات",
     "Close the chat": "إغلاق الدردشة",
+
+    // The character page
+    "This character is no longer here.": "هذه الشخصية لم تعد موجودة.",
+    "Filter chats": "تصفية الدردشات",
+    "Could not load the chats.": "تعذّر تحميل الدردشات.",
+    "Add to favourites": "إضافة إلى المفضلة",
+    "Remove from favourites": "إزالة من المفضلة",
+    "External media": "وسائط خارجية",
+    "Greetings": "التحيات",
+    "Details": "التفاصيل",
 };
