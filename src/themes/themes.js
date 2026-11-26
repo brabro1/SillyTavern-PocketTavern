@@ -394,7 +394,8 @@ export function themeCss(theme, scope) {
     --pt-card-bot: ${t.bot};
     --pt-backdrop: ${t.backdrop};${t.mode === 'light' ? `
     --pt-scrim: rgb(0 0 0 / 0.24);
-    --pt-shadow-float: 0 8px 24px rgb(22 24 29 / 0.12);` : ''}
+    --pt-shadow-float: 0 8px 24px rgb(22 24 29 / 0.12);
+    --pt-shadow-card: 0 1px 2px rgb(22 24 29 / 0.06), 0 8px 18px -10px rgb(22 24 29 / 0.14);` : ''}
 }
 /* A chat background shows: the chat itself is clear and each message is a tinted
    card over the picture. Bars, pages, sheets and the composer stay solid. */

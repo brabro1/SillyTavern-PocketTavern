@@ -1,0 +1,46 @@
+/* SillyTavern's persona screen (DESIGN.md → Personas). The !important rules beat SillyTavern's display rules
+   and the legacy restyle of this screen. */
+
+/* Usage stats, Backup, Restore and the grid switch are in ⋯ (#pt_persona_more), which presses them hidden. */
+html.pt-on.pt-personapage #persona-management-button .flex-container:has(> .user_stats_button),
+html.pt-on.pt-touch #persona_grid_toggle {
+    display: none !important;
+}
+
+html.pt-touch #pt_persona_more {
+    grid-area: more;
+    align-self: center;
+}
+
+/* Page controls only when the personas do not fit on one page. */
+html.pt-touch #persona_pagination_container.pt-one-page {
+    display: none !important;
+}
+
+/* The persona in use: an accent edge and its label. */
+html.pt-personapage #user_avatar_block .avatar-container.selected {
+    box-shadow: inset 3px 0 0 var(--pt-accent), var(--pt-shadow-card) !important;
+}
+
+html.pt-personapage[dir='rtl'] #user_avatar_block .avatar-container.selected,
+html.pt-rtl.pt-personapage #user_avatar_block .avatar-container.selected {
+    box-shadow: inset -3px 0 0 var(--pt-accent), var(--pt-shadow-card) !important;
+}
+
+html.pt-personapage #user_avatar_block .pt-in-use {
+    align-self: center;
+    margin-inline-start: auto;
+    padding: var(--pt-space-1) var(--pt-space-2);
+    border-radius: var(--pt-radius-full);
+    background: color-mix(in srgb, var(--pt-accent) 18%, transparent);
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Each persona is a card. */
+html.pt-personapage #user_avatar_block .avatar-container {
+    box-shadow: var(--pt-shadow-card);
+}

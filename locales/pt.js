@@ -882,4 +882,21 @@ export default {
     "\"Sure, here is…\"": "\"Claro, aqui está…\"",
     "Also remove": "Remover também",
     "One regular expression per line, e.g. /^\\[OOC:[^\\]]*\\]\\s*/gm": "Uma expressão regular por linha, ex.: /^\\[OOC:[^\\]]*\\]\\s*/gm",
+
+    // Chats home: quick picks
+    "Quick picks": "Atalhos rápidos",
+    "Open the latest chat with {name}": "Abrir a última conversa com {name}",
+    "Earlier this week": "Antes nesta semana",
+
+    // Personas
+    "Usage stats": "Estatísticas de uso",
+    "How much each persona has written": "Quanto cada persona escreveu",
+    "Backup": "Backup",
+    "Save every persona to a file": "Salva todas as personas num arquivo",
+    "Restore": "Restaurar",
+    "Bring personas back from a backup file": "Traz personas de volta de um backup",
+    "Grid view": "Grade",
+    "List view": "Lista",
+    "How the personas are shown": "Como as personas aparecem",
+    "In use": "Em uso",
 };

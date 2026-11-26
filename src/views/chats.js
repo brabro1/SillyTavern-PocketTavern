@@ -1,5 +1,5 @@
-// The Chats place (DESIGN.md → Key screens → Chats (home)): Search everything at the top, then pinned
-// and recent chats as chat rows. With search text, results are grouped by kind: Places, Characters,
+// The Chats place (DESIGN.md → Key screens → Chats (home)): Search everything at the top, quick picks, then
+// pinned chats and recent chats under date headers. With search text, results are grouped by kind: Places, Characters,
 // Chats, Lorebooks, Settings. On a phone it is the place's own screen; on desktop it fills the panel
 // beside the chat. Every action comes from the shell, which runs SillyTavern's own functions.
 import { h } from '../core/dom.js';
@@ -14,6 +14,8 @@ import { listGroup, listRow } from '../ui/list.js';
 
 /** Characters (or groups) shown before "Show all chats". */
 const FIRST_GROUPS = 30;
+/** People in the quick picks after the Assistant. */
+const QUICK_PICKS = 10;
 const LIMITS = { place: 5, character: 12, chat: 12, lorebook: 8, setting: 12 };
 const KIND_TITLES = { place: 'Places', character: 'Characters', chat: 'Chats', lorebook: 'Lorebooks', setting: 'Settings' };
 
@@ -147,17 +149,47 @@ export function chatsPage(actions) {
                 return card;
             };
 
-            const assistantRow = () => (actions.assistant ? listGroup({ rows: [listRow({
-                title: 'Assistant',
-                subtitle: 'Ask anything, no character needed',
-                start: avatar({ name: 'Assistant', src: actions.assistant.picture, size: 40 }),
-                end: 'nav',
-                onClick: actions.assistant.open,
-            })] }) : null);
+            /**
+             * Quick picks (DESIGN.md → Chats (home)): the Assistant, then the characters and groups chatted with
+             * most recently, as pictures with names that scroll sideways. Tapping one opens their latest chat.
+             */
+            const quickPicks = groups => {
+                const pick = ({ name, picture, label, onClick, open }) => h('button', {
+                    type: 'button',
+                    class: `pt-quick-pick pt-focus pt-press${open ? ' pt-quick-pick--open' : ''}`,
+                    'aria-label': label,
+                    title: label,
+                    onclick: onClick,
+                }, [avatar({ name, src: picture, size: 56 }), h('span', { class: 'pt-quick-pick-name', raw: name, dir: 'auto' })]);
+                const picks = [];
+                if (actions.assistant) {
+                    picks.push(pick({ name: t('Assistant'), picture: actions.assistant.picture, label: t('Ask the Assistant'), onClick: actions.assistant.open }));
+                }
+                // The Assistant's own chat is already the first pick.
+                const people = groups.filter(chats => !actions.assistant || actions.owner(chats[0]).picture !== actions.assistant.picture);
+                for (const chats of people.slice(0, QUICK_PICKS)) {
+                    const latest = chats[0];
+                    const who = actions.owner(latest);
+                    picks.push(pick({ name: who.name, picture: who.picture, label: t('Open the latest chat with {name}', { name: who.name }), onClick: () => actions.openChat(latest), open: actions.isOpen(latest) }));
+                }
+                if (!picks.length) return null;
+                return h('section', { class: 'pt-quick-picks', 'aria-label': t('Quick picks') }, picks);
+            };
+
+            /** Today, Yesterday, Earlier this week or Older, from when a chat was last written to. */
+            const dayBucket = time => {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                const at = Number(time) || 0;
+                if (at >= today) return 'Today';
+                if (at >= today - 86400000) return 'Yesterday';
+                if (at >= today - 6 * 86400000) return 'Earlier this week';
+                return 'Older';
+            };
 
             const chatList = () => {
                 if (chats === null) return [h('p', { class: 'pt-chats-note', text: 'Loading chats…' })];
-                if (!chats.length) return [emptyState({ icon: 'chats', text: 'No chats yet', action: { label: 'Choose a character', onClick: actions.chooseCharacter } })];
+                if (!chats.length) return [quickPicks([]), emptyState({ icon: 'chats', text: 'No chats yet', action: { label: 'Choose a character', onClick: actions.chooseCharacter } })].filter(Boolean);
                 const pinned = chats.filter(actions.isPinned);
                 // The rest grouped by character (or group chat), newest first: one card each.
                 const groups = new Map();
@@ -168,9 +200,16 @@ export function chatsPage(actions) {
                 }
                 const all = [...groups.values()];
                 const shown = showAll ? all : all.slice(0, FIRST_GROUPS);
-                const out = [assistantRow()].filter(Boolean);
+                const out = [quickPicks(all)].filter(Boolean);
                 if (pinned.length) out.push(section('Pinned', pinned.map(row)));
-                if (shown.length) out.push(section('Recent', shown.map(groupCard)));
+                // Recent, under date headers (cards stay newest first).
+                const buckets = new Map();
+                for (const chats of shown) {
+                    const bucket = dayBucket(chats[0].last_mes);
+                    if (!buckets.has(bucket)) buckets.set(bucket, []);
+                    buckets.get(bucket).push(chats);
+                }
+                for (const [bucket, list] of buckets) out.push(section(bucket, list.map(groupCard)));
                 if (shown.length < all.length) {
                     out.push(h('button', {
                         type: 'button',

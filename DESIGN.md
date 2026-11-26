@@ -57,6 +57,7 @@ All tokens are `--pt-*` custom properties on `html.pt-on`. Nothing outside `src/
 | `--pt-card-user` / `--pt-card-bot` | subtle tints | subtle tints | Message cards (the only translucent surfaces over a chat background) |
 | `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat colour behind the chat |
 | `--pt-scrim` | black 40% | black 24% | Behind sheets and dialogs |
+| `--pt-shadow-card` | per theme | per theme | Cards and list groups: a soft, low lift |
 | `--pt-shadow-float` | per theme | per theme | Only on floating layers: popovers, dialogs, toasts, floating message box |
 
 **Contrast:** body text, narration, dialogue, text on cards, on accent and on danger meet **4.5:1**. Secondary text, icons, borders of fields and the accent meet **3:1** on both `--pt-bg` and `--pt-surface`. `check.mjs` verifies every theme.
@@ -105,7 +106,7 @@ A control inside a container with 4px padding steps down one radius so corners s
 
 ### Elevation
 
-Depth comes from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines, not shadows. `--pt-shadow-float` is only for things that float above content: popovers, dialogs, toasts, the floating message box and the Draft helper's bar.
+Depth comes mostly from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines. Cards and list groups also sit on `--pt-shadow-card`, a soft, low shadow that lifts them off the page without a glow (the owner asked for more depth, 2026-11-27). `--pt-shadow-float` stays for things that float above content: popovers, dialogs, toasts, the floating message box and the Draft helper's bar.
 
 ### Z-index bands
 
@@ -132,6 +133,7 @@ Layers within a band use `calc(var(--pt-z-band) + n)` with `n < 300`. SillyTaver
 - A page push slides in from the end edge. A sheet rises. A dialog fades and scales from 0.98. A popover fades. Pressing scales to 0.97.
 - Send gives one short press. Nothing flies off.
 - A jumped-to message or setting gets a still outline for a moment.
+- When a page opens, its first eight groups or cards fade in with a 6px rise, 20ms apart (240ms each at most). Not with Reduce motion.
 - Looping indicators (a reply being written, Stop's ring) are the only animations longer than 240ms.
 - **Reduce motion** (the OS setting or Pocket Tavern's switch): fades only, at 150ms. Loops, including on `::before`/`::after`, play once.
 
@@ -481,7 +483,8 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### Chats (home)
 - **Header:** "Chats" and the Search everything field below it.
-- **List:** first SillyTavern's **Assistant** (ask anything, no character needed; its own permanent Assistant chat), then **Pinned** chat rows, then **Recent**: one card per character or group, newest first. The card shows their latest chat as a row; when there are more, a line under it ("3 more chats") opens a dropdown with **New chat**, **All chats** and **Character**, then their other recent chats. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
+- **Quick picks:** a row of 56px pictures with names that scrolls sideways: SillyTavern's **Assistant** first (ask anything, no character needed; its own permanent Assistant chat), then the characters and groups chatted with most recently (up to 10). Tapping one opens their latest chat.
+- **List:** **Pinned** chat rows, then **Recent** under date headers (Today, Yesterday, Earlier this week, Older): one card per character or group, newest first. The card shows their latest chat as a row; when there are more, a line under it ("3 more chats") opens a dropdown with **New chat**, **All chats** and **Character**, then their other recent chats. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
 - **No message box** on this screen.
 - **Empty:** "No chats yet" · **Choose a character** (opens Characters).
 - **Where it lives:** on a phone it is the Chats place's screen while no chat is open; opening a chat (from here or anywhere) takes the screen, and ‹ in the chat closes it and comes back here. On desktop it fills the panel and stays there beside the chat it opened; Chats on the rail hides or shows it. With no chat open, desktop's chat column is a welcome: SillyTavern's logo, "Welcome back", its version, and **Ask the Assistant** (primary), **Show chats** (when the list is hidden) and **Choose a character**. SillyTavern's own start screen is hidden. At start-up SillyTavern may reopen its locked Characters panel; Pocket Tavern keeps it invisible and closes it, so Chats is the first thing you see.
@@ -574,6 +577,12 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - Rows: **Appearance**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.
 - SillyTavern's own look section is part of Appearance, with the controls Pocket Tavern overrides hidden (UI theme colours, blur, Chat Style).
 - Each settings page has its own filter field.
+
+### Personas
+- SillyTavern's persona screen, restyled (Settings → Personas), with two tabs: **All personas** and **Edit _name_**.
+- **All personas:** one row of tools: **+** (new persona), the search field, the sort, and **⋯** with Usage stats, Backup, Restore and Grid view / List view (SillyTavern's own buttons, pressed hidden). The page controls show only when there is more than one page.
+- Each persona is a card: its picture, name and the first lines of its description. The one in use has an accent edge and an **In use** label; the default one wears a crown. Tapping a card makes it the persona in use (SillyTavern's own behaviour).
+- **Edit:** the picture and name, then its tools as labelled buttons (Rename, Sync name, Lore, Picture, Duplicate, Delete in red), then SillyTavern's own fields.
 
 ### Using native SillyTavern
 "Use SillyTavern for now" (Settings → Pocket Tavern) switches to native SillyTavern for this visit. A single 44px **Back to Pocket Tavern** pill sits at the end side, just above SillyTavern's message box (never over Send), under SillyTavern's popups and toasts. It is the only thing Pocket Tavern leaves on SillyTavern's interface (`src/shell/native.js`).

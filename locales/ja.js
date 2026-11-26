@@ -882,4 +882,21 @@ export default {
     "\"Sure, here is…\"": "「はい、こちらです…」",
     "Also remove": "ほかに消すもの",
     "One regular expression per line, e.g. /^\\[OOC:[^\\]]*\\]\\s*/gm": "1行に1つの正規表現。例：/^\\[OOC:[^\\]]*\\]\\s*/gm",
+
+    // Chats home: quick picks
+    "Quick picks": "クイックアクセス",
+    "Open the latest chat with {name}": "{name} との最新のチャットを開く",
+    "Earlier this week": "今週のはじめ",
+
+    // Personas
+    "Usage stats": "使用状況",
+    "How much each persona has written": "各ペルソナがどれだけ書いたか",
+    "Backup": "バックアップ",
+    "Save every persona to a file": "すべてのペルソナをファイルに保存",
+    "Restore": "復元",
+    "Bring personas back from a backup file": "バックアップからペルソナを戻す",
+    "Grid view": "グリッド表示",
+    "List view": "リスト表示",
+    "How the personas are shown": "ペルソナの表示方法",
+    "In use": "使用中",
 };

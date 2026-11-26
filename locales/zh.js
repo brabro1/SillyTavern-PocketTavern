@@ -882,4 +882,21 @@ export default {
     "\"Sure, here is…\"": "“好的，这是……”",
     "Also remove": "另外移除",
     "One regular expression per line, e.g. /^\\[OOC:[^\\]]*\\]\\s*/gm": "每行一个正则表达式，例如 /^\\[OOC:[^\\]]*\\]\\s*/gm",
+
+    // Chats home: quick picks
+    "Quick picks": "快捷入口",
+    "Open the latest chat with {name}": "打开与 {name} 的最新聊天",
+    "Earlier this week": "本周早些时候",
+
+    // Personas
+    "Usage stats": "使用统计",
+    "How much each persona has written": "每个人设写了多少",
+    "Backup": "备份",
+    "Save every persona to a file": "把所有人设保存到文件",
+    "Restore": "恢复",
+    "Bring personas back from a backup file": "从备份文件恢复人设",
+    "Grid view": "网格视图",
+    "List view": "列表视图",
+    "How the personas are shown": "人设的显示方式",
+    "In use": "使用中",
 };

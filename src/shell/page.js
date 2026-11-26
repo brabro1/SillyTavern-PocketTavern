@@ -3,6 +3,7 @@
 // The legacy shell still owns headers and Back; it treats an open page here like an open drawer.
 // Styles in styles/components/page.css.
 import { h } from '../core/dom.js';
+import { safe } from '../core/lifecycle.js';
 import { currentLang, isRtl } from '../core/i18n.js';
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 
@@ -37,6 +38,9 @@ export function onPageChange(callback) {
     listener = callback;
 }
 
+/** How long a newly opened page's groups may take to fade in (8 at 20ms apart, 240ms each). */
+const ENTER_MS = 500;
+
 export function openOwnPage(id) {
     const spec = pages.get(id);
     if (!spec || open?.id === id) return;
@@ -46,6 +50,9 @@ export function openOwnPage(id) {
     const el = h('section', { id: 'pt-page', class: 'pt-page', 'data-page': id, 'aria-label': spec.title, lang: currentLang(), dir: isRtl() ? 'rtl' : 'ltr' }, [body]);
     shieldFromDrawerAutoClose(el);
     spec.render(body);
+    // Its first groups fade in with a short rise as it opens (DESIGN.md → Motion), not when it is drawn again.
+    el.classList.add('pt-page--enter');
+    window.setTimeout(safe('a page', () => el.classList.remove('pt-page--enter')), ENTER_MS);
     document.body.append(el);
     open = { id, el, body };
     listener();

@@ -882,4 +882,21 @@ export default {
     "\"Sure, here is…\"": "«Конечно, вот…»",
     "Also remove": "Также убирать",
     "One regular expression per line, e.g. /^\\[OOC:[^\\]]*\\]\\s*/gm": "Одно регулярное выражение на строку, напр. /^\\[OOC:[^\\]]*\\]\\s*/gm",
+
+    // Chats home: quick picks
+    "Quick picks": "Быстрый доступ",
+    "Open the latest chat with {name}": "Открыть последний чат с {name}",
+    "Earlier this week": "Ранее на этой неделе",
+
+    // Personas
+    "Usage stats": "Статистика",
+    "How much each persona has written": "Сколько написала каждая персона",
+    "Backup": "Резервная копия",
+    "Save every persona to a file": "Сохранить все персоны в файл",
+    "Restore": "Восстановить",
+    "Bring personas back from a backup file": "Вернуть персоны из резервной копии",
+    "Grid view": "Сеткой",
+    "List view": "Списком",
+    "How the personas are shown": "Как показаны персоны",
+    "In use": "Используется",
 };

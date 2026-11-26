@@ -882,4 +882,21 @@ export default {
     "\"Sure, here is…\"": "\"بالتأكيد، إليك…\"",
     "Also remove": "أزل أيضًا",
     "One regular expression per line, e.g. /^\\[OOC:[^\\]]*\\]\\s*/gm": "تعبير نمطي واحد في كل سطر، مثل /^\\[OOC:[^\\]]*\\]\\s*/gm",
+
+    // Chats home: quick picks
+    "Quick picks": "اختيارات سريعة",
+    "Open the latest chat with {name}": "افتح آخر محادثة مع {name}",
+    "Earlier this week": "في وقت سابق من هذا الأسبوع",
+
+    // Personas
+    "Usage stats": "إحصاءات الاستخدام",
+    "How much each persona has written": "كم كتبت كل هوية",
+    "Backup": "نسخة احتياطية",
+    "Save every persona to a file": "احفظ كل الهويات في ملف",
+    "Restore": "استعادة",
+    "Bring personas back from a backup file": "استعد الهويات من ملف نسخة احتياطية",
+    "Grid view": "عرض شبكي",
+    "List view": "عرض قائمة",
+    "How the personas are shown": "طريقة عرض الهويات",
+    "In use": "مستخدمة",
 };

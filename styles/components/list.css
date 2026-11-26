@@ -21,6 +21,7 @@
     overflow: hidden;
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
+    box-shadow: var(--pt-shadow-card);
 }
 
 .pt-list-row,

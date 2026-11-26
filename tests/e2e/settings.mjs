@@ -146,6 +146,33 @@ for (const layout of ['phone', 'desktop']) {
             await back(page, phone);
         });
 
+        await step('Personas: one row of tools with ⋯ (Usage stats, Backup, Restore, Grid view), page controls only when needed, the persona in use marked', async () => {
+            await page.evaluate(tapRow, 'Personas');
+            await waitFor(page, 'Personas', () => document.documentElement.dataset.ptPage === 'persona-management-button' && !!document.getElementById('pt_persona_more'));
+            await page.waitForTimeout(600);
+            await page.screenshot({ path: `${OUT}/${layout}-personas.png` });
+            const info = await page.evaluate(() => {
+                const shown = node => !!node && node.getClientRects().length > 0 && getComputedStyle(node).display !== 'none';
+                const total = Object.keys(SillyTavern.getContext().powerUserSettings?.personas ?? {}).length;
+                const perPage = Number(document.querySelector('#persona_pagination_container select')?.value) || Infinity;
+                return {
+                    oldButtons: shown(document.querySelector('#persona-management-button .user_stats_button')) || shown(document.getElementById('persona_grid_toggle')),
+                    pages: shown(document.getElementById('persona_pagination_container')),
+                    fits: total <= perPage,
+                    inUse: [...document.querySelectorAll('#user_avatar_block .avatar-container.selected .pt-in-use')].length,
+                    more: Math.round(document.getElementById('pt_persona_more').getBoundingClientRect().height),
+                };
+            });
+            if (info.oldButtons || info.pages === info.fits || info.inUse !== 1 || info.more < 44) throw new Error(JSON.stringify(info));
+            await page.locator('#pt_persona_more').click();
+            await waitFor(page, 'the persona tools', () => !!document.querySelector('#pt-sheet .pt-list-row'));
+            const rows = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].map(node => node.textContent));
+            if (rows.slice(0, 3).join('|') !== 'Usage stats|Backup|Restore' || !/^(Grid|List) view$/.test(rows[3])) throw new Error(JSON.stringify(rows));
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await waitFor(page, 'closed', () => !document.getElementById('pt-sheet'));
+            await back(page, phone);
+        });
+
         await step('no errors from Pocket Tavern', async () => {
             if (errors.length) throw new Error(errors.join(' | '));
         });

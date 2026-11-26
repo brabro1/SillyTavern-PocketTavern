@@ -120,15 +120,37 @@ for (const layout of ['phone', 'desktop']) {
         });
         await page.screenshot({ path: `${OUT}/${layout}-home.png` });
 
-        await step('the Assistant first, then pinned and recent chats; no message box', async () => {
+        await step('quick picks first (the Assistant, then recent people), then pinned and recent chats under date headers; no message box', async () => {
             const home = await page.evaluate(() => ({
-                first: document.querySelector('#pt-page .pt-chats-results > *')?.textContent ?? '',
+                first: document.querySelector('#pt-page .pt-chats-results > *')?.className ?? '',
+                picks: [...document.querySelectorAll('#pt-page .pt-quick-pick-name')].map(el => el.textContent),
+                size: Math.round(document.querySelector('#pt-page .pt-quick-pick .pt-avatar')?.getBoundingClientRect().width ?? 0),
                 headers: [...document.querySelectorAll('#pt-page .pt-list-header')].map(el => el.textContent),
                 rows: document.querySelectorAll('#pt-page .pt-chat-row').length,
                 box: getComputedStyle(document.getElementById('form_sheld')).display,
                 root: document.getElementById('pt-appbar').classList.contains('pt-ab-root'),
             }));
-            if (!home.first.includes('Assistant') || !home.headers.includes('Recent') || !home.rows || home.box !== 'none' || !home.root) throw new Error(JSON.stringify(home));
+            const dated = home.headers.some(header => ['Today', 'Yesterday', 'Earlier this week', 'Older'].includes(header));
+            if (!home.first.includes('pt-quick-picks') || home.picks[0] !== 'Assistant' || home.picks.length < 2 || home.size !== 56) throw new Error(`picks: ${JSON.stringify(home)}`);
+            if (!dated || !home.rows || home.box !== 'none' || !home.root) throw new Error(JSON.stringify(home));
+            if (new Set(home.picks).size !== home.picks.length) throw new Error(`a pick shows twice: ${home.picks}`);
+        });
+
+        await step("a quick pick opens that person's latest chat", async () => {
+            const name = await page.evaluate(() => document.querySelectorAll('#pt-page .pt-quick-pick-name')[1]?.textContent);
+            await page.evaluate(() => document.querySelectorAll('#pt-page .pt-quick-pick')[1].click());
+            await waitFor(page, `${name}'s chat`, who => SillyTavern.getContext().name2 === who && document.querySelectorAll('#chat .mes').length > 0, name, 10000);
+            if (phone) {
+                await page.locator('#pt-appbar .pt-ab-back').click();
+                await waitFor(page, 'back on Chats', () => document.getElementById('pt-page')?.dataset.page === 'pt-chats');
+            } else {
+                // The next steps start with no chat open, as before. The chat settles first (closing one that is
+                // still loading makes SillyTavern throw), and SillyTavern's start screen then needs a moment.
+                await page.waitForTimeout(1500);
+                await page.evaluate(() => document.getElementById('option_close_chat')?.click());
+                await waitFor(page, 'no chat open', () => SillyTavern.getContext().getCurrentChatId?.() === undefined, null, 10000);
+                await page.waitForTimeout(2500);
+            }
         });
 
         await step('a character with several chats gets one card: their latest, and a dropdown with New chat, All chats, Character and the rest', async () => {
@@ -173,7 +195,7 @@ for (const layout of ['phone', 'desktop']) {
             await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
             await waitFor(page, 'wait 8', () => document.documentElement.dataset.ptPage === 'pt-chats');
             await page.locator('#pt-page .pt-search-box-clear').click();
-            await waitFor(page, 'list back after Clear', () => [...document.querySelectorAll('#pt-page .pt-list-header')].some(el => el.textContent === 'Recent'));
+            await waitFor(page, 'list back after Clear', () => [...document.querySelectorAll('#pt-page .pt-list-header')].some(el => ['Today', 'Yesterday', 'Earlier this week', 'Older'].includes(el.textContent)));
         });
 
         await step(phone

@@ -3025,13 +3025,13 @@ html.pt-touch #persona-management-block > div {
     min-width: 0;
 }
 
-/* Toolbar: Create, search and sort, then pages and the grid switch. */
+/* Toolbar: Create, search, sort and ⋯, then the pages when there is more than one. */
 html.pt-touch .persona_management_left_column > .flex-container:first-child {
     display: grid !important;
     grid-template-areas:
-        'create search sort'
-        'pages pages grid';
-    grid-template-columns: auto minmax(0, 1fr) auto;
+        'create search sort more'
+        'pages pages pages pages';
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 8px;
 }

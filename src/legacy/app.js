@@ -2074,7 +2074,8 @@ function syncPersonaTabs() {
         if (look && button && !tag) button.append(h('span', { class: 'pt-btn-label', text: label }));
         else if (!look) tag?.remove();
     }
-    if (!look) document.querySelectorAll('#user_avatar_block .pt-default-badge').forEach(node => node.remove());
+    if (!look) document.querySelectorAll('#user_avatar_block :is(.pt-default-badge, .pt-in-use)').forEach(node => node.remove());
+    syncPersonaTools(!!want);
     if (!want) {
         bar?.remove();
         document.querySelector('#persona_controls .pt-persona-face')?.remove();
@@ -2111,10 +2112,57 @@ function syncPersonaTabs() {
     updatePersonaTabs();
 }
 
+/**
+ * The persona list's tools in one row (DESIGN.md → Personas): ⋯ holds Usage stats, Backup, Restore and Grid view
+ * (SillyTavern's own buttons, pressed hidden), and the page controls show only when there is more than one page.
+ */
+function syncPersonaTools(want) {
+    let more = document.getElementById('pt_persona_more');
+    const grid = document.getElementById('persona_grid_toggle');
+    if (!want || !grid) {
+        more?.remove();
+        document.getElementById('persona_pagination_container')?.classList.remove('pt-one-page');
+        return;
+    }
+    if (!more) {
+        more = h('button', { type: 'button', id: 'pt_persona_more', class: 'pt-icon-button pt-focus pt-press', 'aria-label': 'More actions', title: 'More actions', onclick: () => openPersonaTools(more) }, [ui('ellipsis', 'pt-icon-button-icon')]);
+        grid.after(more);
+    }
+    markPersonaPages();
+}
+
+/** Page controls only when the personas do not fit on one page. */
+function markPersonaPages() {
+    const pages = document.getElementById('persona_pagination_container');
+    if (!pages) return;
+    const total = Object.keys(ctx().powerUserSettings?.personas ?? {}).length;
+    const perPage = Number(pages.querySelector('select')?.value) || Infinity;
+    pages.classList.toggle('pt-one-page', total <= perPage);
+}
+
+function openPersonaTools(anchor) {
+    const press = selector => () => {
+        closeSheet(true);
+        document.querySelector(selector)?.click();
+    };
+    const gridOn = !!document.querySelector('#user_avatar_block.gridView');
+    showSheet(new MenuSheet({
+        title: t('Personas'),
+        anchor,
+        fill: body => body.append(listGroup({ rows: [
+            listRow({ title: 'Usage stats', subtitle: 'How much each persona has written', icon: 'chart', end: 'none', onClick: press('#persona-management-button .user_stats_button') }),
+            listRow({ title: 'Backup', subtitle: 'Save every persona to a file', icon: 'file-export', end: 'none', onClick: press('#personas_backup') }),
+            listRow({ title: 'Restore', subtitle: 'Bring personas back from a backup file', icon: 'file-import', end: 'none', onClick: press('#personas_restore') }),
+            listRow({ title: gridOn ? 'List view' : 'Grid view', subtitle: 'How the personas are shown', icon: gridOn ? 'list' : 'grid', end: 'none', onClick: press('#persona_grid_toggle') }),
+        ] })),
+    }));
+}
+
 function updatePersonaTabs() {
     const block = document.getElementById('persona-management-block');
     const bar = document.getElementById('pt_persona_tabs');
     if (!block || !bar) return;
+    markPersonaPages();
     const editing = block.classList.contains('pt-persona-edit');
     const name = document.getElementById('your_name')?.textContent?.trim();
     for (const button of bar.querySelectorAll('.pt-seg')) {
@@ -2130,6 +2178,10 @@ function updatePersonaTabs() {
     // Picture cards: a crown on your default persona (SillyTavern only rings its picture in gold).
     if (document.documentElement.classList.contains('pt-personapage')) {
         for (const card of document.querySelectorAll('#user_avatar_block .avatar-container')) {
+            // The persona in use says so.
+            const inUse = card.querySelector(':scope > .pt-in-use');
+            if (card.classList.contains('selected') && !inUse) card.append(h('span', { class: 'pt-in-use', text: 'In use' }));
+            else if (!card.classList.contains('selected')) inUse?.remove();
             const badge = card.querySelector(':scope > .pt-default-badge');
             const isDefault = card.classList.contains('default_persona');
             if (isDefault && !badge) card.append(h('span', { class: 'pt-default-badge', title: t('Default persona'), 'aria-label': t('Default persona') }, [ui('crown')]));

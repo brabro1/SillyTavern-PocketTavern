@@ -17,6 +17,7 @@
 .pt-avatar--24 { --pt-avatar-size: 24px; }
 .pt-avatar--32 { --pt-avatar-size: 32px; }
 .pt-avatar--40 { --pt-avatar-size: 40px; }
+.pt-avatar--56 { --pt-avatar-size: 56px; }
 .pt-avatar--96 { --pt-avatar-size: 96px; }
 
 body.square-avatars .pt-avatar {

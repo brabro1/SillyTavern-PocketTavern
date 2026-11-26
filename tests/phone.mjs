@@ -463,13 +463,14 @@ await step('the Chats page is the home: ‹ in a chat goes there, pinned and rec
             headers: [...document.querySelectorAll('#pt-page .pt-list-header')].map(el => el.textContent),
         };
     });
-    if (!home.root || home.box !== 'none' || !home.bubble || !home.avatar || !home.headers.includes('Recent')) throw new Error(`Chats page: ${JSON.stringify(home)}`);
-    // The Assistant first; a character with several chats gets a dropdown with New chat, All chats and Character.
+    const dated = home.headers.some(header => ['Today', 'Yesterday', 'Earlier this week', 'Older'].includes(header));
+    if (!home.root || home.box !== 'none' || !home.bubble || !home.avatar || !dated) throw new Error(`Chats page: ${JSON.stringify(home)}`);
+    // The Assistant first among the quick picks; a character with several chats gets a dropdown with New chat, All chats and Character.
     const extras = await page.evaluate(() => ({
-        assistant: [...document.querySelectorAll('#pt-page .pt-list-row-title')].some(el => el.textContent === 'Assistant'),
+        assistant: document.querySelector('#pt-page .pt-quick-pick-name')?.textContent === 'Assistant',
         toggle: !!document.querySelector('#pt-page .pt-chat-group-toggle'),
     }));
-    if (!extras.assistant) throw new Error('no Assistant row');
+    if (!extras.assistant) throw new Error('the Assistant is not the first quick pick');
     if (extras.toggle) {
         await page.locator('#pt-page .pt-chat-group-toggle').first().click();
         const actions = await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-chat-group-card--open .pt-chat-group-action')].map(el => el.textContent));
@@ -487,7 +488,7 @@ await step('the Chats page is the home: ‹ in a chat goes there, pinned and rec
     await page.locator('#pt-page .pt-chats-search input').fill('font');
     await until(() => [...document.querySelectorAll('#pt-page .pt-list-header')].some(el => el.textContent === 'Settings'), null, 8000);
     await page.locator('#pt-page .pt-search-box-clear').click();
-    await until(() => [...document.querySelectorAll('#pt-page .pt-list-header')].some(el => el.textContent === 'Recent'));
+    await until(() => [...document.querySelectorAll('#pt-page .pt-list-header')].some(el => ['Today', 'Yesterday', 'Earlier this week', 'Older'].includes(el.textContent)));
     // A row opens its chat; the Chats page makes way.
     await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-chat-row-main')].find(row => row.querySelector('.pt-rc-title')?.textContent === 'Seraphina').click());
     await until(() => !document.documentElement.dataset.ptPage && document.querySelectorAll('#chat .mes').length > 0, null, 10000);
@@ -2069,15 +2070,16 @@ await step('desktop layout at 1366 × 768: preset buttons stay one row, the prom
             return [box.top + 3, box.bottom - 3].every(y => document.elementFromPoint(box.left + box.width / 2, y)?.closest('a'));
         }));
         if (!edges) throw new Error('a Backgrounds tab ignores clicks near its top or bottom edge');
-        // Personas: Usage Stats, Backup and Restore share the whole row.
+        // Personas: Usage Stats, Backup and Restore are in ⋯, which sits in the tool row inside the page.
         await openStPage(tab, 'persona-management-button');
         await tab.waitForTimeout(800);
         const personaRow = await tab.evaluate(() => {
-            const buttons = [...document.querySelectorAll('.user_stats_button, #personas_backup, #personas_restore')].map(node => node.getBoundingClientRect());
+            const more = document.getElementById('pt_persona_more')?.getBoundingClientRect();
             const row = document.getElementById('persona-management-block').getBoundingClientRect();
-            return { start: Math.round(buttons[0].left - row.left), end: Math.round(row.right - buttons.at(-1).right) };
+            const shown = node => !!node && getComputedStyle(node).display !== 'none' && node.getClientRects().length > 0;
+            return { more: !!more, inside: !!more && more.right <= row.right + 1 && more.left >= row.left - 1, old: shown(document.querySelector('#persona-management-button .user_stats_button')) };
         });
-        if (Math.abs(personaRow.start) > 4 || Math.abs(personaRow.end) > 4) throw new Error(`the Personas buttons do not fill their row: ${JSON.stringify(personaRow)}`);
+        if (!personaRow.more || !personaRow.inside || personaRow.old) throw new Error(`the Personas tool row: ${JSON.stringify(personaRow)}`);
         await tab.keyboard.press('Escape');
         // Moonlit Echoes' swipe rules (a stand-in with the same declarations): ‹ stays against the rest of the pill.
         await tab.evaluate(async () => {
