@@ -118,7 +118,14 @@ for (const width of [320, 360, 412]) {
         });
         await page.waitForTimeout(600);
         const row = await page.evaluate(() => {
-            const box = el => { const r = el.getBoundingClientRect(); return { id: el.id || el.className.split(' ')[0], w: Math.round(r.width), h: Math.round(r.height), left: Math.round(r.left), right: Math.round(r.right) }; };
+            // The tap area: the box, grown by an ::after layer that widens it (the persona pill is 40px tall
+            // with a 48px tap area, DESIGN.md → Message box).
+            const box = el => {
+                const r = el.getBoundingClientRect();
+                const after = getComputedStyle(el, '::after');
+                const grow = side => (after.content !== 'none' && after.position === 'absolute' ? Math.max(0, -parseFloat(after[side]) || 0) : 0);
+                return { id: el.id || el.className.split(' ')[0], w: Math.round(r.width + grow('left') + grow('right')), h: Math.round(r.height + grow('top') + grow('bottom')), left: Math.round(r.left), right: Math.round(r.right) };
+            };
             const shown = el => el.getBoundingClientRect().width > 0 && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
             const tools = [...document.querySelectorAll('#leftSendForm > *, #rightSendForm > *')].filter(shown).map(box);
             const send = box(document.getElementById('send_but'));

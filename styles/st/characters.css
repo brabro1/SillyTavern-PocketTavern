@@ -265,7 +265,7 @@ html.pt-charpage body.charListGrid #rm_print_characters_block {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
     gap: 12px;
-    padding-right: 24px;
+    padding-inline-end: 0;
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {
@@ -856,7 +856,7 @@ html.pt-charpage #rm_print_characters_block {
 html.pt-charpage body.charListGrid #rm_print_characters_block {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    padding: 4px 24px 12px 0;
+    padding: 4px 0 12px;
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {

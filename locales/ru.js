@@ -945,4 +945,14 @@ export default {
     "All characters": "Все персонажи",
     "Open their page": "Открыть страницу",
     "by {name}": "автор: {name}",
+    // Message Summarize: its message actions
+    "Summary": "Краткое содержание",
+    "Remember": "Запомнить",
+    "Keep this summary in long-term memory": "Хранить это краткое содержание в долговременной памяти",
+    "Leave out": "Не учитывать",
+    "Never put this summary into memory": "Никогда не добавлять это краткое содержание в память",
+    "Edit summary": "Изменить краткое содержание",
+    "Change the summary by hand": "Изменить краткое содержание вручную",
+    "Summarize again": "Пересказать снова",
+    "Ask the AI for a new summary of this message": "Попросить ИИ заново кратко изложить это сообщение",
 };

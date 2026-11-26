@@ -235,6 +235,8 @@ export const FA_MAP = {
     'fa-crown': 'crown',
     'fa-hat-wizard': 'sparkles',
     'fa-person-circle-question': 'user-plus',
+    // Message Summarize's message buttons (src/compat/message-summarize.js).
+    'fa-brain': 'bulb', 'fa-ban': 'eye-off', 'fa-pen-fancy': 'pencil', 'fa-quote-left': 'note',
 };
 
 const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';

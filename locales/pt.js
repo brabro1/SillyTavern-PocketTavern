@@ -945,4 +945,14 @@ export default {
     "All characters": "Todos os personagens",
     "Open their page": "Abrir a página",
     "by {name}": "por {name}",
+    // Message Summarize: its message actions
+    "Summary": "Resumo",
+    "Remember": "Lembrar",
+    "Keep this summary in long-term memory": "Guardar este resumo na memória de longo prazo",
+    "Leave out": "Deixar de fora",
+    "Never put this summary into memory": "Nunca colocar este resumo na memória",
+    "Edit summary": "Editar resumo",
+    "Change the summary by hand": "Mudar o resumo à mão",
+    "Summarize again": "Resumir de novo",
+    "Ask the AI for a new summary of this message": "Pedir à IA um novo resumo desta mensagem",
 };

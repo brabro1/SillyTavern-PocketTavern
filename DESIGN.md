@@ -512,6 +512,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - **Thinking** (reasoning) is a quiet box that opens with a tap. While it is still thinking, its title breathes.
   - **Long older messages** fold with "Show more". Code blocks and tables scroll sideways inside themselves.
   - **Jump to latest** appears when you scroll up, and new text never pulls you down while you read.
+  - **What an extension adds under the text** takes the message's own row there (`extra`), never the space above it. Message Summarize's summary is a quiet note in secondary text with a 3px edge for where it stands in memory: `--pt-info` short-term, `--pt-ok` long-term, `--pt-warn` past the limit, secondary and struck through when left out; a tap edits it. Its message buttons sit in ⋯ under **Summary** with short names and a line each (Remember, Leave out, Edit summary, Summarize again). Its progress bar is a card under the header, over the chat column.
 - **Message box:**
   - **Row:** persona button (avatar), the text field (grows to 35% of the window, then scrolls), `+`, the context ring (small, inside the box), and **Send**.
   - **The context ring** fills with how much of the context the next prompt uses, turning `--pt-warn` above 90%. Tapping it opens a small sheet (desktop: popover):
@@ -533,7 +534,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
     - While the Draft Enhancer extension itself is installed and on, the built-in one stays off (its settings page says so), so nothing runs twice.
   - **Quick replies:** one row of chips above the field that scrolls sideways.
   - **Extension buttons** that fit cleanly beside Send stay (one at most, such as Guided Generations as a single button). Everything else goes into `+`.
-  - **Floating** (default) floats over the chat with a fade behind it. **Docked** sits flat along the bottom edge.
+  - **Floating** (default) floats over the chat with a fade behind it. **Docked** sits flat along the bottom edge: on a phone the field is on its own row between your persona and Send, under the tools; on desktop it is one bar across the whole chat area (beside the rail and panel), with your persona's picture, the field, the tools and Send on one row in the chat column's width. Docked, the field shows the focus, not the box.
   - At 320px wide every tool keeps its 44px hit area.
 - **Message editor:**
   - Phone: full screen, with ✕, title, and Save.

@@ -945,4 +945,14 @@ export default {
     "All characters": "すべてのキャラクター",
     "Open their page": "ページを開く",
     "by {name}": "作者：{name}",
+    // Message Summarize: its message actions
+    "Summary": "要約",
+    "Remember": "覚える",
+    "Keep this summary in long-term memory": "この要約を長期記憶に残します",
+    "Leave out": "除外する",
+    "Never put this summary into memory": "この要約を記憶に入れません",
+    "Edit summary": "要約を編集",
+    "Change the summary by hand": "要約を手で書き換えます",
+    "Summarize again": "もう一度要約",
+    "Ask the AI for a new summary of this message": "このメッセージの新しい要約を AI に頼みます",
 };

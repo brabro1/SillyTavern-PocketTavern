@@ -945,4 +945,14 @@ export default {
     "All characters": "كل الشخصيات",
     "Open their page": "فتح صفحتها",
     "by {name}": "بواسطة {name}",
+    // Message Summarize: its message actions
+    "Summary": "الملخص",
+    "Remember": "تذكّر",
+    "Keep this summary in long-term memory": "الاحتفاظ بهذا الملخص في الذاكرة طويلة المدى",
+    "Leave out": "استبعاد",
+    "Never put this summary into memory": "عدم إدخال هذا الملخص في الذاكرة أبدًا",
+    "Edit summary": "تعديل الملخص",
+    "Change the summary by hand": "تغيير الملخص يدويًا",
+    "Summarize again": "التلخيص مرة أخرى",
+    "Ask the AI for a new summary of this message": "طلب ملخص جديد لهذه الرسالة من الذكاء الاصطناعي",
 };

@@ -1,0 +1,133 @@
+/* Message Summarize (qvink; src/compat/message-summarize.js): the summary under each message, its editor, a
+   message dimmed when it left the context, and its progress bar.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). */
+
+/* The summary under a message: a quiet note with a coloured edge that says where it stands in memory, in place
+   of coloured text (its dark red and grey could not be read on dark themes). A tap edits it (its own behaviour). */
+html.pt-chat #chat .mes .qvink_memory_display {
+    --pt-qm-edge: var(--pt-border);
+    /* Under the text, in the message grid's row for what extensions add (styles/legacy.css → the chat). */
+    grid-area: extra;
+    display: block;
+    margin: var(--pt-space-2) 0 0;
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border-inline-start: 3px solid var(--pt-qm-edge);
+    border-radius: var(--pt-radius-sm);
+    background: color-mix(in srgb, var(--pt-qm-edge) 9%, transparent);
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.45;
+    cursor: pointer;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    html.pt-chat #chat .mes .qvink_memory_display:hover {
+        background: color-mix(in srgb, var(--pt-qm-edge) 16%, transparent);
+    }
+}
+
+/* Short-term memory, long-term memory, marked for long-term but past the limit, left out. */
+html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_short_memory) {
+    --pt-qm-edge: var(--pt-info);
+}
+
+html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_long_memory) {
+    --pt-qm-edge: var(--pt-ok);
+}
+
+html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_old_memory) {
+    --pt-qm-edge: var(--pt-warn);
+}
+
+html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_exclude_memory) {
+    --pt-qm-edge: var(--pt-text-secondary);
+}
+
+/* The text keeps the theme's readable secondary colour whatever its state; the edge carries the state. */
+html.pt-chat #chat .mes .qvink_memory_display :is(.qvink_short_memory, .qvink_long_memory, .qvink_old_memory, .qvink_exclude_memory) {
+    color: var(--pt-text-secondary);
+    text-shadow: none;
+}
+
+html.pt-chat #chat .mes .qvink_memory_display .qvink_lagging_memory {
+    opacity: 0.6;
+}
+
+html.pt-chat #chat .mes .qvink_memory_display .qvink_exclude_memory {
+    text-decoration: line-through;
+}
+
+html.pt-chat #chat .mes .qvink_memory_display p {
+    margin: 0;
+}
+
+html.pt-chat #chat .mes .qvink_memory_display .qvink_memory_reasoning {
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-xs);
+    font-weight: 600;
+}
+
+/* Editing a summary: a real field under the message. */
+html.pt-chat #chat .mes .qvink_memory_edit_textarea {
+    grid-area: extra;
+    width: 100%;
+    margin: var(--pt-space-2) 0 0;
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border: 1px solid var(--pt-accent);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.45;
+}
+
+/* A message left out of the context: its text dimmed, still readable on every theme. */
+html.pt-chat #chat .mes .mes_text.qvink_removed_message,
+html.pt-chat #chat .mes .mes_text.qvink_removed_message :is(p, q, em, code) {
+    color: var(--pt-text-secondary);
+}
+
+/* Its separator among the message buttons: the message sheet (⋯) groups its actions instead. */
+html.pt-chat #chat .mes .qvink_memory_button_separator {
+    display: none;
+}
+
+/* Its progress bar while it summarizes: a card under the header, in the banner band (under SillyTavern's own
+   popups), over the chat column on desktop, solid instead of blurred. It placed itself across the whole window
+   at SillyTavern's chat width, above everything. */
+html.pt-on #sheld > .qvink_progress_bar {
+    position: fixed;
+    top: calc(var(--topBarBlockSize) + var(--pt-space-2));
+    left: var(--pt-space-2);
+    right: var(--pt-space-2);
+    z-index: var(--pt-z-banner);
+    width: auto;
+    gap: var(--pt-space-2);
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface-elevated);
+    box-shadow: var(--pt-shadow-float);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-sm);
+}
+
+html.pt-desktop #sheld > .qvink_progress_bar {
+    left: calc(var(--pt-left) + (var(--pt-avail) - var(--pt-col)) / 2 + var(--pt-space-2));
+    right: auto;
+    width: calc(var(--pt-col) - 2 * var(--pt-space-2));
+}
+
+html.pt-ios-kb #sheld > .qvink_progress_bar {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize) + var(--pt-space-2));
+}
+
+html.pt-on #sheld > .qvink_progress_bar .menu_button {
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+}

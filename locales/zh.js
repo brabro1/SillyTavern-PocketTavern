@@ -945,4 +945,14 @@ export default {
     "All characters": "所有角色",
     "Open their page": "打开其页面",
     "by {name}": "作者：{name}",
+    // Message Summarize: its message actions
+    "Summary": "摘要",
+    "Remember": "记住",
+    "Keep this summary in long-term memory": "把这条摘要保存在长期记忆中",
+    "Leave out": "排除",
+    "Never put this summary into memory": "永不把这条摘要放入记忆",
+    "Edit summary": "编辑摘要",
+    "Change the summary by hand": "手动修改摘要",
+    "Summarize again": "重新摘要",
+    "Ask the AI for a new summary of this message": "让 AI 重新为这条消息写摘要",
 };

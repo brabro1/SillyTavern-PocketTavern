@@ -56,6 +56,7 @@ import { closeGuidedPopup, ggPresent, guidedPopups, isGuidedPopup, openGuidedPop
 import { CHARACTER_LIBRARY_OVERLAY, closeCharacterLibrary } from '../compat/character-library.js';
 import { endInputHistoryBrowse, onComposerInput, onInputHistoryClick, setupInputHistory } from '../compat/input-history.js';
 import { scenePulseRow } from '../compat/scenepulse.js';
+import { summaryAction, summaryButtons } from '../compat/message-summarize.js';
 import { closeLoreEntry, editedLorebook, lore, lorebookList, openLoreEntry, openLorebook, openLorebookSettings, pickActiveLorebooks, scan, setupLorebookScreens, startObserver, stopObserver, syncLoreEntries, syncLorebookMode, syncWandShortcut, watchLorebooks, wiPage } from '../st/lorebooks.js';
 import { PAGE_SECTIONS, SEARCH_PAGES, addSliderSteppers, buildSettings, closePageSection, describeExtensions, describeSettings, extnav, install, installApp, isStandalone, maybeShowDesktopNotice, maybeShowWhatsNew, openSettingSearch, openSillyTavernSection, openSillyTavernUpdates, openWhatsNew, pageSectionOpen, pageSections, pickTheme, removeSettingDescriptions, removeSliderSteppers, revealSetting, setSwitch, settingItems, setupSettingsScreens, statusText, syncManifest, syncPageSections, syncSettingsInputs, updatePocketTavern, updateStatusLine, yourThemeColors } from '../st/settings.js';
 
@@ -2018,8 +2019,11 @@ function openMessageMenu(message) {
                 body.append(h('p', { class: 'pt-menu-foot', text: 'This message is no longer in the chat.' }));
                 return;
             }
-            const buttons = Array.from(message.querySelectorAll('.mes_buttons .mes_button'))
+            const shown = Array.from(message.querySelectorAll('.mes_buttons .mes_button'))
                 .filter(button => !button.classList.contains('extraMesButtonsHint') && getComputedStyle(button).display !== 'none');
+            // Message Summarize's buttons get a group of their own, with short names (src/compat/message-summarize.js).
+            const summary = summaryButtons(shown);
+            const buttons = shown.filter(button => !summary.includes(button));
             const rank = button => {
                 const index = MESSAGE_ACTION_ORDER.findIndex(name => button.classList.contains(name));
                 return index === -1 ? 50 : index;
@@ -2052,6 +2056,13 @@ function openMessageMenu(message) {
                 }, [ui('trash', 'pt-menu-row-icon'), h('span', { text: 'Delete message' })]));
             }
             body.append(h('div', { class: 'pt-menu-list' }, rows));
+            if (summary.length) {
+                body.append(h('p', { class: 'pt-menu-heading', text: 'Summary' }), h('div', { class: 'pt-menu-list' }, summary.map(button => {
+                    const action = summaryAction(button);
+                    const faClass = Array.from(button.classList).find(name => name.startsWith('fa-') && name !== 'fa-solid');
+                    return actionRow(faClass ? ui(faClass, 'pt-menu-row-icon') : ui('note', 'pt-menu-row-icon'), t(action.label), t(action.note), () => run(button));
+                })));
+            }
         },
     }));
 }
@@ -4012,7 +4023,7 @@ function applyPendingAnimated() {
  * persona (picture and name, tap to switch) and a ring that fills as the
  * context fills (tap it for what is in there).
  */
-const composer = { persona: null, ring: null, plus: null, tabs: null, personas: null, formObserver: null };
+const composer = { persona: null, ring: null, plus: null, tabs: null, personas: null, formObserver: null, dockBar: null };
 
 /** SillyTavern's personas module, loaded once; it knows the current persona. */
 function loadPersonasModule() {
@@ -4067,7 +4078,17 @@ function watchFormHeight(on) {
         composer.formObserver?.disconnect();
         composer.formObserver = null;
         sheld?.style.removeProperty('--pt-form-h');
+        composer.dockBar?.remove();
+        composer.dockBar = null;
         return;
+    }
+    // Docked on desktop: the bar's surface along the bottom of the whole chat area. SillyTavern's chat column
+    // clips anything reaching out of it, so the surface is a layer of its own behind the column, as tall as
+    // the box (styles/legacy.css → Docked on desktop; only shown there).
+    if (!composer.dockBar || !composer.dockBar.isConnected) {
+        composer.dockBar?.remove();
+        composer.dockBar = h('div', { id: 'pt_dock_bar', class: 'pt-dock-bar', 'aria-hidden': 'true', hidden: true });
+        document.body.append(composer.dockBar);
     }
     if (composer.formObserver) return;
     let last = -1;
@@ -4081,6 +4102,11 @@ function watchFormHeight(on) {
         // Written on the next frame, outside the size notification (Safari warned about a loop otherwise).
         requestAnimationFrame(() => {
             sheld.style.setProperty('--pt-form-h', `${height}px`);
+            if (composer.dockBar) {
+                composer.dockBar.style.setProperty('height', `${height}px`);
+                // No box (no chat open, or a page over it): no bar.
+                composer.dockBar.hidden = !height;
+            }
             if (atBottom) chat.scrollTo(0, chat.scrollHeight);
         });
     });
