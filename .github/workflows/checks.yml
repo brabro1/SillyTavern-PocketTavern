@@ -113,6 +113,12 @@ jobs:
           ST_URL: http://127.0.0.1:8000
           CHROME_CHANNEL: chrome
         run: node e2e/ai.mjs
+      - name: Settings place (Appearance, Pocket Tavern, About)
+        working-directory: extension/tests
+        env:
+          ST_URL: http://127.0.0.1:8000
+          CHROME_CHANNEL: chrome
+        run: node e2e/settings.mjs
 
       - name: Keep screenshots of failed steps
         if: failure()

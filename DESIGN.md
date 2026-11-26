@@ -214,26 +214,30 @@ Phone                                  Desktop
 | SillyTavern's own settings | **Settings → SillyTavern** → its section |
 | Extensions | **Settings → Extensions** |
 | Where Pocket Tavern runs, its switches, "Use SillyTavern for now" | **Settings → Pocket Tavern** |
-| Version, What's new, update Pocket Tavern, SillyTavern updates, install as app, Docs, GitHub, Discord | **Settings → About** |
+| Version, What's new, update Pocket Tavern, SillyTavern updates, install as app, Guide, GitHub, Report a problem | **Settings → About** |
 
 ### Settings inventory
 
+Every settings page (Appearance, Pocket Tavern, About) starts with a filter field ("Filter settings"). Typing hides the rows and groups that don't match; "Nothing matches that." shows when none do.
+
 - **Appearance:**
-  - Theme (Pocket Tavern's and SillyTavern's)
+  - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, Theme background (switch)
   - Chat look (Cards, Bubbles, Flat)
   - Text size (Small, Normal, Large, Extra large)
-  - Reading font (System, SillyTavern's)
+  - Reading font (System, SillyTavern's): the 2.x Modern font switch, renamed
+  - New icons (switch)
   - Layout (Automatic, Phone, Desktop; section 4)
   - Density (Automatic, Comfortable, Compact)
   - Message box (Floating, Docked)
   - Chat width (desktop)
-  - Chat background
-  - SillyTavern's own look controls that still apply (avatar shape, font scale)
-  - Reduce motion
+  - Chat background (opens Backgrounds)
+  - SillyTavern's look (opens Settings → SillyTavern → Look: avatar shape, font scale and the rest)
+  - Animations (Smooth, Light, Off); the OS's Reduce motion is always honoured
 - **Pocket Tavern:**
-  - Use it on this device (Automatic, Phones only, Off)
+  - Use it on this device (Automatic, Phones only, Off), with a line saying whether it is on here
   - Use SillyTavern for now
-  - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Messages, Characters, Pictures, Notifications, This device, Updates), each with one line saying what it does. On by default
+  - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Characters and lorebooks, Pictures, Navigation, Notifications and device, Updates), each with one line saying what it does. A switch that only applies to one layout or to an installed extension shows only there
+- **About:** the version, What's new, Update Pocket Tavern, SillyTavern updates, Install as an app (until installed), Guide, GitHub, Report a problem
 - **Switches are kept.** Pocket Tavern is meant to be customizable: a 2.x switch is never removed, only made clearer, grouped or given a better default. A new feature gets a switch when someone could reasonably want it off. When the remake changes how a feature works, its switch keeps meaning "this feature on or off".
 
 ### Phone navigation

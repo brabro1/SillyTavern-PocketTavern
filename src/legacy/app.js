@@ -31,7 +31,10 @@ import { closeOwnPage, currentOwnPage, definePage, isOwnPage, onPageChange, open
 import { AI_PAGES, aiPage } from '../views/ai.js';
 import { showBackPill } from '../shell/native.js';
 import { restartAll } from '../core/lifecycle.js';
-import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
+import { SETTINGS_OWN_PAGES, SETTINGS_PAGES, settingsPage } from '../views/settings.js';
+import { appearancePage } from '../views/appearance.js';
+import { DEVICE_MODES, pocketTavernPage, SWITCHES } from '../views/pocket-tavern.js';
+import { aboutPage } from '../views/about.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { watchChatLoading } from '../features/chat-loading.js';
@@ -114,52 +117,11 @@ const DEFAULTS = Object.freeze({
 });
 
 const SIZES = { auto: 'Automatic', comfortable: 'Comfortable', compact: 'Compact' };
-const SIZE_NOTES = {
-    auto: 'Compact on computers and small phones, comfortable on the rest.',
-    comfortable: 'Roomy cards and bars.',
-    compact: 'Slimmer bars and tighter cards, so more of the chat fits.',
-};
 const LAYOUT_NAMES = { auto: 'Automatic', phone: 'Phone', desktop: 'Desktop' };
-const LAYOUT_NOTES = {
-    auto: 'Phones get the phone layout; computers and tablets held sideways get the desktop layout.',
-    phone: 'Always the phone layout, on any screen.',
-    desktop: 'The desktop layout whenever the window is at least 768 pixels wide.',
-};
 
 const COMPOSER_STYLES = { floating: 'Floating', docked: 'Docked' };
-const COMPOSER_NOTES = {
-    floating: 'The message box floats over the chat.',
-    docked: 'The message box sits flat along the bottom edge, like a messaging app.',
-};
 
 const TEXT_SIZES = { small: 'Small', normal: 'Normal', large: 'Large', xl: 'Extra large' };
-
-/** Features shown as switches in Settings → Features and in the settings panel. */
-const EXTRAS = [
-    { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', when: () => ggPresent() },
-    { key: 'hideTabsInChat', id: 'pt_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', when: () => !isWide() },
-    { key: 'messageMenu', id: 'pt_msgmenu', label: 'Message menu', hint: 'Tap ⋯ on a message for a full list of actions with names.' },
-    { key: 'dragSwipe', id: 'pt_dragswipe', label: 'Drag to swipe', hint: 'Drag the last reply left for another version, right for the previous one.' },
-    { key: 'foldLong', id: 'pt_foldlong', label: 'Fold long messages', hint: 'Very long older messages get a Show more button.' },
-    { key: 'contextMeter', id: 'pt_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
-    { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },
-    { key: 'sharpPictures', id: 'pt_sharp', label: 'Sharp character pictures', hint: 'Shows the full-quality picture instead of the small thumbnail, sized for your screen.' },
-    { key: 'animatedPictures', id: 'pt_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
-    { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
-    { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
-    { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Chat history grouped by date.' },
-    { key: 'longPress', id: 'pt_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
-    { key: 'serverWatch', id: 'pt_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
-    { key: 'fastChat', id: 'pt_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
-    { key: 'jumpButton', id: 'pt_jump', label: 'Jump to latest', hint: 'A button that takes you back to the newest message.' },
-    { key: 'saveDrafts', id: 'pt_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
-    { key: 'keepAwake', id: 'pt_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
-    { key: 'imageViewer', id: 'pt_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
-    { key: 'niceToasts', id: 'pt_toasts', label: 'Nicer notifications', hint: 'Calm cards with a small coloured icon; swipe one sideways to dismiss it.' },
-    { key: 'sendEffect', id: 'pt_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
-    { key: 'haptics', id: 'pt_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
-    { key: 'autoReload', id: 'pt_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
-];
 
 /** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */
 const EASE = 'cubic-bezier(0.2, 0, 0, 1)';
@@ -251,6 +213,7 @@ const TABS = [
 function placeOf(pageId) {
     if (!pageId || pageId === 'pt-chats') return 'chat';
     if (pageId === 'pt-character') return 'rightNavHolder';
+    if (SETTINGS_OWN_PAGES.includes(pageId)) return 'pt-settings';
     if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
     if (AI_PAGES.includes(pageId)) return 'pt-ai';
     return 'pt-settings';
@@ -1823,18 +1786,6 @@ function syncTabsButton() {
     button.classList.toggle('pt-tabs-btn-out', !tucked);
 }
 
-function openMobileSettings() {
-    openPage('extensions-settings-button');
-    setTimeout(() => {
-        // The container uses `display: contents`, so scroll to the drawer inside it.
-        const drawer = document.querySelector('#pt_settings .inline-drawer');
-        if (!drawer) return;
-        const content = drawer.querySelector('.inline-drawer-content');
-        if (content && getComputedStyle(content).display === 'none') drawer.querySelector('.inline-drawer-toggle')?.click();
-        drawer.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, 250);
-}
-
 function syncShell() {
     const want = active && settings.appShell;
     if (want && !shell) shell = new Shell();
@@ -2053,7 +2004,9 @@ function setAppearance(key, value, origin) {
         if (sheet && !sheet.picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) sheet.refresh();
         // The layout changes the whole interface.
         if (key === 'layout') applyState();
-        refreshOwnPage();
+        // Switches and segments on a settings page already show their new state (and keep the filter).
+        const page = currentPageId();
+        if (!SETTINGS_OWN_PAGES.includes(page) || ['theme', 'layout', 'chatLook'].includes(key)) refreshOwnPage();
     };
     if (key === 'theme') revealChange(origin, change);
     else change();
@@ -2124,180 +2077,46 @@ function importSillyTavernTheme(refresh) {
     button.click();
 }
 
-/** Colors for a theme card preview. "Your theme" reads SillyTavern's own values. */
-function previewColors(theme) {
-    if (theme) {
-        return { bg: theme.bg, raised: theme.raised, text: theme.text, accent: theme.accent, user: theme.user, backdrop: theme.backdrop };
-    }
-    // SillyTavern writes its theme colors inline on <html>; our overrides live in a stylesheet.
+/** SillyTavern's own colours, for the "Your theme" card. SillyTavern writes them inline on <html>. */
+function yourThemeColors() {
     const inline = document.documentElement.style;
     const read = (name, fallback) => inline.getPropertyValue(name).trim() || fallback;
     const bg = read('--SmartThemeBlurTintColor', '#171717');
     const text = read('--SmartThemeBodyColor', '#dcdcd2');
     const accent = read('--SmartThemeQuoteColor', '#e18a24');
-    return {
-        bg,
-        raised: `color-mix(in srgb, ${text} 9%, ${bg})`,
-        text,
-        accent,
-        user: `color-mix(in srgb, ${accent} 16%, transparent)`,
-        backdrop: bg,
+    return { bg, raised: `color-mix(in srgb, ${text} 9%, ${bg})`, text, accent, user: `color-mix(in srgb, ${accent} 16%, transparent)`, backdrop: bg };
+}
+
+/** Picks a theme on the Appearance page; a SillyTavern theme also brings its avatar shape, as in SillyTavern. */
+function pickTheme(id, raw, origin) {
+    if (raw) {
+        settings.stTheme = stThemeColors(raw);
+        const shape = document.getElementById('avatar_style');
+        const styleVal = raw.avatar_style !== undefined ? String(raw.avatar_style) : '';
+        if (shape && styleVal && styleVal !== shape.value && shape.querySelector(`option[value="${CSS.escape(styleVal)}"]`)) {
+            $j()(shape).val(styleVal).trigger('change');
+        }
+        // Picked again (it may have changed in SillyTavern): apply its current values.
+        if (settings.theme === id) {
+            saveSettings();
+            applyAppearance();
+            refreshOwnPage();
+            return;
+        }
+    }
+    setAppearance('theme', id, origin);
+}
+
+/** Opens one section of SillyTavern's settings (Look, Chat, …) once its list of sections is built. */
+function openSillyTavernSection(section) {
+    openPage('user-settings-button');
+    let tries = 0;
+    const attempt = () => {
+        if (!active) return;
+        if (setnav.home && setnav.has(section)) setnav.open(section);
+        else if (++tries < 20) window.setTimeout(attempt, 100);
     };
-}
-
-function themeCard(theme, current, raw = null) {
-    const id = theme?.id ?? 'st';
-    const colors = previewColors(theme);
-    const preview = h('span', { class: 'pt-theme-preview', 'aria-hidden': 'true' }, [
-        h('span', { class: 'pt-tp-bar' }, [h('span', { class: 'pt-tp-dot' }), h('span', { class: 'pt-tp-line' })]),
-        h('span', { class: 'pt-tp-msg pt-tp-bot' }),
-        h('span', { class: 'pt-tp-msg pt-tp-user' }),
-        h('span', { class: 'pt-tp-tabs' }, [h('span', { class: 'pt-tp-pill' })]),
-    ]);
-    for (const [key, value] of Object.entries(colors)) preview.style.setProperty(`--p-${key}`, value);
-    const selected = current === id;
-    return h('button', {
-        type: 'button',
-        class: `pt-theme-card ${selected ? 'pt-theme-on' : ''}`,
-        'aria-pressed': String(selected),
-        'data-theme': id,
-        onclick: event => {
-            if (raw) {
-                settings.stTheme = stThemeColors(raw);
-                // Its avatar shape too, as when it is picked in SillyTavern (SillyTavern saves it).
-                const shape = document.getElementById('avatar_style');
-                const styleVal = raw.avatar_style !== undefined ? String(raw.avatar_style) : '';
-                if (shape && styleVal && styleVal !== shape.value && shape.querySelector(`option[value="${CSS.escape(styleVal)}"]`)) {
-                    $j()(shape).val(styleVal).trigger('change');
-                }
-                // Picked again (it may have changed in SillyTavern): apply its current values.
-                if (settings.theme === id) {
-                    saveSettings();
-                    applyAppearance();
-                    return;
-                }
-            }
-            setAppearance('theme', id, event.currentTarget);
-        },
-    }, [
-        preview,
-        h('span', { class: 'pt-theme-name' }, [
-            h('span', raw ? { raw: theme.name } : { text: theme?.name ?? 'Your theme' }),
-            selected ? h('span', { class: 'pt-theme-check' }, [ui('check')]) : null,
-        ]),
-        h('span', { class: 'pt-theme-note', text: theme?.note ?? 'Your SillyTavern colors' }),
-    ]);
-}
-
-function switchRow(key, label, hint) {
-    const input = h('input', { type: 'checkbox', class: 'pt-switch', role: 'switch' });
-    input.checked = !!settings[key];
-    input.addEventListener('change', () => setAppearance(key, input.checked));
-    return h('label', { class: 'pt-switch-row' }, [
-        h('span', { class: 'pt-switch-text' }, [h('span', { text: label }), hint ? h('small', { text: hint }) : null]),
-        input,
-    ]);
-}
-
-function motionControl() {
-    const names = { full: 'Smooth', light: 'Light', off: 'Off' };
-    return h('div', { class: 'pt-segmented pt-motion-seg', role: 'group', 'aria-label': 'Animations' },
-        Object.keys(names).map(level => h('button', {
-            type: 'button',
-            class: `pt-seg ${settings.motion === level ? 'pt-seg-on' : ''}`,
-            'aria-pressed': String(settings.motion === level),
-            onclick: () => setAppearance('motion', level),
-        }, [names[level]])));
-}
-
-/** SillyTavern's own Chat width slider, as a control in the Themes sheet; it applies and saves right away. */
-function chatWidthControl() {
-    const source = document.getElementById('chat_width_slider');
-    if (!source) return null;
-    const value = h('span', { class: 'pt-width-value', 'aria-hidden': 'true' });
-    const input = h('input', { type: 'range', class: 'pt-width-range', min: source.min || '25', max: source.max || '100', step: '1', 'aria-label': 'Chat width' });
-    input.value = source.value;
-    // The filled part of the track ends under the knob (as a 0–1 share of the range).
-    const show = () => {
-        const min = Number(input.min);
-        const max = Number(input.max);
-        input.style.setProperty('--pt-share', String(max > min ? (Number(input.value) - min) / (max - min) : 0));
-        value.textContent = `${input.value}%`;
-    };
-    show();
-    input.addEventListener('input', () => {
-        show();
-        $j()(source).val(input.value).trigger('input', { forced: true });
-    });
-    return h('div', { class: 'pt-width-row' }, [input, value]);
-}
-
-/** A row of choices for one setting, like Size or Message box. */
-function choiceControl(key, names, label) {
-    return h('div', { class: 'pt-segmented pt-look-seg', role: 'group', 'aria-label': label },
-        Object.entries(names).map(([value, text]) => h('button', {
-            type: 'button',
-            class: `pt-seg ${settings[key] === value ? 'pt-seg-on' : ''}`,
-            'aria-pressed': String(settings[key] === value),
-            onclick: () => setAppearance(key, value),
-        }, [text])));
-}
-
-function openThemeSheet() {
-    const refresh = () => {
-        if (sheet && sheet.fill === fill && !sheet.closing) sheet.refresh();
-    };
-    const fill = body => {
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Pocket Tavern' }));
-            body.append(h('div', { class: 'pt-themes' }, THEMES.map(theme => themeCard(theme, settings.theme))));
-            // SillyTavern's UI themes live here instead of in Settings → Look, made to fit.
-            body.append(h('p', { class: 'pt-menu-heading', text: 'From SillyTavern' }));
-            const fromSt = (stThemes.list ?? []).map(raw => [themeFromSillyTavern(raw), raw]).filter(([theme]) => theme);
-            body.append(h('div', { class: 'pt-themes pt-themes-st' }, [themeCard(null, settings.theme), ...fromSt.map(([theme, raw]) => themeCard(theme, settings.theme, raw))]));
-            body.append(h('p', { class: 'pt-menu-foot', text: stThemes.list ? "Your SillyTavern themes with Pocket Tavern's look. \"Your theme\" keeps SillyTavern's colors exactly as they are." : 'Loading your SillyTavern themes…' }));
-            if (document.getElementById('ui_preset_import_button')) {
-                body.append(h('div', { class: 'pt-menu-list' }, [h('button', {
-                    type: 'button',
-                    class: 'pt-menu-row pt-st-import',
-                    onclick: () => importSillyTavernTheme(refresh),
-                }, [ui('file-import', 'pt-menu-row-icon'), h('span', { class: 'pt-row-text' }, [h('span', { text: 'Import a SillyTavern theme' }), h('small', { text: 'A theme file (.json) from SillyTavern' })])])]));
-            }
-            if (!stThemes.list) loadSillyTavernThemes().then(refresh);
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Look and feel' }));
-            body.append(h('div', { class: 'pt-menu-list' }, [
-                switchRow('themeBackdrop', 'Theme background', 'Use the theme\'s backdrop instead of your chat background.'),
-                switchRow('modernFont', 'Modern font', isWide() ? "Your computer's own system font, crisp at every size." : 'Your phone\'s own system font, crisp at every size.'),
-                switchRow('customIcons', 'New icons', 'Rounded line icons everywhere.'),
-            ]));
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Chat look' }));
-            body.append(chatLookControl());
-            const stStyle = stChatStyleName();
-            if (stStyle) body.append(h('p', { class: 'pt-menu-foot', text: t("SillyTavern's {style} chat style is on, so it draws the messages. Pick a look here to use Pocket Tavern's instead.", { style: t(stStyle) }) }));
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Size' }));
-            body.append(choiceControl('uiSize', SIZES, 'Size'));
-            body.append(h('p', { class: 'pt-menu-foot', text: SIZE_NOTES[settings.uiSize] ?? '' }));
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Layout' }));
-            body.append(choiceControl('layout', LAYOUT_NAMES, 'Layout'));
-            body.append(h('p', { class: 'pt-menu-foot', text: LAYOUT_NOTES[settings.layout] ?? LAYOUT_NOTES.auto }));
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Message box' }));
-            body.append(choiceControl('composerStyle', COMPOSER_STYLES, 'Message box'));
-            body.append(h('p', { class: 'pt-menu-foot', text: COMPOSER_NOTES[settings.composerStyle] ?? '' }));
-            // The desktop layout (a computer, a tablet held sideways): how wide the chat column is.
-            const width = document.documentElement.classList.contains('pt-desktop') ? chatWidthControl() : null;
-            if (width) {
-                body.append(h('p', { class: 'pt-menu-heading', text: 'Chat width' }));
-                body.append(width);
-                body.append(h('p', { class: 'pt-menu-foot', text: "How much of a wide screen the chat uses. The same as Chat width in SillyTavern's settings." }));
-            }
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Animations' }));
-            body.append(motionControl());
-            body.append(h('p', { class: 'pt-menu-foot', text: MOTION_LABELS[settings.motion] }));
-    };
-    showSheet(new MenuSheet({
-        title: 'Themes',
-        subtitle: isWide() ? 'Changes how Pocket Tavern looks. Your SillyTavern theme stays saved.' : 'Changes the look on your phone. Your SillyTavern theme stays saved.',
-        fill,
-    }));
+    window.setTimeout(attempt, 50);
 }
 
 // -------------------------------------------------- long single selects
@@ -5836,22 +5655,6 @@ function applyChatLook() {
     else delete root.dataset.ptLook;
 }
 
-function chatLookControl() {
-    const names = { cards: 'Cards', bubbles: 'Bubbles', flat: 'Flat' };
-    // SillyTavern's own Bubbles or Document style draws the messages itself: then none of these is on.
-    const paused = !!stChatStyleName();
-    return h('div', { class: 'pt-segmented pt-look-seg', role: 'group', 'aria-label': 'Chat look' },
-        Object.entries(names).map(([look, label]) => {
-            const on = !paused && (settings.chatLook || 'cards') === look;
-            return h('button', {
-                type: 'button',
-                class: `pt-seg ${on ? 'pt-seg-on' : ''}`,
-                'aria-pressed': String(on),
-                onclick: () => pickChatLook(look),
-            }, [label]);
-        }));
-}
-
 function pickChatLook(look) {
     const switched = useFlatChatStyle();
     if (switched) globalThis.toastr?.info(t("SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows."), '', { timeOut: 4000 });
@@ -5945,8 +5748,8 @@ function syncLookNote() {
         return;
     }
     if (note) return;
-    note = themeNote('pt_look_note', 'moved', "Themes are in Settings → Themes: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
-        ['Open Themes', () => openThemeSheet()],
+    note = themeNote('pt_look_note', 'moved', "Themes are in Settings → Appearance: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
+        ['Open Appearance', () => openPage('pt-appearance')],
     ]);
     block.prepend(note);
 }
@@ -6829,9 +6632,7 @@ const setnav = new PageSections({
         list.append(
             h('button', { type: 'button', class: 'pt-search-field', onclick: () => openSettingSearch() }, [ui('search'), h('span', { text: 'Search settings' })]),
             nav.sectionList(),
-            h('div', { class: 'pt-menu-list' }, [isWide()
-                ? nav.row('desktop', 'Pocket Tavern', 'Desktop layout, helpers and themes', () => openMobileSettings())
-                : nav.row('phone', 'Pocket Tavern', 'Phone layout, gestures and helpers', () => openMobileSettings())]),
+            h('div', { class: 'pt-menu-list' }, [nav.row('sliders', 'Pocket Tavern', 'Where it runs and how it behaves', () => openPage('pt-pocket'))]),
         );
         // The block on top holds the title, language, account and version; the list goes first in it.
         const top = block.querySelector('#settingsSearch')?.closest('#user-settings-block > *');
@@ -7649,30 +7450,6 @@ function syncExtras() {
     });
 }
 
-function textSizeControl() {
-    return h('div', { class: 'pt-segmented pt-text-seg', role: 'group', 'aria-label': 'Chat text size' },
-        Object.entries(TEXT_SIZES).map(([size, label]) => h('button', {
-            type: 'button',
-            class: `pt-seg ${settings.textSize === size ? 'pt-seg-on' : ''}`,
-            'aria-pressed': String(settings.textSize === size),
-            'aria-label': label,
-            onclick: () => setAppearance('textSize', size),
-        }, [h('span', { class: `pt-aa pt-aa-${size}`, text: 'Aa' })])));
-}
-
-function openExtrasSheet() {
-    showSheet(new MenuSheet({
-        title: isWide() ? 'Features' : 'Phone features',
-        subtitle: isWide() ? 'Small helpers that make SillyTavern nicer to use.' : 'Small helpers that make SillyTavern nicer on a phone.',
-        fill: body => {
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Chat text size' }));
-            body.append(textSizeControl());
-            body.append(h('p', { class: 'pt-menu-heading', text: 'Helpers' }));
-            body.append(h('div', { class: 'pt-menu-list' }, EXTRAS.filter(extra => !extra.when || extra.when()).map(extra => switchRow(extra.key, extra.label, extra.hint))));
-        },
-    }));
-}
-
 // ------------------------------------------------------------ activation
 
 function setFeatureClasses() {
@@ -8270,18 +8047,32 @@ function applyState() {
 
 // ------------------------------------------------------------- settings UI
 
+/** One line: is Pocket Tavern on here, and with which layout (translated). */
+function statusText() {
+    const mode = readMode();
+    if (!settings.enabled) return t('Pocket Tavern is off.');
+    if (mode === 'never') return t('Off on this device (set to "Off on this device").');
+    if (mode === 'phone' && !detectPhone()) return t('Off on this device (phones only — your screen is {width}px wide).', { width: window.innerWidth });
+    return document.documentElement.classList.contains('pt-desktop') ? t('Active on this device (desktop layout).') : t('Active on this device (phone layout).');
+}
+
 function updateStatusLine() {
     const line = document.getElementById('pt_status');
     if (!line) return;
-    const mode = readMode();
-    let text;
-    if (!settings.enabled) text = t('Pocket Tavern is off.');
-    else if (mode === 'never') text = t('Off on this device (set to "Off on this device").');
-    else if (mode === 'phone') text = detectPhone() ? t('Active on this device (phone layout).') : t('Off on this device (phones only — your screen is {width}px wide).', { width: window.innerWidth });
-    else if (document.documentElement.classList.contains('pt-desktop')) text = t('Active on this device (desktop layout).');
-    else text = t('Active on this device (phone layout).');
-    line.textContent = text;
+    line.textContent = statusText();
     line.classList.toggle('pt-status-active', active);
+}
+
+/** Saves and applies one behaviour switch (Settings → Pocket Tavern, or the Extensions panel). */
+function setSwitch(item, on) {
+    if (!item.core) {
+        setAppearance(item.key, on);
+        return;
+    }
+    settings[item.key] = on;
+    saveSettings();
+    applyState();
+    syncSettingsInputs();
 }
 
 function buildSettings() {
@@ -8349,15 +8140,7 @@ function buildSettings() {
                     h('select', { id: 'pt_textsize', class: 'text_pole' }, Object.entries(TEXT_SIZES).map(([value, text]) => h('option', { value, text }))),
                 ]),
                 h('hr'),
-                ...EXTRAS.map(extra => check(extra.id, extra.label, extra.hint)),
-                h('hr'),
-                check('pt_shell', 'App navigation', 'Top bar with the current character, and tabs at the bottom.'),
-                check('pt_chat', 'Modern chat look', 'Message cards, bigger text and a rounded message box.'),
-                check('pt_touch', 'Touch-friendly panels', 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.'),
-                check('pt_back', 'Back gesture closes panels', 'Android back closes the open page, popup or sheet first.'),
-                check('pt_lorebook', 'Easy lorebook picker', 'Searchable list for global, character, chat and persona lorebooks.'),
-                check('pt_wand', 'Lorebooks shortcut in the ✨ menu', ''),
-                check('pt_long', 'Searchable long dropdowns (experimental)', 'Use the same list for any dropdown with 14 or more choices.'),
+                ...SWITCHES.map(item => check(item.id, item.label, item.hint)),
                 h('small', { class: 'pt-note', text: 'Changes apply right away. Nothing here changes your characters, chats or lorebooks.' }),
             ]),
         ]),
@@ -8378,17 +8161,14 @@ function buildSettings() {
         });
     };
     bind('pt_enabled', 'enabled');
-    bind('pt_shell', 'appShell');
-    bind('pt_chat', 'chatStyle');
-    bind('pt_touch', 'touchSizing');
-    bind('pt_back', 'backGesture');
-    bind('pt_lorebook', 'lorebookPicker');
-    bind('pt_wand', 'wandShortcut');
-    bind('pt_long', 'longSelects');
     bind('pt_backdrop', 'themeBackdrop', true);
     bind('pt_font', 'modernFont', true);
     bind('pt_icons', 'customIcons', true);
-    for (const extra of EXTRAS) bind(extra.id, extra.key, true);
+    for (const item of SWITCHES) {
+        const input = document.getElementById(item.id);
+        input.checked = !!settings[item.key];
+        input.addEventListener('change', () => setSwitch(item, input.checked));
+    }
     for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
         const select = document.getElementById(id);
         if (id === 'pt_theme') syncSettingsThemeOption(select);
@@ -8417,7 +8197,7 @@ function syncSettingsThemeOption(select) {
 /** Keeps the Extensions-panel controls in step when settings change from a sheet. */
 function syncSettingsInputs() {
     const pairs = { pt_backdrop: 'themeBackdrop', pt_font: 'modernFont', pt_icons: 'customIcons' };
-    for (const extra of EXTRAS) pairs[extra.id] = extra.key;
+    for (const item of SWITCHES) pairs[item.id] = item.key;
     for (const [id, key] of Object.entries(pairs)) {
         const input = document.getElementById(id);
         if (input) input.checked = !!settings[key];
@@ -8589,16 +8369,58 @@ function registerOwnPages() {
         extensionPages: () => Array.from(document.querySelectorAll('#top-settings-holder > .drawer'))
             .filter(drawer => drawer.id && !TABS.some(tab => tab.id === drawer.id) && !AI_PAGES.includes(drawer.id) && !SETTINGS_PAGES.includes(drawer.id))
             .map(drawer => ({ id: drawer.id, title: pageInfo(drawer).title })),
-        themeName: () => currentTheme()?.name ?? t('Your theme'),
-        openThemes: () => openThemeSheet(),
-        openFeatures: () => openExtrasSheet(),
-        openPocketTavernSettings: () => openMobileSettings(),
+        themeName: () => { const theme = currentTheme(); return theme ? (findTheme(theme.id) ? t(theme.name) : theme.name) : t('Your theme'); },
+        version: VERSION,
+    }));
+    definePage('pt-appearance', appearancePage({
+        get: key => settings[key],
+        set: (key, value, origin) => setAppearance(key, value, origin),
+        theme: () => (findTheme(settings.theme) || String(settings.theme).startsWith('st:')) ? String(settings.theme) : 'st',
+        yourColors: yourThemeColors,
+        stThemes: () => stThemes.list ? stThemes.list.map(raw => ({ raw, theme: themeFromSillyTavern(raw) })).filter(item => item.theme).map(item => ({ ...item, id: `st:${item.raw.name}` })) : null,
+        loadStThemes: () => loadSillyTavernThemes(),
+        pickTheme,
+        importTheme: document.getElementById('ui_preset_import_button') ? done => importSillyTavernTheme(done) : null,
+        chatLook: () => { const stStyle = stChatStyleName(); return { look: stStyle ? '' : (settings.chatLook || 'cards'), stStyle }; },
+        pickChatLook,
+        desktop: isWide,
+        chatWidth: () => {
+            const source = document.getElementById('chat_width_slider');
+            return source ? { min: Number(source.min || 25), max: Number(source.max || 100), value: Number(source.value) } : null;
+        },
+        setChatWidth: value => { const source = document.getElementById('chat_width_slider'); if (source) $j()(source).val(value).trigger('input', { forced: true }); },
+        openBackgrounds: () => openPage('backgrounds-button'),
+        openSillyTavernLook: () => openSillyTavernSection('look'),
+    }));
+    definePage('pt-pocket', pocketTavernPage({
+        get: key => !!settings[key],
+        set: setSwitch,
+        applies: only => only === 'phone' ? !isWide()
+            : only === 'vibrate' ? !isWide() && typeof navigator.vibrate === 'function'
+                : only === 'gg' ? ggPresent()
+                    : only === 'charPage' ? !!settings.charPage : true,
+        mode: readMode,
+        pickMode: () => openChoiceSheet({
+            title: t('Use it on this device'),
+            options: Object.entries(DEVICE_MODES).map(([value, label]) => ({ value, label: t(label) })),
+            current: readMode(),
+            onPick: value => {
+                writeMode(value);
+                applyState();
+                updateStatusLine();
+                refreshOwnPage();
+            },
+        }),
+        status: statusText,
         useSillyTavernForNow,
+    }));
+    definePage('pt-about', aboutPage({
+        version: VERSION,
         openWhatsNew: () => openWhatsNew(),
         updatePocketTavern: row => updatePocketTavern(row),
         openSillyTavernUpdates: () => openSillyTavernUpdates(),
-        installApp: isStandalone() ? null : () => installApp(),
-        version: VERSION,
+        installApp: () => isStandalone() ? null : () => installApp(),
+        openLink: url => window.open(url, '_blank', 'noopener'),
     }));
     onPageChange(() => {
         shell?.update();

@@ -1,6 +1,7 @@
 // The segmented control (DESIGN.md → Components → Segmented control): 2–4 options that change a view
 // or a mode. Arrow keys move between them. Styles in styles/components/segments.css.
 import { h } from '../core/dom.js';
+import { t } from '../core/i18n.js';
 
 /**
  * @param {object} options
@@ -42,4 +43,30 @@ export function segments({ label, options, value, onChange }) {
     });
     select(value, false);
     return group;
+}
+
+/**
+ * A setting chosen with a segmented control, as a group on a settings page: its name above, the
+ * control, and one line about the current choice under it.
+ * @param {object} options
+ * @param {string} options.title (translated)
+ * @param {{ value: string, label: string }[]} options.options
+ * @param {string} options.value
+ * @param {string | ((value: string) => string)} [options.note] one line (translated), or one per choice
+ * @param {(value: string) => void} options.onChange
+ */
+export function choiceSetting({ title, options, value, note, onChange }) {
+    const line = h('p', { class: 'pt-choice-note' });
+    const show = current => {
+        const text = typeof note === 'function' ? note(current) : note;
+        line.textContent = text ? t(text) : '';
+        line.hidden = !text;
+    };
+    show(value);
+    const control = segments({ label: title, options, value, onChange: next => { show(next); onChange(next); } });
+    return h('section', { class: 'pt-list-section pt-choice-setting' }, [
+        h('div', { class: 'pt-list-header', text: title }),
+        control,
+        line,
+    ]);
 }

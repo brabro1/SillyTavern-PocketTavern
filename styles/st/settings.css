@@ -1,0 +1,84 @@
+/* Settings → Appearance: Chat width is SillyTavern's own slider, shown as Pocket Tavern's (src/views/appearance.js).
+   The !important rules beat SillyTavern's global input[type="range"] styles. */
+
+.pt-width-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    margin: 0 4px;
+}
+
+/* A slim 6px track in a 46px tall hit area; the fill ends under the 22px knob. */
+html.pt-on .pt-width-row input.pt-width-range[type='range'] {
+    --pt-knob: 22px;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 6px !important;
+    margin: 0 !important;
+    padding: 20px 0 !important;
+    box-sizing: content-box;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background-color: var(--pt-surface-elevated) !important;
+    background-image: linear-gradient(var(--pt-accent), var(--pt-accent)) !important;
+    background-repeat: no-repeat !important;
+    background-clip: content-box !important;
+    background-origin: content-box !important;
+    background-size: calc(var(--pt-knob) / 2 + (100% - var(--pt-knob)) * var(--pt-share, 0)) 100% !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    touch-action: pan-y;
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']::-webkit-slider-runnable-track {
+    height: 6px;
+    background: transparent;
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']::-moz-range-track {
+    height: 6px;
+    background: transparent;
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']::-webkit-slider-thumb {
+    width: var(--pt-knob) !important;
+    height: var(--pt-knob) !important;
+    margin-top: calc((8px - var(--pt-knob)) / 2);
+    border: 3px solid var(--pt-accent) !important;
+    border-radius: 50%;
+    background: var(--pt-on-accent) !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']::-moz-range-thumb {
+    box-sizing: border-box;
+    width: var(--pt-knob);
+    height: var(--pt-knob);
+    border: 3px solid var(--pt-accent);
+    border-radius: 50%;
+    background: var(--pt-on-accent);
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']:active::-webkit-slider-thumb {
+    transform: scale(1.12);
+}
+
+html.pt-on .pt-width-row input.pt-width-range[type='range']:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: 2px;
+}
+
+.pt-width-value {
+    flex: 0 0 auto;
+    min-width: 48px;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}

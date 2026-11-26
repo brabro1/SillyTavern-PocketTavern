@@ -23,7 +23,9 @@
 @import url("styles/views/messages.css");
 @import url("styles/views/character.css");
 @import url("styles/views/ai.css");
+@import url("styles/views/settings.css");
 @import url("styles/st/message-box.css");
 @import url("styles/st/chat.css");
 @import url("styles/st/characters.css");
 @import url("styles/st/ai.css");
+@import url("styles/st/settings.css");

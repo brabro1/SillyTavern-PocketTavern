@@ -113,6 +113,15 @@ export function searchBox({ placeholder, onSearch }) {
         timer = window.setTimeout(safe('search', () => onSearch(input.value.trim())), 150);
     };
     input.addEventListener('input', run);
+    // Escape clears the text first, then lets go of the field, so the next Escape goes back.
+    input.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        if (input.value) {
+            input.value = '';
+            run();
+        } else input.blur();
+    });
     clear.addEventListener('click', () => {
         input.value = '';
         run();

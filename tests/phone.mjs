@@ -77,18 +77,38 @@ const placeRow = async (tab, place, title, wantPage) => {
 const ST_PAGES = {
     'sys-settings-button': ['pt-ai', 'Connection settings'], 'ai-config-button': ['pt-ai', 'Samplers'], 'advanced-formatting-button': ['pt-ai', 'Formatting'],
     'user-settings-button': ['pt-settings', 'SillyTavern'], 'persona-management-button': ['pt-settings', 'Personas'],
-    'backgrounds-button': ['pt-settings', 'Backgrounds'], 'extensions-settings-button': ['pt-settings', 'Extensions'],
+    'extensions-settings-button': ['pt-settings', 'Extensions'],
 };
 /** One of SillyTavern's pages, reached through the place it belongs to. */
-const openStPage = (tab, id) => placeRow(tab, ...ST_PAGES[id], id);
+const openStPage = async (tab, id) => {
+    // Backgrounds is reached from Settings → Appearance → Chat background.
+    if (id === 'backgrounds-button') {
+        await openThemes(tab);
+        await tab.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Chat background')?.click());
+        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'backgrounds-button', null, { timeout: 10000 });
+        return;
+    }
+    await placeRow(tab, ...ST_PAGES[id], id);
+};
 /** Back to the Chats place from a place's page: the chat, or the Chats page when no chat is open. */
 const leavePlace = async tab => {
     await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
     await tab.waitForFunction(() => (document.documentElement.dataset.ptPage ?? 'pt-chats') === 'pt-chats');
 };
+/** A row on one of Settings' own pages (Pocket Tavern, About). */
+const ownSettingsRow = async (tab, pageTitle, pageId, row) => {
+    await placeRow(tab, 'pt-settings', pageTitle, pageId);
+    await tab.evaluate(want => [...document.querySelectorAll('#pt-page .pt-list-row')].find(node => node.querySelector('.pt-list-row-title')?.textContent === want)?.click(), row);
+};
+/** A sheet to test sheets with: Settings → Pocket Tavern → Use it on this device. */
+const openExampleSheet = async tab => {
+    await ownSettingsRow(tab, 'Pocket Tavern', 'pt-pocket', 'Use it on this device');
+    await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-panel'));
+};
+/** Settings → Appearance, with its theme cards. */
 const openThemes = async tab => {
-    await placeRow(tab, 'pt-settings', 'Themes');
-    await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-theme-card'));
+    await placeRow(tab, 'pt-settings', 'Appearance', 'pt-appearance');
+    await tab.waitForFunction(() => !!document.querySelector('#pt-page .pt-theme-card'));
 };
 // In a chat the tabs are tucked away; the arrow in the message box brings them back.
 // A page that was just closed may still be sliding away, and the tabs tuck only once it is
@@ -215,7 +235,7 @@ await step('there is no More: Settings and AI list their rows', async () => {
         return page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent));
     };
     const settings = await rows('pt-settings');
-    for (const want of ['Themes', 'Personas', 'SillyTavern', 'Extensions', 'Features', "What's new", 'Update Pocket Tavern']) {
+    for (const want of ['Appearance', 'Personas', 'SillyTavern', 'Extensions', 'Pocket Tavern', 'About']) {
         if (!settings.includes(want)) throw new Error(`Settings has no "${want}"`);
     }
     const ai = await rows('pt-ai');
@@ -229,16 +249,15 @@ await step('a theme can be picked and undone', async () => {
     const before = await page.evaluate(() => SillyTavern.getContext().extensionSettings.mobileUI.theme);
     await openThemes(page);
     try {
-        await page.locator('#pt-sheet .pt-theme-card[data-theme="midnight"]').click();
+        await page.locator('#pt-page .pt-theme-card[data-theme="midnight"]').click();
         await until(() => document.documentElement.dataset.ptTheme === 'midnight');
-        await page.locator('#pt-sheet .pt-theme-card[data-theme="st"]').click();
+        await page.locator('#pt-page .pt-theme-card[data-theme="st"]').click();
         await until(() => !document.documentElement.dataset.ptTheme);
     } finally {
         // The theme the test copy had before, so later steps and screenshots look as usual.
-        const card = page.locator(`#pt-sheet .pt-theme-card[data-theme="${before}"]`);
+        const card = page.locator(`#pt-page .pt-theme-card[data-theme="${before}"]`);
         if (before && await card.count()) await card.click();
     }
-    await closeSheet();
     await leavePlace(page);
 });
 
@@ -1279,14 +1298,13 @@ await step('a theme gives way to the background you pick, every theme shows it u
     try {
         // A Pocket Tavern theme with its own background on.
         await openThemesSheet();
-        await page.locator('#pt-sheet .pt-theme-card[data-theme="sakura"]').click();
+        await page.locator('#pt-page .pt-theme-card[data-theme="sakura"]').click();
         await until(() => document.documentElement.dataset.ptTheme === 'sakura');
         await page.evaluate(() => {
-            const input = [...document.querySelectorAll('#pt-sheet .pt-switch-row')].find(row => /Theme background/.test(row.textContent))?.querySelector('input');
-            if (input && !input.checked) input.click();
+            const toggle = [...document.querySelectorAll('#pt-page .pt-list-row--toggle')].find(row => /Theme background/.test(row.textContent))?.querySelector('.pt-toggle');
+            if (toggle && toggle.getAttribute('aria-checked') !== 'true') toggle.click();
         });
         await until(() => document.documentElement.classList.contains('pt-backdrop'));
-        await closeSheet();
         // The Backgrounds page says why backgrounds don't show.
         await openStPage(page, 'backgrounds-button');
         await until(() => /Sakura theme shows its own background/.test(document.getElementById('pt_bg_note')?.textContent ?? ''));
@@ -1308,17 +1326,17 @@ await step('a theme gives way to the background you pick, every theme shows it u
         const alphaOf = color => (/rgba|\//.test(color) ? Number((color.match(/[\d.]+(?=\)$)/) ?? ['1'])[0]) : 1);
         if (!bar.glass || alphaOf(bar.color) < 1) throw new Error(`the top bar is not solid over the background: ${JSON.stringify(bar)}`);
         await page.evaluate(() => globalThis.toastr?.clear());
-        // SillyTavern → Look: SillyTavern's theme list is hidden; a note points to Settings → Themes.
+        // SillyTavern → Look: SillyTavern's theme list is hidden; a note points to Settings → Appearance.
         await openStPage(page, 'user-settings-button');
         await page.evaluate(() => [...document.querySelectorAll('.pt-set-home .pt-menu-row')].find(row => /Look/.test(row.textContent))?.click());
         await until(() => (document.getElementById('pt_look_note')?.getBoundingClientRect().height ?? 0) > 0);
         const listShown = await page.evaluate(() => document.getElementById('themes')?.getBoundingClientRect().height ?? 0);
         if (listShown) throw new Error("SillyTavern's UI Theme list still shows in Settings → Look");
-        await page.locator('#pt_look_note .pt-inline-note-btn', { hasText: 'Open Themes' }).click();
-        // The Themes sheet lists SillyTavern's themes, made to fit; picking one applies it.
-        await until(() => document.querySelectorAll('#pt-sheet .pt-themes-st .pt-theme-card[data-theme^="st:"]').length > 0, null, 10000);
-        const picked = await page.evaluate(() => document.querySelector('#pt-sheet .pt-themes-st .pt-theme-card[data-theme^="st:"]').dataset.theme);
-        await page.locator(`#pt-sheet .pt-theme-card[data-theme="${picked}"]`).click();
+        await page.locator('#pt_look_note .pt-inline-note-btn', { hasText: 'Open Appearance' }).click();
+        // Appearance lists SillyTavern's themes, made to fit; picking one applies it.
+        await until(() => document.querySelectorAll('#pt-page .pt-themes-st .pt-theme-card[data-theme^="st:"]').length > 0, null, 10000);
+        const picked = await page.evaluate(() => document.querySelector('#pt-page .pt-themes-st .pt-theme-card[data-theme^="st:"]').dataset.theme);
+        await page.locator(`#pt-page .pt-theme-card[data-theme="${picked}"]`).click();
         await until(want => document.documentElement.dataset.ptTheme === want && SillyTavern.getContext().extensionSettings.mobileUI.stTheme?.name === want.slice(3), picked);
         // A SillyTavern theme always shows your background (it has none of its own), as glass.
         const stGlass = await page.evaluate(() => ({
@@ -1327,23 +1345,23 @@ await step('a theme gives way to the background you pick, every theme shows it u
             text: getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeBodyColor').trim(),
         }));
         if (!stGlass.glass || stGlass.backdrop || !/^#[0-9a-f]{6}$/i.test(stGlass.text)) throw new Error(`the SillyTavern theme: ${JSON.stringify(stGlass)}`);
-        await page.locator('#pt-sheet .pt-theme-card[data-theme="st"]').click();
+        await page.locator('#pt-page .pt-theme-card[data-theme="st"]').click();
         await until(() => !document.documentElement.dataset.ptTheme);
-        await closeSheet();
         // SillyTavern's Bubbles style pauses the chat look; picking one puts Chat Style back on Flat.
         await setPref('chat_display', '1');
         await openThemesSheet();
-        const paused = await page.evaluate(() => ({
-            on: document.querySelectorAll('#pt-sheet .pt-look-seg[aria-label="Chat look"] .pt-seg-on').length,
-            note: [...document.querySelectorAll('#pt-sheet .pt-menu-foot')].some(foot => /Bubbles chat style is on/.test(foot.textContent)),
-        }));
+        const paused = await page.evaluate(() => {
+            const group = document.querySelector('#pt-page .pt-segments[aria-label="Chat look"]').closest('.pt-choice-setting');
+            return {
+                on: group.querySelectorAll('.pt-segment[aria-checked="true"]').length,
+                note: [...group.querySelectorAll('.pt-choice-note')].some(note => /own chat style is on/.test(note.textContent)),
+            };
+        });
         if (paused.on || !paused.note) throw new Error(`with SillyTavern's Bubbles the chat look shows ${JSON.stringify(paused)}`);
-        await page.locator('#pt-sheet .pt-look-seg[aria-label="Chat look"] .pt-seg', { hasText: 'Cards' }).click();
+        await page.locator('#pt-page .pt-segments[aria-label="Chat look"] .pt-segment', { hasText: 'Cards' }).click();
         await until(() => document.getElementById('chat_display').value === '0');
-        await closeSheet();
         await page.evaluate(() => globalThis.toastr?.clear());
     } finally {
-        if (await page.locator('#pt-sheet').count()) await closeSheet();
         await page.evaluate(b => {
             const s = SillyTavern.getContext().extensionSettings.mobileUI;
             s.theme = b.theme;
@@ -1356,11 +1374,10 @@ await step('a theme gives way to the background you pick, every theme shows it u
         await setPref('chat_display', before.style);
         // Picking a SillyTavern theme set its avatar shape too.
         await setPref('avatar_style', before.avatar);
-        // Re-apply the restored theme the same way the Themes sheet does.
+        // Re-apply the restored theme the same way Appearance does.
         await openThemesSheet();
-        await page.locator(`#pt-sheet .pt-theme-card[data-theme="${before.theme}"]`).click();
+        await page.locator(`#pt-page .pt-theme-card[data-theme="${before.theme}"]`).click();
         await page.waitForTimeout(600);
-        await closeSheet();
         await page.evaluate(() => globalThis.toastr?.clear());
     }
     // "Swipes on all messages": an older message with one version shows no empty swipe circle.
@@ -1415,9 +1432,9 @@ await step('backgrounds are big enough to pick, the next-version button is an ar
         await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 8000 }).catch(() => {});
         await openThemes(tab);
-        await tab.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-width-range'));
+        await tab.waitForFunction(() => !!document.querySelector('#pt-page .pt-width-range'));
         const share = await tab.evaluate(() => {
-            const input = document.querySelector('#pt-sheet .pt-width-range');
+            const input = document.querySelector('#pt-page .pt-width-range');
             const expected = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min));
             return { share: Number(input.style.getPropertyValue('--pt-share')), expected, height: Math.round(input.getBoundingClientRect().height) };
         });
@@ -1518,10 +1535,10 @@ await step('More can update Pocket Tavern in one tap and shows SillyTavern updat
     });
     await page.route('https://api.github.com/repos/SillyTavern/SillyTavern/releases/latest', route => route.fulfill({ json: { tag_name: 'v99.0.0' } }));
     try {
-        await placeRow(page, 'pt-settings', 'Update Pocket Tavern');
+        await ownSettingsRow(page, 'About', 'pt-about', 'Update Pocket Tavern');
         await until(() => /up to date/i.test(document.querySelector('#toast-container')?.textContent ?? ''), null, 10000);
         if (asked.join(',') !== 'version,update') throw new Error(`asked SillyTavern for: ${asked.join(',')}`);
-        await placeRow(page, 'pt-settings', 'SillyTavern updates');
+        await ownSettingsRow(page, 'About', 'pt-about', 'SillyTavern updates');
         await until(() => /99\.0\.0 is out/.test(document.querySelector('.pt-update-status')?.textContent ?? ''), null, 10000);
         const copy = await page.locator('#pt-sheet .pt-command-copy').count();
         if (copy < 2) throw new Error('the update commands have no copy buttons');
@@ -1634,11 +1651,14 @@ await step('desktop layout: a rail with every page, a panel that stays open and 
         await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-ai');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
-        await openThemes(tab);
+        await openExampleSheet(tab);
         const box = await tab.evaluate(() => document.querySelector('#pt-sheet .pt-panel').getBoundingClientRect());
-        if (box.bottom > 880) throw new Error('Themes is not a centred dialog');
+        if (box.bottom > 880) throw new Error('a sheet is not a centred dialog on desktop');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.getElementById('pt-sheet'));
+        // Pocket Tavern → Settings → out.
+        await tab.keyboard.press('Escape');
+        await tab.waitForFunction(() => document.documentElement.dataset.ptPage === 'pt-settings');
         await tab.keyboard.press('Escape');
         await tab.waitForFunction(() => !document.documentElement.dataset.ptPage);
         // ScenePulse's side panel (it sets its own top from SillyTavern's hidden top bar) and Moonlit's rule that shows every tool.
@@ -1831,10 +1851,10 @@ await step('desktop layout: tool panels dock beside the chat, the Token Counter 
         await settle(600);
         const bg = await tab.evaluate(() => [...document.querySelectorAll('#Backgrounds .bg-header-row-1 > .menu_button_icon')].map(button => ({ w: Math.round(button.getBoundingClientRect().width), text: getComputedStyle(button.querySelector('span')).display })));
         if (!bg.length || bg.some(button => button.w < 44 || button.text !== 'none')) throw new Error(`the Backgrounds buttons: ${JSON.stringify(bg)}`);
-        // Settings says Features, not Phone features.
-        await openPlace(tab, 'pt-settings');
+        // Settings → Pocket Tavern on a computer: no phone-only switches (Hide tabs in a chat, Vibration).
+        await placeRow(tab, 'pt-settings', 'Pocket Tavern', 'pt-pocket');
         const rows = await tab.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent));
-        if (rows.includes('Phone features') || !rows.includes('Features')) throw new Error(`Settings rows: ${rows}`);
+        if (rows.includes('Hide tabs in a chat') || rows.includes('Vibration') || !rows.includes('Jump to latest')) throw new Error(`Pocket Tavern rows: ${rows}`);
         await tab.keyboard.press('Escape');
     } finally {
         await desk.close();
@@ -2167,9 +2187,9 @@ await step('over a chat background, pages, sheets and the message box are solid 
         await ensureGlass();
         const box = await page.evaluate(() => getComputedStyle(document.getElementById('send_form')).backgroundColor);
         if (!opaque(box)) throw new Error(`message box is see-through with No Blur: ${box}`);
-        await openThemes(page);
+        await openExampleSheet(page);
         const sheetBg = await page.evaluate(() => getComputedStyle(document.querySelector('#pt-sheet .pt-panel')).backgroundColor);
-        if (!opaque(sheetBg)) throw new Error(`Themes is see-through with No Blur: ${sheetBg}`);
+        if (!opaque(sheetBg)) throw new Error(`a sheet is see-through with No Blur: ${sheetBg}`);
         // A toast while the sheet is open is drawn above it, where it can be tapped.
         const toast = await page.evaluate(async () => {
             window.toastr.info('Above the sheet', 'Test', { timeOut: 1500 });
@@ -2705,7 +2725,7 @@ await step("a Pocket Tavern theme puts a SillyTavern theme's Bubbles chat style 
 });
 
 await step('a sheet has a title (not an h1–h3) and ✕ at the end: a 44px button named Close that closes it; no "Close" or "Done" words', async () => {
-    await openThemes(page);
+    await openExampleSheet(page);
     await until(() => document.querySelector('#pt-sheet.pt-sheet-open'));
     const head = await page.evaluate(() => {
         const sheet = document.getElementById('pt-sheet');
@@ -2779,7 +2799,7 @@ await step("while one of SillyTavern's popups is open, Pocket Tavern steps aside
 });
 
 await step('Settings → Use SillyTavern for now: SillyTavern\'s own screens with one 44px Back pill above the message area; the pill brings Pocket Tavern back', async () => {
-    await placeRow(page, 'pt-settings', 'Use SillyTavern for now');
+    await ownSettingsRow(page, 'Pocket Tavern', 'pt-pocket', 'Use SillyTavern for now');
     await until(() => !document.documentElement.classList.contains('pt-on') && !!document.getElementById('pt-back-pill'));
     const native = await page.evaluate(() => {
         const ours = el => [...el.classList].some(c => c.startsWith('pt-')) || /^pt[-_]/.test(el.id);

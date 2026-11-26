@@ -1,0 +1,189 @@
+/* Settings → Appearance, Pocket Tavern and About (DESIGN.md → Settings inventory; src/views/appearance.js,
+   pocket-tavern.js, about.js). The filter field and the theme cards are theirs. */
+
+/* A setting chosen with a segmented control: its name, the control, one line about the choice. */
+.pt-choice-setting {
+    gap: var(--pt-space-2);
+}
+
+/* Long choices ("Extra large", and longer words in other languages) wrap to two lines instead of being cut. */
+.pt-choice-setting .pt-segment {
+    padding: var(--pt-space-1) var(--pt-space-2);
+    white-space: normal;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.pt-choice-note {
+    margin: 0;
+    padding: 0 var(--pt-space-4);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    line-height: 1.4;
+}
+
+.pt-filter-none {
+    margin: var(--pt-space-6) 0;
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-body);
+    text-align: center;
+}
+
+/* About: the name and version above the rows. */
+.pt-about-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--pt-space-1);
+    padding: var(--pt-space-4) 0 var(--pt-space-2);
+    font-family: var(--pt-font-ui);
+}
+
+.pt-about-name {
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-lg);
+    font-weight: 700;
+}
+
+.pt-about-version {
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Theme cards: a small preview of the app in each theme's colours. */
+.pt-themes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (min-width: 520px) {
+    .pt-themes {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.pt-theme-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 8px 8px 12px;
+    border: 1.5px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pt-theme-on {
+    border-color: var(--pt-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 25%, transparent);
+}
+
+.pt-theme-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 116px;
+    padding: 8px;
+    border-radius: var(--pt-radius-sm);
+    background: var(--p-backdrop);
+    box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.18);
+    overflow: hidden;
+}
+
+.pt-tp-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 14px;
+}
+
+.pt-tp-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--p-accent);
+}
+
+.pt-tp-line {
+    width: 46%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--p-text);
+    opacity: 0.75;
+}
+
+.pt-tp-msg {
+    height: 22px;
+    border-radius: 9px;
+}
+
+.pt-tp-bot {
+    width: 78%;
+    background: var(--p-raised);
+}
+
+.pt-tp-user {
+    align-self: flex-end;
+    width: 60%;
+    background: color-mix(in srgb, var(--p-accent) 38%, var(--p-bg));
+}
+
+.pt-tp-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    margin-top: auto;
+    border-radius: 8px;
+    background: var(--p-bg);
+}
+
+.pt-tp-pill {
+    width: 22px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--p-accent);
+}
+
+.pt-theme-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 24px;
+    padding: 4px 4px 0;
+    font-weight: 700;
+}
+
+.pt-theme-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+}
+
+.pt-theme-check .pt-svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+}
+
+.pt-theme-note {
+    padding: 0 4px;
+    color: var(--pt-text-secondary);
+    font-size: 0.78em;
+    line-height: 1.25;
+}
+

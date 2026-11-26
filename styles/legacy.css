@@ -3181,139 +3181,6 @@ html.pt-touch .drawer-content .title_restorable.standoutHeader > .flex-container
    Theme picker sheet
    ========================================================================== */
 
-.pt-themes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-@media (min-width: 520px) {
-    .pt-themes {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-.pt-theme-card {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-    padding: 8px 8px 12px;
-    border: 1.5px solid var(--pt-border);
-    border-radius: var(--pt-radius);
-    background: var(--pt-surface);
-    color: var(--pt-text-primary);
-    font: inherit;
-    text-align: start;
-    cursor: pointer;
-}
-
-.pt-theme-on {
-    border-color: var(--pt-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 25%, transparent);
-}
-
-.pt-theme-preview {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    height: 116px;
-    padding: 8px;
-    border-radius: var(--pt-radius-sm);
-    background: var(--p-backdrop);
-    box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.18);
-    overflow: hidden;
-}
-
-.pt-tp-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 14px;
-}
-
-.pt-tp-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--p-accent);
-}
-
-.pt-tp-line {
-    width: 46%;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--p-text);
-    opacity: 0.75;
-}
-
-.pt-tp-msg {
-    height: 22px;
-    border-radius: 9px;
-}
-
-.pt-tp-bot {
-    width: 78%;
-    background: var(--p-raised);
-}
-
-.pt-tp-user {
-    align-self: flex-end;
-    width: 60%;
-    background: color-mix(in srgb, var(--p-accent) 38%, var(--p-bg));
-}
-
-.pt-tp-tabs {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 16px;
-    margin-top: auto;
-    border-radius: 8px;
-    background: var(--p-bg);
-}
-
-.pt-tp-pill {
-    width: 22px;
-    height: 8px;
-    border-radius: 4px;
-    background: var(--p-accent);
-}
-
-.pt-theme-name {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    min-height: 24px;
-    padding: 4px 4px 0;
-    font-weight: 700;
-}
-
-.pt-theme-check {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--pt-accent);
-    color: var(--pt-on-accent);
-}
-
-.pt-theme-check .pt-svg {
-    width: 14px;
-    height: 14px;
-    stroke-width: 3;
-}
-
-.pt-theme-note {
-    padding: 0 4px;
-    color: var(--pt-text-secondary);
-    font-size: 0.78em;
-    line-height: 1.25;
-}
-
 .pt-menu-heading {
     margin: 20px 4px 8px;
     color: var(--pt-text-secondary);
@@ -3325,12 +3192,6 @@ html.pt-touch .drawer-content .title_restorable.standoutHeader > .flex-container
     margin: 8px 4px 4px;
     color: var(--pt-text-secondary);
     font-size: 0.85em;
-}
-
-.pt-motion-seg {
-    display: flex;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .pt-switch-row {
@@ -3667,21 +3528,6 @@ html[data-pt-text='large'] {
 html[data-pt-text='xl'] {
     --pt-text-scale: 1.36;
 }
-
-.pt-text-seg {
-    display: flex;
-    margin: 0 4px;
-}
-
-.pt-aa {
-    font-weight: 650;
-    line-height: 1;
-}
-
-.pt-aa-small { font-size: 12px; }
-.pt-aa-normal { font-size: 16px; }
-.pt-aa-large { font-size: 20px; }
-.pt-aa-xl { font-size: 24px; }
 
 /* Message menu: a destructive action at the end, in red. */
 .pt-menu-row-danger,
@@ -5405,11 +5251,6 @@ html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .ech
 
 html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
     background: color-mix(in srgb, var(--pt-accent) 6%, transparent) !important;
-}
-
-.pt-look-seg {
-    display: flex;
-    margin: 0 4px;
 }
 
 /* ==========================================================================
@@ -7267,88 +7108,6 @@ html.pt-desktop.pt-lorecards.pt-ios-kb #world_popup_entries_list .world_entry.pt
     height: var(--pt-page-h, calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize, 0px))) !important;
 }
 
-/* Chat width on wide screens (Themes sheet): a slider and its value. */
-.pt-width-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 44px;
-    margin: 0 4px;
-}
-
-/* A slim 6px track in a 46px tall hit area; the fill ends under the 22px knob. */
-html.pt-on .pt-width-row input.pt-width-range[type='range'] {
-    --pt-knob: 22px;
-    flex: 1 1 auto;
-    min-width: 0;
-    height: 6px !important;
-    margin: 0 !important;
-    padding: 20px 0 !important;
-    box-sizing: content-box;
-    border: 0 !important;
-    border-radius: 999px !important;
-    background-color: var(--pt-surface-elevated) !important;
-    background-image: linear-gradient(var(--pt-accent), var(--pt-accent)) !important;
-    background-repeat: no-repeat !important;
-    background-clip: content-box !important;
-    background-origin: content-box !important;
-    background-size: calc(var(--pt-knob) / 2 + (100% - var(--pt-knob)) * var(--pt-share, 0)) 100% !important;
-    box-shadow: none !important;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-    touch-action: pan-y;
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']::-webkit-slider-runnable-track {
-    height: 6px;
-    background: transparent;
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']::-moz-range-track {
-    height: 6px;
-    background: transparent;
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']::-webkit-slider-thumb {
-    width: var(--pt-knob) !important;
-    height: var(--pt-knob) !important;
-    margin-top: calc((8px - var(--pt-knob)) / 2);
-    border: 3px solid var(--pt-accent) !important;
-    border-radius: 50%;
-    background: var(--pt-on-accent) !important;
-    box-shadow: none !important;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: transform var(--pt-dur-fast) var(--pt-ease);
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']::-moz-range-thumb {
-    box-sizing: border-box;
-    width: var(--pt-knob);
-    height: var(--pt-knob);
-    border: 3px solid var(--pt-accent);
-    border-radius: 50%;
-    background: var(--pt-on-accent);
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']:active::-webkit-slider-thumb {
-    transform: scale(1.12);
-}
-
-html.pt-on .pt-width-row input.pt-width-range[type='range']:focus-visible {
-    outline: 2px solid var(--pt-accent);
-    outline-offset: 2px;
-}
-
-.pt-width-value {
-    flex: 0 0 auto;
-    min-width: 48px;
-    color: var(--pt-text-secondary);
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    text-align: end;
-}
 
 /* Tablets in the desktop layout (a finger, not a mouse): the chat column is at
    least a comfortable reading width instead of half the screen. */
