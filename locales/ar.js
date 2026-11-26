@@ -726,4 +726,12 @@ export default {
     "Theme": "السمة",
     "Your SillyTavern theme": "سمة SillyTavern الخاصة بك",
     "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "تُطبَّق التغييرات فورًا. لا شيء هنا يغيّر شخصياتك أو محادثاتك أو كتب معرفتك.",
+
+    // Avatar shape
+    "Avatar shape": "شكل الصورة",
+    "Circle": "دائرة",
+    "Square": "مربع",
+    "Rounded": "مستدير الزوايا",
+    "Rectangle": "مستطيل",
+    "Pictures in the chat, Chats and character pages.": "الصور في المحادثة وقائمة المحادثات وصفحات الشخصيات.",
 };

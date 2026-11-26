@@ -530,3 +530,8 @@ html.pt-desktop.pt-prompt-full #completion_prompt_manager_popup .completion_prom
     margin-inline: -24px;
     padding-inline: 24px;
 }
+
+/* Issue #10: the AI settings panel lock means nothing in Pocket Tavern. */
+html.pt-on #lm_button_panel_pin_div {
+    display: none !important;
+}

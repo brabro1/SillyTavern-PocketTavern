@@ -184,3 +184,9 @@ html.pt-compact :is(.pt-list-row, .pt-list-row-main) {
     font-size: var(--pt-text-md);
     line-height: 1;
 }
+
+/* Groups stacked in a sheet (a menu with a separate red group at the end) keep a gap, so one group's
+   rounded edge never sits on the next. Pages space their groups with the page's own gap. */
+.pt-menu-body > .pt-list-section + .pt-list-section {
+    margin-top: var(--pt-space-3);
+}

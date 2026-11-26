@@ -1182,3 +1182,11 @@ html.pt-touch .rm_tag_filter .tag:not(.actionable) {
 html.pt-touch .rm_tag_filter .tag:not(.actionable).selected {
     opacity: 1;
 }
+
+/* Issues #10 and #11: SillyTavern's panel lock means nothing in Pocket Tavern (one page at a time), and the
+   editor's own "back to the list" button repeats Back and the Characters tab. Both are still clicked by
+   Pocket Tavern itself where needed. The !important beats SillyTavern's display rules. */
+html.pt-on #rm_button_panel_pin_div,
+html.pt-on #right-nav-panel #rm_button_characters {
+    display: none !important;
+}

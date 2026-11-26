@@ -726,4 +726,12 @@ export default {
     "Theme": "Тема",
     "Your SillyTavern theme": "Ваша тема SillyTavern",
     "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "Изменения применяются сразу. Здесь ничего не меняет ваших персонажей, чаты и лорбуки.",
+
+    // Avatar shape
+    "Avatar shape": "Форма аватара",
+    "Circle": "Круг",
+    "Square": "Квадрат",
+    "Rounded": "Скруглённый",
+    "Rectangle": "Прямоугольник",
+    "Pictures in the chat, Chats and character pages.": "Изображения в чате, в «Чатах» и на страницах персонажей.",
 };

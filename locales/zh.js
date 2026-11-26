@@ -726,4 +726,12 @@ export default {
     "Theme": "主题",
     "Your SillyTavern theme": "你的 SillyTavern 主题",
     "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "更改立即生效。这里不会改动你的角色、聊天或世界书。",
+
+    // Avatar shape
+    "Avatar shape": "头像形状",
+    "Circle": "圆形",
+    "Square": "方形",
+    "Rounded": "圆角",
+    "Rectangle": "矩形",
+    "Pictures in the chat, Chats and character pages.": "聊天、聊天列表和角色页面中的图片。",
 };

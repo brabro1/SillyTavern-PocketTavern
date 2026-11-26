@@ -44,3 +44,11 @@ html.pt-chat #chat .mes .mes_reasoning_summary .mes_reasoning_header {
     flex: 1 1 auto;
     min-width: 0;
 }
+
+/* SillyTavern sets overflow-x: hidden on the message buttons, which makes the browser scroll them
+   vertically: the 40px buttons are taller than their row, so a scrollbar showed beside ✎. clip keeps the
+   sideways clipping without making a scroll box (older Safari keeps visible). */
+html.pt-on #chat .mes .mes_buttons {
+    overflow: visible;
+    overflow-x: clip;
+}

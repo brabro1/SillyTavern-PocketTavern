@@ -6502,6 +6502,8 @@ function registerOwnPages() {
             return source ? { min: Number(source.min || 25), max: Number(source.max || 100), value: Number(source.value) } : null;
         },
         setChatWidth: value => { const source = document.getElementById('chat_width_slider'); if (source) $j()(source).val(value).trigger('input', { forced: true }); },
+        avatarShape: () => document.getElementById('avatar_style')?.value ?? '',
+        setAvatarShape: value => { const select = document.getElementById('avatar_style'); if (select && select.value !== value) $j()(select).val(value).trigger('change'); },
         openBackgrounds: () => openPage('backgrounds-button'),
         openSillyTavernLook: () => openSillyTavernSection('look'),
     }));

@@ -784,3 +784,8 @@ html.pt-desktop.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-ope
     inset: var(--topBarBlockSize) auto 0 var(--pt-rail-w);
     width: var(--pt-panel-w);
 }
+
+/* Issue #10: the World Info panel lock means nothing in Pocket Tavern. */
+html.pt-on #WI_panel_pin_div {
+    display: none !important;
+}

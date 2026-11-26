@@ -12,6 +12,8 @@ import { choiceSetting } from '../ui/segments.js';
 const LOOKS = [{ value: 'cards', label: 'Cards' }, { value: 'bubbles', label: 'Bubbles' }, { value: 'flat', label: 'Flat' }];
 const TEXT_SIZES = [{ value: 'small', label: 'Small' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Large' }, { value: 'xl', label: 'Extra large' }];
 const FONTS = [{ value: 'system', label: 'System' }, { value: 'st', label: "SillyTavern's" }];
+/** SillyTavern's own avatar styles, by their value in its setting. */
+const SHAPES = [{ value: '0', label: 'Circle' }, { value: '2', label: 'Square' }, { value: '3', label: 'Rounded' }, { value: '1', label: 'Rectangle' }];
 const LAYOUTS = [{ value: 'auto', label: 'Automatic' }, { value: 'phone', label: 'Phone' }, { value: 'desktop', label: 'Desktop' }];
 const LAYOUT_NOTES = {
     auto: 'Phones get the phone layout; computers and tablets held sideways get the desktop layout.',
@@ -96,6 +98,8 @@ function themeCard({ id, colors, name, note, selected, onPick }) {
  * @param {() => boolean} actions.desktop the desktop layout is on
  * @param {() => ({ min: number, max: number, value: number } | null)} actions.chatWidth SillyTavern's Chat width
  * @param {(value: number) => void} actions.setChatWidth
+ * @param {() => string} actions.avatarShape SillyTavern's avatar style ('0'–'3'), or '' when it has none
+ * @param {(value: string) => void} actions.setAvatarShape sets SillyTavern's own avatar style
  * @param {() => void} actions.openBackgrounds
  * @param {() => void} actions.openSillyTavernLook
  * @returns {import('../shell/page.js').PageSpec}
@@ -147,6 +151,8 @@ export function appearancePage(actions) {
             body.append(lookSetting);
             body.append(choiceSetting({ title: 'Text size', options: TEXT_SIZES, value: actions.get('textSize'), onChange: value => actions.set('textSize', value) }));
             body.append(choiceSetting({ title: 'Reading font', options: FONTS, value: actions.get('modernFont') ? 'system' : 'st', note: value => value === 'system' ? "Your device's own system font, crisp at every size." : "SillyTavern's font, as set in its settings.", onChange: value => actions.set('modernFont', value === 'system') }));
+            const shape = actions.avatarShape();
+            if (shape) body.append(choiceSetting({ title: 'Avatar shape', options: SHAPES, value: shape, note: 'Pictures in the chat, Chats and character pages.', onChange: actions.setAvatarShape }));
             body.append(listGroup({ rows: [
                 listRow({ title: 'New icons', subtitle: 'Rounded line icons everywhere.', end: 'toggle', checked: !!actions.get('customIcons'), onToggle: on => actions.set('customIcons', on) }),
             ] }));

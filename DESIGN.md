@@ -226,6 +226,7 @@ Every settings page (Appearance, Pocket Tavern, About) starts with a filter fiel
   - Text size (Small, Normal, Large, Extra large)
   - Reading font (System, SillyTavern's): the 2.x Modern font switch, renamed
   - New icons (switch)
+  - Avatar shape (Circle, Square, Rounded, Rectangle): SillyTavern's own setting, so every picture follows it: the chat, Chats, a character's page and the header
   - Layout (Automatic, Phone, Desktop; section 4)
   - Density (Automatic, Comfortable, Compact)
   - Message box (Floating, Docked)
