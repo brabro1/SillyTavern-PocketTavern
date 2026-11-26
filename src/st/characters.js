@@ -1,5 +1,5 @@
 // SillyTavern's Characters screens while Pocket Tavern is on (DESIGN.md → Cards → Character card, Key screens →
-// Character page and editor): the list as picture cards with labelled tools, names under favourites and an A–Z
+// Character page and editor): the list as picture cards with labelled tools
 // strip; a character's page before their chat; their card in the editor (tabs, Chat and Recent chats, Export)
 // without opening their chat. SillyTavern's own nodes are marked, restyled (styles/st/characters.css) and
 // pressed, never moved. The page itself is src/views/character.js.
@@ -56,7 +56,7 @@ function MenuSheet(options) {
     return new deps.MenuSheet(options);
 }
 
-// -- characters page: labeled card tools, tabs, the list's toolbar, A–Z strip
+// -- characters page: labeled card tools, tabs, the list's toolbar
 
 const CARD_TOOLS = [
     ['#favorite_button', 'Favorite'],
@@ -72,7 +72,7 @@ const CARD_TOOLS = [
 // DESIGN.md → Character editor: Description, Greetings, Details. SillyTavern's Advanced definitions (personality,
 // scenario, examples, prompt overrides) stay in its own popup, opened by the labelled Advanced button.
 const CARD_TABS = [['desc', 'Description'], ['greet', 'Greetings'], ['notes', 'Details']];
-const chars = { listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null };
+const chars = { listObserver: null, listTimer: 0, tab: 'desc', passTap: false, peek: null };
 
 /**
  * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
@@ -603,11 +603,11 @@ export function syncCharacterPage() {
     const want = deps.active() && deps.settings().touchSizing && deps.settings().charPage;
     document.documentElement.classList.toggle('pt-charpage', !!want);
     if (!want) {
-        window.clearTimeout(chars.azTimer);
-        chars.azTimer = 0;
+        window.clearTimeout(chars.listTimer);
+        chars.listTimer = 0;
         restoreCharToolbar();
         document.getElementById('rm_characters_block')?.classList.remove('pt-one-page');
-        document.querySelectorAll('.pt-btn-label, #pt_card_tabs, .pt-hero-name, #pt_card_go, #pt_az, #pt_az_bubble').forEach(node => node.remove());
+        document.querySelectorAll('.pt-btn-label, #pt_card_tabs, .pt-hero-name, #pt_card_go').forEach(node => node.remove());
         removeListTop();
         unwatchCardMenu();
         endCardPeek();
@@ -662,28 +662,24 @@ export function syncCharacterPage() {
     }
     setCardTab(chars.tab, false);
 
-    // The list re-renders on search, sort and paging: rebuild the A–Z strip each time.
+    // The list re-renders on search, sort and paging: its top and toolbar follow each time.
     if (!chars.listObserver) {
         const list = document.getElementById('rm_print_characters_block');
         if (list) {
             chars.listObserver = new MutationObserver(() => {
-                window.clearTimeout(chars.azTimer);
-                chars.azTimer = window.setTimeout(() => {
+                window.clearTimeout(chars.listTimer);
+                chars.listTimer = window.setTimeout(() => {
                     syncListTop();
                     watchCardMenu();
-                    buildAzStrip();
                     updateCharPaging();
                     updateCharToolbar();
                 }, 150);
             });
             chars.listObserver.observe(list, { childList: true });
-            // Once: the observer is made again each time the character pages are switched back on.
-            wireOnce(document.getElementById('character_sort_order'), 'change', () => setTimeout(buildAzStrip, 300));
         }
     }
     syncListTop();
     watchCardMenu();
-    buildAzStrip();
 }
 
 /**
@@ -748,7 +744,6 @@ function openSortSheet() {
     const grid = document.body.classList.contains('charListGrid');
     const done = () => setTimeout(() => {
         updateCharToolbar();
-        buildAzStrip();
         syncListTop();
     }, 300);
     const choice = (title, iconName, on, run, raw = false) => {
@@ -850,163 +845,4 @@ function setCardTab(key, scroll = true) {
         button.setAttribute('aria-selected', String(on));
     }
     if (scroll) document.getElementById('pt_card_tabs')?.scrollIntoView({ block: 'nearest' });
-}
-
-function letterOf(name) {
-    const first = normalizeText(String(name ?? '').trim()).charAt(0).toUpperCase();
-    return /[A-Z]/.test(first) ? first : '#';
-}
-
-/** A strip of letters on the right of the list; tap or slide to jump. Only for A–Z / Z–A order. */
-/** How long the letter bubble stays after the last move along the A–Z strip. */
-const AZ_BUBBLE_MS = 650;
-
-function buildAzStrip() {
-    const holder = document.getElementById('rm_characters_block');
-    const list = document.getElementById('rm_print_characters_block');
-    const old = document.getElementById('pt_az');
-    const none = () => {
-        old?.remove();
-        document.getElementById('pt_az_bubble')?.remove();
-    };
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().charPage || !holder || !list) return none();
-    const sort = document.getElementById('character_sort_order')?.selectedOptions[0];
-    if (sort?.dataset.field !== 'name' || sort?.dataset.order === 'random') return none();
-    const entries = Array.from(list.querySelectorAll(':scope > .character_select, :scope > .group_select, :scope > .bogus_folder_select'));
-    if (entries.length < 10) return none();
-    const firstOf = new Map();
-    for (const entry of entries) {
-        const letter = letterOf(entry.querySelector('.ch_name')?.textContent);
-        if (!firstOf.has(letter)) firstOf.set(letter, entry);
-    }
-    if (firstOf.size < 3) return none();
-    const letters = Array.from(firstOf.keys());
-    // Same letters as before (the list was only redrawn): keep the strip, just point it at the new entries.
-    if (old && old.parentElement === holder && old.dataset.letters === letters.join('')) {
-        old.ptFirst = firstOf;
-        placeAzStrip(old, list, letters.length);
-        return;
-    }
-    old?.remove();
-    const strip = h('div', { id: 'pt_az', class: 'pt-az', role: 'navigation', 'aria-label': 'Jump to letter', 'data-letters': letters.join('') }, [
-        // A soft light that glides to the letter under your finger (or mouse).
-        h('i', { class: 'pt-az-glow', 'aria-hidden': 'true' }),
-        ...letters.map(letter => h('span', { raw: letter, 'data-letter': letter })),
-    ]);
-    strip.ptFirst = firstOf;
-    const spans = Array.from(strip.querySelectorAll('span'));
-    let bubble = document.getElementById('pt_az_bubble');
-    if (!bubble) {
-        bubble = h('div', { id: 'pt_az_bubble', class: 'pt-az-bubble', 'aria-hidden': 'true' });
-        holder.append(bubble);
-    }
-    let current = -1;
-    let last = '';
-    let dragging = false;
-    let frame = 0;
-    let pending = null;
-    const indexAt = clientY => {
-        const rect = strip.getBoundingClientRect();
-        if (rect.height <= 0) return -1;
-        return Math.max(0, Math.min(letters.length - 1, Math.floor(((clientY - rect.top) / rect.height) * letters.length)));
-    };
-    // Letters near the active one grow and lean out (distance 0-3), like a lens over the strip.
-    const mark = index => {
-        if (index === current) return;
-        current = index;
-        spans.forEach((span, i) => {
-            const distance = index < 0 ? '' : String(Math.min(4, Math.abs(i - index)));
-            if (span.dataset.d !== distance) span.dataset.d = distance;
-        });
-        if (index >= 0) strip.style.setProperty('--pt-az-y', `${spans[index].offsetTop + spans[index].offsetHeight / 2}px`);
-        strip.classList.toggle('pt-az-on', index >= 0);
-    };
-    const jump = clientY => {
-        const index = indexAt(clientY);
-        if (index < 0) return;
-        mark(index);
-        // The bubble rides beside your finger, kept level with the strip.
-        const holderTop = holder.getBoundingClientRect().top;
-        const rect = strip.getBoundingClientRect();
-        const y = Math.max(rect.top, Math.min(rect.bottom, clientY)) - holderTop;
-        bubble.style.transform = `translate3d(0, ${Math.round(y)}px, 0)`;
-        const letter = letters[index];
-        if (letter === last) return;
-        last = letter;
-        const target = strip.ptFirst.get(letter);
-        if (target?.isConnected) list.scrollTop += target.getBoundingClientRect().top - list.getBoundingClientRect().top - 2;
-        bubble.textContent = letter;
-        bubble.classList.add('pt-az-bubble-on');
-        buzz(4);
-    };
-    // Pointer moves come many per frame; act on the latest once a frame.
-    const queue = (clientY, run) => {
-        pending = { clientY, run };
-        if (frame) return;
-        frame = requestAnimationFrame(() => {
-            frame = 0;
-            if (pending && strip.isConnected) pending.run(pending.clientY);
-            pending = null;
-        });
-    };
-    // The letter bubble shows while you move along the strip and fades soon after you stop, even if a finger
-    // stays down: the strip is something you slide over, not a button you hold.
-    let bubbleTimer = 0;
-    const settleBubble = () => {
-        window.clearTimeout(bubbleTimer);
-        bubbleTimer = window.setTimeout(() => bubble.classList.remove('pt-az-bubble-on'), AZ_BUBBLE_MS);
-    };
-    const slide = clientY => {
-        jump(clientY);
-        settleBubble();
-    };
-    strip.addEventListener('pointerdown', event => {
-        event.preventDefault();
-        // A mouse already slides by hovering; a finger (or pen) slides while it is down.
-        if (event.pointerType === 'mouse') return;
-        try {
-            strip.setPointerCapture?.(event.pointerId);
-        } catch {
-            // The pointer is already gone.
-        }
-        dragging = true;
-        last = '';
-        strip.classList.add('pt-az-active');
-        slide(event.clientY);
-    });
-    strip.addEventListener('pointermove', event => {
-        // A mouse over the strip scrolls the list as it moves, without a press.
-        if (dragging || event.pointerType === 'mouse') queue(event.clientY, slide);
-    });
-    const end = event => {
-        dragging = false;
-        last = '';
-        strip.classList.remove('pt-az-active');
-        window.clearTimeout(bubbleTimer);
-        bubble.classList.remove('pt-az-bubble-on');
-        // Only a mouse still over the strip keeps the lens. A finger lifts away, and phones keep
-        // :hover on the last thing touched, so a touch always puts the strip back to rest.
-        if (event?.pointerType !== 'mouse' || !strip.matches(':hover')) mark(-1);
-    };
-    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) strip.addEventListener(type, end);
-    strip.addEventListener('pointerleave', event => {
-        if (dragging) return;
-        last = '';
-        window.clearTimeout(bubbleTimer);
-        bubble.classList.remove('pt-az-bubble-on');
-        if (event.pointerType === 'mouse') mark(-1);
-    });
-    shieldFromDrawerAutoClose(strip);
-    holder.append(strip);
-    placeAzStrip(strip, list, letters.length);
-}
-
-/** Sits exactly beside the list, below the controls. Only writes when the place changed. */
-function placeAzStrip(strip, list, count) {
-    const top = `${list.offsetTop + 6}px`;
-    // Desktop: the strip runs the list's full height in its own column; a phone keeps it compact.
-    const full = document.documentElement.classList.contains('pt-desktop');
-    const height = `${Math.max(120, full ? list.clientHeight - 12 : Math.min(list.clientHeight - 12, count * 26))}px`;
-    if (strip.style.top !== top) strip.style.top = top;
-    if (strip.style.height !== height) strip.style.height = height;
 }

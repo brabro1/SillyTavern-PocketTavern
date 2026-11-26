@@ -623,7 +623,7 @@ export default {
     "What you type is kept for each chat, even if the browser reloads.": "入力中の文字はチャットごとに保たれ、ブラウザを再読み込みしても残ります。",
     "The send button gives a short press when you send.": "送信するとき、送信ボタンが一瞬押し込まれます。",
     "Characters and lorebooks": "キャラクターとロアブック",
-    "Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.": "キャラクターカードとペルソナに大きなアバター、名前付きツールとタブ。お気に入りの下に名前、一覧に A–Z の帯。",
+    "Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.": "キャラクターとペルソナのカードに大きなアバター、名前付きツール、タブ。リストには絞り込みシート、お気に入り、カードのメニュー。",
     "Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.": "キャラクターを選ぶとまずそのページを表示：チャット、新しいチャット、編集、最近のチャット。オフにするとすぐにチャットを開きます。",
     "Easy lorebook picker": "かんたんロアブック選択",
     "Searchable list for global, character, chat and persona lorebooks.": "グローバル、キャラクター、チャット、ペルソナのロアブックを検索できる一覧。",

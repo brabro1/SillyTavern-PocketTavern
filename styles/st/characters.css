@@ -1,5 +1,5 @@
 /* SillyTavern's Characters screens while Pocket Tavern is on (DESIGN.md → Cards → Character card, Key screens →
-   Character page and editor; src/st/characters.js): the list as picture cards with labelled tools and an A–Z
+   Character page and editor; src/st/characters.js): the list as picture cards with labelled tools
    strip, and the character editor's card with its tabs. Moved whole from styles/legacy.css (M3); the rules
    that use !important beat SillyTavern's own list and form styles. */
 
@@ -149,16 +149,6 @@ html.pt-on:not(.pt-desktop) :is(.pt-list, .pt-menu-body, .pt-panel, #chat, .draw
 
 html.pt-on :is(.pt-tabbar, .pt-segmented)::-webkit-scrollbar,
 html.pt-on:not(.pt-desktop) :is(.pt-list, .pt-menu-body, .pt-panel, #chat, .drawer-content, .scrollableInner, .popup-content, #rm_print_characters_block, #world_popup_entries_list, #user_avatar_block, #select_chat_div, #bg_menu_content, #completion_prompt_manager_popup, #movingDivs > div)::-webkit-scrollbar {
-    display: none;
-}
-
-/* The character list keeps no bar on the desktop layout either: the A–Z strip sits on that edge,
-   and the two side by side fought for the same few pixels. The wheel and the strip scroll it. */
-html.pt-on.pt-desktop #rm_print_characters_block {
-    scrollbar-width: none;
-}
-
-html.pt-on.pt-desktop #rm_print_characters_block::-webkit-scrollbar {
     display: none;
 }
 
@@ -323,156 +313,6 @@ html.pt-charpage body.charListGrid #rm_print_characters_block .ch_name {
 
 html.pt-charpage body.charListGrid #rm_print_characters_block :is(.ch_description, .tags, .ch_additional_info) {
     display: none !important;
-}
-
-/* A–Z strip on the right edge of the list. */
-html.pt-charpage #rm_characters_block {
-    position: relative;
-}
-
-html.pt-charpage body:not(.charListGrid) #rm_print_characters_block {
-    padding-right: 20px;
-}
-
-/* The A–Z strip: small quiet letters beside the list. Touch or press it and a soft light
-   glides to the letter under your finger while the letters around it lean out like a lens,
-   and a bubble with the letter rides beside your finger. With a mouse the lens follows the
-   pointer, and pressing jumps. Only transform and opacity move. */
-.pt-az {
-    position: absolute;
-    right: 0;
-    z-index: 5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    width: 28px;
-    padding: 4px 0;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: pointer;
-}
-
-/* The track: a soft pill that shows while you use the strip. */
-.pt-az::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--pt-surface-elevated) 88%, transparent);
-    opacity: 0;
-    transition: opacity var(--pt-dur-fast) var(--pt-ease);
-}
-
-.pt-az.pt-az-on::before {
-    opacity: 1;
-}
-
-.pt-az-glow {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 24px;
-    height: 24px;
-    margin: -12px 0 0 -12px;
-    border-radius: 50%;
-    background: var(--pt-accent);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--pt-accent) 55%, transparent);
-    opacity: 0;
-    transform: translateY(var(--pt-az-y, 0)) scale(0.5);
-    transition: transform var(--pt-dur-fast) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
-    pointer-events: none;
-}
-
-.pt-az.pt-az-on .pt-az-glow {
-    opacity: 1;
-    transform: translateY(var(--pt-az-y, 0)) scale(1);
-}
-
-.pt-az span {
-    position: relative;
-    display: block;
-    min-width: 20px;
-    color: var(--pt-text-secondary);
-    font-size: 12px;
-    font-weight: 650;
-    line-height: 1;
-    text-align: center;
-    transform-origin: 100% 50%;
-    transition: transform var(--pt-dur-fast) var(--pt-ease);
-}
-
-.pt-az span[data-d='0'] {
-    color: var(--pt-on-accent);
-    transform: scale(1.15);
-}
-
-.pt-az span[data-d='1'] {
-    color: var(--pt-text-primary);
-    transform: translateX(-10px) scale(1.3);
-}
-
-.pt-az span[data-d='2'] {
-    color: var(--pt-text-primary);
-    transform: translateX(-6px) scale(1.15);
-}
-
-.pt-az span[data-d='3'] {
-    transform: translateX(-2px) scale(1.05);
-}
-
-/* Desktop: the strip is a quiet full-height track in its own column beside the grid (the cards stop before
-   it), and the lens follows the mouse as it slides over it. */
-html.pt-desktop #rm_characters_block:has(> #pt_az) #rm_print_characters_block {
-    padding-inline-end: 32px;
-}
-
-html.pt-desktop .pt-az {
-    right: 2px;
-    width: 26px;
-    cursor: ns-resize;
-}
-
-html.pt-desktop .pt-az::before {
-    background: var(--pt-surface);
-    box-shadow: inset 0 0 0 1px var(--pt-border);
-    opacity: 0.7;
-}
-
-html.pt-desktop .pt-az.pt-az-on::before {
-    background: var(--pt-surface-elevated);
-    opacity: 1;
-}
-
-/* The letter you are on, big, beside your finger. */
-.pt-az-bubble {
-    position: absolute;
-    top: 0;
-    right: 48px;
-    z-index: 6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    margin-top: -28px;
-    border-radius: 50%;
-    background: var(--pt-accent);
-    box-shadow: 0 8px 24px color-mix(in srgb, #000 30%, transparent);
-    color: var(--pt-on-accent);
-    font-size: 24px;
-    font-weight: 800;
-    opacity: 0;
-    scale: 0.6;
-    transition: opacity var(--pt-dur-fast) var(--pt-ease), scale var(--pt-dur-fast) var(--pt-ease);
-    pointer-events: none;
-}
-
-.pt-az-bubble.pt-az-bubble-on {
-    opacity: 1;
-    scale: 1;
 }
 
 html.pt-charpage #avatar-and-name-block {
@@ -1314,8 +1154,6 @@ html.pt-charpage #avatar_controls .form_create_bottom_buttons_block > :is(#world
 .pt-char-toolbar {
     display: none;
 }
-
-/* -- A–Z strip: exactly beside the list ----------------------------------- */
 
 /* SillyTavern colors its filter buttons with fixed see-through colors and dims
    them, which is muddy on light themes and dull on dark ones. Use the theme's

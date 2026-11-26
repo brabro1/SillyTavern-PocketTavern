@@ -1,5 +1,5 @@
 // The Characters place (DESIGN.md → Cards → Character card; Key screens → Character page and editor), on a
-// phone and on desktop: SillyTavern's list as a grid of picture cards, the A–Z strip, a character's page
+// phone and on desktop: SillyTavern's list as a grid of picture cards, a character's page
 // (nothing changes until you pick something), its ⋯, Edit without opening the chat, and Back. It changes
 // no character. Test SillyTavern only.
 //   ST_URL=http://127.0.0.1:8123 CHROME_CHANNEL=chrome node e2e/characters.mjs
@@ -74,26 +74,6 @@ for (const layout of ['phone', 'desktop']) {
             const many = await page.evaluate(() => document.querySelectorAll('#rm_print_characters_block .character_select').length >= 3);
             if (phone ? (many && grid.columns !== 3) : grid.width < 120) throw new Error(`columns: ${JSON.stringify(grid)}`);
             if (grid.ratio < 1.2 || grid.ratio > 1.45) throw new Error(`picture ratio ${grid.ratio}`);
-        });
-
-        await step('an A–Z strip runs beside the list', async () => {
-            if (await page.evaluate(() => SillyTavern.getContext().characters.length < 8)) return console.log('      (too few characters for an A–Z strip; checked with the full test data)');
-            const strip = await page.evaluate(() => { const node = document.getElementById('pt_az'); return node ? { letters: node.childElementCount, shown: !!node.getBoundingClientRect().height } : null; });
-            if (!strip?.shown || strip.letters < 3) throw new Error(JSON.stringify(strip));
-            if (phone) return;
-            // On a computer the strip runs the list's full height, and moving the mouse down it scrolls, no click.
-            const list = () => page.evaluate(() => document.getElementById('rm_print_characters_block').scrollTop);
-            const box = await page.locator('#pt_az').boundingBox();
-            const room = await page.evaluate(() => { const l = document.getElementById('rm_print_characters_block'); return { list: l.clientHeight, strip: document.getElementById('pt_az').getBoundingClientRect().height }; });
-            if (room.strip < room.list - 24) throw new Error(`the strip is ${room.strip}px beside a ${room.list}px list`);
-            const top = await list();
-            await page.mouse.move(box.x + box.width / 2, box.y + 6);
-            await page.mouse.move(box.x + box.width / 2, box.y + box.height - 6, { steps: 8 });
-            await page.waitForTimeout(400);
-            const moved = await list();
-            await page.mouse.move(box.x - 200, box.y + 10);
-            await page.evaluate(() => document.getElementById('rm_print_characters_block').scrollTop = 0);
-            if (moved - top < 100) throw new Error(`hovering down the strip scrolled ${moved - top}px`);
         });
 
         await step('one toolbar (search, Filter, Sort and view, +); Favorites and "All characters" head the list; SillyTavern\'s pill row and favourites stay hidden', async () => {

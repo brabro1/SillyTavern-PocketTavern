@@ -623,7 +623,7 @@ export default {
     "What you type is kept for each chat, even if the browser reloads.": "Набранный текст сохраняется для каждого чата, даже после перезагрузки браузера.",
     "The send button gives a short press when you send.": "Кнопка отправки коротко «нажимается» при отправке.",
     "Characters and lorebooks": "Персонажи и лорбуки",
-    "Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.": "Крупный аватар, подписанные инструменты и вкладки в карточках и персонах; имена под избранными; полоса А–Я в списке.",
+    "Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.": "Крупный аватар, подписанные инструменты и вкладки в карточках персонажей и персон; в списке — панель фильтров, избранное и меню карточки.",
     "Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.": "При выборе персонажа сначала открывается его страница: Чат, Новый чат, Изменить и недавние чаты. Если выключено, сразу открывается чат.",
     "Easy lorebook picker": "Удобный выбор лорбуков",
     "Searchable list for global, character, chat and persona lorebooks.": "Список с поиском для глобальных лорбуков, лорбуков персонажа, чата и персоны.",

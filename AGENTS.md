@@ -32,7 +32,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | M1b | UI, after M1a's lifecycle API. `styles/tokens.css`, `base.css`, every component in `DESIGN.md` → Components, a test page that screenshots each | Component screenshots pass review on both layouts, light, dark, RTL | done |
 | M1c | Shell, beside M1b. `src/shell/layout.js` (Automatic/Phone/Desktop, the keyboard rule), tab bar and rail, page stacks and back order, sheet/dialog/popover with the shared close, "Use SillyTavern for now" and the Back pill | The new tab bar and rail lead to the existing (legacy) screens | done |
 | M2 | Chats and the chat: 2a Chats home and Search everything · 2b chat header, ⋯, messages, versions, thinking, chat-switch loading · 2c message box, `+`, context ring, banners | Their legacy parts are deleted; `e2e/chats.mjs`, `e2e/chat.mjs` pass | done |
-| M3 | Characters: grid and A–Z, character page, character editor (restyled) | Legacy part deleted; `e2e/characters.mjs` passes | done |
+| M3 | Characters: grid, character page, character editor (restyled) | Legacy part deleted; `e2e/characters.mjs` passes | done |
 | M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | done |
 | M5 | Settings (hub, Appearance, Personas, Pocket Tavern with every switch, grouped; About) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | done |
 | M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | planned |

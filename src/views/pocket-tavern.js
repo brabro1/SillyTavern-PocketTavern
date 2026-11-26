@@ -26,7 +26,7 @@ export const SWITCH_GROUPS = [
         { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', only: 'gg' },
     ] },
     { title: 'Characters and lorebooks', switches: [
-        { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
+        { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.' },
         { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', only: 'charPage' },
         { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Chat history grouped by date.' },
         { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },

@@ -623,7 +623,7 @@ export default {
     "What you type is kept for each chat, even if the browser reloads.": "每个聊天里输入的内容都会保留，即使浏览器重新加载。",
     "The send button gives a short press when you send.": "发送时发送按钮会轻轻按下一下。",
     "Characters and lorebooks": "角色与世界书",
-    "Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.": "角色卡和人设使用大头像、带名称的工具和标签页；收藏下显示名字；列表旁有 A–Z 索引。",
+    "Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.": "角色卡和人设上的大头像、带名称的工具和标签页；列表中有筛选面板、收藏和卡片菜单。",
     "Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.": "选择角色时先显示其页面：聊天、新聊天、编辑和最近的聊天。关闭则直接打开聊天。",
     "Easy lorebook picker": "便捷的世界书选择器",
     "Searchable list for global, character, chat and persona lorebooks.": "可搜索的列表，用于全局、角色、聊天和人设的世界书。",

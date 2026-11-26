@@ -623,7 +623,7 @@ export default {
     "What you type is kept for each chat, even if the browser reloads.": "Lo que escribes se guarda en cada chat, aunque el navegador se recargue.",
     "The send button gives a short press when you send.": "El botón de enviar se hunde un instante al enviar.",
     "Characters and lorebooks": "Personajes y lorebooks",
-    "Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.": "Avatar grande, herramientas con nombre y pestañas en las fichas y personas; nombres bajo los favoritos; una tira A–Z en la lista.",
+    "Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.": "Avatar grande, herramientas con nombre y pestañas en las tarjetas de personajes y personas; en la lista, un panel de filtros, favoritos y un menú por tarjeta.",
     "Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.": "Al elegir un personaje se ve primero su página: Chat, Nuevo chat, Editar y sus chats recientes. Desactivado abre el chat directamente.",
     "Easy lorebook picker": "Selector fácil de lorebooks",
     "Searchable list for global, character, chat and persona lorebooks.": "Lista con búsqueda para los lorebooks globales, de personaje, de chat y de persona.",

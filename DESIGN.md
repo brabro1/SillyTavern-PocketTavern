@@ -68,7 +68,7 @@ Font stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-
 
 | Role | Size / line height / weight | Used for |
 |---|---|---|
-| `caption` | 12 / 1.35 / 400–500 | Timestamps, counts, badges, the A–Z strip |
+| `caption` | 12 / 1.35 / 400–500 | Timestamps, counts, badges |
 | `small` | 14 / 1.4 / 400 | Row subtitles, help text, group headers (600) |
 | `body` | 15 / 1.45 / 400 | UI text, row titles, fields; buttons at 600 |
 | `headline` | 16 / 1.3 / 600 | Header titles on pushed pages, sheet and dialog titles, card names |
@@ -331,7 +331,7 @@ Every settings page (Appearance, Pocket Tavern, About) starts with a filter fiel
 **Scrollbars:**
 - **Phone:** none. Everything scrolls by touch.
 - **Desktop:** every scrolling list has a slim bar: 8px of room, a 4px round thumb at 18% of the text colour (32% on hover, 48% while dragging), no track and no arrows. Firefox uses `scrollbar-width: thin`.
-- The rail, segmented controls and the character list (which has the A–Z strip) show none.
+- The rail and segmented controls show none.
 - Never hide scrollbars on every element.
 
 ---
@@ -477,16 +477,6 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - Avatars follow SillyTavern's avatar shape setting (circle, square, rounded, rectangle). Sizes: 24 inline, 32 in rows and Compact messages, 40 in messages, 96 on the character page.
 - A missing picture shows the name's initial on a colour derived from the name.
 - Full-quality pictures are used where shown large. Animated GIF or WebP pictures move everywhere.
-
-### A–Z strip
-- 28px wide, `caption` letters in secondary, along the end edge of the character list. No track until it is used.
-- **Sliding a finger along it, or moving the mouse over it** (no press needed, nothing to hold):
-  - a soft track appears
-  - a 24px accent light glides to the letter under the pointer, and the list jumps to it
-  - letters around it grow and lean out (distance 0–3)
-  - a 56px accent bubble with the letter rides beside the pointer, fading a moment after it stops
-- On desktop the strip runs the list's full height.
-- Only `transform` and `opacity` move, at `--pt-dur-fast`.
 
 ---
 

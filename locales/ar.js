@@ -623,7 +623,7 @@ export default {
     "What you type is kept for each chat, even if the browser reloads.": "ما تكتبه يُحفظ لكل محادثة، حتى لو أُعيد تحميل المتصفح.",
     "The send button gives a short press when you send.": "يضغط زر الإرسال ضغطة قصيرة عند الإرسال.",
     "Characters and lorebooks": "الشخصيات وكتب المعرفة",
-    "Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.": "صورة كبيرة وأدوات مسمّاة وألسنة في بطاقات الشخصيات والهويات؛ أسماء تحت المفضلة؛ وشريط أ–ي بجانب القائمة.",
+    "Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.": "صورة كبيرة وأدوات بأسماء وتبويبات في بطاقات الشخصيات والشخصيات الافتراضية؛ وفي القائمة لوحة تصفية ومفضلة وقائمة لكل بطاقة.",
     "Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.": "اختيار شخصية يعرض صفحتها أولًا: محادثة، محادثة جديدة، تعديل ومحادثاتها الأخيرة. عند الإيقاف تُفتح المحادثة مباشرة.",
     "Easy lorebook picker": "منتقي كتب المعرفة السهل",
     "Searchable list for global, character, chat and persona lorebooks.": "قائمة قابلة للبحث لكتب المعرفة العامة وكتب الشخصية والمحادثة والهوية.",

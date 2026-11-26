@@ -39,7 +39,7 @@ Pocket Tavern has **five places**. Everything you can do lives in exactly one of
 - **The persona button** (your picture in the message box) switches who you are.
 - **The little ring** in the message box shows how full the model's memory is. Tap it to see what is using it: the character, your persona, lorebooks and the chat so far.
 - **On a message:** tap ✎ to edit it, or ⋯ (or long-press the message) for everything else. Drag the last reply sideways for another version.
-- **Characters** has an A–Z strip at the edge. Slide your finger along it to jump.
+- **Characters** has a **Filter** button for favourites, groups and tags. Long-press a card (right-click on a computer) for its menu.
 - **Close anything** with ✕, by dragging a sheet down, or with your phone's back gesture.
 - Tapping the tab you're already on takes you back to the top of that place.
 
