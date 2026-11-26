@@ -689,4 +689,18 @@ export default {
     "Automatic: phones and computers": "تلقائي: الهواتف والحواسيب",
     "Phones only": "الهواتف فقط",
     "Off on this device": "متوقف على هذا الجهاز",
+
+    // Lorebooks place
+    "Activation settings": "إعدادات التفعيل",
+    "{count} of {total}": "{count} من {total}",
+    "Lorebooks and their entries": "كتب المعرفة ومدخلاتها",
+    "Active lorebooks": "كتب المعرفة المفعّلة",
+    "On in every chat": "مفعّلة في كل محادثة",
+    "Scan depth, budget and recursion": "عمق الفحص والميزانية والتكرار",
+    "New lorebook": "كتاب معرفة جديد",
+    "Import": "استيراد",
+    "A lorebook file (.json, .lorebook or .png)": "ملف كتاب معرفة (.json أو .lorebook أو .png)",
+    "No lorebooks yet. New lorebook starts one.": "لا توجد كتب معرفة بعد. \"كتاب معرفة جديد\" ينشئ واحدًا.",
+    "Active in every chat": "مفعّل في كل محادثة",
+    "Filter lorebooks": "تصفية كتب المعرفة",
 };

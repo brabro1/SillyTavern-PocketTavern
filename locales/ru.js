@@ -689,4 +689,18 @@ export default {
     "Automatic: phones and computers": "Автоматически: телефоны и компьютеры",
     "Phones only": "Только телефоны",
     "Off on this device": "Выключено на этом устройстве",
+
+    // Lorebooks place
+    "Activation settings": "Настройки активации",
+    "{count} of {total}": "{count} из {total}",
+    "Lorebooks and their entries": "Лорбуки и их записи",
+    "Active lorebooks": "Активные лорбуки",
+    "On in every chat": "Включены во всех чатах",
+    "Scan depth, budget and recursion": "Глубина сканирования, бюджет и рекурсия",
+    "New lorebook": "Новый лорбук",
+    "Import": "Импорт",
+    "A lorebook file (.json, .lorebook or .png)": "Файл лорбука (.json, .lorebook или .png)",
+    "No lorebooks yet. New lorebook starts one.": "Лорбуков пока нет. «Новый лорбук» создаст первый.",
+    "Active in every chat": "Активен во всех чатах",
+    "Filter lorebooks": "Фильтр лорбуков",
 };

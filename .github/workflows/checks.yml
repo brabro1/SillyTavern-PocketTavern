@@ -119,6 +119,12 @@ jobs:
           ST_URL: http://127.0.0.1:8000
           CHROME_CHANNEL: chrome
         run: node e2e/settings.mjs
+      - name: Lorebooks place
+        working-directory: extension/tests
+        env:
+          ST_URL: http://127.0.0.1:8000
+          CHROME_CHANNEL: chrome
+        run: node e2e/lorebooks.mjs
 
       - name: Keep screenshots of failed steps
         if: failure()

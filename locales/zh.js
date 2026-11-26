@@ -689,4 +689,18 @@ export default {
     "Automatic: phones and computers": "自动：手机和电脑",
     "Phones only": "仅手机",
     "Off on this device": "在此设备上关闭",
+
+    // Lorebooks place
+    "Activation settings": "激活设置",
+    "{count} of {total}": "{count} / {total}",
+    "Lorebooks and their entries": "世界书及其条目",
+    "Active lorebooks": "启用的世界书",
+    "On in every chat": "在所有聊天中启用",
+    "Scan depth, budget and recursion": "扫描深度、预算和递归",
+    "New lorebook": "新建世界书",
+    "Import": "导入",
+    "A lorebook file (.json, .lorebook or .png)": "世界书文件（.json、.lorebook 或 .png）",
+    "No lorebooks yet. New lorebook starts one.": "还没有世界书。点“新建世界书”创建一个。",
+    "Active in every chat": "在所有聊天中启用",
+    "Filter lorebooks": "筛选世界书",
 };

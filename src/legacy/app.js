@@ -35,6 +35,7 @@ import { SETTINGS_OWN_PAGES, SETTINGS_PAGES, settingsPage } from '../views/setti
 import { appearancePage } from '../views/appearance.js';
 import { DEVICE_MODES, pocketTavernPage, SWITCHES } from '../views/pocket-tavern.js';
 import { aboutPage } from '../views/about.js';
+import { LOREBOOK_PAGE, lorebooksPage } from '../views/lorebooks.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { watchChatLoading } from '../features/chat-loading.js';
@@ -204,7 +205,7 @@ const PAGES = {
 const TABS = [
     { id: 'chat', label: 'Chats', icon: 'chats' },
     { id: 'rightNavHolder', label: 'Characters', icon: 'users' },
-    { id: 'WI-SP-button', label: 'Lorebooks', icon: 'book' },
+    { id: 'pt-lorebooks', label: 'Lorebooks', icon: 'book' },
     { id: 'pt-ai', label: 'AI', icon: 'sparkles' },
     { id: 'pt-settings', label: 'Settings', icon: 'settings' },
 ];
@@ -214,6 +215,7 @@ function placeOf(pageId) {
     if (!pageId || pageId === 'pt-chats') return 'chat';
     if (pageId === 'pt-character') return 'rightNavHolder';
     if (SETTINGS_OWN_PAGES.includes(pageId)) return 'pt-settings';
+    if (pageId === LOREBOOK_PAGE) return 'pt-lorebooks';
     if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
     if (AI_PAGES.includes(pageId)) return 'pt-ai';
     return 'pt-settings';
@@ -634,7 +636,8 @@ class Sheet {
         editor.value = target.value;
         editor.dispatchEvent(new Event('change', { bubbles: true }));
         // Opened from the wand menu the drawer is closed; show it so the book is visible.
-        openPage('WI-SP-button');
+        wiPage.mode = 'book';
+        openPage(LOREBOOK_PAGE);
         document.querySelector('#WorldInfo')?.scrollTo?.({ top: 0 });
     }
 
@@ -1686,7 +1689,10 @@ class Shell {
                 this.aiConnected = isConnected();
                 refreshOwnPage();
             }
-            if (typeof info.rawTitle === 'function') this.titleEl.textContent = info.rawTitle();
+            syncLorebookMode(pageId);
+            if (pageId === LOREBOOK_PAGE && wiPage.mode === 'settings') this.titleEl.textContent = t('Activation settings');
+            else if (pageId === LOREBOOK_PAGE && editedLorebook()) this.titleEl.textContent = editedLorebook();
+            else if (typeof info.rawTitle === 'function') this.titleEl.textContent = info.rawTitle();
             else this.titleEl.textContent = t(info.title);
             this.subEl.textContent = t(info.long ?? '');
             this.subEl.classList.remove('pt-ab-offline');
@@ -3805,16 +3811,97 @@ async function openChatFile(chat) {
     if (context.getCurrentChatId?.() !== file) await ctx().openCharacterChat?.(file);
 }
 
+/** A lorebook's page: SillyTavern's editor, showing that one lorebook (DESIGN.md → Lorebooks). */
 function openLorebook(name) {
-    openPage('WI-SP-button');
-    setTimeout(() => {
-        const select = document.getElementById('world_editor_select');
-        const option = Array.from(select?.options ?? []).find(item => item.textContent.trim() === name);
-        if (select && option) {
-            select.value = option.value;
-            $j()(select).trigger('change');
+    const select = document.getElementById('world_editor_select');
+    const option = Array.from(select?.options ?? []).find(item => item.textContent.trim() === name);
+    if (select && option && select.value !== option.value) {
+        select.value = option.value;
+        $j()(select).trigger('change');
+    }
+    wiPage.mode = 'book';
+    openPage(LOREBOOK_PAGE);
+    shell?.render(currentPageId());
+}
+
+// -- the Lorebooks place (src/views/lorebooks.js)
+
+/** Which part of SillyTavern's World Info page shows: one lorebook's editor, or the activation settings. */
+const wiPage = { mode: 'book', observer: null, timer: 0 };
+
+/** The lorebook SillyTavern's editor shows, or '' (user data). */
+function editedLorebook() {
+    const select = document.getElementById('world_editor_select');
+    return select && select.value !== '' ? (select.selectedOptions[0]?.textContent?.trim() ?? '') : '';
+}
+
+function lorebookList() {
+    const active = new Set(Array.from(document.getElementById('world_info')?.selectedOptions ?? []).map(option => option.textContent.trim()));
+    return Array.from(document.getElementById('world_editor_select')?.options ?? [])
+        .filter(option => option.value !== '')
+        .map(option => ({ name: option.textContent.trim(), active: active.has(option.textContent.trim()) }));
+}
+
+/** html[data-pt-wi] says which part of World Info shows (styles/st/lorebooks.css); off on every other page. */
+function syncLorebookMode(pageId) {
+    const root = document.documentElement;
+    if (pageId !== LOREBOOK_PAGE) {
+        wiPage.mode = 'book';
+        delete root.dataset.ptWi;
+        root.classList.remove('pt-wi-book');
+        return;
+    }
+    root.dataset.ptWi = wiPage.mode;
+    root.classList.toggle('pt-wi-book', !!editedLorebook());
+}
+
+function openLorebookSettings() {
+    wiPage.mode = 'settings';
+    openPage(LOREBOOK_PAGE);
+    shell?.render(currentPageId());
+    // The settings are folded away in SillyTavern ("Click to expand"): unfold them.
+    const fold = document.querySelector('#wiTopBlock .inline-drawer');
+    const content = fold?.querySelector('.inline-drawer-content');
+    if (content && getComputedStyle(content).display === 'none') fold.querySelector('.inline-drawer-toggle')?.click();
+}
+
+/** Active lorebooks: the lorebook picker, or SillyTavern's own list when the Easy lorebook picker is off. */
+function pickActiveLorebooks() {
+    const picker = pickers.get(document.getElementById('world_info'));
+    if (picker) openSheet(picker);
+    else openLorebookSettings();
+}
+
+/**
+ * Keeps the Lorebooks page and a lorebook's header in step with SillyTavern: a lorebook made, renamed or
+ * deleted, or the active ones changed. Deleting the open lorebook goes back to the Lorebooks page.
+ */
+function onLorebooksChanged() {
+    window.clearTimeout(wiPage.timer);
+    wiPage.timer = window.setTimeout(() => {
+        if (!active) return;
+        const page = currentPageId();
+        if (page === 'pt-lorebooks') refreshOwnPage();
+        else if (page === LOREBOOK_PAGE) {
+            if (wiPage.mode === 'book' && !editedLorebook()) openPage('pt-lorebooks');
+            else shell?.render(page);
         }
-    }, 300);
+    }, 120);
+}
+
+function watchLorebooks() {
+    const $ = $j();
+    $(document).off('.ptLore');
+    wiPage.observer?.disconnect();
+    wiPage.observer = null;
+    window.clearTimeout(wiPage.timer);
+    if (!active) return;
+    $(document).on('change.ptLore', '#world_editor_select, #world_info', onLorebooksChanged);
+    const select = document.getElementById('world_editor_select');
+    if (select) {
+        wiPage.observer = new MutationObserver(onLorebooksChanged);
+        wiPage.observer.observe(select, { childList: true, subtree: true, characterData: true });
+    }
 }
 
 // -- the Chats home (src/views/chats.js)
@@ -7309,6 +7396,8 @@ function applyLayoutPrefs() {
 }
 
 function syncExtras() {
+    watchLorebooks();
+    if (!active) syncLorebookMode(null);
     applyTextSize();
     applyChatLook();
     applyLayoutPrefs();
@@ -8371,6 +8460,14 @@ function registerOwnPages() {
             .map(drawer => ({ id: drawer.id, title: pageInfo(drawer).title })),
         themeName: () => { const theme = currentTheme(); return theme ? (findTheme(theme.id) ? t(theme.name) : theme.name) : t('Your theme'); },
         version: VERSION,
+    }));
+    definePage('pt-lorebooks', lorebooksPage({
+        books: lorebookList,
+        pickActive: pickActiveLorebooks,
+        openSettings: openLorebookSettings,
+        create: () => document.getElementById('world_create_button')?.click(),
+        importBook: () => document.getElementById('world_import_button')?.click(),
+        openBook: openLorebook,
     }));
     definePage('pt-appearance', appearancePage({
         get: key => settings[key],

@@ -44,7 +44,8 @@ const closeSheet = async () => {
 const REAL_PAGE = () => document.getElementById('pt-page')?.dataset.page
     ?? document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer')?.closest('.drawer')?.id ?? null;
 /** The place a page belongs to (the same rule as the shell's placeOf). */
-const PLACE_OF = `page => (!page || page === 'pt-chats' ? 'chat' : (page.startsWith('pt-') || ['rightNavHolder', 'WI-SP-button'].includes(page) ? page
+const PLACE_OF = `page => (!page || page === 'pt-chats' ? 'chat' : (page.startsWith('pt-') || ['rightNavHolder'].includes(page) ? page
+    : page === 'WI-SP-button' ? 'pt-lorebooks'
     : (['sys-settings-button', 'ai-config-button', 'advanced-formatting-button'].includes(page) ? 'pt-ai' : 'pt-settings')))`;
 const realPage = tab => tab.evaluate(`(${REAL_PAGE})()`);
 const openPlace = async (tab, id) => {
@@ -94,6 +95,14 @@ const openStPage = async (tab, id) => {
 const leavePlace = async tab => {
     await tab.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
     await tab.waitForFunction(() => (document.documentElement.dataset.ptPage ?? 'pt-chats') === 'pt-chats');
+};
+/** A lorebook's page: the Lorebooks place, then the lorebook's row (SillyTavern's editor for it). */
+const openLorebookPage = async name => {
+    await page.locator('.pt-tab[data-tab="pt-lorebooks"]').click();
+    await until(() => document.getElementById('pt-page')?.dataset.page === 'pt-lorebooks');
+    await until(want => [...document.querySelectorAll('#pt-page .pt-list-row-title')].some(node => node.textContent === want), name);
+    await page.evaluate(want => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === want)?.click(), name);
+    await until(() => document.documentElement.dataset.ptPage === 'WI-SP-button');
 };
 /** A row on one of Settings' own pages (Pocket Tavern, About). */
 const ownSettingsRow = async (tab, pageTitle, pageId, row) => {
@@ -205,11 +214,11 @@ await step('Pocket Tavern turns on for a phone', async () => {
 await step('top bar and the five places are shown: Chats, Characters, Lorebooks, AI, Settings', async () => {
     await page.locator('#pt-appbar').waitFor({ state: 'visible' });
     const tabs = await page.evaluate(() => [...document.querySelectorAll('.pt-tab')].map(tab => tab.dataset.tab).join(','));
-    if (tabs !== 'chat,rightNavHolder,WI-SP-button,pt-ai,pt-settings') throw new Error(`tabs: ${tabs}`);
+    if (tabs !== 'chat,rightNavHolder,pt-lorebooks,pt-ai,pt-settings') throw new Error(`tabs: ${tabs}`);
 });
 
 await step('each tab opens its page and Chat goes back', async () => {
-    for (const id of ['rightNavHolder', 'WI-SP-button', 'pt-ai', 'pt-settings']) {
+    for (const id of ['rightNavHolder', 'pt-lorebooks', 'pt-ai', 'pt-settings']) {
         await page.locator(`.pt-tab[data-tab="${id}"]`).click();
         await until(want => document.documentElement.dataset.ptPage === want, id);
     }
@@ -689,7 +698,7 @@ await step('in a chat the tabs tuck away; the arrow brings them back and typing 
     const box = await arrow.boundingBox();
     if (box.width < 44 || box.height < 44) throw new Error(`the arrow is ${box.width}x${box.height}`);
     await arrow.click();
-    await page.locator('.pt-tab[data-tab="WI-SP-button"]').waitFor({ state: 'visible' });
+    await page.locator('.pt-tab[data-tab="pt-lorebooks"]').waitFor({ state: 'visible' });
     if (await arrow.getAttribute('aria-expanded') !== 'true') throw new Error('the arrow does not say the tabs are shown');
     await page.locator('#send_textarea').click();
     await until(() => document.documentElement.classList.contains('pt-tabs-tucked'));
@@ -729,7 +738,7 @@ await step('the keyboard: chat and message box slide as one piece, and the tabs 
     };
     try {
         await page.locator('.pt-tabs-btn').click();
-        await page.locator('.pt-tab[data-tab="WI-SP-button"]').waitFor({ state: 'visible' });
+        await page.locator('.pt-tab[data-tab="pt-lorebooks"]').waitFor({ state: 'visible' });
         await page.evaluate(() => { const chat = document.getElementById('chat'); chat.scrollTop = chat.scrollHeight; });
         await page.waitForTimeout(300);
         await record();
@@ -1182,13 +1191,7 @@ await step('a long lorebook shows every entry, and the Details tab keeps the tab
             await context.updateWorldInfoList();
         }, name);
         await showTabs();
-        await page.locator('.pt-tab[data-tab="WI-SP-button"]').click();
-        await until(() => document.documentElement.dataset.ptPage === 'WI-SP-button');
-        await page.evaluate(name => {
-            const select = document.getElementById('world_editor_select');
-            select.value = [...select.options].find(option => option.textContent === name).value;
-            jQuery(select).trigger('change');
-        }, name);
+        await openLorebookPage(name);
         await until(() => document.getElementById('world_popup_new')?.offsetParent, null, 10000);
         // SillyTavern stopped the editor at the screen's height, so entries past the third or fourth could not be reached.
         for (let i = 0; i < 12; i++) {
@@ -2280,18 +2283,14 @@ await step("with SillyTavern's blur on, the message editor and an opened loreboo
         await page.evaluate(() => document.querySelector('#chat .mes:has(#curEditTextarea) .mes_edit_cancel').click());
         await until(() => !document.documentElement.classList.contains('pt-editing'));
         // A lorebook entry opened from further down the page.
-        await showTabs();
-        await page.locator('.pt-tab[data-tab="WI-SP-button"]').click();
-        await until(() => document.documentElement.dataset.ptPage === 'WI-SP-button');
         // A lorebook of its own with a dozen entries, so the page scrolls (deleted below).
         await page.evaluate(async name => {
             const context = SillyTavern.getContext();
             await context.saveWorldInfo(name, { entries: {} }, true);
             await context.updateWorldInfoList();
-            const select = document.getElementById('world_editor_select');
-            select.value = [...select.options].find(option => option.textContent === name).value;
-            jQuery(select).trigger('change');
         }, book);
+        await showTabs();
+        await openLorebookPage(book);
         await until(() => document.getElementById('world_popup_new')?.offsetParent, null, 10000);
         for (let i = 0; i < 12; i++) {
             await page.evaluate(() => document.getElementById('world_popup_new').click());

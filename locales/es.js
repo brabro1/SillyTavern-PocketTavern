@@ -689,4 +689,18 @@ export default {
     "Automatic: phones and computers": "Automático: móviles y ordenadores",
     "Phones only": "Solo móviles",
     "Off on this device": "Desactivado en este dispositivo",
+
+    // Lorebooks place
+    "Activation settings": "Ajustes de activación",
+    "{count} of {total}": "{count} de {total}",
+    "Lorebooks and their entries": "Lorebooks y sus entradas",
+    "Active lorebooks": "Lorebooks activos",
+    "On in every chat": "Activos en todos los chats",
+    "Scan depth, budget and recursion": "Profundidad de búsqueda, presupuesto y recursión",
+    "New lorebook": "Nuevo lorebook",
+    "Import": "Importar",
+    "A lorebook file (.json, .lorebook or .png)": "Un archivo de lorebook (.json, .lorebook o .png)",
+    "No lorebooks yet. New lorebook starts one.": "Aún no hay lorebooks. Nuevo lorebook crea uno.",
+    "Active in every chat": "Activo en todos los chats",
+    "Filter lorebooks": "Filtrar lorebooks",
 };

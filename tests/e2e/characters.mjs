@@ -133,6 +133,7 @@ for (const layout of ['phone', 'desktop']) {
         });
 
         await step("Characters → Lorebooks → Characters switches each time, even with SillyTavern's Characters lock on", async () => {
+            // Lorebooks is Pocket Tavern's own page: SillyTavern's Characters panel must close for it.
             const lock = await page.evaluate(() => document.getElementById('rm_button_panel_pin')?.checked ?? null);
             const pin = on => page.evaluate(value => { const box = document.getElementById('rm_button_panel_pin'); if (box && box.checked !== value) { box.checked = value; jQuery(box).trigger('change'); } }, on);
             const tap = async id => {
@@ -144,11 +145,11 @@ for (const layout of ['phone', 'desktop']) {
                 if (lock !== null) await pin(true);
                 await page.waitForTimeout(300);
                 // Characters is open already (tapping it again would hide it on desktop).
-                for (const id of ['WI-SP-button', 'rightNavHolder', 'WI-SP-button', 'rightNavHolder']) {
+                for (const id of ['pt-lorebooks', 'rightNavHolder', 'pt-lorebooks', 'rightNavHolder']) {
                     await tap(id);
                     await waitFor(page, `${id} open alone`, want => {
                         const open = [...document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content.openDrawer')].map(node => node.parentElement.id);
-                        return document.documentElement.dataset.ptPage === want && open.length === 1 && open[0] === want;
+                        return document.documentElement.dataset.ptPage === want && (want.startsWith('pt-') ? open.length === 0 : open.length === 1 && open[0] === want);
                     }, id);
                     await page.waitForTimeout(300);
                 }

@@ -1,0 +1,33 @@
+/* SillyTavern's World Info page as a lorebook's page or as Activation settings (DESIGN.md → Lorebooks;
+   html[data-pt-wi] is set by the shell while the page is open). The Lorebooks page itself is Pocket
+   Tavern's own (src/views/lorebooks.js). The !important rules beat SillyTavern's display rules and the
+   legacy restyle of this screen. */
+
+/* A lorebook's page: only that lorebook's editor. Active lorebooks, activation settings, New and Import
+   are on the Lorebooks page. */
+html.pt-on[data-pt-wi="book"] #WorldInfo #wiTopBlock,
+html.pt-on[data-pt-wi="book"] #WorldInfo #world_create_button,
+html.pt-on[data-pt-wi="book"] #WorldInfo #world_import_button,
+html.pt-on[data-pt-wi="book"] #WorldInfo #world_create_button + small {
+    display: none !important;
+}
+
+/* Its name is in the header, so SillyTavern's lorebook dropdown goes (it shows while none is picked). */
+html.pt-on[data-pt-wi="book"].pt-wi-book #WorldInfo :is(#world_editor_select, #world_editor_select ~ .pt-picker, #world_editor_select ~ .select2-container) {
+    display: none !important;
+}
+
+/* Activation settings: SillyTavern's settings without the lorebook editor. */
+html.pt-on[data-pt-wi="settings"] #WorldInfo #world_popup {
+    display: none !important;
+}
+
+/* The settings fill the page: one slider per row, the switches under them (two columns crowded each
+   slider's name into its − button). */
+html.pt-on[data-pt-wi="settings"] #WorldInfo #wiActivationSettings {
+    flex-direction: column;
+}
+
+html.pt-on[data-pt-wi="settings"] #WorldInfo #wiSliders > * {
+    flex-basis: 100% !important;
+}

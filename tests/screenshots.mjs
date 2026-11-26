@@ -54,20 +54,26 @@ const tab = async id => {
 };
 const openThemes = async () => {
     await tab('pt-settings');
-    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click());
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Appearance')?.click());
+    await until(() => !!document.querySelector('#pt-page .pt-theme-card'));
+    await settle();
+};
+/** Leaves Settings → Appearance for the chat. */
+const leaveThemes = async () => {
+    await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]').click());
     await settle();
 };
 const setTheme = async theme => {
     await openThemes();
-    await page.locator(`#pt-sheet .pt-theme-card[data-theme="${theme}"]`).click();
+    await page.locator(`#pt-page .pt-theme-card[data-theme="${theme}"]`).click();
     await settle(1000);
-    await closeSheet();
+    await leaveThemes();
 };
 const setLook = async label => {
     await openThemes();
-    await page.locator('#pt-sheet .pt-look-seg .pt-seg', { hasText: label }).click();
+    await page.locator('#pt-page .pt-segments[aria-label="Chat look"] .pt-segment', { hasText: label }).click();
     await settle();
-    await closeSheet();
+    await leaveThemes();
 };
 const setPref = async (id, value) => {
     await page.evaluate(([selectId, choice]) => {
@@ -266,12 +272,12 @@ if (want('settings') || want('settings-section')) {
 if (want('themes')) {
     await openThemes();
     await shot('themes');
-    await closeSheet();
+    await leaveThemes();
 }
 
 if (want('lorebooks')) {
-    await tab('WI-SP-button');
-    await page.evaluate(() => document.querySelector('#WorldInfo .pt-open')?.click());
+    await tab('pt-lorebooks');
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Active lorebooks')?.click());
     await until(() => document.getElementById('pt-sheet'));
     await shot('lorebooks');
     await closeSheet();
@@ -279,12 +285,8 @@ if (want('lorebooks')) {
 }
 
 if (want('lorebook-entries')) {
-    await tab('WI-SP-button');
-    await page.evaluate(() => {
-        const select = document.getElementById('world_editor_select');
-        const option = [...select.options].find(item => item.textContent.trim() === 'Eldoria');
-        if (option) window.jQuery(select).val(option.value).trigger('change');
-    });
+    await tab('pt-lorebooks');
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent.trim() === 'Eldoria')?.click());
     await until(() => document.querySelectorAll('#world_popup_entries_list .world_entry').length > 0);
     await settle(1200);
     await page.evaluate(() => document.getElementById('world_popup_entries_list').scrollIntoView({ block: 'start' }));
@@ -364,10 +366,10 @@ if (want('glass')) {
     const backdrop = await page.evaluate(() => SillyTavern.getContext().extensionSettings.mobileUI.themeBackdrop);
     await page.evaluate(() => [...document.querySelectorAll('#bg_menu_content .bg_example')].find(e => e.getAttribute('bgfile') === 'landscape beach day.png')?.click());
     await openThemes();
-    await until(() => !!document.querySelector('#pt-sheet .pt-theme-card[data-theme="st:Azure"]'), null, 15000);
-    await page.locator('#pt-sheet .pt-theme-card[data-theme="st:Azure"]').click();
+    await until(() => !!document.querySelector('#pt-page .pt-theme-card[data-theme="st:Azure"]'), null, 15000);
+    await page.locator('#pt-page .pt-theme-card[data-theme="st:Azure"]').click();
     await settle(1000);
-    await closeSheet();
+    await leaveThemes();
     await openDemoChat();
     await until(() => document.documentElement.classList.contains('pt-glass'));
     await shot('glass');

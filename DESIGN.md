@@ -547,9 +547,9 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **Editing without opening the chat:** SillyTavern's form is filled for that character, and saves go to it. Controls that act on SillyTavern's *current* character (delete, duplicate, persona links) open that character's chat first. Never point SillyTavern's current character at another character without opening its chat, or the open chat saves into the wrong folder.
 
 ### Lorebooks
-- **Top:** **Active lorebooks** (global), a multi-picker.
-- **Below:** every lorebook as a row, which opens its page.
-- **A lorebook's page:** its settings in a group, then entry cards with a filter field.
+- **Top:** **Active lorebooks** (global), a picker row showing how many are on ("3 of 17"); it opens the lorebook multi-picker. With the Easy lorebook picker switch off, it opens SillyTavern's own list instead. Then **Activation settings** (SillyTavern's scan depth, budget and the rest, as a page), **New lorebook** and **Import** (SillyTavern's own buttons).
+- **Below:** every lorebook as a row, which opens its page. Lorebooks that are active for every chat say so. More than 8 lorebooks get a filter field.
+- **A lorebook's page:** SillyTavern's editor for that one lorebook, restyled: the header shows its name; its tools (new entry, export, rename, duplicate, delete) and SillyTavern's search, which filters its entry cards. The other parts of SillyTavern's World Info screen are on the Lorebooks page instead. Deleting the lorebook returns to the Lorebooks page.
 - **An entry** opens its editor: full screen on a phone, the panel on desktop.
 
 ### AI
@@ -583,6 +583,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - Appearance
 - Pocket Tavern settings
 - About
+- the Lorebooks page
 - pickers for long selects and lorebooks
 
 **Restyled** (SillyTavern's screens, marked and styled with tokens):

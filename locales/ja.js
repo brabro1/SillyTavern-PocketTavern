@@ -689,4 +689,18 @@ export default {
     "Automatic: phones and computers": "自動：スマホとパソコン",
     "Phones only": "スマホのみ",
     "Off on this device": "このデバイスではオフ",
+
+    // Lorebooks place
+    "Activation settings": "有効化の設定",
+    "{count} of {total}": "{count} / {total}",
+    "Lorebooks and their entries": "ロアブックとそのエントリー",
+    "Active lorebooks": "有効なロアブック",
+    "On in every chat": "すべてのチャットで有効",
+    "Scan depth, budget and recursion": "スキャン深度、予算、再帰",
+    "New lorebook": "新しいロアブック",
+    "Import": "インポート",
+    "A lorebook file (.json, .lorebook or .png)": "ロアブックのファイル（.json、.lorebook、.png）",
+    "No lorebooks yet. New lorebook starts one.": "ロアブックはまだありません。「新しいロアブック」で作れます。",
+    "Active in every chat": "すべてのチャットで有効",
+    "Filter lorebooks": "ロアブックを絞り込む",
 };

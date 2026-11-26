@@ -82,7 +82,7 @@ for (const size of sizes) {
         await page.setViewportSize({ width: size.width, height: size.height });
         await settle(600);
     }
-    for (const id of ['rightNavHolder', 'WI-SP-button', 'ai-config-button']) { await tab(id); await shot(`page-${id}`); }
+    for (const id of ['rightNavHolder', 'pt-lorebooks', 'ai-config-button']) { await tab(id); await shot(`page-${id}`); }
     await page.evaluate(() => document.querySelector('#user-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-settings');
     await page.evaluate(() => document.querySelector('#extensions-settings-button > .drawer-toggle')?.click()); await settle(900); await shot('page-extensions');
     await page.evaluate(() => document.querySelector('#rm_api_block')?.closest('.drawer')?.querySelector('.drawer-toggle')?.click()); await settle(900); await shot('page-api');
