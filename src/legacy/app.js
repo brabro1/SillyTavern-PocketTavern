@@ -61,25 +61,43 @@ const DEFAULTS = Object.freeze({
     backGesture: true,
     lorebookPicker: true,
     longSelects: false,
+    wandShortcut: true,
     theme: 'pocket',
     themeBackdrop: true,
     modernFont: true,
+    customIcons: true,
     /** 'full' | 'light' | 'off' */
     motion: 'full',
     /** 'small' | 'normal' | 'large' | 'xl' */
     textSize: 'normal',
+    sendEffect: true,
     haptics: true,
+    autoReload: true,
     /** SillyTavern's Chat Style before a Pocket Tavern theme put it on Flat ('' when untouched), and that theme's id. */
     stChatStyle: '',
     chatStyleFor: '',
+    jumpButton: true,
+    messageMenu: true,
     saveDrafts: true,
     keepAwake: true,
+    imageViewer: true,
+    niceToasts: true,
     longPress: true,
     serverWatch: true,
+    fastChat: true,
     lastSeenVersion: '',
     recentLanguages: [],
     autoTranslate: false,
+    charPage: true,
+    charPreview: true,
+    dragSwipe: true,
+    foldLong: true,
+    contextMeter: true,
     chatLook: 'cards',
+    loreCards: true,
+    sharpPictures: true,
+    animatedPictures: true,
+    recentTools: true,
     /** 'auto' (compact on small phones) | 'comfortable' | 'compact' */
     uiSize: 'auto',
     /** 'floating' | 'docked' */
@@ -91,7 +109,6 @@ const DEFAULTS = Object.freeze({
     desktopNoticeSeen: false,
     /** Guided Generations (another extension) as one button next to Send. Only matters when it is installed. */
     ggButton: true,
-    /** Guided Generations (another extension) as one button next to Send. Only matters when it is installed. */
     /** The last Guided Generations action run from the sheet; holding the button runs it again. */
     ggLast: '',
 });
@@ -121,11 +138,27 @@ const TEXT_SIZES = { small: 'Small', normal: 'Normal', large: 'Large', xl: 'Extr
 const EXTRAS = [
     { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', when: () => ggPresent() },
     { key: 'hideTabsInChat', id: 'pt_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', when: () => !isWide() },
+    { key: 'messageMenu', id: 'pt_msgmenu', label: 'Message menu', hint: 'Tap ⋯ on a message for a full list of actions with names.' },
+    { key: 'dragSwipe', id: 'pt_dragswipe', label: 'Drag to swipe', hint: 'Drag the last reply left for another version, right for the previous one.' },
+    { key: 'foldLong', id: 'pt_foldlong', label: 'Fold long messages', hint: 'Very long older messages get a Show more button.' },
+    { key: 'contextMeter', id: 'pt_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
+    { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },
+    { key: 'sharpPictures', id: 'pt_sharp', label: 'Sharp character pictures', hint: 'Shows the full-quality picture instead of the small thumbnail, sized for your screen.' },
+    { key: 'animatedPictures', id: 'pt_gifs', label: 'Animated pictures', hint: 'Pick a GIF or animated WebP as a character picture and it moves everywhere.' },
+    { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; names under favorites; an A–Z strip on the list.' },
+    { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', when: () => settings.charPage },
+    { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Chat history grouped by date.' },
     { key: 'longPress', id: 'pt_longpress', label: 'Long-press for message menu', hint: 'Hold a message for its menu. Turn off if you prefer long-press to select text.' },
     { key: 'serverWatch', id: 'pt_server', label: 'Connection check', hint: 'Shows a banner when SillyTavern stops answering, for example when Termux was closed.' },
+    { key: 'fastChat', id: 'pt_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
+    { key: 'jumpButton', id: 'pt_jump', label: 'Jump to latest', hint: 'A button that takes you back to the newest message.' },
     { key: 'saveDrafts', id: 'pt_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
     { key: 'keepAwake', id: 'pt_awake', label: 'Keep screen on while replying', hint: 'The screen stays on until the reply is finished.' },
+    { key: 'imageViewer', id: 'pt_viewer', label: 'Picture viewer', hint: 'Tap an avatar in the chat to see it full screen. Pinch or double-tap to zoom.' },
+    { key: 'niceToasts', id: 'pt_toasts', label: 'Nicer notifications', hint: 'Calm cards with a small coloured icon; swipe one sideways to dismiss it.' },
+    { key: 'sendEffect', id: 'pt_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
     { key: 'haptics', id: 'pt_haptics', label: 'Vibration', hint: 'A short buzz on send and tab taps (Android).', when: () => !isWide() && typeof navigator.vibrate === 'function' },
+    { key: 'autoReload', id: 'pt_autoreload', label: 'Reload after updates', hint: 'After Pocket Tavern updates, the page reloads by itself once nothing is in progress.' },
 ];
 
 /** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */
@@ -1121,6 +1154,12 @@ function openPage(id) {
     closeOwnPage(true);
     const drawer = drawerById(id);
     if (!drawer) return;
+    // One page at a time. SillyTavern leaves a locked panel (e.g. the Characters lock) open when another
+    // one opens, so the page you left would stay open under the new one and its tab could not be picked
+    // again. Pocket Tavern shows one page beside the chat, so a locked one closes here too.
+    for (const content of document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content.openDrawer')) {
+        if (content.parentElement !== drawer) content.parentElement.querySelector(':scope > .drawer-toggle')?.click();
+    }
     if (drawer.querySelector(':scope > .drawer-content')?.classList.contains('openDrawer')) return;
     drawer.querySelector(':scope > .drawer-toggle')?.click();
 }
@@ -1947,16 +1986,18 @@ function applyAppearance() {
     syncGlass();
     watchBackground();
     root.classList.toggle('pt-font', active && settings.modernFont);
-    root.classList.toggle('pt-icons', active);
-    root.classList.toggle('pt-toasts', active);
+    root.classList.toggle('pt-icons', active && settings.customIcons);
+    root.classList.toggle('pt-toasts', active && settings.niceToasts);
     for (const level of Object.keys(MOTION_LABELS)) root.classList.toggle(`pt-motion-${level}`, active && settings.motion === level);
     if (theme) root.dataset.ptTheme = theme.id;
     else delete root.dataset.ptTheme;
 
     if (active) {
         ensureStyle('pt-theme-css').textContent = themeCss(theme, 'html.pt-on.pt-themed') + toastIconCss();
-        const icons = ensureStyle('pt-icons-css');
-        if (!icons.textContent) icons.textContent = iconCss('html.pt-icons');
+        if (settings.customIcons) {
+            const icons = ensureStyle('pt-icons-css');
+            if (!icons.textContent) icons.textContent = iconCss('html.pt-icons');
+        }
     } else {
         document.getElementById('pt-theme-css')?.remove();
         document.getElementById('pt-icons-css')?.remove();
@@ -2226,6 +2267,7 @@ function openThemeSheet() {
             body.append(h('div', { class: 'pt-menu-list' }, [
                 switchRow('themeBackdrop', 'Theme background', 'Use the theme\'s backdrop instead of your chat background.'),
                 switchRow('modernFont', 'Modern font', isWide() ? "Your computer's own system font, crisp at every size." : 'Your phone\'s own system font, crisp at every size.'),
+                switchRow('customIcons', 'New icons', 'Rounded line icons everywhere.'),
             ]));
             body.append(h('p', { class: 'pt-menu-heading', text: 'Chat look' }));
             body.append(chatLookControl());
@@ -2393,7 +2435,7 @@ function stopObserver() {
 
 function syncWandShortcut() {
     const existing = document.getElementById('pt_wand_container');
-    const want = active && settings.lorebookPicker;
+    const want = active && settings.wandShortcut && settings.lorebookPicker;
     if (!want) {
         if (existing) {
             existing.remove();
@@ -2468,7 +2510,7 @@ function buzz(pattern = 10) {
 
 /** A short press on the send button when you send (Light motion and Smooth alike). */
 function playSendFx(button) {
-    if (!active || !settings.chatStyle || !motionAllowed()) return;
+    if (!active || !settings.sendEffect || !settings.chatStyle || !motionAllowed()) return;
     button.classList.remove('pt-launch');
     void button.offsetWidth;
     button.classList.add('pt-launch');
@@ -2679,7 +2721,7 @@ function messageActionLabel(button) {
 let passEditCopy = false;
 
 function onEditCopyClick(event) {
-    if (!active) return;
+    if (!active || !settings.messageMenu) return;
     const button = event.target.closest?.('#chat .mes_edit_copy');
     if (!button) return;
     if (passEditCopy) {
@@ -2739,7 +2781,7 @@ function onEditCopyClick(event) {
 }
 
 function onMessageMenuClick(event) {
-    if (!active) return;
+    if (!active || !settings.messageMenu) return;
     const hint = event.target.closest?.('#chat .extraMesButtonsHint');
     if (!hint) return;
     const message = hint.closest('.mes');
@@ -2902,7 +2944,7 @@ function syncPersonaTabs() {
     let bar = document.getElementById('pt_persona_tabs');
     const want = active && settings.touchSizing && block;
     // With the new character pages on, personas look like them: picture cards and a card with labeled tools.
-    const look = !!(want);
+    const look = !!(want && settings.charPage);
     document.documentElement.classList.toggle('pt-personapage', look);
     for (const [selector, label] of PERSONA_TOOLS) {
         const button = document.querySelector(selector);
@@ -2992,7 +3034,7 @@ function updatePersonaTabs() {
 const toastSwipe = { el: null, x: 0, dx: 0 };
 
 function onToastTouchStart(event) {
-    if (!active) return;
+    if (!active || !settings.niceToasts) return;
     const toast = event.target.closest?.('#toast-container > .toast');
     if (!toast || event.touches.length !== 1) return;
     toastSwipe.el = toast;
@@ -3049,7 +3091,7 @@ function fullImageUrl(thumb) {
 }
 
 function onAvatarClick(event) {
-    if (!active) return;
+    if (!active || !settings.imageViewer) return;
     const avatar = event.target.closest?.('#chat .mes .avatar');
     const img = avatar?.querySelector('img');
     if (!img?.getAttribute('src')) return;
@@ -3866,7 +3908,7 @@ function groupChatHistory() {
     const list = document.getElementById('select_chat_div');
     if (!list) return;
     list.querySelectorAll('.pt-date-heading').forEach(node => node.remove());
-    if (!active || !settings.touchSizing) return;
+    if (!active || !settings.touchSizing || !settings.recentTools) return;
     let lastGroup = null;
     for (const wrapper of list.querySelectorAll(':scope > .select_chat_block_wrapper')) {
         if (getComputedStyle(wrapper).display === 'none') continue;
@@ -3882,7 +3924,7 @@ function groupChatHistory() {
 
 function syncChatHistory() {
     const list = document.getElementById('select_chat_div');
-    if (!active || !settings.touchSizing) {
+    if (!active || !settings.touchSizing || !settings.recentTools) {
         chatList.observer?.disconnect();
         chatList.observer = null;
         list?.querySelectorAll('.pt-date-heading').forEach(node => node.remove());
@@ -4332,6 +4374,8 @@ function restoreKnownPicture(img) {
     const spot = info && pictureSpot(img);
     const url = spot && pictures.last.get(`${spot}|${info.type}|${info.file}`);
     if (!url) return false;
+    if (url.startsWith('blob:') && !settings.sharpPictures) return false;
+    if (!url.startsWith('blob:') && !settings.animatedPictures) return false;
     img.dataset.ptThumb = src;
     img.setAttribute('src', url);
     return true;
@@ -4343,14 +4387,14 @@ function restoreKnownPicture(img) {
  * about 100 ms of each other go in on the same frame.
  */
 function swapPicture(img, url) {
-    if (!active) return;
+    if (!active || !settings.sharpPictures) return;
     pictures.swaps.set(img, url);
     if (pictures.swapFrame || pictures.swapTimer) return;
     pictures.swapTimer = window.setTimeout(() => {
         pictures.swapTimer = 0;
         pictures.swapFrame = requestAnimationFrame(() => {
             pictures.swapFrame = 0;
-            if (!active || !pictures.swaps.size) {
+            if (!active || !settings.sharpPictures || !pictures.swaps.size) {
                 pictures.swaps.clear();
                 return;
             }
@@ -4402,7 +4446,7 @@ function sharpPicture(info, width) {
     if (pictures.pending.has(key)) return pictures.pending.get(key);
     const job = new Promise((resolve, reject) => {
         pictures.queue.push(async () => {
-            if (!active) {
+            if (!active || !settings.sharpPictures) {
                 reject(new Error('cancelled'));
                 return;
             }
@@ -4411,7 +4455,7 @@ function sharpPicture(info, width) {
                 const response = await fetch(fullPictureUrl(info));
                 if (!response.ok) throw new Error(String(response.status));
                 const blob = await response.blob();
-                if (!active) throw new Error('cancelled');
+                if (!active || !settings.sharpPictures) throw new Error('cancelled');
                 bitmap = await createImageBitmap(blob);
                 const scale = Math.min(1, width / bitmap.width);
                 const canvas = document.createElement('canvas');
@@ -4422,7 +4466,7 @@ function sharpPicture(info, width) {
                 context.imageSmoothingQuality = 'high';
                 context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
                 const out = await new Promise(done => canvas.toBlob(done, 'image/webp', 0.92));
-                if (!active) throw new Error('cancelled');
+                if (!active || !settings.sharpPictures) throw new Error('cancelled');
                 const url = URL.createObjectURL(out ?? blob);
                 pictures.cache.set(key, url);
                 while (pictures.cache.size > PICTURE_CACHE_LIMIT) {
@@ -4463,10 +4507,14 @@ function upgradePicture(img) {
     const info = thumbInfo(current) ?? (img.dataset.ptThumb ? thumbInfo(img.dataset.ptThumb) : null);
     if (!info) return;
     if (thumbInfo(current)) img.dataset.ptThumb = current;
-    const animated = info.type === 'avatar' ? animatedPictureFor(info.file) : null;
+    const animated = info.type === 'avatar' && settings.animatedPictures ? animatedPictureFor(info.file) : null;
     if (animated) {
         if (current !== animated) img.setAttribute('src', animated);
         rememberPicture(img, animated);
+        return;
+    }
+    if (!settings.sharpPictures) {
+        if (img.dataset.ptThumb && current !== img.dataset.ptThumb) img.setAttribute('src', img.dataset.ptThumb);
         return;
     }
     const shown = img.getBoundingClientRect().width || img.clientWidth;
@@ -4515,7 +4563,7 @@ function scheduleVisibleCheck(event) {
     if (event?.target instanceof HTMLTextAreaElement || event?.target instanceof HTMLInputElement) return;
     window.clearTimeout(pictures.timer);
     pictures.timer = window.setTimeout(() => {
-        if (!active) return;
+        if (!active || !(settings.sharpPictures || settings.animatedPictures)) return;
         for (const img of pictures.near) {
             if (!img.isConnected) {
                 pictures.near.delete(img);
@@ -4537,7 +4585,7 @@ function scanPictures(root = document) {
 }
 
 function syncPictures() {
-    const want = active;
+    const want = active && (settings.sharpPictures || settings.animatedPictures);
     if (!want) {
         pictures.observer?.disconnect();
         pictures.seen?.disconnect();
@@ -4569,7 +4617,7 @@ function syncPictures() {
         pictures.cache.clear();
         return;
     }
-    if (!pictures.cache.size) {
+    if (!settings.sharpPictures && pictures.cache.size) {
         pictures.queue.length = 0;
         for (const img of document.querySelectorAll('img[data-pt-thumb]')) {
             if ((img.getAttribute('src') ?? '').startsWith('blob:')) img.setAttribute('src', img.dataset.ptThumb);
@@ -4577,6 +4625,13 @@ function syncPictures() {
         for (const [key, url] of pictures.last) if (url.startsWith('blob:')) pictures.last.delete(key);
         for (const url of pictures.cache.values()) URL.revokeObjectURL(url);
         pictures.cache.clear();
+    }
+    if (!settings.animatedPictures) {
+        for (const [key, url] of pictures.last) if (!url.startsWith('blob:')) pictures.last.delete(key);
+        for (const img of document.querySelectorAll('img[data-pt-thumb]')) {
+            const src = img.getAttribute('src') ?? '';
+            if (src && !src.startsWith('blob:') && src !== img.dataset.ptThumb) img.setAttribute('src', img.dataset.ptThumb);
+        }
     }
     if (!pictures.seen) {
         // Only pictures that are (nearly) on screen are upgraded, so long lists stay light.
@@ -4708,7 +4763,7 @@ let pendingAnimated = null;
  * picture SillyTavern saves; a still picture replaces any earlier animation.
  */
 async function onAvatarPicked(event) {
-    if (!active || event.target?.id !== 'add_avatar_button') return;
+    if (!active || !settings.animatedPictures || event.target?.id !== 'add_avatar_button') return;
     const file = event.target.files?.[0];
     if (!file) return;
     const context = ctx();
@@ -4868,7 +4923,7 @@ function syncComposer() {
     const right = document.getElementById('rightSendForm');
     const want = active && settings.chatStyle && left && right;
     watchFormHeight(!!want);
-    if (!want) {
+    if (!want || !settings.contextMeter) {
         composer.ring?.remove();
         composer.ring = null;
     }
@@ -4914,7 +4969,7 @@ function syncComposer() {
         if (left.firstElementChild !== composer.tabs) left.prepend(composer.tabs);
         syncTabsButton();
     }
-    if ((!composer.ring || !composer.ring.isConnected)) {
+    if (settings.contextMeter && (!composer.ring || !composer.ring.isConnected)) {
         composer.ring?.remove();
         composer.ring = buildContextRing();
         right.prepend(composer.ring);
@@ -5214,7 +5269,7 @@ function primeChatSizes(delay = 0) {
     window.clearTimeout(fastChat.timer);
     fastChat.timer = window.setTimeout(() => {
         const chat = document.getElementById('chat');
-        if (!active || !chat) return;
+        if (!active || !settings.fastChat || !chat) return;
         chat.classList.add('pt-fast-prime');
         // Drawn in the next frame (heights are remembered then), skipped again after it.
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -5594,7 +5649,7 @@ async function contextBreakdown() {
 
 /** After a chat opens, fill the ring from its last reply right away. */
 async function loadMeterFromHistory() {
-    if (!active) return;
+    if (!active || !settings.contextMeter) return;
     const chatId = ctx().getCurrentChatId?.();
     try {
         const info = await contextBreakdown();
@@ -5629,7 +5684,7 @@ function paintRing(ring, share, empty) {
 }
 
 function onPromptReady(data) {
-    if (!active || data?.dryRun || !meter.live) return;
+    if (!active || !settings.contextMeter || data?.dryRun || !meter.live) return;
     meter.live = false;
     if (Array.isArray(data?.chat)) measurePrompt(data.chat.map(item => (typeof item.content === 'string' ? item.content : JSON.stringify(item.content ?? ''))).join('\n'));
     else if (typeof data?.prompt === 'string') measurePrompt(data.prompt);
@@ -5945,7 +6000,7 @@ function entryKeys(entry) {
 }
 
 async function decorateEntries(forceRefresh = false) {
-    if (!active || !settings.touchSizing) return;
+    if (!active || !settings.touchSizing || !settings.loreCards) return;
     const list = document.getElementById('world_popup_entries_list');
     if (!list) return;
     const currentBook = document.getElementById('world_editor_select')?.selectedOptions[0]?.textContent?.trim() ?? '';
@@ -5955,7 +6010,7 @@ async function decorateEntries(forceRefresh = false) {
     if (forceRefresh || closedSinceEdit || (currentBook && loreKeys.name !== currentBook)) {
         lore.edited = false;
         await refreshLoreKeys();
-        if (!active || !settings.touchSizing) return;
+        if (!active || !settings.touchSizing || !settings.loreCards) return;
     }
     for (const entry of list.querySelectorAll('.world_entry')) {
         // The content block uses the same class, so ask for the one in the header.
@@ -5999,7 +6054,7 @@ function closeLoreEntry() {
 
 function syncLoreEntries() {
     const list = document.getElementById('world_popup_entries_list');
-    const want = active && settings.touchSizing;
+    const want = active && settings.touchSizing && settings.loreCards;
     document.documentElement.classList.toggle('pt-lorecards', !!want);
     if (!want) {
         window.clearTimeout(lore.timer);
@@ -6092,7 +6147,7 @@ function removeSliderSteppers() {
 const press = { timer: 0, x: 0, y: 0, fired: 0 };
 
 function onMessagePressStart(event) {
-    if (!active || !settings.longPress || event.pointerType === 'mouse') return;
+    if (!active || !settings.messageMenu || !settings.longPress || event.pointerType === 'mouse') return;
     const message = event.target.closest?.('#chat .mes');
     if (!message || event.target.closest('textarea, input, a, button, .mes_button, .menu_button, .avatar, .swipe_left, .swipe_right, .mes_reasoning_summary, #curEditTextarea')) return;
     if (message.querySelector('#curEditTextarea')) return;
@@ -7510,7 +7565,7 @@ function syncExtras() {
     syncServerWatch();
     syncConnectionBanner();
     syncManifest();
-    const fastOn = active;
+    const fastOn = active && settings.fastChat;
     if (fastOn && !document.documentElement.classList.contains('pt-fast-chat')) primeChatSizes();
     document.documentElement.classList.toggle('pt-fast-chat', fastOn);
     if (fastOn) window.addEventListener('resize', onChatWidthChange);
@@ -7527,7 +7582,7 @@ function syncExtras() {
     syncToolPanels();
     syncThemeNotes();
     if (!active || !settings.keepAwake) setAwake(false);
-    if (!active) closeViewer(true);
+    if (!active || !settings.imageViewer) closeViewer(true);
     if (active) patchClipboard();
     else unpatchClipboard();
     if (extras.wired) return;
@@ -8276,6 +8331,7 @@ function buildSettings() {
                 ]),
                 check('pt_backdrop', 'Theme background', "Use the theme's backdrop instead of your chat background."),
                 check('pt_font', 'Modern font', resolveLayout(settings.layout) === 'desktop' ? "Your computer's own system font." : "Your phone's own system font."),
+                check('pt_icons', 'New icons', 'Rounded line icons everywhere.'),
                 h('label', { class: 'pt-field', for: 'pt_size' }, [
                     h('span', { class: 'pt-field-label', text: 'Size' }),
                     h('select', { id: 'pt_size', class: 'text_pole' }, Object.entries(SIZES).map(([value, text]) => h('option', { value, text }))),
@@ -8300,6 +8356,7 @@ function buildSettings() {
                 check('pt_touch', 'Touch-friendly panels', 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.'),
                 check('pt_back', 'Back gesture closes panels', 'Android back closes the open page, popup or sheet first.'),
                 check('pt_lorebook', 'Easy lorebook picker', 'Searchable list for global, character, chat and persona lorebooks.'),
+                check('pt_wand', 'Lorebooks shortcut in the ✨ menu', ''),
                 check('pt_long', 'Searchable long dropdowns (experimental)', 'Use the same list for any dropdown with 14 or more choices.'),
                 h('small', { class: 'pt-note', text: 'Changes apply right away. Nothing here changes your characters, chats or lorebooks.' }),
             ]),
@@ -8326,9 +8383,11 @@ function buildSettings() {
     bind('pt_touch', 'touchSizing');
     bind('pt_back', 'backGesture');
     bind('pt_lorebook', 'lorebookPicker');
+    bind('pt_wand', 'wandShortcut');
     bind('pt_long', 'longSelects');
     bind('pt_backdrop', 'themeBackdrop', true);
     bind('pt_font', 'modernFont', true);
+    bind('pt_icons', 'customIcons', true);
     for (const extra of EXTRAS) bind(extra.id, extra.key, true);
     for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
         const select = document.getElementById(id);
@@ -8357,7 +8416,7 @@ function syncSettingsThemeOption(select) {
 
 /** Keeps the Extensions-panel controls in step when settings change from a sheet. */
 function syncSettingsInputs() {
-    const pairs = { pt_backdrop: 'themeBackdrop', pt_font: 'modernFont' };
+    const pairs = { pt_backdrop: 'themeBackdrop', pt_font: 'modernFont', pt_icons: 'customIcons' };
     for (const extra of EXTRAS) pairs[extra.id] = extra.key;
     for (const [id, key] of Object.entries(pairs)) {
         const input = document.getElementById(id);
@@ -8459,9 +8518,9 @@ function setupMessageView() {
         context: ctx,
         enabled: () => ({
             chat: active && settings.chatStyle,
-            fold: active && settings.chatStyle,
-            jump: active,
-            drag: active && settings.chatStyle,
+            fold: active && settings.chatStyle && settings.foldLong,
+            jump: active && settings.jumpButton,
+            drag: active && settings.chatStyle && settings.dragSwipe,
         }),
         generating: () => !!extras.generating,
         motion: motionAllowed,
@@ -8686,7 +8745,7 @@ function init() {
         if (!event_types[name]) continue;
         eventSource?.on?.(event_types[name], () => {
             meter.live = false;
-            if (!active) return;
+            if (!active || !settings.contextMeter) return;
             clearTimeout(meter.timer);
             meter.timer = window.setTimeout(loadMeterFromHistory, 400);
         });

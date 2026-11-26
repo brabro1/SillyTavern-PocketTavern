@@ -267,8 +267,10 @@ await step("a character's animated picture that no longer exists falls back to i
     const was = await page.evaluate(async () => {
         if (SillyTavern.getContext().characterId === undefined) await SillyTavern.getContext().selectCharacterById('0');
         const c = SillyTavern.getContext();
+        const s = c.extensionSettings.mobileUI;
         const character = c.characters[c.characterId];
-        const before = { link: character.data.extensions.pt_animated_avatar };
+        const before = { animated: s.animatedPictures, link: character.data.extensions.pt_animated_avatar };
+        s.animatedPictures = true;
         character.data.extensions.pt_animated_avatar = '/user/files/deleted-test-picture.gif';
         await c.reloadCurrentChat();
         return before;
@@ -282,6 +284,7 @@ await step("a character's animated picture that no longer exists falls back to i
     } finally {
         await page.evaluate(async before => {
             const c = SillyTavern.getContext();
+            c.extensionSettings.mobileUI.animatedPictures = before.animated;
             c.characters[c.characterId].data.extensions.pt_animated_avatar = before.link;
             await c.reloadCurrentChat();
         }, was);
@@ -2417,7 +2420,7 @@ await step("More… on a character card stays above the Description tabs at 1920
     }
 });
 
-await step('tapping a character shows its page (not its chat); Chat, Edit and a recent chat do what they say', async () => {
+await step('tapping a character shows its page (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
     await ensureCharacters([['Aria', 'Hello, I am Aria.'], ['Seraphina', '*She smiles and sets down her cup.* "Welcome, traveler."']]);
     await ensureChat('Seraphina');
     await ensureChat('Aria');
@@ -2482,6 +2485,26 @@ await step('tapping a character shows its page (not its chat); Chat, Edit and a 
     await until(() => !!document.querySelector('#pt-page .pt-character-actions .pt-button--primary'));
     await page.locator('#pt-page .pt-character-actions .pt-button--primary').click();
     await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina' && !document.documentElement.dataset.ptPage, null, 10000);
+    // Turned off, a tap opens the chat at once, as before.
+    await page.evaluate(() => {
+        const box = document.getElementById('pt_charpreview');
+        box.checked = false;
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    try {
+        await goCharacters();
+        await tapCharacter('Aria');
+        await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Aria', null, 10000);
+        if (await page.locator('#pt-page[data-page="pt-character"]').count()) throw new Error('the character page opened with Character preview off');
+    } finally {
+        await page.evaluate(() => {
+            const box = document.getElementById('pt_charpreview');
+            box.checked = true;
+            box.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        await page.waitForTimeout(1500);
+        if (await page.evaluate(() => !!document.documentElement.dataset.ptPage)) await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]')?.click());
+    }
 });
 
 await step('chat history shows each chat as a title, a message bubble and ⋯', async () => {

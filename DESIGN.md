@@ -233,14 +233,8 @@ Phone                                  Desktop
 - **Pocket Tavern:**
   - Use it on this device (Automatic, Phones only, Off)
   - Use SillyTavern for now
-  - Behaviour, six switches and no more:
-    - Long-press for message menu
-    - Keep unsent messages
-    - Keep screen on while replying
-    - Connection check
-    - Translation (Google Translate)
-    - Vibration (Android phones)
-- Everything that used to be a "feature switch" in 2.x is now simply how the app works, or is gone (section 9).
+  - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Messages, Characters, Pictures, Notifications, This device, Updates), each with one line saying what it does. On by default
+- **Switches are kept.** Pocket Tavern is meant to be customizable: a 2.x switch is never removed, only made clearer, grouped or given a better default. A new feature gets a switch when someone could reasonably want it off. When the remake changes how a feature works, its switch keeps meaning "this feature on or off".
 
 ### Phone navigation
 
@@ -648,7 +642,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 | **One ⋯ menu per object, shown wherever the object is** | Consistent actions without counting as extra routes | none |
 | **No `backdrop-filter`** | Phone GPUs and broken fixed layers | Over chat backgrounds, cards are tinted, not blurred |
 | **Six themes, plus SillyTavern's** | Fewer, better-tuned themes. Each one is tested for contrast | Midnight, Mocha, Ocean, Forest, Sakura, Nord, Abyss, Cloud and Lavender are retired. Saved choices fall back to Pocket |
-| **Six behaviour switches** | Every switch doubles what has to be tested, and the app should decide | Always on now (settings version 2 removes their saved switches): message menu, context ring, lorebook cards, sharp and animated pictures, character pages and preview, chat list helpers, faster long chats, Jump to latest, picture viewer, calm notifications, reload after updates when idle, the send press, the new icons, and the Lorebooks item under `+` → Tools. Kept as a seventh switch while Guided Generations is installed: Guided Generations as one button (off brings back its own row). Still to go with Appearance: Hide tabs in a chat, the long-select switch, and Modern font (it becomes Appearance → Reading font) |
+| **Every behaviour switch stays** | People choose how their app behaves; customizing is part of Pocket Tavern | More combinations to test. Switches are grouped and explained so the list stays easy to read. Modern font becomes Appearance → Reading font (the same choice, better named) |
 | **Classes renamed `stmui-` → `pt-`** (3.0) | A clean slate with one prefix | Users' custom CSS aimed at Pocket Tavern's own classes needs updating; this is announced in the 3.0 notes. The `mobileUI` settings key is kept |
 | **Pocket Tavern's own views for daily screens; SillyTavern's forms for the long tail** | A coherent app where it matters, while SillyTavern keeps saving everything | Restyled screens can look less tailored. They follow the same tokens and component rules |
 | **No full-width top bar on desktop** | More height for reading. Headers belong to their column | none |

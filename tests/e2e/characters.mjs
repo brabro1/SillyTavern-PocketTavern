@@ -132,6 +132,31 @@ for (const layout of ['phone', 'desktop']) {
             await waitFor(page, 'the list', () => !document.getElementById('pt-page') && document.documentElement.dataset.ptPage === 'rightNavHolder');
         });
 
+        await step("Characters → Lorebooks → Characters switches each time, even with SillyTavern's Characters lock on", async () => {
+            const lock = await page.evaluate(() => document.getElementById('rm_button_panel_pin')?.checked ?? null);
+            const pin = on => page.evaluate(value => { const box = document.getElementById('rm_button_panel_pin'); if (box && box.checked !== value) { box.checked = value; jQuery(box).trigger('change'); } }, on);
+            const tap = async id => {
+                await page.evaluate(() => { document.querySelector('.pt-tabs-btn')?.click(); });
+                await page.waitForTimeout(200);
+                await page.locator(`.pt-tab[data-tab="${id}"]`).click();
+            };
+            try {
+                if (lock !== null) await pin(true);
+                await page.waitForTimeout(300);
+                // Characters is open already (tapping it again would hide it on desktop).
+                for (const id of ['WI-SP-button', 'rightNavHolder', 'WI-SP-button', 'rightNavHolder']) {
+                    await tap(id);
+                    await waitFor(page, `${id} open alone`, want => {
+                        const open = [...document.querySelectorAll('#top-settings-holder > .drawer > .drawer-content.openDrawer')].map(node => node.parentElement.id);
+                        return document.documentElement.dataset.ptPage === want && open.length === 1 && open[0] === want;
+                    }, id);
+                    await page.waitForTimeout(300);
+                }
+            } finally {
+                if (lock !== null) await pin(lock);
+            }
+        });
+
         await step('no errors from Pocket Tavern', async () => {
             if (errors.length) throw new Error(errors.join(' | '));
         });

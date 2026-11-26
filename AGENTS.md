@@ -34,7 +34,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | M2 | Chats and the chat: 2a Chats home and Search everything · 2b chat header, ⋯, messages, versions, thinking, chat-switch loading · 2c message box, `+`, context ring, banners | Their legacy parts are deleted; `e2e/chats.mjs`, `e2e/chat.mjs` pass | done |
 | M3 | Characters: grid and A–Z, character page, character editor (restyled) | Legacy part deleted; `e2e/characters.mjs` passes | done |
 | M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | done |
-| M5 | Settings (hub, Appearance, Personas, Pocket Tavern, About; retired switches migrated) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | planned |
+| M5 | Settings (hub, Appearance, Personas, Pocket Tavern with every switch, grouped; About) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | planned |
 | M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | planned |
 | M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | planned |
 
