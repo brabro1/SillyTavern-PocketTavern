@@ -44,6 +44,15 @@ export const START_NEW_CHAT = '#option_start_new_chat';
 
 /** The character list's row of filter buttons (favourites, groups, folders, tags, clear). */
 export const CHARACTER_FILTERS = '#rm_characters_block .rm_tag_filter';
+/** The list itself (a grid of cards, or rows); SillyTavern empties and fills it on every search, sort or page. */
+export const CHARACTER_LIST = '#rm_print_characters_block';
+/** The box above the list (toolbar, search, filters). */
+export const CHARACTER_LIST_TOP = '#charListFixedTop';
+/** The search field SillyTavern filters the list with. */
+export const CHARACTER_SEARCH = '#character_search_bar';
+/** Bulk edit (select several), and the class SillyTavern puts on the list while it is on. */
+export const BULK_EDIT_BUTTON = '#bulkEditButton';
+export const BULK_MODE_CLASS = 'group_overlay_mode_select';
 
 // ---- Formatting (Advanced Formatting) ----------------------------------------------------------
 

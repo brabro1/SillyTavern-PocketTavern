@@ -555,15 +555,21 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - Picture (96, SillyTavern's shape) and name (`title`), over a soft, blurred wash of the picture that fades out downwards.
   - Beside the name: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, then Delete in red). ★, Export, Duplicate, Lorebooks and Delete act on that character directly, through SillyTavern's own functions, so their chat stays shut. Only External media needs their chat, which then opens first (with a short note saying so).
   - A short about (creator's note or description), clamped to three lines with "More".
+  - Under the name, who made the card ("by …").
 - **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row. In the editor itself, the card's own buttons are **New chat** and **Recent chats**.
+- **Connections:** a **Lorebook** row with their lorebook (opens it in Lorebooks; with none, picks one), then their **Tags** as chips; a tag opens Characters showing only that tag.
 - **Chats:** every chat with this character as chat rows (the chat's name, its last message, how many messages), newest first, with a filter field when there are more than eight.
 - **Nothing changes** until the user picks something.
 - **Where it opens:** on a phone, as a pushed page. On desktop, in the panel, with the chat staying beside it.
 
 ### Characters list
-- **Top:** favourites (round pictures with names) while the list shows; they step aside while a card is open. Then one row: the search field, Sort, Grid or list, and `+` (accent).
-- **Filters:** SillyTavern's filter buttons as 44px labelled pills in one row that scrolls sideways (the wheel scrolls it on desktop): Favorites, Groups, Folders, Edit tags, All tags, Clear. The labels are Pocket Tavern's words on SillyTavern's own buttons.
+- **Toolbar:** one row: the search field, **Filter** (a count badge and the accent while anything is filtered), **Sort and view**, and `+` (accent; new character, imports, new group, Select several).
+- **Filter** opens a sheet: **Show** (Favorites, Groups, Folders) and **Tags** (every tag, with its colour). Each row shows Any, Only or Hidden, and a tap moves it on (SillyTavern's own three states, through its own hidden buttons). Then **Edit tags** and **Clear all filters**.
+- **While anything is filtered:** a row of chips under the toolbar, one per filter (a hidden one struck through), each removed with a tap, and **Clear**. SillyTavern's "N hidden" note is a quiet line under the results.
+- **Sort and view** opens a sheet: **Show as** (Grid, List), then **Sort by** (SillyTavern's orders).
+- **The list starts with** **Favorites** (characters and groups as 56px picks, the same row as Chats home's quick picks; a character opens their page, a group its chat) and **All characters** with the total. While searching or filtering, the header reads **Results** and Favorites step aside. SillyTavern's own favourites row and filter buttons stay hidden.
 - **Grid:** picture cards (3:4, name at the bottom) with the card shadow; a favourite wears a gold star in a dark 24px circle at the top end corner. On desktop a card lifts and its picture leans in under the mouse.
+- **A card's menu:** a long press (finger, 0.5 s) or right click (mouse) opens it: Open their page, Chat, New chat, Edit · ★, Lorebook, Duplicate, Export, Select several · Delete. During SillyTavern's bulk select, its own menu stays.
 
 ### Character editor
 - **Where:** full screen on a phone, the widened panel on desktop. Header: ‹ (back to the character's page when it was opened from there, else to the list), the name.

@@ -136,3 +136,26 @@
     margin: var(--pt-space-2);
     color: var(--pt-text-secondary);
 }
+
+/* Under the name: who made the card. */
+.pt-character-creator {
+    margin-top: var(--pt-space-1);
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Their tags: each opens Characters showing only that tag. */
+.pt-character-tags {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+}
+
+.pt-character-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pt-space-2);
+}

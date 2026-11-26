@@ -8,6 +8,8 @@ import { avatar } from '../ui/avatar.js';
 import { button, iconButton } from '../ui/button.js';
 import { chatRow, chatTitle, formatPreview } from '../ui/chat-row.js';
 import { emptyState } from '../ui/feedback.js';
+import { listGroup, listRow } from '../ui/list.js';
+import { tag } from '../ui/tag.js';
 import { searchBox } from '../ui/field.js';
 import { svgIcon } from '../ui/icons.js';
 
@@ -23,6 +25,9 @@ const normalize = text => String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g
  * @property {string} about creator's note or description, plain text (user data)
  * @property {boolean} favorite
  * @property {string} latest the file id of their latest chat
+ * @property {string} creator who made the card (user data), or ''
+ * @property {string} lorebook the lorebook linked to them (user data), or ''
+ * @property {{ id: string, name: string }[]} tags their tags (names are user data)
  *
  * @param {object} actions supplied by the shell
  * @param {() => CharacterInfo | null} actions.character the character this page shows
@@ -33,6 +38,9 @@ const normalize = text => String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g
  * @param {() => void} actions.edit
  * @param {() => void} actions.favorite toggles ★
  * @param {(button: HTMLElement) => void} actions.menu Export, Duplicate, Lorebooks, External media, Delete
+ * @param {(name: string) => void} actions.openLorebook their lorebook's page in Lorebooks
+ * @param {() => void} actions.pickLorebook link a lorebook to them
+ * @param {(id: string) => void} actions.showTag Characters, showing only this tag
  * @returns {import('../shell/page.js').PageSpec}
  */
 export function characterPage(actions) {
@@ -61,7 +69,10 @@ export function characterPage(actions) {
             const hero = h('div', { class: 'pt-character-hero' }, [
                 backdrop,
                 avatar({ name: who.name, src: who.picture, size: 96 }),
-                h('div', { class: 'pt-character-head' }, [h('div', { class: 'pt-character-title' }, [name, star, more])]),
+                h('div', { class: 'pt-character-head' }, [
+                    h('div', { class: 'pt-character-title' }, [name, star, more]),
+                    who.creator ? h('div', { class: 'pt-character-creator', dir: 'auto', raw: t('by {name}', { name: who.creator }) }) : null,
+                ]),
             ]);
             body.append(hero);
             if (who.about) {
@@ -83,6 +94,23 @@ export function characterPage(actions) {
                 button({ label: 'New chat', icon: 'chat-plus', onClick: actions.newChat }),
                 button({ label: 'Edit', icon: 'pencil', onClick: actions.edit }),
             ]));
+
+            // What they are connected to: their lorebook (opens it in Lorebooks) and their tags (each opens
+            // Characters showing only that tag).
+            const links = [listRow({
+                title: 'Lorebook',
+                icon: 'book',
+                end: 'picker',
+                value: who.lorebook || t('None'),
+                onClick: () => (who.lorebook ? actions.openLorebook(who.lorebook) : actions.pickLorebook()),
+            })];
+            body.append(listGroup({ rows: links }));
+            if (who.tags.length) {
+                body.append(h('section', { class: 'pt-character-tags' }, [
+                    h('div', { class: 'pt-list-header', text: 'Tags' }),
+                    h('div', { class: 'pt-character-tag-row' }, who.tags.map(item => tag({ rawLabel: item.name, onClick: () => actions.showTag(item.id) }))),
+                ]));
+            }
 
             // Every chat with them, newest first.
             const list = h('div', { class: 'pt-chats-rows' });

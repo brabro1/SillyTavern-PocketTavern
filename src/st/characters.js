@@ -6,12 +6,12 @@
 // Moved here whole from the legacy app (M3); its listeners are still registered by the legacy app, so errors
 // in them are caught by the lifecycle's page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
 import { h } from '../core/dom.js';
-import { safe } from '../core/lifecycle.js';
 import { shieldFromDrawerAutoClose } from './drawers.js';
 import { t } from '../core/i18n.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { chatTitleNode, messageCount, previewBubble } from '../ui/chat-row.js';
-import { CHARACTER_FILTERS, START_NEW_CHAT } from './selectors.js';
+import { START_NEW_CHAT } from './selectors.js';
+import { openFilterSheet, removeListTop, setupCharacterList, startBulkSelect, syncFilterBar, syncListTop, unwatchCardMenu, watchCardMenu } from './character-list.js';
 import { listGroup, listRow } from '../ui/list.js';
 
 const LOG = '[Pocket Tavern]';
@@ -24,6 +24,15 @@ let deps = null;
 
 export function setupCharacters(supplied) {
     deps = supplied;
+    setupCharacterList({
+        context: () => deps.context(),
+        showSheet: instance => deps.showSheet(instance),
+        closeSheet: immediate => deps.closeSheet(immediate),
+        menuSheet: options => new MenuSheet(options),
+        openCharacterPage: chid => openCharacterPage(chid),
+        cardMenu: (chid, anchor) => openCardMenu(chid, anchor),
+        closePages: () => deps.closePages(),
+    });
 }
 
 const ctx = () => deps.context();
@@ -47,7 +56,7 @@ function MenuSheet(options) {
     return new deps.MenuSheet(options);
 }
 
-// -- characters page: labeled card tools, tabs, favorites captions, A–Z strip
+// -- characters page: labeled card tools, tabs, the list's toolbar, A–Z strip
 
 const CARD_TOOLS = [
     ['#favorite_button', 'Favorite'],
@@ -63,7 +72,7 @@ const CARD_TOOLS = [
 // DESIGN.md → Character editor: Description, Greetings, Details. SillyTavern's Advanced definitions (personality,
 // scenario, examples, prompt overrides) stay in its own popup, opened by the labelled Advanced button.
 const CARD_TABS = [['desc', 'Description'], ['greet', 'Greetings'], ['notes', 'Details']];
-const chars = { observer: null, listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null };
+const chars = { listObserver: null, azTimer: 0, tab: 'desc', passTap: false, peek: null };
 
 /**
  * Export on a character card: SillyTavern opens a tiny PNG / JSON list next to the button, which
@@ -304,6 +313,11 @@ async function actOnCharacter(what, chid) {
     if (currentPageId() === 'pt-character') openPage('rightNavHolder');
 }
 
+/** The character's lorebook, picked without opening their chat (the character page's Lorebook row). */
+export function pickCharacterLorebook(chid) {
+    pickPeekedLorebook(chid);
+}
+
 /** ★ for any character, without opening its chat: SillyTavern's own favourite toggle, then its list again. */
 export async function favoriteCharacter(chid) {
     const { CharacterContextMenu } = await import('/scripts/BulkEditOverlay.js');
@@ -329,6 +343,7 @@ async function pickPeekedLorebook(chid) {
         await context.writeExtensionField(Number(chid), 'world', name);
         document.getElementById('world_button')?.classList.toggle('world_set', !!name);
         globalThis.toastr?.success(name ? t('{name} now uses this lorebook.', { name: character.name }) : t('{name} has no lorebook now.', { name: character.name }), '', { timeOut: 2500 });
+        if (currentPageId() === 'pt-character') refreshOwnPage();
     };
     showSheet(new MenuSheet({
         title: t('Lorebook'),
@@ -523,6 +538,51 @@ export function openCharacterMenu(anchor) {
     showSheet(instance);
 }
 
+/**
+ * A card's menu in the list (a long press or right click; DESIGN.md → Characters list): the same things as
+ * the character's page and its ⋯, so the list leads straight to chats, the editor and lorebooks.
+ */
+export function openCardMenu(chid, anchor = null) {
+    const character = ctx().characters?.[chid];
+    if (!character) return;
+    const favorite = character.fav === true || character.fav === 'true';
+    const row = (iconName, title, run, danger = false) => {
+        const node = listRow({ title, icon: iconName, end: 'none', onClick: () => {
+            closeSheet(true);
+            run();
+        } });
+        if (danger) node.classList.add('pt-list-row--danger');
+        return node;
+    };
+    const instance = new MenuSheet({
+        title: 'Character',
+        anchor,
+        fill: body => {
+            body.append(listGroup({ rows: [
+                row('user', 'Open their page', () => openCharacterPage(chid)),
+                row('chat', 'Chat', () => openCharacterChatFor(chid)),
+                row('chat-plus', 'New chat', () => openCharacterChatFor(chid, { then: () => document.querySelector(START_NEW_CHAT)?.click() })),
+                row('pencil', 'Edit', () => {
+                    characterTarget.chid = String(chid);
+                    editCharacter(chid);
+                }),
+            ] }));
+            body.append(listGroup({ rows: [
+                row('star', favorite ? 'Remove from favourites' : 'Add to favourites', () => favoriteCharacter(chid)),
+                row('book', 'Lorebook', () => actOnCharacter('lorebook', chid)),
+                row('copy', 'Duplicate', () => actOnCharacter('duplicate', chid)),
+                row('file-export', 'Export', () => openExportSheet(chid)),
+                row('check', 'Select several', () => startBulkSelect()),
+            ] }));
+            body.append(listGroup({ rows: [row('trash', 'Delete', () => actOnCharacter('delete', chid), true)] }));
+        },
+    });
+    // The character's name is shown as it is.
+    instance.title.textContent = character.name;
+    instance.title.dir = 'auto';
+    showSheet(instance);
+}
+
 /** Export: PNG or JSON, through SillyTavern's own export, for this character. */
 function openExportSheet(chid) {
     const pick = format => {
@@ -538,10 +598,6 @@ function openExportSheet(chid) {
     }));
 }
 
-function displayName(title) {
-    return String(title ?? '').split('\n')[0].replace(/^\[[^\]]+\]\s*/, '').trim();
-}
-
 export function syncCharacterPage() {
     const form = document.getElementById('form_create');
     const want = deps.active() && deps.settings().touchSizing && deps.settings().charPage;
@@ -551,12 +607,12 @@ export function syncCharacterPage() {
         chars.azTimer = 0;
         restoreCharToolbar();
         document.getElementById('rm_characters_block')?.classList.remove('pt-one-page');
-        document.querySelectorAll('.pt-btn-label, #pt_card_tabs, .pt-hero-name, #pt_card_go, .pt-cap, #pt_az, #pt_az_bubble').forEach(node => node.remove());
+        document.querySelectorAll('.pt-btn-label, #pt_card_tabs, .pt-hero-name, #pt_card_go, #pt_az, #pt_az_bubble').forEach(node => node.remove());
+        removeListTop();
+        unwatchCardMenu();
         endCardPeek();
         form?.classList.remove('pt-ctab-desc', 'pt-ctab-greet', 'pt-ctab-notes');
-        chars.observer?.disconnect();
         chars.listObserver?.disconnect();
-        chars.observer = null;
         chars.listObserver = null;
         return;
     }
@@ -606,13 +662,6 @@ export function syncCharacterPage() {
     }
     setCardTab(chars.tab, false);
 
-    // Favorites strip: names under the round avatars.
-    captionFavorites();
-    if (!chars.observer) {
-        chars.observer = new MutationObserver(() => captionFavorites());
-        const wrapper = document.getElementById('HotSwapWrapper');
-        if (wrapper) chars.observer.observe(wrapper, { childList: true, subtree: true });
-    }
     // The list re-renders on search, sort and paging: rebuild the A–Z strip each time.
     if (!chars.listObserver) {
         const list = document.getElementById('rm_print_characters_block');
@@ -620,6 +669,8 @@ export function syncCharacterPage() {
             chars.listObserver = new MutationObserver(() => {
                 window.clearTimeout(chars.azTimer);
                 chars.azTimer = window.setTimeout(() => {
+                    syncListTop();
+                    watchCardMenu();
                     buildAzStrip();
                     updateCharPaging();
                     updateCharToolbar();
@@ -630,6 +681,8 @@ export function syncCharacterPage() {
             wireOnce(document.getElementById('character_sort_order'), 'change', () => setTimeout(buildAzStrip, 300));
         }
     }
+    syncListTop();
+    watchCardMenu();
     buildAzStrip();
 }
 
@@ -638,49 +691,6 @@ export function syncCharacterPage() {
  * with everything SillyTavern spreads over several rows of small buttons.
  * SillyTavern's own buttons stay in the page (hidden) and do the actual work.
  */
-/** SillyTavern's filter buttons are icons with a long tooltip; each gets a short visible label. */
-const FILTER_LABELS = [
-    ['filterByFavorites', 'Favorites'],
-    ['filterByGroups', 'Groups'],
-    ['filterByFolder', 'Folders'],
-    ['manageTags', 'Edit tags'],
-    ['showTagList', 'All tags'],
-    ['clearAllFilters', 'Clear'],
-];
-
-/** The mouse wheel scrolls the filter row sideways while it can still move (a computer has no swipe). */
-const onFilterWheel = safe('character filters', event => {
-    const row = event.currentTarget;
-    if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || row.scrollWidth <= row.clientWidth) return;
-    const before = row.scrollLeft;
-    row.scrollLeft += event.deltaY;
-    if (row.scrollLeft !== before) event.preventDefault();
-});
-let filterRow = null;
-
-/** Puts each label on its button as data-pt-label (shown by CSS), so SillyTavern's own markup stays as it is. */
-function labelFilterChips() {
-    const row = document.querySelector(CHARACTER_FILTERS);
-    if (row !== filterRow) {
-        filterRow?.removeEventListener('wheel', onFilterWheel);
-        row?.addEventListener('wheel', onFilterWheel, { passive: false });
-        filterRow = row;
-    }
-    for (const [name, label] of FILTER_LABELS) {
-        for (const chip of document.querySelectorAll(`${CHARACTER_FILTERS} .tag.${name}`)) {
-            const text = t(label);
-            if (chip.dataset.ptLabel !== text) chip.dataset.ptLabel = text;
-        }
-    }
-}
-
-/** Takes the labels away again (Pocket Tavern turned off). */
-function unlabelFilterChips() {
-    filterRow?.removeEventListener('wheel', onFilterWheel);
-    filterRow = null;
-    for (const chip of document.querySelectorAll(`${CHARACTER_FILTERS} .tag[data-pt-label]`)) delete chip.dataset.ptLabel;
-}
-
 function buildCharToolbar() {
     const top = document.getElementById('charListFixedTop');
     const search = document.getElementById('character_search_bar');
@@ -692,18 +702,13 @@ function buildCharToolbar() {
         }, [ui(iconName)]);
         bar = h('div', { id: 'pt_char_toolbar', class: 'pt-char-toolbar' }, [
             h('div', { class: 'pt-ctool-search' }),
-            button('sort', 'Sort', () => openSortSheet(), 'pt-ctool-sort'),
-            button('grid', 'Grid or list', () => {
-                buzz(6);
-                document.getElementById('charListGridToggle')?.click();
-                setTimeout(updateCharToolbar, 50);
-            }, 'pt-ctool-view'),
+            button('filter', 'Filter', () => openFilterSheet(), 'pt-ctool-filter'),
+            button('sort', 'Sort and view', () => openSortSheet(), 'pt-ctool-sort'),
             button('plus', 'Add and more', () => openCharActions(), 'pt-ctool-add'),
         ]);
         shieldFromDrawerAutoClose(bar);
         top.prepend(bar);
     }
-    labelFilterChips();
     // SillyTavern's search box moves into the row (it goes back when Pocket Tavern is turned off).
     const slot = bar.querySelector('.pt-ctool-search');
     if (search.parentElement !== slot) {
@@ -720,19 +725,10 @@ const charSearchHome = { parent: null, next: null };
 function updateCharToolbar() {
     const bar = document.getElementById('pt_char_toolbar');
     if (!bar) return;
-    const grid = document.body.classList.contains('charListGrid');
-    const view = bar.querySelector('.pt-ctool-view');
-    const icon = grid ? 'list' : 'grid';
-    if (view && view.dataset.icon !== icon) {
-        view.dataset.icon = icon;
-        view.replaceChildren(ui(icon));
-        const label = t(grid ? 'Show as list' : 'Show as grid');
-        view.setAttribute('aria-label', label);
-        view.setAttribute('title', label);
-    }
     const sort = document.getElementById('character_sort_order');
     const sortButton = bar.querySelector('.pt-ctool-sort');
-    if (sort && sortButton) sortButton.title = `${t('Sort')}: ${sort.selectedOptions[0]?.textContent.trim() ?? ''}`;
+    if (sort && sortButton) sortButton.title = `${t('Sort and view')}: ${sort.selectedOptions[0]?.textContent.trim() ?? ''}`;
+    syncFilterBar();
 }
 
 function restoreCharToolbar() {
@@ -743,24 +739,42 @@ function restoreCharToolbar() {
     else if (search && form && !form.contains(search)) form.append(search);
     charSearchHome.parent = charSearchHome.next = null;
     document.getElementById('pt_char_toolbar')?.remove();
-    unlabelFilterChips();
 }
 
+/** Sort and view: Grid or List (SillyTavern's own toggle), then every sort order SillyTavern offers. */
 function openSortSheet() {
     const select = document.getElementById('character_sort_order');
     if (!select) return;
-    openChoiceSheet({
-        title: t('Sort characters'),
-        options: Array.from(select.options).filter(option => !option.hidden && option.value !== 'Search').map(option => ({ value: option.value, label: option.textContent.trim() })),
-        current: select.value,
-        onPick: value => {
-            pickFromSelect(select, value);
-            setTimeout(() => {
-                updateCharToolbar();
-                buildAzStrip();
-            }, 300);
+    const grid = document.body.classList.contains('charListGrid');
+    const done = () => setTimeout(() => {
+        updateCharToolbar();
+        buildAzStrip();
+        syncListTop();
+    }, 300);
+    const choice = (title, iconName, on, run, raw = false) => {
+        const node = listRow({
+            ...(raw ? { rawTitle: title } : { title }), icon: on ? 'check' : iconName, end: 'none',
+            onClick: () => {
+                closeSheet(true);
+                run();
+                done();
+            },
+        });
+        node.classList.toggle('pt-choice-on', on);
+        return node;
+    };
+    const options = Array.from(select.options).filter(option => !option.hidden && option.value !== 'Search');
+    showSheet(new MenuSheet({
+        title: t('Sort and view'),
+        fill: body => {
+            body.append(listGroup({ header: 'Show as', rows: [
+                choice('Grid', 'grid', grid, () => { if (!grid) document.getElementById('charListGridToggle')?.click(); }),
+                choice('List', 'list', !grid, () => { if (grid) document.getElementById('charListGridToggle')?.click(); }),
+            ] }));
+            // SillyTavern's own option names (already in the person's language).
+            body.append(listGroup({ header: 'Sort by', rows: options.map(option => choice(option.textContent.trim(), 'sort', option.value === select.value, () => pickFromSelect(select, option.value), true)) }));
         },
-    });
+    }));
 }
 
 /** Every button from SillyTavern's toolbar (and extensions that add one), with its name. */
@@ -836,14 +850,6 @@ function setCardTab(key, scroll = true) {
         button.setAttribute('aria-selected', String(on));
     }
     if (scroll) document.getElementById('pt_card_tabs')?.scrollIntoView({ block: 'nearest' });
-}
-
-function captionFavorites() {
-    for (const avatar of document.querySelectorAll('#HotSwapWrapper .hotswap .avatar')) {
-        if (avatar.querySelector('.pt-cap')) continue;
-        const name = displayName(avatar.getAttribute('title'));
-        if (name) avatar.append(h('span', { class: 'pt-cap', raw: name }));
-    }
 }
 
 function letterOf(name) {

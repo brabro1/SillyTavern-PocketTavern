@@ -57,6 +57,8 @@ for (const layout of ['phone', 'desktop']) {
         await page.waitForTimeout(300);
         await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
         await waitFor(page, 'Characters open', () => document.documentElement.dataset.ptPage === 'rightNavHolder' && document.querySelectorAll('#rm_print_characters_block .character_select').length > 0);
+        // SillyTavern keeps filters between visits: start from none, so every card is there.
+        await page.evaluate(() => document.querySelector('#rm_characters_block .rm_tag_filter .clearAllFilters')?.click());
         await page.waitForTimeout(800);
         await page.screenshot({ path: `${OUT}/${layout}-list.png` });
 
@@ -94,15 +96,70 @@ for (const layout of ['phone', 'desktop']) {
             if (moved - top < 100) throw new Error(`hovering down the strip scrolled ${moved - top}px`);
         });
 
-        await step('the filters are labelled 44px pills in one row (Favorites, Groups, Folders, Edit tags, All tags, Clear)', async () => {
-            const pills = await page.evaluate(() => [...document.querySelectorAll('#rm_characters_block .rm_tag_filter .tag.actionable')].filter(tag => getComputedStyle(tag).display !== 'none').map(tag => {
-                const box = tag.getBoundingClientRect();
-                return { label: tag.dataset.ptLabel, h: Math.round(box.height), w: Math.round(box.width), top: Math.round(box.top) };
+        await step('one toolbar (search, Filter, Sort and view, +); Favorites and "All characters" head the list; SillyTavern\'s pill row and favourites stay hidden', async () => {
+            const top = await page.evaluate(() => ({
+                tools: [...document.querySelectorAll('#pt_char_toolbar .pt-ctool')].map(node => node.getAttribute('aria-label')),
+                pills: getComputedStyle(document.querySelector('#rm_characters_block .rm_tag_filter')).display,
+                hotswap: getComputedStyle(document.getElementById('CharListButtonAndHotSwaps')).display,
+                first: document.getElementById('rm_print_characters_block').firstElementChild?.id,
+                headers: [...document.querySelectorAll('#pt_char_top .pt-list-header')].map(node => node.textContent),
+                favorites: [...document.querySelectorAll('#pt_char_top .pt-quick-pick-name')].map(node => node.textContent),
+                count: document.querySelector('#pt_char_top .pt-char-count-n')?.textContent,
+                wanted: SillyTavern.getContext().characters.filter(character => character.fav === true || character.fav === 'true').length,
+                total: SillyTavern.getContext().characters.length + (SillyTavern.getContext().groups?.length ?? 0),
             }));
-            const labels = pills.map(pill => pill.label).join('|');
-            if (labels !== 'Favorites|Groups|Folders|Edit tags|All tags|Clear') throw new Error(`labels: ${labels}`);
-            if (pills.some(pill => pill.h < 44 || pill.w <= pill.h)) throw new Error(`sizes: ${JSON.stringify(pills)}`);
-            if (new Set(pills.map(pill => pill.top)).size !== 1) throw new Error('the pills wrap onto more than one row');
+            if (top.tools.join('|') !== 'Filter|Sort and view|Add and more') throw new Error(`tools: ${top.tools}`);
+            if (top.pills !== 'none' || top.hotswap !== 'none' || top.first !== 'pt_char_top') throw new Error(JSON.stringify(top));
+            if (top.favorites.length !== top.wanted || (top.wanted && top.headers[0] !== 'Favorites')) throw new Error(`favourites: ${JSON.stringify(top)}`);
+            if (!top.headers.includes('All characters') || top.count !== String(top.total)) throw new Error(`header: ${JSON.stringify(top)}`);
+        });
+
+        await step('Filter: Favorites goes any → only through SillyTavern\'s own button, a chip shows it, and ✕ undoes it', async () => {
+            await page.locator('#pt_char_toolbar .pt-ctool-filter').click();
+            await waitFor(page, 'the Filter sheet', () => [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].some(node => node.textContent === 'Favorites'));
+            const rows = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-section')].map(section => section.querySelector('.pt-list-header')?.textContent ?? ''));
+            if (!rows.includes('Show')) throw new Error(`sections: ${rows}`);
+            await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Favorites').click());
+            await waitFor(page, 'only favourites', () => document.querySelector('#rm_characters_block .rm_tag_filter .filterByFavorites')?.getAttribute('data-toggle-state') === 'SELECTED'
+                && [...document.querySelectorAll('#pt-sheet .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Favorites')?.querySelector('.pt-list-row-value')?.textContent === 'Only');
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await waitFor(page, 'sheet closed', () => !document.getElementById('pt-sheet'));
+            const bar = await page.evaluate(() => ({
+                chips: [...document.querySelectorAll('#pt_char_filters .pt-filter-chip')].map(node => node.textContent.trim()),
+                count: document.querySelector('#pt_char_toolbar .pt-ctool-filter')?.dataset.count,
+                shown: [...document.querySelectorAll('#rm_print_characters_block > .character_select')].filter(card => getComputedStyle(card).display !== 'none').every(card => card.classList.contains('is_fav')),
+            }));
+            await page.screenshot({ path: `${OUT}/${layout}-filtered.png` });
+            if (bar.chips.join() !== 'Favorites' || bar.count !== '1' || !bar.shown) throw new Error(JSON.stringify(bar));
+            await page.locator('#pt_char_filters .pt-filter-chip').first().click();
+            await waitFor(page, 'the filter undone', () => document.querySelector('#rm_characters_block .rm_tag_filter .filterByFavorites')?.getAttribute('data-toggle-state') === 'UNDEFINED' && !document.getElementById('pt_char_filters'));
+        });
+
+        await step("a right click (desktop) or long press (phone) on a card opens that character's menu, and nothing else happens", async () => {
+            // The list may still be drawing itself again after the last filter.
+            await page.waitForTimeout(800);
+            const card = page.locator('#rm_print_characters_block > .character_select').filter({ hasText: 'Seraphina' }).first();
+            await card.scrollIntoViewIfNeeded();
+            if (phone) {
+                const box = await card.boundingBox();
+                const cdp = await page.context().newCDPSession(page);
+                const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+                await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+                await page.waitForTimeout(700);
+                await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+                await cdp.detach();
+            } else await card.click({ button: 'right' });
+            await waitFor(page, 'the card menu', () => document.querySelector('#pt-sheet [role="heading"]')?.textContent === 'Seraphina');
+            const menu = await page.evaluate(() => ({
+                rows: [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].map(node => node.textContent),
+                page: document.getElementById('pt-page')?.dataset.page ?? null,
+            }));
+            await page.screenshot({ path: `${OUT}/${layout}-card-menu.png` });
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await waitFor(page, 'menu closed', () => !document.getElementById('pt-sheet'));
+            const want = ['Open their page', 'Chat', 'New chat', 'Edit', 'Lorebook', 'Duplicate', 'Export', 'Select several', 'Delete'];
+            if (want.some(title => !menu.rows.includes(title)) || menu.page) throw new Error(JSON.stringify(menu));
+            if (await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null) !== before) throw new Error('the menu opened a chat');
         });
 
         await step('tapping a character opens their page, not their chat: picture, name, ★ and ⋯, Chat · New chat · Edit, and their chats', async () => {
@@ -121,6 +178,11 @@ for (const layout of ['phone', 'desktop']) {
             await page.screenshot({ path: `${OUT}/${layout}-page.png` });
             if (shown.name !== 'Seraphina' || shown.picture !== 96 || shown.actions.join('|') !== 'Chat|New chat|Edit' || shown.buttons.length !== 2 || !shown.back) throw new Error(JSON.stringify(shown));
             if (await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null) !== before) throw new Error('tapping a character switched chats');
+            const links = await page.evaluate(() => ({
+                lorebook: [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Lorebook')?.querySelector('.pt-list-row-value')?.textContent ?? null,
+                world: SillyTavern.getContext().characters.find(character => character.name === 'Seraphina')?.data?.extensions?.world || '',
+            }));
+            if (links.lorebook !== (links.world || 'None')) throw new Error(`the Lorebook row: ${JSON.stringify(links)}`);
         });
 
         await step("the page's ⋯ has Export, Duplicate, Lorebooks, External media, then Delete in red; Export offers PNG and JSON", async () => {

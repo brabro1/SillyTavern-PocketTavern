@@ -251,63 +251,6 @@ html.pt-charpage #character_search_bar {
     font-size: 16px;
 }
 
-/* Favorites: round avatars with names, in one row that scrolls sideways. */
-html.pt-charpage #HotSwapWrapper,
-html.pt-charpage #CharListButtonAndHotSwaps {
-    height: auto !important;
-    max-height: none !important;
-}
-
-html.pt-charpage #HotSwapWrapper .hotswap {
-    justify-content: flex-start !important;
-    height: auto !important;
-    max-height: none !important;
-    flex-wrap: nowrap;
-    gap: 12px;
-    padding: 4px 4px 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-html.pt-charpage #HotSwapWrapper .hotswap::-webkit-scrollbar {
-    display: none;
-}
-
-html.pt-charpage #HotSwapWrapper .hotswap .avatar {
-    position: relative;
-    flex: 0 0 auto;
-    flex-direction: column;
-    width: 58px !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin-bottom: 0;
-    overflow: visible;
-    background: none;
-}
-
-html.pt-charpage #HotSwapWrapper .hotswap .avatar img {
-    width: 52px;
-    height: 52px;
-    border: 2px solid var(--pt-border);
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-html.pt-charpage .pt-cap {
-    display: block;
-    flex: 0 0 auto;
-    max-width: 58px;
-    margin-top: 4px;
-    overflow: hidden;
-    color: var(--pt-text-secondary);
-    font-size: 12px;
-    line-height: 1.2;
-    text-align: center;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 /* One row for the tool buttons and the sort menu. */
 html.pt-charpage #rm_button_bar {
     flex-wrap: nowrap;
@@ -845,25 +788,6 @@ html.pt-charpage #right-nav-panel:has(#rm_characters_block:not([style*="none"]))
     display: none !important;
 }
 
-/* No favorites: no empty row. */
-html.pt-charpage #CharListButtonAndHotSwaps:not(:has(.hotswap .avatar)):has(#rm_button_characters) {
-    min-height: 0;
-}
-
-html.pt-charpage #right-nav-panel:has(#rm_characters_block:not([style*="none"])) #CharListButtonAndHotSwaps:not(:has(.hotswap .avatar)) {
-    display: none !important;
-}
-
-html.pt-charpage #CharListButtonAndHotSwaps {
-    margin: 0 0 4px;
-}
-
-/* While a card is open (editing, creating, a group), the favorites row belongs to the list, not to the card.
-   Pocket Tavern's own back still clicks SillyTavern's hidden list button. The !important beats SillyTavern's flex. */
-html.pt-charpage #right-nav-panel:has(#rm_characters_block[style*="none"]) #CharListButtonAndHotSwaps {
-    display: none !important;
-}
-
 html.pt-charpage .pt-char-toolbar {
     display: flex;
     align-items: center;
@@ -914,9 +838,140 @@ html.pt-charpage .pt-ctool-add {
     color: var(--pt-on-accent);
 }
 
-/* Filters: one slim row of small pills. */
+/* SillyTavern's filter buttons and its favourites row are Pocket Tavern's Filter sheet and Favorites row now
+   (src/st/character-list.js). The buttons stay in the page, hidden, and are clicked from the sheet; a folder's
+   breadcrumb (.rm_tag_bogus_drilldown) still shows. The !important beats SillyTavern's flex. */
+html.pt-charpage #rm_characters_block .rm_tag_filter,
+html.pt-charpage #right-nav-panel #CharListButtonAndHotSwaps {
+    display: none !important;
+}
+
 html.pt-charpage .rm_tag_controls {
-    margin: 0 0 8px;
+    margin: 0;
+}
+
+/* Filter's count, and the button lit while something is filtered. */
+html.pt-charpage .pt-ctool-filter {
+    position: relative;
+}
+
+html.pt-charpage .pt-ctool.pt-ctool-on {
+    border-color: var(--pt-accent);
+    background: var(--pt-accent-soft);
+    color: var(--pt-accent);
+}
+
+html.pt-charpage .pt-ctool-filter[data-count]::after {
+    content: attr(data-count);
+    position: absolute;
+    top: calc(-1 * var(--pt-space-1));
+    inset-inline-end: calc(-1 * var(--pt-space-1));
+    display: grid;
+    min-width: 20px;
+    height: 20px;
+    place-items: center;
+    padding: 0 var(--pt-space-1);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+    font-size: var(--pt-text-xs);
+    font-weight: 700;
+    box-shadow: 0 0 0 2px var(--pt-bg);
+}
+
+/* While something is filtered: a chip per filter (✕ undoes it) and Clear, in one row that scrolls sideways. */
+html.pt-charpage .pt-char-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    margin: 0 calc(-1 * var(--pt-space-3)) var(--pt-space-2);
+    padding: var(--pt-space-1) var(--pt-space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+html.pt-charpage .pt-char-filters::-webkit-scrollbar {
+    display: none;
+}
+
+html.pt-charpage .pt-filter-chip {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--pt-space-2);
+    height: 36px;
+    padding: 0 var(--pt-space-3);
+    border: 1px solid var(--pt-accent);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-accent-soft);
+    color: var(--pt-accent);
+    font: inherit;
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+html.pt-charpage .pt-filter-chip--hidden {
+    border-color: var(--pt-border);
+    background: var(--pt-surface);
+    color: var(--pt-text-secondary);
+    text-decoration: line-through;
+}
+
+html.pt-charpage .pt-filter-chip .pt-svg {
+    width: 16px;
+    height: 16px;
+}
+
+html.pt-charpage .pt-filter-clear {
+    flex: 0 0 auto;
+    height: 36px;
+    padding: 0 var(--pt-space-2);
+    border: 0;
+    background: none;
+    color: var(--pt-text-secondary);
+    font: inherit;
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* The top of the list (src/st/character-list.js): Favorites as picks, then "All characters" with the count.
+   It spans every column of the grid. */
+html.pt-charpage #rm_print_characters_block > .pt-char-top {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-1);
+    min-width: 0;
+    margin: 0 0 var(--pt-space-1);
+}
+
+html.pt-charpage .pt-char-top .pt-list-header {
+    margin: var(--pt-space-2) var(--pt-space-1) 0;
+}
+
+html.pt-charpage .pt-char-top .pt-quick-picks {
+    margin: 0 calc(-1 * var(--pt-space-3));
+    padding: var(--pt-space-1) var(--pt-space-3) var(--pt-space-2);
+    scroll-padding-inline: var(--pt-space-3);
+}
+
+html.pt-charpage .pt-char-count {
+    display: flex;
+    align-items: baseline;
+    gap: var(--pt-space-2);
+}
+
+html.pt-charpage .pt-char-count-n {
+    padding: 0 var(--pt-space-2);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-xs);
+    font-weight: 600;
+    line-height: 20px;
 }
 
 html.pt-charpage .rm_tag_filter .tag {
@@ -1181,41 +1236,6 @@ html.pt-charpage .rm_tag_filter .tag .tag_name {
     line-height: 1;
 }
 
-/* Each filter is a labelled pill (src/st/characters.js puts the label in data-pt-label), in one row
-   that scrolls sideways. 44px tall for a finger. */
-html.pt-charpage .rm_tag_filter .tag.actionable {
-    gap: var(--pt-space-2);
-    width: auto;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-    padding: 0 var(--pt-space-4);
-    justify-content: center;
-    /* SillyTavern draws these as circles (aspect-ratio 1 / 1), which would squeeze the label. */
-    aspect-ratio: auto;
-    border-radius: var(--pt-radius-full);
-    box-shadow: var(--pt-highlight);
-}
-
-html.pt-charpage .rm_tag_filter .tag.actionable .tag_name {
-    flex: none;
-}
-
-html.pt-charpage .rm_tag_filter .tag.actionable[data-pt-label]::after {
-    content: attr(data-pt-label);
-    font-size: var(--pt-text-sm);
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-html.pt-charpage .rm_tag_controls .tags.rm_tag_filter {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 calc(-1 * var(--pt-space-3));
-    padding: var(--pt-space-1) var(--pt-space-3);
-    scroll-padding-inline: var(--pt-space-3);
-}
-
 html.pt-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {
     height: auto !important;
 }
@@ -1336,4 +1356,62 @@ html.pt-touch .rm_tag_filter .tag:not(.actionable).selected {
 html.pt-on #rm_button_panel_pin_div,
 html.pt-on #right-nav-panel #rm_button_characters {
     display: none !important;
+}
+
+/* The Filter sheet (src/st/character-list.js): a tag's own colour as a dot, a one-line hint, and an active
+   filter's value in the accent. */
+.pt-filter-hint {
+    margin: 0 var(--pt-space-1) var(--pt-space-3);
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+}
+
+.pt-filter-dot {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin: 0 var(--pt-space-1);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-full);
+}
+
+.pt-list-row.pt-filter-on .pt-list-row-value {
+    color: var(--pt-accent);
+    font-weight: 600;
+}
+
+.pt-list-row[data-pt-filter='EXCLUDED'] .pt-list-row-value {
+    color: var(--pt-danger);
+}
+
+/* Sort and view: the current choice reads as chosen. */
+.pt-list-row.pt-choice-on .pt-list-row-title {
+    color: var(--pt-accent);
+    font-weight: 600;
+}
+
+/* SillyTavern's "N characters hidden" note: a quiet line under the results, across the whole grid, not a card. */
+html.pt-charpage #rm_print_characters_block > .hidden_block {
+    grid-column: 1 / -1;
+    order: 1;
+    width: auto;
+    height: auto;
+    margin: var(--pt-space-2) var(--pt-space-1);
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--pt-text-secondary);
+    text-align: center;
+}
+
+html.pt-charpage #rm_print_characters_block > .hidden_block small {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    font-size: var(--pt-text-sm);
+}
+
+html.pt-charpage #rm_print_characters_block > .hidden_block p {
+    margin: 0;
 }

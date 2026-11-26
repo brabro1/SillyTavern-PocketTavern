@@ -46,7 +46,8 @@ import { atBottom, cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd
 import { chatsPage, chatsWelcome } from '../views/chats.js';
 import { characterPage } from '../views/character.js';
 import { promptEditor, promptEditorMode, promptEditorOpen, closePromptEditor, promptEditorDirty, leavePromptEditor, promptFull, setPromptFull, syncPromptEditorSession, syncPromptNameBox, fitTextarea, syncPresetTabs, syncTriggerChips, aiStatus, aiQuickRows, openPresetsOn, refreshAiPage, setupAiScreens } from '../st/ai.js';
-import { aboutCharacter, characterTarget, checkCardPeek, favoriteCharacter, openCharacterPage, editCharacter, fetchCharacterChats, isCurrentCharacter, onCardPeekPress, onCharacterTap, onExportClick, openCharacterChatFor, openCharacterMenu, pressForCharacter, setupCharacters, syncCharacterPage, targetCharacter } from '../st/characters.js';
+import { filterByTag } from '../st/character-list.js';
+import { aboutCharacter, characterTarget, checkCardPeek, pickCharacterLorebook, favoriteCharacter, openCharacterPage, editCharacter, fetchCharacterChats, isCurrentCharacter, onCardPeekPress, onCharacterTap, onExportClick, openCharacterChatFor, openCharacterMenu, pressForCharacter, setupCharacters, syncCharacterPage, targetCharacter } from '../st/characters.js';
 import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
@@ -6696,6 +6697,12 @@ function registerOwnPages() {
                 about: aboutCharacter(character),
                 favorite: character.fav === true || character.fav === 'true',
                 latest: character.chat,
+                creator: String(character.data?.creator ?? '').trim(),
+                lorebook: String(character.data?.extensions?.world ?? ''),
+                tags: (ctx().tagMap?.[character.avatar] ?? [])
+                    .map(id => ctx().tags?.find(item => item.id === id))
+                    .filter(Boolean)
+                    .map(item => ({ id: String(item.id), name: item.name })),
             };
         },
         chats: () => fetchCharacterChats(targetCharacter()?.avatar ?? ''),
@@ -6712,6 +6719,14 @@ function registerOwnPages() {
         },
         favorite: () => favoriteCharacter(characterTarget.chid),
         menu: anchor => openCharacterMenu(anchor),
+        openLorebook: name => openLorebook(name),
+        pickLorebook: () => pickCharacterLorebook(characterTarget.chid),
+        // Characters, showing only this tag.
+        showTag: id => {
+            openPage('rightNavHolder');
+            showCharacterList();
+            setTimeout(() => filterByTag(id), 300);
+        },
     }));
     definePage('pt-ai', aiPage({
         openPage,
