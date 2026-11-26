@@ -703,4 +703,27 @@ export default {
     "No lorebooks yet. New lorebook starts one.": "ロアブックはまだありません。「新しいロアブック」で作れます。",
     "Active in every chat": "すべてのチャットで有効",
     "Filter lorebooks": "ロアブックを絞り込む",
+
+    // Lorebook picker
+    "Global: applies to every chat": "グローバル：すべてのチャットに適用",
+    "Primary lorebook": "メインのロアブック",
+    "Linked to this character and exported with the card": "このキャラクターに紐づき、カードと一緒に書き出されます",
+    "Additional lorebooks": "追加のロアブック",
+    "Linked to this character, not exported with the card": "このキャラクターに紐づき、カードには含まれません",
+    "Chat lorebook": "チャットのロアブック",
+    "Bound to this chat only": "このチャットだけ",
+    "Persona lorebook": "ペルソナのロアブック",
+    "Linked to your active persona": "使用中のペルソナに紐づきます",
+    "Open lorebook": "ロアブックを開く",
+    "Pick a lorebook to view and edit": "表示・編集するロアブックを選んでください",
+    "Pick a lorebook to edit": "編集するロアブックを選んでください",
+    "Clear search": "検索をクリア",
+    "Open in lorebook editor": "ロアブックエディターで開く",
+    "Choose which lorebooks are active in all chats": "すべてのチャットで有効にするロアブックを選びます",
+
+    // Extensions panel
+    "Phones get the phone layout and wide screens the desktop layout, on their own. Pick \"Phones only\" to keep the original interface on this computer.": "スマホにはスマホ用、広い画面にはデスクトップ用のレイアウトが自動で使われます。このパソコンで元の画面のままにするには「スマホのみ」を選んでください。",
+    "Theme": "テーマ",
+    "Your SillyTavern theme": "あなたの SillyTavern テーマ",
+    "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "変更はすぐに反映されます。ここではキャラクター、チャット、ロアブックは変わりません。",
 };

@@ -31,3 +31,756 @@ html.pt-on[data-pt-wi="settings"] #WorldInfo #wiActivationSettings {
 html.pt-on[data-pt-wi="settings"] #WorldInfo #wiSliders > * {
     flex-basis: 100% !important;
 }
+
+/* Moved from the legacy styles (M5): the lorebook picker and its sheet, entry cards and keyword chips, and SillyTavern's World Info page. */
+
+.pt-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.pt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.pt-chips-empty {
+    padding: 4px 4px;
+    color: var(--pt-text-secondary);
+    font-style: italic;
+}
+
+.pt-chip {
+    display: inline-flex;
+    align-items: stretch;
+    max-width: 100%;
+    min-width: 0;
+    /* 44px, so its × is a full tap target. */
+    min-height: 44px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    overflow: hidden;
+}
+
+/* The outline is drawn inside (a hairline, not a shadow), so the × fills all 44px instead of 42px within a border. */
+.pt-chip:not(.pt-chip-more) {
+    border: 0;
+    box-shadow: inset 0 0 0 1px var(--pt-border);
+}
+
+.pt-chip-text {
+    align-self: center;
+    min-width: 0;
+    padding: 8px 4px 8px 16px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.pt-chip-x {
+    flex: 0 0 auto;
+    width: 44px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.pt-chip-x:active {
+    background: color-mix(in srgb, var(--pt-accent) 35%, transparent);
+}
+
+.pt-chip-more {
+    align-items: center;
+    padding: 8px 16px;
+    border-style: dashed;
+    font: inherit;
+    cursor: pointer;
+}
+
+.pt-open,
+.pt-clear {
+    min-height: var(--pt-tap);
+}
+
+.pt-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pt-open .pt-count {
+    margin-inline-start: auto;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
+    font-size: 0.85em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-open .pt-open-label {
+    margin-inline-end: auto;
+}
+
+.pt-picker-single {
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.pt-single {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    min-height: var(--pt-tap);
+    margin: 0;
+    padding: 8px 16px;
+    text-align: start;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.pt-single-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.pt-single-empty .pt-single-label {
+    color: var(--pt-text-secondary);
+}
+
+.pt-chevron {
+    flex: 0 0 auto;
+    opacity: 0.7;
+    font-size: 0.8em;
+}
+
+.pt-clear {
+    flex: 0 0 var(--pt-tap);
+    padding: 0;
+    margin: 0;
+}
+
+.pt-search {
+    position: relative;
+    flex: 0 0 auto;
+    margin: 8px 16px 4px;
+}
+
+input[type='search'].pt-search-input {
+    width: 100%;
+    min-height: 46px;
+    margin: 0;
+    padding-block: 8px;
+    padding-inline: 40px 48px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font-size: 16px;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type='search'].pt-search-input::placeholder {
+    color: var(--pt-text-secondary);
+    opacity: 1;
+}
+
+input[type='search'].pt-search-input:focus {
+    outline: 2px solid color-mix(in srgb, var(--pt-accent) 70%, transparent);
+    outline-offset: 0;
+}
+
+input[type='search'].pt-search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.pt-search-clear {
+    position: absolute;
+    inset-inline-end: 2px;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+}
+
+.pt-search-clear[hidden] {
+    display: none;
+}
+
+.pt-controls {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.pt-tools {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 16px 4px;
+}
+
+.pt-tools:empty {
+    display: none;
+}
+
+.pt-seg-count {
+    min-width: 1.6em;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
+    font-size: 0.8em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-clear-all {
+    flex: 0 0 auto;
+    width: auto;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    margin: 0;
+    padding: 0 16px;
+}
+
+.pt-clear-all[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.pt-list {
+    flex: 1 1 auto;
+    min-height: 120px;
+    margin: 8px 0 0;
+    padding: 4px 12px 8px;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.pt-row-btn {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    min-height: 54px;
+    padding-block: 8px;
+    padding-inline: 12px 12px;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-row-btn:active {
+    background: color-mix(in srgb, var(--pt-text-primary) 10%, transparent);
+}
+
+.pt-row-on {
+    background: var(--pt-accent-soft);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pt-accent) 45%, transparent);
+}
+
+.pt-row-flash {
+    background: color-mix(in srgb, var(--pt-accent) 30%, transparent);
+}
+
+.pt-mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 2px solid color-mix(in srgb, var(--pt-text-primary) 40%, transparent);
+    border-radius: 8px;
+    color: transparent;
+    font-size: 14px;
+    transition: background var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-row-on .pt-mark {
+    border-color: var(--pt-accent);
+    background: var(--pt-accent);
+    color: var(--pt-bg);
+}
+
+.pt-main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.pt-name {
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.pt-name-none {
+    color: var(--pt-text-secondary);
+    font-style: italic;
+}
+
+.pt-name mark {
+    padding: 0 1px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--pt-accent) 45%, transparent);
+    color: inherit;
+}
+
+.pt-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pt-badge {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-text-primary) 14%, transparent);
+    color: var(--pt-text-secondary);
+    font-size: 0.72em;
+}
+
+.pt-edit {
+    flex: 0 0 52px;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+}
+
+.pt-edit:active {
+    background: color-mix(in srgb, var(--pt-text-primary) 12%, transparent);
+}
+
+.pt-foot {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding: 8px 16px 12px;
+    border-top: 1px solid var(--pt-border);
+    font-size: 0.85em;
+}
+
+.pt-foot p {
+    margin: 0;
+}
+
+.pt-status {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.pt-hint {
+    color: var(--pt-text-secondary);
+}
+
+/* Long lists keep one stable height so the search field does not jump while filtering. */
+.pt-panel-fixed {
+    height: min(88%, 760px);
+}
+
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    .pt-list {
+        min-height: 80px;
+    }
+}
+
+dialog.pt-compact .pt-panel-fixed {
+    height: 100%;
+}
+
+dialog.pt-compact .pt-hint {
+    display: none;
+}
+
+dialog.pt-compact .pt-search {
+    margin: 8px 12px 4px;
+}
+
+dialog.pt-compact input[type='search'].pt-search-input {
+    min-height: 40px;
+}
+
+dialog.pt-compact .pt-tools {
+    margin: 4px 12px 0;
+}
+
+dialog.pt-compact .pt-clear-all {
+    min-height: 40px;
+}
+
+dialog.pt-compact .pt-list {
+    min-height: 0;
+    margin-top: 4px;
+}
+
+dialog.pt-compact .pt-row-btn {
+    min-height: 46px;
+}
+
+dialog.pt-compact .pt-foot {
+    padding: 4px 16px 8px;
+}
+
+/* Wide-but-short (landscape phone): search and filters share one row. */
+@media (min-width: 520px) {
+    dialog.pt-compact .pt-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 12px 0;
+    }
+
+    dialog.pt-compact .pt-controls .pt-search {
+        flex: 1 1 36%;
+        margin: 0;
+    }
+
+    dialog.pt-compact .pt-controls .pt-tools {
+        flex: 1 1 64%;
+        margin: 0;
+    }
+}
+
+/* The lorebook editor sits inside the Lorebooks page (SillyTavern 1.19), so the page
+   scrolls it as one. Given a screen height of its own, it hid every entry past the
+   third or fourth. */
+html.pt-shell #WorldInfo #world_popup {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible;
+}
+
+html.pt-shell #WorldInfo #world_popup_entries_list {
+    flex: 0 0 auto;
+    overflow: visible;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry {
+    margin: 0 0 12px;
+    padding: 12px 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls {
+    display: grid !important;
+    grid-template-areas:
+        "kill title state open"
+        "keys keys keys keys"
+        "meta meta meta meta";
+    grid-template-columns: 40px minmax(0, 1fr) auto 36px;
+    align-items: center;
+    gap: 8px 8px;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls > .flex-container,
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls .WIEntryTitleAndStatus,
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls .WIEntryTitleAndStatus > .flex-container {
+    display: contents !important;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls > .killSwitch {
+    grid-area: kill;
+    justify-self: center;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls textarea[name="comment"] {
+    grid-area: title;
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    field-sizing: content;
+    resize: none;
+    overflow: hidden;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls select[name="entryStateSelector"] {
+    grid-area: state;
+    width: auto;
+    min-width: 0;
+    height: 34px;
+    margin: 0;
+    padding: 0 24px 0 8px;
+    border-radius: 999px;
+    font-size: 14px;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls > .inline-drawer-toggle {
+    grid-area: open;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+}
+
+html.pt-lorecards #world_popup_entries_list .pt-entry-keys {
+    grid-area: keys;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+html.pt-lorecards #world_popup_entries_list .pt-entry-keys[hidden] {
+    display: none;
+}
+
+.pt-key-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pt-key-more {
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-secondary);
+}
+
+/* Position, depth, order and chance: one row of four small fields. */
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls {
+    grid-area: meta;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls > .world_entry_form_control {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    margin: 0;
+}
+
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls > [style*="none"],
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls > :has(> [style*="visibility: hidden"]) {
+    visibility: visible;
+}
+
+/* Depth only applies to some positions; SillyTavern hides its box, so hide its label too. */
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls > .world_entry_form_control:has(> input[style*="visibility: hidden"]) > label {
+    visibility: hidden;
+}
+
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls label {
+    display: block !important;
+    margin: 0 0 4px;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Move, duplicate and delete live in the opened entry, not on every card. */
+html.pt-lorecards #world_popup_entries_list .world_entry:not(.pt-entry-open) > .world_entry_form > .inline-drawer > .inline-drawer-header > i.menu_button {
+    display: none !important;
+}
+
+/* One card per entry (SillyTavern's own card box inside it would double up). */
+html.pt-lorecards #world_popup_entries_list .world_entry .world_entry_form {
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry > .world_entry_form > .inline-drawer > .inline-drawer-header {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 !important;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry > .world_entry_form > .inline-drawer > .inline-drawer-header > .world_entry_thin_controls {
+    flex: 1 0 100%;
+}
+
+html.pt-lorecards #world_popup_entries_list .inline-drawer-header > .world_entry_thin_controls textarea[name="comment"] {
+    width: 100% !important;
+    max-width: none !important;
+    flex: none !important;
+}
+
+/* An opened entry fills the page between the bars. */
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open {
+    position: fixed;
+    inset: var(--topBarBlockSize, 0px) 0 var(--pt-bottom, 0px) 0;
+    z-index: var(--pt-z-editor);
+    margin: 0;
+    padding: 0 calc(16px + var(--pt-safe-right, 0px)) 24px calc(16px + var(--pt-safe-left, 0px));
+    border: 0;
+    border-radius: 0;
+    background: var(--pt-bg);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: pt-fade var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > .world_entry_thin_controls {
+    grid-template-areas:
+        "open title state kill"
+        "keys keys keys keys"
+        "meta meta meta meta";
+}
+
+/* The entry's header (title, switches, tools) sits at the top. It scrolls away
+   with the fields: kept in place it would cover a third of a phone screen. */
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header {
+    position: relative;
+    z-index: 2;
+    margin: 0 -16px 12px;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--pt-border);
+    background: var(--pt-bg) !important;
+}
+
+/* In the editor the chevron becomes a back arrow. */
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > .world_entry_thin_controls > .inline-drawer-toggle {
+    color: var(--pt-text-primary);
+    transform: rotate(-90deg);
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > i.menu_button {
+    display: inline-flex !important;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    margin: 0;
+    border-radius: var(--pt-radius-sm);
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open > .world_entry_form > .inline-drawer > .inline-drawer-header > i.delete_entry_button {
+    color: var(--pt-danger);
+}
+
+/* Fields stack instead of squeezing side by side. */
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open .world_entry_edit [name="keywordsAndLogicBlock"],
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open .world_entry_edit > .flex-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open [name="perEntryOverridesBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open .world_entry_form_control {
+    width: 100%;
+    min-width: 0;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open textarea[name="content"] {
+    min-height: 40dvh;
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open textarea[name="key"],
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open textarea[name="keysecondary"] {
+    min-height: 46px;
+    field-sizing: content;
+}
+
+/* "Content (Tokens: n)" on one line, the four checkboxes in two columns under it. */
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open [name="contentAndCharFilterBlock"] label > small > .justifySpaceBetween {
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 4px 8px;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open [name="contentAndCharFilterBlock"] label > small > .justifySpaceBetween > div.flex-container {
+    display: grid !important;
+    flex: 1 0 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin: 4px 0 4px;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open [name="contentAndCharFilterBlock"] label > small > .justifySpaceBetween > div.flex-container label.checkbox {
+    flex-wrap: nowrap !important;
+    gap: 8px;
+    line-height: 1.25;
+}
+
+/* The page below is not scrolled while an entry is open. */
+html.pt-entry-editing #WorldInfo {
+    overflow: hidden !important;
+}
+
+html.pt-lorecards #world_popup_entries_list .world_entry .world_entry_form > .inline-drawer {
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+/* Lorebook entries and the prompt editor fill the panel they belong to. */
+html.pt-desktop.pt-lorecards #world_popup_entries_list .world_entry.pt-entry-open {
+    inset: var(--topBarBlockSize) auto 0 var(--pt-rail-w);
+    width: var(--pt-panel-w);
+}

@@ -119,7 +119,9 @@ for (const layout of ['phone', 'desktop']) {
 
         await step('Active lorebooks opens the lorebook picker', async () => {
             await page.evaluate(tapRow, 'Active lorebooks');
-            await waitFor(page, 'the picker', () => !!document.querySelector('#pt-sheet .pt-panel'));
+            await waitFor(page, 'the picker', () => !!document.querySelector('#pt-sheet.pt-sheet-open .pt-panel'));
+            // After the sheet's slide-in, so screenshots compare cleanly.
+            await page.waitForTimeout(600);
             await page.screenshot({ path: `${OUT}/${layout}-active.png` });
             await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
             await waitFor(page, 'picker closed', () => !document.getElementById('pt-sheet'));

@@ -703,4 +703,27 @@ export default {
     "No lorebooks yet. New lorebook starts one.": "Лорбуков пока нет. «Новый лорбук» создаст первый.",
     "Active in every chat": "Активен во всех чатах",
     "Filter lorebooks": "Фильтр лорбуков",
+
+    // Lorebook picker
+    "Global: applies to every chat": "Глобально: для всех чатов",
+    "Primary lorebook": "Основной лорбук",
+    "Linked to this character and exported with the card": "Привязан к персонажу и экспортируется с карточкой",
+    "Additional lorebooks": "Дополнительные лорбуки",
+    "Linked to this character, not exported with the card": "Привязаны к персонажу, не экспортируются с карточкой",
+    "Chat lorebook": "Лорбук чата",
+    "Bound to this chat only": "Только для этого чата",
+    "Persona lorebook": "Лорбук персоны",
+    "Linked to your active persona": "Привязан к активной персоне",
+    "Open lorebook": "Открыть лорбук",
+    "Pick a lorebook to view and edit": "Выберите лорбук для просмотра и правки",
+    "Pick a lorebook to edit": "Выберите лорбук для правки",
+    "Clear search": "Очистить поиск",
+    "Open in lorebook editor": "Открыть в редакторе лорбуков",
+    "Choose which lorebooks are active in all chats": "Выберите, какие лорбуки активны во всех чатах",
+
+    // Extensions panel
+    "Phones get the phone layout and wide screens the desktop layout, on their own. Pick \"Phones only\" to keep the original interface on this computer.": "Телефоны получают телефонную раскладку, широкие экраны — настольную, сами. Выберите «Только телефоны», чтобы оставить исходный интерфейс на этом компьютере.",
+    "Theme": "Тема",
+    "Your SillyTavern theme": "Ваша тема SillyTavern",
+    "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "Изменения применяются сразу. Здесь ничего не меняет ваших персонажей, чаты и лорбуки.",
 };

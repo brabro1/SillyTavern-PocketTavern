@@ -703,4 +703,27 @@ export default {
     "No lorebooks yet. New lorebook starts one.": "لا توجد كتب معرفة بعد. \"كتاب معرفة جديد\" ينشئ واحدًا.",
     "Active in every chat": "مفعّل في كل محادثة",
     "Filter lorebooks": "تصفية كتب المعرفة",
+
+    // Lorebook picker
+    "Global: applies to every chat": "عام: ينطبق على كل المحادثات",
+    "Primary lorebook": "كتاب المعرفة الرئيسي",
+    "Linked to this character and exported with the card": "مرتبط بهذه الشخصية ويُصدَّر مع البطاقة",
+    "Additional lorebooks": "كتب معرفة إضافية",
+    "Linked to this character, not exported with the card": "مرتبطة بهذه الشخصية ولا تُصدَّر مع البطاقة",
+    "Chat lorebook": "كتاب معرفة المحادثة",
+    "Bound to this chat only": "لهذه المحادثة فقط",
+    "Persona lorebook": "كتاب معرفة الهوية",
+    "Linked to your active persona": "مرتبط بهويتك الحالية",
+    "Open lorebook": "افتح كتاب معرفة",
+    "Pick a lorebook to view and edit": "اختر كتاب معرفة لعرضه وتعديله",
+    "Pick a lorebook to edit": "اختر كتاب معرفة لتعديله",
+    "Clear search": "مسح البحث",
+    "Open in lorebook editor": "افتح في محرر كتب المعرفة",
+    "Choose which lorebooks are active in all chats": "اختر كتب المعرفة المفعّلة في كل المحادثات",
+
+    // Extensions panel
+    "Phones get the phone layout and wide screens the desktop layout, on their own. Pick \"Phones only\" to keep the original interface on this computer.": "تحصل الهواتف على تخطيط الهاتف والشاشات العريضة على تخطيط سطح المكتب تلقائيًا. اختر \"الهواتف فقط\" لإبقاء الواجهة الأصلية على هذا الحاسوب.",
+    "Theme": "السمة",
+    "Your SillyTavern theme": "سمة SillyTavern الخاصة بك",
+    "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "تُطبَّق التغييرات فورًا. لا شيء هنا يغيّر شخصياتك أو محادثاتك أو كتب معرفتك.",
 };

@@ -703,4 +703,27 @@ export default {
     "No lorebooks yet. New lorebook starts one.": "Aún no hay lorebooks. Nuevo lorebook crea uno.",
     "Active in every chat": "Activo en todos los chats",
     "Filter lorebooks": "Filtrar lorebooks",
+
+    // Lorebook picker
+    "Global: applies to every chat": "Global: se aplica a todos los chats",
+    "Primary lorebook": "Lorebook principal",
+    "Linked to this character and exported with the card": "Vinculado a este personaje y exportado con la ficha",
+    "Additional lorebooks": "Lorebooks adicionales",
+    "Linked to this character, not exported with the card": "Vinculados a este personaje, no se exportan con la ficha",
+    "Chat lorebook": "Lorebook del chat",
+    "Bound to this chat only": "Solo para este chat",
+    "Persona lorebook": "Lorebook de la persona",
+    "Linked to your active persona": "Vinculado a tu persona activa",
+    "Open lorebook": "Abrir lorebook",
+    "Pick a lorebook to view and edit": "Elige un lorebook para verlo y editarlo",
+    "Pick a lorebook to edit": "Elige un lorebook para editar",
+    "Clear search": "Borrar búsqueda",
+    "Open in lorebook editor": "Abrir en el editor de lorebooks",
+    "Choose which lorebooks are active in all chats": "Elige qué lorebooks están activos en todos los chats",
+
+    // Extensions panel
+    "Phones get the phone layout and wide screens the desktop layout, on their own. Pick \"Phones only\" to keep the original interface on this computer.": "Los móviles usan el diseño de móvil y las pantallas anchas el de escritorio, por sí solos. Elige «Solo móviles» para mantener la interfaz original en este ordenador.",
+    "Theme": "Tema",
+    "Your SillyTavern theme": "Tu tema de SillyTavern",
+    "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "Los cambios se aplican al instante. Nada de aquí cambia tus personajes, chats ni lorebooks.",
 };

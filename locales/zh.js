@@ -703,4 +703,27 @@ export default {
     "No lorebooks yet. New lorebook starts one.": "还没有世界书。点“新建世界书”创建一个。",
     "Active in every chat": "在所有聊天中启用",
     "Filter lorebooks": "筛选世界书",
+
+    // Lorebook picker
+    "Global: applies to every chat": "全局：适用于所有聊天",
+    "Primary lorebook": "主世界书",
+    "Linked to this character and exported with the card": "关联到此角色，并随角色卡导出",
+    "Additional lorebooks": "附加世界书",
+    "Linked to this character, not exported with the card": "关联到此角色，不随角色卡导出",
+    "Chat lorebook": "聊天世界书",
+    "Bound to this chat only": "仅限此聊天",
+    "Persona lorebook": "人设世界书",
+    "Linked to your active persona": "关联到当前人设",
+    "Open lorebook": "打开世界书",
+    "Pick a lorebook to view and edit": "选择要查看和编辑的世界书",
+    "Pick a lorebook to edit": "选择要编辑的世界书",
+    "Clear search": "清除搜索",
+    "Open in lorebook editor": "在世界书编辑器中打开",
+    "Choose which lorebooks are active in all chats": "选择在所有聊天中启用哪些世界书",
+
+    // Extensions panel
+    "Phones get the phone layout and wide screens the desktop layout, on their own. Pick \"Phones only\" to keep the original interface on this computer.": "手机自动使用手机布局，宽屏自动使用桌面布局。选择“仅手机”可在这台电脑上保留原始界面。",
+    "Theme": "主题",
+    "Your SillyTavern theme": "你的 SillyTavern 主题",
+    "Changes apply right away. Nothing here changes your characters, chats or lorebooks.": "更改立即生效。这里不会改动你的角色、聊天或世界书。",
 };

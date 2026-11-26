@@ -82,3 +82,532 @@ html.pt-on .pt-width-row input.pt-width-range[type='range']:focus-visible {
     font-variant-numeric: tabular-nums;
     text-align: end;
 }
+
+/* Moved from the legacy styles (M5): SillyTavern's settings pages in sections, Search settings, setting help lines, slider steppers, the Extensions panel's Pocket Tavern section, What's new and updates. */
+
+.pt-settings .pt-status-line {
+    margin: 8px 0 12px;
+    padding: 8px 12px;
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    font-size: 0.9em;
+}
+
+.pt-settings .pt-status-line.pt-status-active {
+    border-left: 3px solid var(--pt-accent);
+}
+
+.pt-settings .pt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.pt-settings .pt-field-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.pt-settings .pt-note {
+    display: block;
+    margin: 4px 0 8px;
+    opacity: 0.7;
+}
+
+.pt-settings .pt-check {
+    align-items: flex-start;
+    margin: 8px 0;
+}
+
+.pt-settings .pt-check input {
+    margin-top: 4px;
+}
+
+.pt-settings .pt-check-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.pt-settings .pt-check-hint {
+    opacity: 0.65;
+    line-height: 1.3;
+    white-space: normal;
+}
+
+/* Extension panels in the Extensions page. */
+html.pt-touch #extensions_settings,
+html.pt-touch #extensions_settings2 {
+    padding: 0;
+}
+
+html.pt-touch #rm_extensions_block .extension_container {
+    margin: 0;
+}
+
+/* With − and + around the number. */
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > .pt-step-wrap,
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > div:has(> .pt-step-wrap) {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+}
+
+.pt-step-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+html.pt-touch .pt-step-wrap > .neo-range-input,
+html.pt-touch .drawer-content .flexFlowColumn:has(> .neo-range-slider) .pt-step-wrap > .neo-range-input {
+    flex: 0 0 auto;
+    width: 4.6em !important;
+    min-width: 4.6em;
+    padding-inline: 4px !important;
+    text-align: center;
+}
+
+.pt-menu-row-note {
+    color: var(--pt-text-secondary);
+    font-size: 0.85em;
+}
+
+/* Settings → Look: SillyTavern's UI Theme list (and its import, export, save and
+   delete buttons) is hidden while Pocket Tavern is on; its themes are in More →
+   Themes, made to fit. The buttons still work from there (Import). A note takes
+   its place. */
+html.pt-on #UI-presets-block > h4.title_restorable,
+html.pt-on #UI-presets-block > .flex-container:has(> #themes) {
+    display: none !important;
+}
+
+.pt-update-status {
+    margin: 4px 16px 8px;
+    color: var(--pt-text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.pt-command {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 16px 8px;
+    padding: 0 0 0 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+}
+
+.pt-command code {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    color: var(--pt-text-primary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.pt-command-copy {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Pocket Tavern's own status line in its settings: green with a check while it is on here. */
+html.pt-on .pt-settings .pt-status-line.pt-status-active {
+    --pt-n-color: var(--pt-ok);
+    --pt-n-icon: var(--pt-ok-icon);
+}
+
+.pt-steps {
+    padding: 0 8px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.pt-steps p {
+    margin: 0 0 12px;
+}
+
+.pt-news {
+    margin: 0 4px 8px;
+    padding-left: 24px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.pt-news li {
+    margin-bottom: 8px;
+}
+
+/* Opened from the home screen there is no browser bar; respect the status bar area. */
+html.pt-standalone {
+    --pt-safe-top: env(safe-area-inset-top, 0px);
+}
+
+html.pt-rtl .pt-news {
+    padding-right: 24px;
+    padding-left: 0;
+}
+
+.pt-search-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    width: calc(100% - 8px);
+    height: 48px;
+    margin: 0 4px 12px;
+    padding: 0 16px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-secondary);
+    font: inherit;
+    font-size: 16px;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pt-search-field span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+html.pt-touch .range-block-counter.pt-stepper {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+}
+
+html.pt-touch .range-block-counter.pt-stepper {
+    flex: 0 0 auto;
+    width: auto !important;
+    min-width: 0;
+}
+
+html.pt-touch .range-block-counter.pt-stepper input {
+    flex: 0 0 auto;
+    width: 4.6em !important;
+    min-width: 4.6em;
+    padding-inline: 4px !important;
+    text-align: center;
+}
+
+/* − and + replace the browser's own arrows. Firefox always shows them, and they
+   covered the number (32768 read as "327"). */
+html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    font-variant-numeric: tabular-nums;
+}
+
+html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number']::-webkit-inner-spin-button,
+html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pt-step {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--pt-border);
+    border-radius: 50%;
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-step:active {
+    background: var(--pt-surface-elevated);
+    transform: scale(0.92);
+}
+
+.pt-sec-off {
+    display: none !important;
+}
+
+/* The list of sections. Inside a section, the list and the page's top block step aside. */
+html.pt-setnav #user-settings-block[data-pt-view='home'] #user-settings-block-content,
+html.pt-setnav #user-settings-block:not([data-pt-view='home']) > :has(> .pt-set-home) {
+    display: none !important;
+}
+
+html.pt-setnav #user-settings-block > :has(> .pt-set-home) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 0 24px;
+}
+
+/* SillyTavern's title row and search row: their parts join the column above. */
+html.pt-setnav #user-settings-block > :has(> .pt-set-home) > .flex-container {
+    display: contents;
+}
+
+html.pt-setnav #user-settings-block .flex-container:has(> h3),
+html.pt-setnav #settingsSearch {
+    display: none !important;
+}
+
+.pt-set-home {
+    display: flex;
+    flex-direction: column;
+    order: 0;
+}
+
+.pt-set-home .pt-search-field {
+    width: 100%;
+    margin: 0;
+}
+
+html.pt-setnav #UI-language-block {
+    order: 1;
+    padding: 0 4px;
+}
+
+html.pt-setnav #account_controls {
+    order: 2;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 4px;
+}
+
+html.pt-setnav #account_controls:not(:has(> :not([style*='display: none']))) {
+    display: none;
+}
+
+html.pt-setnav #version_display {
+    order: 3;
+    padding: 0 4px;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    text-align: start;
+}
+
+/* Section titles inside a page: quiet text, not SillyTavern's dark bars. */
+html.pt-setnav #user-settings-block-content h4 {
+    margin: 24px 0 4px;
+    padding: 0;
+    border: 0;
+    background: none !important;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: start;
+}
+
+/* A plain heading that only repeats the section's name in the top bar. */
+html.pt-setnav #user-settings-block-content [data-pt-sec] > h4:first-child:not(:has(*)),
+html.pt-setnav #user-settings-block-content h4[data-pt-sec]:not(:has(*)) {
+    display: none;
+}
+
+html.pt-setnav #user-settings-block-content > div {
+    gap: 0;
+}
+
+html.pt-afnav #AdvancedFormatting > .pt-set-home {
+    margin: 8px 0 24px;
+}
+
+html.pt-touch .drawer-content label.checkbox_label.pt-setrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--pt-tap);
+    margin: 0;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--pt-border);
+    color: var(--pt-text-primary);
+    font-size: 16px;
+    line-height: 1.35;
+    text-align: start;
+}
+
+html.pt-touch .pt-setrow > * {
+    order: 1;
+}
+
+html.pt-touch .pt-setrow > input[type='checkbox'] {
+    order: 2;
+    margin-inline-start: auto !important;
+}
+
+/* Pocket Tavern's own settings use the same row. */
+html.pt-touch .pt-settings .pt-check.pt-setrow {
+    align-items: center;
+}
+
+html.pt-touch .pt-settings .pt-check.pt-setrow .pt-check-text {
+    flex: 1 1 0;
+}
+
+html.pt-touch .pt-settings .pt-check.pt-setrow .pt-check-hint {
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    opacity: 1;
+}
+
+/* Two toggles that SillyTavern puts side by side get a row each. */
+html.pt-touch .drawer-content .checkbox-container:has(> .pt-setrow) {
+    flex-wrap: wrap;
+}
+
+html.pt-touch .pt-selrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 12px;
+    row-gap: 4px;
+    min-height: var(--pt-tap);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+html.pt-touch .pt-selrow > select {
+    flex: 0 1 auto;
+    width: auto !important;
+    min-width: 128px;
+    max-width: 58%;
+    margin: 0 !important;
+}
+
+html.pt-setnav #UI-language-block.pt-selrow {
+    border-bottom: 0;
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    flex-basis: 100% !important;
+    padding: 12px 0 4px;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > * {
+    grid-column: 1 / -1;
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > small:first-child {
+    grid-row: 1;
+    grid-column: 1;
+    color: var(--pt-text-primary);
+    font-size: 16px;
+    text-align: start;
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > input[type='range'] {
+    grid-row: 3;
+    width: 100%;
+}
+
+/* The ⓘ icon whose text now shows under the setting. */
+.pt-tip-shown {
+    display: none !important;
+}
+
+html.pt-touch .drawer-content .inline-drawer-header:has(> .pt-ext-note) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+html.pt-touch .inline-drawer-header:has(> .pt-ext-note) > * {
+    order: 1;
+}
+
+html.pt-touch .inline-drawer-header:has(> .pt-ext-note) > .inline-drawer-icon {
+    order: 2;
+}
+
+html.pt-touch .inline-drawer-header > .pt-ext-note {
+    order: 3;
+    flex: 1 0 100%;
+    padding-inline-end: 40px;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: start;
+}
+
+/* In the list the row keeps room for its chevron itself. */
+html.pt-extnav #rm_extensions_block .pt-ext-row > .inline-drawer-header > .pt-ext-note {
+    padding-inline-end: 0;
+}
+
+html.pt-extnav #rm_extensions_block :is(#extensions_settings, #extensions_settings2).pt-ext-list {
+    display: flex;
+    flex-direction: column;
+    margin: 16px 0 0;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    overflow: hidden;
+}
+
+html.pt-extnav #rm_extensions_block[data-pt-view='home'] .inline-drawer.pt-ext-row {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    /* The line above each row; the list's own edge hides the first one. */
+    box-shadow: 0 -1px 0 var(--pt-border);
+}
+
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] .pt-ext-path,
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] :is(#extensions_settings, #extensions_settings2).pt-ext-path {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+}
+
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] .inline-drawer.pt-ext-open {
+    margin: 0;
+    padding: 4px 0 24px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+}
