@@ -914,4 +914,11 @@ export default {
     "SillyTavern's Custom CSS": "SillyTavern のカスタム CSS",
     "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "Pocket Tavern のテーマでも SillyTavern 設定のカスタム CSS を使います。SillyTavern のテーマは自分の CSS をそこに入れます。",
     "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Pocket Tavern のテーマがチャットを描くため、オンの間は SillyTavern の {style} チャットスタイルはオフです。設定 → 外観 で SillyTavern のテーマを選ぶと戻ります。",
+    // Formatting: Context template, Instruct template, System prompt
+    "Instruct mode": "インストラクトモード",
+    "Wraps each message in the template's sequences": "各メッセージをテンプレートのシーケンスで囲みます",
+    "Use the system prompt": "システムプロンプトを使う",
+    "Sends these instructions before the chat": "チャットの前にこの指示を送ります",
+    "Chat Completion ignores the greyed-out settings here. What it sends is set in AI → Prompts.": "Chat Completion はここで灰色の設定を無視します。送る内容は AI → プロンプト で設定します。",
+    "Open Prompts": "プロンプトを開く",
 };

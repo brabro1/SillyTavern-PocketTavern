@@ -914,4 +914,11 @@ export default {
     "SillyTavern's Custom CSS": "Свой CSS SillyTavern",
     "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "Применять свой CSS из настроек SillyTavern и с темами Pocket Tavern. Тема SillyTavern кладёт туда свой CSS.",
     "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Тема Pocket Tavern рисует чат, поэтому стиль чата {style} из SillyTavern выключен, пока она включена. Выбор темы SillyTavern в Настройки → Внешний вид вернёт его.",
+    // Formatting: Context template, Instruct template, System prompt
+    "Instruct mode": "Режим инструкций",
+    "Wraps each message in the template's sequences": "Оборачивает каждое сообщение в последовательности шаблона",
+    "Use the system prompt": "Использовать системный промпт",
+    "Sends these instructions before the chat": "Отправляет эти инструкции перед чатом",
+    "Chat Completion ignores the greyed-out settings here. What it sends is set in AI → Prompts.": "Chat Completion игнорирует серые настройки здесь. Что он отправляет, задаётся в ИИ → Промпты.",
+    "Open Prompts": "Открыть промпты",
 };

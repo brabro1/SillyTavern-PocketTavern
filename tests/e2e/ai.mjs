@@ -105,6 +105,59 @@ for (const layout of ['phone', 'desktop']) {
             }
         });
 
+        await step("Formatting: Instruct mode and the System prompt are switch rows that press SillyTavern's own checkbox; the note shows only with Chat Completion", async () => {
+            const section = title => page.evaluate(want => [...document.querySelectorAll('#AdvancedFormatting .pt-menu-row')].find(node => node.querySelector('.pt-row-text > span')?.textContent === want)?.click(), title);
+            const back = async () => {
+                if (phone) await page.locator('#pt-appbar .pt-ab-back').click();
+                else await page.keyboard.press('Escape');
+                await page.waitForTimeout(400);
+            };
+            await page.evaluate(row, 'Formatting');
+            await waitFor(page, 'Formatting opens', () => document.documentElement.dataset.ptPage === 'advanced-formatting-button' && !!document.querySelector('#AdvancedFormatting .pt-menu-row'));
+            const before = await page.evaluate(() => document.getElementById('sysprompt_enabled').checked);
+            try {
+                await section('System prompt');
+                await waitFor(page, 'the System prompt section', () => document.getElementById('AdvancedFormatting').dataset.ptView === 'sysprompt');
+                const shown = await page.evaluate(() => {
+                    const top = [...document.querySelectorAll('#AdvancedFormatting .pt-fmt-top')].find(node => node.dataset.ptSec === 'sysprompt');
+                    const control = top?.querySelector('[role="switch"]');
+                    const note = top?.querySelector('.pt-fmt-cc');
+                    const select = document.getElementById('sysprompt_select');
+                    return {
+                        title: top?.querySelector('.pt-list-row-title')?.textContent,
+                        on: control?.getAttribute('aria-checked'),
+                        power: getComputedStyle(document.getElementById('sysprompt_enabled_label')).display,
+                        note: note ? getComputedStyle(note).display : null,
+                        cc: document.getElementById('main_api').value === 'openai',
+                        selectWidth: Math.round(select.getBoundingClientRect().width),
+                        rowWidth: Math.round(select.parentElement.getBoundingClientRect().width),
+                        content: Math.round(document.getElementById('sysprompt_content').getBoundingClientRect().height),
+                    };
+                });
+                await page.screenshot({ path: `${OUT}/${layout}-sysprompt.png` });
+                if (shown.title !== 'Use the system prompt' || shown.on !== String(before) || shown.power !== 'none') throw new Error(JSON.stringify(shown));
+                if ((shown.note === 'flex') !== shown.cc) throw new Error(`the Chat Completion note: ${JSON.stringify(shown)}`);
+                if (phone && shown.selectWidth < shown.rowWidth - 2) throw new Error(`the preset picker does not take its own line: ${JSON.stringify(shown)}`);
+                if (shown.content < 160) throw new Error(`the prompt box is ${shown.content}px tall`);
+                await page.locator('#AdvancedFormatting .pt-fmt-top[data-pt-sec="sysprompt"] [role="switch"]').click();
+                await waitFor(page, 'the checkbox follows', want => document.getElementById('sysprompt_enabled').checked === want, !before);
+                await back();
+                await section('Instruct template');
+                await waitFor(page, 'the Instruct section', () => document.getElementById('AdvancedFormatting').dataset.ptView === 'instruct');
+                const instruct = await page.evaluate(() => ({
+                    on: document.querySelector('#AdvancedFormatting .pt-fmt-top[data-pt-sec="instruct"] [role="switch"]')?.getAttribute('aria-checked'),
+                    box: document.getElementById('instruct_enabled').checked,
+                }));
+                if (instruct.on !== String(instruct.box)) throw new Error(JSON.stringify(instruct));
+                await back();
+            } finally {
+                await page.evaluate(want => { const box = document.getElementById('sysprompt_enabled'); if (box.checked !== want) box.click(); }, before);
+                await page.waitForTimeout(1500);
+            }
+            await back();
+            await waitFor(page, 'back on AI', () => document.getElementById('pt-page')?.dataset.page === 'pt-ai');
+        });
+
         await step('with Chat Completion, Prompts opens the Presets page on its Prompts', async () => {
             await page.evaluate(() => { const select = document.getElementById('main_api'); select.value = 'openai'; jQuery(select).trigger('change'); });
             await waitFor(page, 'a Prompts row', () => [...document.querySelectorAll('#pt-page .pt-list-row-title')].some(node => node.textContent === 'Prompts'));

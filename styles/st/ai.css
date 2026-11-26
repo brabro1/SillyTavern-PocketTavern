@@ -548,3 +548,120 @@ html.pt-touch .drawer-content .flex-container.flexFlowRow:has(> .flexFlowColumn 
     flex: 1 1 100% !important;
     max-width: 100% !important;
 }
+
+/* -- Context template, Instruct template, System prompt (DESIGN.md → AI → Formatting) ----------
+   Pocket Tavern's own top rows (src/st/formatting.js): a switch row for Instruct mode and the System
+   prompt, and a note that only shows with Chat Completion, which does not use these screens. */
+html.pt-afnav #AdvancedFormatting .pt-fmt-top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-3);
+}
+
+html.pt-afnav #AdvancedFormatting .pt-fmt-top > * {
+    margin: var(--pt-space-2) 0 var(--pt-space-2);
+}
+
+html.pt-afnav #AdvancedFormatting .pt-fmt-cc {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pt-space-2);
+}
+
+/* The same test as SillyTavern's own "Grayed-out options…" notice. */
+html.pt-afnav #top-settings-holder:has(#main_api option[value='openai']:checked) #AdvancedFormatting .pt-fmt-cc {
+    display: flex;
+}
+
+/* SillyTavern's small ⏻ buttons are the switch rows now. The !important beats .checkbox_label's flex. */
+html.pt-afnav #AdvancedFormatting :is(#instruct_enabled_label, #sysprompt_enabled_label) {
+    display: none !important;
+}
+
+/* The System prompt's heading only held its name (in the top bar already) and ⏻. */
+html.pt-afnav #SystemPromptColumn > h4.standoutHeader:has(#sysprompt_enabled_label) {
+    display: none !important;
+}
+
+/* A field's label: quiet, and its expand button a full 44px target at the end. */
+html.pt-afnav #AdvancedFormatting label.flex-container:has(> .editor_maximize) {
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--pt-space-3) 0 var(--pt-space-1);
+}
+
+html.pt-afnav #AdvancedFormatting :is(label.flex-container, #context_story_string_position_block, #instructSettingsBlock, [id^='instruct_'][id$='_block'], .flexAuto) > small:first-child,
+html.pt-afnav #AdvancedFormatting label.flex-container > small {
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+}
+
+html.pt-afnav #AdvancedFormatting .editor_maximize {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: calc(-1 * var(--pt-space-3)) 0;
+    border-radius: var(--pt-radius-sm);
+    color: var(--pt-text-secondary);
+    opacity: 1;
+}
+
+/* Room to write: the prompts get a tall box, and templates (story string, sequences) read in a
+   fixed-width face so their {{macros}} and line breaks line up. min-height leaves SillyTavern's own
+   auto height free to grow. */
+html.pt-afnav #AdvancedFormatting #sysprompt_content {
+    min-height: max(180px, 32vh);
+}
+
+html.pt-afnav #AdvancedFormatting #sysprompt_post_history {
+    min-height: 96px;
+}
+
+html.pt-afnav #AdvancedFormatting #context_story_string {
+    min-height: max(200px, 30vh);
+}
+
+html.pt-afnav #AdvancedFormatting :is(#context_story_string, #InstructSequencesColumn textarea, #context_example_separator, #context_chat_start) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--pt-text-sm);
+    line-height: 1.5;
+}
+
+html.pt-afnav #AdvancedFormatting :is(#sysprompt_content, #sysprompt_post_history, #context_story_string, #InstructSequencesColumn textarea) {
+    padding: var(--pt-space-3);
+    border-radius: var(--pt-radius-sm);
+}
+
+/* On a phone: the preset picker on its own line, its tools in a row under it; and each prefix/suffix
+   pair one above the other instead of two narrow boxes side by side. */
+html.pt-phone.pt-afnav #AdvancedFormatting .flex-container:has(> select[data-preset-manager-for]) {
+    flex-wrap: wrap;
+    gap: var(--pt-space-2);
+}
+
+html.pt-phone.pt-afnav #AdvancedFormatting .flex-container > select[data-preset-manager-for] {
+    flex: 1 1 100%;
+    min-height: 44px;
+}
+
+html.pt-phone.pt-afnav #AdvancedFormatting .flex-container > select[data-preset-manager-for] ~ .flex-container {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    gap: var(--pt-space-2);
+    margin: 0;
+}
+
+html.pt-phone.pt-afnav #AdvancedFormatting #InstructSequencesColumn details > .flex-container,
+html.pt-phone.pt-afnav #AdvancedFormatting #ContextSettings .flex-container:has(> .flex1 > label[for='context_example_separator']) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+}
+
+html.pt-phone.pt-afnav #AdvancedFormatting #InstructSequencesColumn details > .flex-container > * {
+    width: 100%;
+}

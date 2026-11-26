@@ -56,7 +56,10 @@ export function characterPage(actions) {
             star.setAttribute('aria-pressed', String(who.favorite));
             const more = iconButton({ icon: 'ellipsis', label: 'More actions', onClick: event => actions.menu(event.currentTarget) });
             const name = h('div', { class: 'pt-character-name', role: 'heading', 'aria-level': '2', raw: who.name, dir: 'auto' });
+            // Their picture, blurred and faded, as a soft wash of colour behind the top.
+            const backdrop = who.picture ? h('div', { class: 'pt-character-backdrop', 'aria-hidden': 'true' }, [h('img', { src: who.picture, alt: '', decoding: 'async' })]) : null;
             const hero = h('div', { class: 'pt-character-hero' }, [
+                backdrop,
                 avatar({ name: who.name, src: who.picture, size: 96 }),
                 h('div', { class: 'pt-character-head' }, [h('div', { class: 'pt-character-title' }, [name, star, more])]),
             ]);

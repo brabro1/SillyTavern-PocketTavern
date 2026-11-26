@@ -39,3 +39,18 @@ export const CHAT_COMPLETION_PRESET = '#settings_preset_openai';
 
 /** "Start new chat" for the open character (SillyTavern asks first). */
 export const START_NEW_CHAT = '#option_start_new_chat';
+
+// ---- Characters ------------------------------------------------------------------------------
+
+/** The character list's row of filter buttons (favourites, groups, folders, tags, clear). */
+export const CHARACTER_FILTERS = '#rm_characters_block .rm_tag_filter';
+
+// ---- Formatting (Advanced Formatting) ----------------------------------------------------------
+
+/** Each one's own on switch (a hidden checkbox behind a ⏻ button in the heading). */
+export const INSTRUCT_ENABLED = '#instruct_enabled';
+export const SYSPROMPT_ENABLED = '#sysprompt_enabled';
+/** The three sections' boxes: Pocket Tavern's own rows go first in each. */
+export const CONTEXT_SETTINGS = '#ContextSettings';
+export const INSTRUCT_COLUMN = '#InstructSettingsColumn';
+export const SYSPROMPT_BLOCK = '#SystemPromptBlock';

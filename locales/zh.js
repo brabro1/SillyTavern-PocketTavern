@@ -914,4 +914,11 @@ export default {
     "SillyTavern's Custom CSS": "SillyTavern 的自定义 CSS",
     "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "在 Pocket Tavern 主题下也使用 SillyTavern 设置中的自定义 CSS。SillyTavern 主题会把它自己的 CSS 放在那里。",
     "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Pocket Tavern 的主题负责绘制聊天，所以开启时 SillyTavern 的 {style} 聊天样式会关闭。在 设置 → 外观 中选择 SillyTavern 主题即可恢复。",
+    // Formatting: Context template, Instruct template, System prompt
+    "Instruct mode": "指令模式",
+    "Wraps each message in the template's sequences": "用模板的序列包裹每条消息",
+    "Use the system prompt": "使用系统提示词",
+    "Sends these instructions before the chat": "在聊天之前发送这些指令",
+    "Chat Completion ignores the greyed-out settings here. What it sends is set in AI → Prompts.": "Chat Completion 会忽略这里灰色的设置。它发送的内容在 AI → 提示词 中设置。",
+    "Open Prompts": "打开提示词",
 };

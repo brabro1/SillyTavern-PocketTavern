@@ -480,12 +480,12 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### A–Z strip
 - 28px wide, `caption` letters in secondary, along the end edge of the character list. No track until it is used.
-- **Touching or pressing it:**
+- **Sliding a finger along it, or moving the mouse over it** (no press needed, nothing to hold):
   - a soft track appears
-  - a 24px accent light glides to the letter under the pointer
+  - a 24px accent light glides to the letter under the pointer, and the list jumps to it
   - letters around it grow and lean out (distance 0–3)
-  - a 56px accent bubble with the letter rides beside the finger
-- A mouse gets the lens without jumping until it presses.
+  - a 56px accent bubble with the letter rides beside the pointer, fading a moment after it stops
+- On desktop the strip runs the list's full height.
 - Only `transform` and `opacity` move, at `--pt-dur-fast`.
 
 ---
@@ -552,7 +552,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### Character page
 - **Top:**
-  - Picture (96, SillyTavern's shape) and name (`title`).
+  - Picture (96, SillyTavern's shape) and name (`title`), over a soft, blurred wash of the picture that fades out downwards.
   - Beside the name: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, then Delete in red). ★, Export, Duplicate, Lorebooks and Delete act on that character directly, through SillyTavern's own functions, so their chat stays shut. Only External media needs their chat, which then opens first (with a short note saying so).
   - A short about (creator's note or description), clamped to three lines with "More".
 - **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row. In the editor itself, the card's own buttons are **New chat** and **Recent chats**.
@@ -560,8 +560,14 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **Nothing changes** until the user picks something.
 - **Where it opens:** on a phone, as a pushed page. On desktop, in the panel, with the chat staying beside it.
 
+### Characters list
+- **Top:** favourites (round pictures with names) while the list shows; they step aside while a card is open. Then one row: the search field, Sort, Grid or list, and `+` (accent).
+- **Filters:** SillyTavern's filter buttons as 44px labelled pills in one row that scrolls sideways (the wheel scrolls it on desktop): Favorites, Groups, Folders, Edit tags, All tags, Clear. The labels are Pocket Tavern's words on SillyTavern's own buttons.
+- **Grid:** picture cards (3:4, name at the bottom) with the card shadow; a favourite wears a gold star in a dark 24px circle at the top end corner. On desktop a card lifts and its picture leans in under the mouse.
+
 ### Character editor
-- **Where:** full screen on a phone, the widened panel on desktop. Header: the name and ✕.
+- **Where:** full screen on a phone, the widened panel on desktop. Header: ‹ (back to the character's page when it was opened from there, else to the list), the name.
+- **Top:** the picture (96, SillyTavern's shape) at the start; beside it the name and **New chat** · **Recent chats** (stacked on a phone). The card's tools as labelled 56px tiles under them, four to a row.
 - **Fields:** SillyTavern's own form, restyled, in three segmented tabs:
   - **Description**
   - **Greetings** (first message and alternates)
@@ -582,6 +588,11 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - When something is wrong, the card says what, in one sentence, with **Connect** or **Reconnect**.
 - **Quick rows:** Connection profile, Model, Preset (pickers).
 - **Rows to pages** (SillyTavern's own screens, restyled): Connection settings, Samplers, Prompts (Chat Completion only; the Presets page on its Prompts tab) and Formatting (every API: it also holds the tokenizer and other settings Chat Completion uses), each one page.
+- **Formatting** opens on its sections as rows. In **Context template**, **Instruct template** and **System prompt**:
+  - Instruct mode and the System prompt have a switch row at the top (it presses SillyTavern's own hidden checkbox), in place of the small ⏻ button.
+  - With Chat Completion, a note under it says the greyed-out settings are ignored, with **Open Prompts**.
+  - On a phone the preset picker takes its own line with its tools under it, and each prefix and suffix pair stacks.
+  - The prompts get tall boxes; templates (story string, sequences) use a fixed-width face.
 - **The AI tab** shows a small warning dot while nothing is connected.
 
 ### Settings

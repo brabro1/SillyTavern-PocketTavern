@@ -94,6 +94,17 @@ for (const layout of ['phone', 'desktop']) {
             if (moved - top < 100) throw new Error(`hovering down the strip scrolled ${moved - top}px`);
         });
 
+        await step('the filters are labelled 44px pills in one row (Favorites, Groups, Folders, Edit tags, All tags, Clear)', async () => {
+            const pills = await page.evaluate(() => [...document.querySelectorAll('#rm_characters_block .rm_tag_filter .tag.actionable')].filter(tag => getComputedStyle(tag).display !== 'none').map(tag => {
+                const box = tag.getBoundingClientRect();
+                return { label: tag.dataset.ptLabel, h: Math.round(box.height), w: Math.round(box.width), top: Math.round(box.top) };
+            }));
+            const labels = pills.map(pill => pill.label).join('|');
+            if (labels !== 'Favorites|Groups|Folders|Edit tags|All tags|Clear') throw new Error(`labels: ${labels}`);
+            if (pills.some(pill => pill.h < 44 || pill.w <= pill.h)) throw new Error(`sizes: ${JSON.stringify(pills)}`);
+            if (new Set(pills.map(pill => pill.top)).size !== 1) throw new Error('the pills wrap onto more than one row');
+        });
+
         await step('tapping a character opens their page, not their chat: picture, name, ★ and ⋯, Chat · New chat · Edit, and their chats', async () => {
             await page.evaluate(tapCharacter, 'Seraphina');
             await waitFor(page, 'the character page', () => document.getElementById('pt-page')?.dataset.page === 'pt-character' && !!document.querySelector('#pt-page .pt-chat-row'));
@@ -135,6 +146,24 @@ for (const layout of ['phone', 'desktop']) {
             if (!await page.evaluate(() => !!document.getElementById('pt_card_tabs')?.getBoundingClientRect().height)) throw new Error('the card has no tabs');
             await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
             await waitFor(page, 'back on the open chat', () => !document.documentElement.classList.contains('pt-card-peek') && document.getElementById('character_name_pole')?.value !== 'Seraphina');
+        });
+
+        await step("in the editor the favourites row steps aside, and ‹ goes back to the character's page", async () => {
+            await page.evaluate(tapCharacter, 'Seraphina');
+            await waitFor(page, 'the page', () => document.getElementById('pt-page')?.dataset.page === 'pt-character');
+            await page.locator('#pt-page .pt-character-actions .pt-button', { hasText: 'Edit' }).click();
+            await waitFor(page, 'their card', () => document.getElementById('character_name_pole')?.value === 'Seraphina' && document.documentElement.classList.contains('pt-card-peek'));
+            await page.waitForTimeout(400);
+            const card = await page.evaluate(() => ({
+                favorites: getComputedStyle(document.getElementById('CharListButtonAndHotSwaps')).display,
+                back: getComputedStyle(document.querySelector('#pt-appbar .pt-ab-back')).display !== 'none',
+            }));
+            if (card.favorites !== 'none' || !card.back) throw new Error(JSON.stringify(card));
+            await page.locator('#pt-appbar .pt-ab-back').click();
+            await waitFor(page, "back on Seraphina's page", () => document.getElementById('pt-page')?.dataset.page === 'pt-character' && document.querySelector('#pt-page .pt-character-name')?.textContent === 'Seraphina' && !document.documentElement.classList.contains('pt-card-peek'));
+            if (await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null) !== before) throw new Error('going back changed the chat');
+            await page.locator('#pt-appbar .pt-ab-back').click();
+            await waitFor(page, 'the list', () => !document.getElementById('pt-page') && document.documentElement.dataset.ptPage === 'rightNavHolder');
         });
 
         await step(phone ? '‹ on the page goes back to the list' : 'Escape on the page goes back to the list', async () => {

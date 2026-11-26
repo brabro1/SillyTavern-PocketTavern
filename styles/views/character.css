@@ -1,9 +1,37 @@
 /* A character's page (DESIGN.md → Key screens → Character page; src/views/character.js). */
 
 .pt-character-hero {
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: var(--pt-space-4);
+}
+
+.pt-character-hero > .pt-avatar {
+    box-shadow: var(--pt-shadow-raise);
+}
+
+/* The picture behind the top, blurred and fading out downwards. The blur is on this layer alone,
+   which holds nothing fixed (AGENTS.md → Known traps → Containing blocks). */
+.pt-character-backdrop {
+    position: absolute;
+    inset: calc(-1 * var(--pt-space-4)) calc(-1 * var(--pt-space-4)) auto;
+    z-index: -1;
+    height: 200px;
+    overflow: hidden;
+    opacity: 0.4;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent);
+    mask-image: linear-gradient(to bottom, #000 30%, transparent);
+}
+
+.pt-character-backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(32px) saturate(1.3);
+    transform: scale(1.2);
 }
 
 .pt-character-head {

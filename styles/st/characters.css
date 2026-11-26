@@ -537,45 +537,85 @@ html.pt-charpage #avatar-and-name-block {
     align-items: stretch;
 }
 
-/* Pinned (!important): Moonlit Echoes lays this area out its own way with !important sizes,
+/* The card's top: the picture at the start, the name and New chat · Recent chats beside it, the tools
+   under them. Side by side it is half as tall as stacked, so the fields start on the first screen.
+   Pinned (!important): Moonlit Echoes lays this area out its own way with !important sizes,
    which squeezed the card tools into a sliver at the left (Kahvana's report). */
 html.pt-charpage #avatar_div {
-    flex-direction: column !important;
+    display: grid !important;
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas: 'pic name' 'pic go' 'tools tools';
+    grid-template-rows: auto auto auto;
     align-items: center !important;
-    gap: 8px;
-}
-
-html.pt-charpage #avatar_div_div,
-html.pt-charpage #avatar_div_div img {
-    width: 120px !important;
-    height: 120px !important;
-    border-radius: 50% !important;
+    gap: var(--pt-space-2) var(--pt-space-4);
 }
 
 html.pt-charpage #avatar_div_div {
-    margin: 4px auto 0;
-    box-shadow: none;
+    grid-area: pic;
+    margin: 0;
+    box-shadow: var(--pt-shadow-raise);
+}
+
+/* SillyTavern's avatar shape, like every picture (DESIGN.md → Avatars and pictures). */
+html.pt-charpage #avatar_div_div,
+html.pt-charpage #avatar_div_div img {
+    width: 96px !important;
+    height: 96px !important;
+    border-radius: 50% !important;
+    object-fit: cover;
+}
+
+html.pt-charpage body.square-avatars :is(#avatar_div_div, #avatar_div_div img) {
+    border-radius: 4px !important;
+}
+
+html.pt-charpage body.rounded-avatars :is(#avatar_div_div, #avatar_div_div img) {
+    border-radius: var(--pt-radius-sm) !important;
+}
+
+html.pt-charpage body.big-avatars :is(#avatar_div_div, #avatar_div_div img) {
+    height: 128px !important;
+    border-radius: var(--pt-radius-sm) !important;
+}
+
+/* A new character has no name or buttons yet: the picture alone, in the middle. */
+html.pt-charpage #avatar_div:has(> .pt-hero-name[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'pic' 'tools';
+    justify-items: center;
 }
 
 html.pt-charpage #avatar_div .pt-hero-name {
-    align-self: stretch;
-    max-width: 100%;
+    grid-area: name;
+    align-self: end;
+    min-width: 0;
     color: var(--pt-text-primary);
-    font-size: 24px;
+    font-size: var(--pt-text-xl);
     font-weight: 800;
     line-height: 1.2;
-    text-align: center;
+    text-align: start;
     overflow-wrap: anywhere;
 }
 
-/* Under the name: Chat (their latest chat) and Recent chats, side by side. */
+html.pt-charpage #avatar_div > #avatar_controls {
+    grid-area: tools;
+    margin-top: var(--pt-space-2);
+}
+
+/* Under the name: New chat and Recent chats, side by side. */
 html.pt-charpage .pt-card-go {
     display: grid;
+    grid-area: go;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    align-self: stretch;
+    gap: var(--pt-space-2);
+    align-self: start;
     width: 100%;
-    margin: 4px 0;
+    margin: 0;
+}
+
+/* On a phone the column beside the picture is narrow: one above the other, so neither label is cut. */
+html.pt-phone.pt-charpage .pt-card-go {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 html.pt-charpage .pt-card-go[hidden] {
@@ -661,12 +701,14 @@ html.pt-charpage #avatar_controls .form_create_bottom_buttons_block {
 
 html.pt-charpage #avatar_controls .form_create_bottom_buttons_block > .menu_button {
     flex-direction: column;
-    gap: 4px;
+    gap: var(--pt-space-1);
     width: auto;
-    height: 60px;
+    height: 56px;
     margin: 0;
     border-radius: var(--pt-radius-sm);
-    font-size: 20px;
+    background: var(--pt-surface);
+    box-shadow: var(--pt-highlight);
+    font-size: var(--pt-text-lg);
 }
 
 html.pt-charpage #avatar_controls .form_create_bottom_buttons_block > .menu_button[style*="none"],
@@ -704,6 +746,15 @@ html.pt-charpage .pt-card-tabs {
     margin: 12px 0 8px;
 }
 
+/* The tabs stay at the top while a long description scrolls, so switching never means scrolling back.
+   The page's own background behind them hides the text passing under. */
+html.pt-charpage #rm_ch_create_block .pt-card-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 0 0 var(--pt-space-2) var(--pt-bg), var(--pt-shadow-raise);
+}
+
 html.pt-charpage .pt-card-tabs .pt-seg {
     min-width: 0;
     padding: 0 8px;
@@ -722,6 +773,22 @@ html.pt-charpage #form_create :is(#description_textarea, #firstmessage_textarea)
     min-height: 46dvh;
     font-size: 16px;
     line-height: 1.55;
+}
+
+/* The card's text boxes without SillyTavern's .text_pole fell back to its see-through black, grey on a
+   light theme: they take the same field look as every other box. */
+html.pt-charpage #form_create textarea:not(.text_pole) {
+    padding: var(--pt-space-3);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background-color: var(--pt-surface);
+    color: var(--pt-text-primary);
+}
+
+html.pt-charpage #form_create textarea:not(.text_pole):focus {
+    border-color: color-mix(in srgb, var(--pt-accent) 70%, transparent);
+    outline: 3px solid color-mix(in srgb, var(--pt-accent) 22%, transparent);
+    outline-offset: 0;
 }
 
 html.pt-charpage #form_create.pt-ctab-notes #spoiler_free_desc .inline-drawer-content {
@@ -789,6 +856,12 @@ html.pt-charpage #right-nav-panel:has(#rm_characters_block:not([style*="none"]))
 
 html.pt-charpage #CharListButtonAndHotSwaps {
     margin: 0 0 4px;
+}
+
+/* While a card is open (editing, creating, a group), the favorites row belongs to the list, not to the card.
+   Pocket Tavern's own back still clicks SillyTavern's hidden list button. The !important beats SillyTavern's flex. */
+html.pt-charpage #right-nav-panel:has(#rm_characters_block[style*="none"]) #CharListButtonAndHotSwaps {
+    display: none !important;
 }
 
 html.pt-charpage .pt-char-toolbar {
@@ -962,18 +1035,26 @@ html.pt-charpage body.charListGrid #rm_print_characters_block .ch_name {
 /* Favorites get a small star in the corner; the chat you are in gets an accent ring. */
 html.pt-charpage body.charListGrid #rm_print_characters_block .ch_fav_icon {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: var(--pt-space-2);
+    inset-inline-end: var(--pt-space-2);
     z-index: 1;
     display: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    /* SillyTavern's list layout pads and pulls this star sideways. */
+    padding: 0;
+    border-radius: var(--pt-radius-full);
+    background: rgb(0 0 0 / 0.45);
     color: #ffd54f;
-    font-size: 14px;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+    font-size: var(--pt-text-xs);
+    line-height: 1;
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block .is_fav .ch_fav_icon,
 html.pt-charpage body.charListGrid #rm_print_characters_block .ch_fav_icon:not([style*="none"]) {
-    display: block !important;
+    display: grid !important;
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block > .character_select.is_fav,
@@ -1100,12 +1181,39 @@ html.pt-charpage .rm_tag_filter .tag .tag_name {
     line-height: 1;
 }
 
+/* Each filter is a labelled pill (src/st/characters.js puts the label in data-pt-label), in one row
+   that scrolls sideways. 44px tall for a finger. */
 html.pt-charpage .rm_tag_filter .tag.actionable {
-    width: 34px;
-    min-width: 34px;
-    height: 32px;
-    padding: 0;
+    gap: var(--pt-space-2);
+    width: auto;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 var(--pt-space-4);
     justify-content: center;
+    /* SillyTavern draws these as circles (aspect-ratio 1 / 1), which would squeeze the label. */
+    aspect-ratio: auto;
+    border-radius: var(--pt-radius-full);
+    box-shadow: var(--pt-highlight);
+}
+
+html.pt-charpage .rm_tag_filter .tag.actionable .tag_name {
+    flex: none;
+}
+
+html.pt-charpage .rm_tag_filter .tag.actionable[data-pt-label]::after {
+    content: attr(data-pt-label);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+html.pt-charpage .rm_tag_controls .tags.rm_tag_filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--pt-space-3));
+    padding: var(--pt-space-1) var(--pt-space-3);
+    scroll-padding-inline: var(--pt-space-3);
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block > :is(.character_select, .group_select, .bogus_folder_select) {

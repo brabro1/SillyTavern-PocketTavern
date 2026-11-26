@@ -674,11 +674,25 @@ function backFromPage() {
         openPage('pt-chats');
         return;
     }
+    // A character's card (editing, a new character, a group): back to their page when it was opened from
+    // there, else to the list. SillyTavern's own list button closes the card (and the card-only view).
+    if (id === 'rightNavHolder' && characterCardShown()) {
+        const target = targetCharacter();
+        const fromPage = !!target && document.getElementById('avatar_url_pole')?.value === target.avatar;
+        document.getElementById('rm_button_characters')?.click();
+        if (fromPage) openCharacterPage(characterTarget.chid);
+        return;
+    }
     const place = id ? placeOf(id) : null;
     if (place && place !== id && (isOwnPage(place) || drawerById(place))) {
         if (place === 'rightNavHolder') showCharacterList();
         openPage(place);
     } else closePages();
+}
+
+/** A character's card, a new character or a group is open in Characters instead of the list. */
+function characterCardShown() {
+    return isShown(document.getElementById('rm_ch_create_block')) || isShown(document.getElementById('rm_group_chats_block'));
 }
 
 /** Leaves the open chat for SillyTavern's start screen with the recent chats. */
@@ -1181,7 +1195,9 @@ class Shell {
         const tabId = placeOf(pageId);
         if (pageId) this.lastInPlace[tabId] = pageId;
         // A place's root has its title only; a page pushed in a place gets ‹ (DESIGN.md → Headers).
-        this.appbar.classList.toggle('pt-ab-root', !!pageId && (tabId === pageId || pageId === 'pt-chats'));
+        // A character's card inside Characters is a level down too.
+        const card = pageId === 'rightNavHolder' && characterCardShown();
+        this.appbar.classList.toggle('pt-ab-root', !!pageId && !card && (tabId === pageId || pageId === 'pt-chats'));
         this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
         for (const [id, button] of this.tabs) {
             const on = id === tabId;

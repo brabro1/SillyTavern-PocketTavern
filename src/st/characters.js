@@ -6,11 +6,12 @@
 // Moved here whole from the legacy app (M3); its listeners are still registered by the legacy app, so errors
 // in them are caught by the lifecycle's page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
 import { h } from '../core/dom.js';
+import { safe } from '../core/lifecycle.js';
 import { shieldFromDrawerAutoClose } from './drawers.js';
 import { t } from '../core/i18n.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { chatTitleNode, messageCount, previewBubble } from '../ui/chat-row.js';
-import { START_NEW_CHAT } from './selectors.js';
+import { CHARACTER_FILTERS, START_NEW_CHAT } from './selectors.js';
 import { listGroup, listRow } from '../ui/list.js';
 
 const LOG = '[Pocket Tavern]';
@@ -637,6 +638,49 @@ export function syncCharacterPage() {
  * with everything SillyTavern spreads over several rows of small buttons.
  * SillyTavern's own buttons stay in the page (hidden) and do the actual work.
  */
+/** SillyTavern's filter buttons are icons with a long tooltip; each gets a short visible label. */
+const FILTER_LABELS = [
+    ['filterByFavorites', 'Favorites'],
+    ['filterByGroups', 'Groups'],
+    ['filterByFolder', 'Folders'],
+    ['manageTags', 'Edit tags'],
+    ['showTagList', 'All tags'],
+    ['clearAllFilters', 'Clear'],
+];
+
+/** The mouse wheel scrolls the filter row sideways while it can still move (a computer has no swipe). */
+const onFilterWheel = safe('character filters', event => {
+    const row = event.currentTarget;
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || row.scrollWidth <= row.clientWidth) return;
+    const before = row.scrollLeft;
+    row.scrollLeft += event.deltaY;
+    if (row.scrollLeft !== before) event.preventDefault();
+});
+let filterRow = null;
+
+/** Puts each label on its button as data-pt-label (shown by CSS), so SillyTavern's own markup stays as it is. */
+function labelFilterChips() {
+    const row = document.querySelector(CHARACTER_FILTERS);
+    if (row !== filterRow) {
+        filterRow?.removeEventListener('wheel', onFilterWheel);
+        row?.addEventListener('wheel', onFilterWheel, { passive: false });
+        filterRow = row;
+    }
+    for (const [name, label] of FILTER_LABELS) {
+        for (const chip of document.querySelectorAll(`${CHARACTER_FILTERS} .tag.${name}`)) {
+            const text = t(label);
+            if (chip.dataset.ptLabel !== text) chip.dataset.ptLabel = text;
+        }
+    }
+}
+
+/** Takes the labels away again (Pocket Tavern turned off). */
+function unlabelFilterChips() {
+    filterRow?.removeEventListener('wheel', onFilterWheel);
+    filterRow = null;
+    for (const chip of document.querySelectorAll(`${CHARACTER_FILTERS} .tag[data-pt-label]`)) delete chip.dataset.ptLabel;
+}
+
 function buildCharToolbar() {
     const top = document.getElementById('charListFixedTop');
     const search = document.getElementById('character_search_bar');
@@ -659,6 +703,7 @@ function buildCharToolbar() {
         shieldFromDrawerAutoClose(bar);
         top.prepend(bar);
     }
+    labelFilterChips();
     // SillyTavern's search box moves into the row (it goes back when Pocket Tavern is turned off).
     const slot = bar.querySelector('.pt-ctool-search');
     if (search.parentElement !== slot) {
@@ -698,6 +743,7 @@ function restoreCharToolbar() {
     else if (search && form && !form.contains(search)) form.append(search);
     charSearchHome.parent = charSearchHome.next = null;
     document.getElementById('pt_char_toolbar')?.remove();
+    unlabelFilterChips();
 }
 
 function openSortSheet() {

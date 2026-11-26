@@ -13,6 +13,7 @@ import { IS_IOS, resolveLayout } from '../shell/layout.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { SWITCHES } from '../views/pocket-tavern.js';
 import { presetTabs, setPresetTab } from '../st/ai.js';
+import { addFormattingRows, refreshFormattingRows, removeFormattingRows } from './formatting.js';
 
 /** The choices in the Extensions panel's Pocket Tavern section. */
 const SIZES = { auto: 'Automatic', comfortable: 'Comfortable', compact: 'Compact' };
@@ -308,6 +309,8 @@ class PageSections {
      * @param {() => HTMLElement | null} spec.block - the page's drawer content
      * @param {(nav: PageSections, block: HTMLElement) => boolean} spec.mark - marks the blocks; false when the page is not laid out as expected
      * @param {(nav: PageSections, block: HTMLElement, list: HTMLElement) => void} spec.place - puts the list of sections on the page
+     * @param {() => void} [spec.refresh] - reads SillyTavern's values again whenever the view changes
+     * @param {() => void} [spec.cleanup] - takes away what mark() or place() added besides the list
      */
     constructor(spec) {
         Object.assign(this, spec);
@@ -348,6 +351,7 @@ class PageSections {
         if (!block || !this.home) return;
         block.dataset.ptView = this.view;
         for (const element of this.marked) element.classList.toggle('pt-sec-off', element.dataset.ptSec !== this.view);
+        this.refresh?.();
     }
 
     scrollTop() {
@@ -392,6 +396,7 @@ class PageSections {
             element.classList.remove('pt-sec-off');
         }
         this.marked = [];
+        this.cleanup?.();
         this.home?.remove();
         this.home = null;
         this.view = 'home';
@@ -509,8 +514,12 @@ const afnav = new PageSections({
         }
         // A newer SillyTavern's extra column goes to Miscellaneous, so nothing gets lost.
         for (const child of columns.children) if (!child.querySelector('[data-pt-sec]')) nav.markAs(child, 'misc');
-        return nav.has('context') && nav.has('reasoning');
+        if (!nav.has('context') || !nav.has('reasoning')) return false;
+        addFormattingRows((element, id) => nav.markAs(element, id));
+        return true;
     },
+    refresh: refreshFormattingRows,
+    cleanup: removeFormattingRows,
     place: (nav, block, list) => {
         list.append(nav.sectionList());
         // After the title row (Master Import / Export) and the Chat Completion notice.
