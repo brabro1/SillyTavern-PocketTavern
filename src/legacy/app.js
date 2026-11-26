@@ -36,6 +36,9 @@ import { appearancePage } from '../views/appearance.js';
 import { DEVICE_MODES, pocketTavernPage } from '../views/pocket-tavern.js';
 import { aboutPage } from '../views/about.js';
 import { LOREBOOK_PAGE, lorebooksPage } from '../views/lorebooks.js';
+import { draftSettingsPage } from '../views/draft-settings.js';
+import { SECTIONS as DRAFT_SECTIONS } from '../features/draft/engine.js';
+import { builtInInstruction, canUndo, cancelDraft, cycleWritingAs, draftRunning, draftSettings, isDrafting, previewNote, profileNames, refineChoices, refineDraft, resetDraftSettings, runDraft, saveDraftSettings, setupDraft, standaloneInstalled, startDraft, stopDraft, undoDraft, writingAsName } from '../features/draft/draft.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { watchChatLoading } from '../features/chat-loading.js';
@@ -64,6 +67,10 @@ const DEFAULTS = Object.freeze({
     appShell: true,
     chatStyle: true,
     touchSizing: true,
+    /** The Draft helper (built in from the Draft Enhancer extension): Enhance, Write and Continue in +. */
+    draftHelper: true,
+    /** − and + beside sliders' numbers (issue #12: off; typing the number is quicker). */
+    sliderSteppers: false,
     backGesture: true,
     lorebookPicker: true,
     longSelects: false,
@@ -654,6 +661,11 @@ function closeDrawers() {
 /** Back from a page: from one of SillyTavern's pages to the place it belongs to (AI, Settings), else to the chat. */
 function backFromPage() {
     const id = currentPageId();
+    // The Draft helper's page is opened from Settings → Pocket Tavern.
+    if (id === 'pt-draft') {
+        openPage('pt-pocket');
+        return;
+    }
     const place = id ? placeOf(id) : null;
     if (place && place !== id && (isOwnPage(place) || drawerById(place))) {
         if (place === 'rightNavHolder') showCharacterList();
@@ -5453,6 +5465,79 @@ const PLUS_ELSEWHERE = new Set(['option_select_chat', 'option_start_new_chat', '
 /** The wand's file item belongs with Reply: it goes with your next message. */
 const PLUS_ATTACH = 'attachFile';
 
+// -- the Draft helper (src/features/draft/draft.js)
+
+/** On while Pocket Tavern and the Draft helper switch are on, and the Draft Enhancer extension itself is not. */
+function syncDraft() {
+    if (active && settings.draftHelper) startDraft();
+    else stopDraft();
+}
+
+/** The + menu's Write group, while the Draft helper runs. */
+function draftMenuItems() {
+    if (!draftRunning()) return [];
+    if (isDrafting()) return [{ title: 'Cancel', subtitle: 'Stops writing and brings your draft back', icon: 'stop', run: () => { closeSheet(true); cancelDraft(); } }];
+    const run = kind => () => {
+        closeSheet(true);
+        runDraft(kind);
+    };
+    const name = writingAsName();
+    const items = [
+        { title: 'Enhance my draft', subtitle: 'Turns what you typed into a finished message', icon: 'wand', run: run('enhance') },
+        { title: 'Write for me', subtitle: 'Writes your next message; what you typed is the direction', icon: 'pencil', run: run('write') },
+        { title: 'Continue my draft', subtitle: 'Finishes what you started, from where you stopped', icon: 'play', run: run('continue') },
+        {
+            rawTitle: t('Writing as: {name}', { name: name.raw ?? t(name.text) }),
+            subtitle: 'Tap to switch between you, the character and the narrator',
+            icon: 'mask',
+            run: () => {
+                cycleWritingAs();
+                if (sheet && !sheet.closing) sheet.refresh();
+            },
+        },
+    ];
+    if (canUndo()) items.push({ title: 'Undo', subtitle: 'Brings back the text you had before', icon: 'reset', run: () => { closeSheet(true); undoDraft(); } });
+    return items;
+}
+
+/** Refine: the six changes, or your own. */
+function openDraftRefine() {
+    const own = h('input', { type: 'text', class: 'pt-text-field pt-focus', placeholder: 'Or say what to change…', 'aria-label': 'Your change', dir: 'auto' });
+    const send = () => {
+        const text = own.value.trim();
+        if (!text) return;
+        closeSheet(true);
+        refineDraft(/[.!?]$/.test(text) ? text : `${text}.`);
+    };
+    own.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            send();
+        }
+    });
+    showSheet(new MenuSheet({
+        title: t('Refine'),
+        subtitle: t('Changes the message in the box in one way'),
+        anchor: document.querySelector('#pt-draft-bar [data-action="refine"]'),
+        fill: body => {
+            body.append(listGroup({ rows: refineChoices().map(([, label, change]) => listRow({ title: label, icon: 'sliders', end: 'none', onClick: () => { closeSheet(true); refineDraft(change); } })) }));
+            body.append(h('div', { class: 'pt-draft-own' }, [own, h('button', { type: 'button', class: 'pt-button pt-button--primary pt-focus pt-press', onclick: send }, [h('span', { class: 'pt-button-label', text: 'Refine' })])]));
+        },
+    }));
+}
+
+/** Preview the note: what Enhance (or Write, with an empty box) would send right now. */
+function openDraftPreview() {
+    const note = previewNote();
+    showSheet(new MenuSheet({
+        title: t('Preview the note'),
+        subtitle: note ? '' : t('Open a chat to see the note with its names and last message.'),
+        fill: body => {
+            if (note) body.append(h('pre', { class: 'pt-draft-preview', raw: note, dir: 'auto' }));
+        },
+    }));
+}
+
 /** The + menu (src/views/plus-menu.js): SillyTavern's ☰ and wand items, and other extensions' tools. */
 function openPlusMenu(anchor) {
     const options = document.getElementById('options');
@@ -5489,7 +5574,7 @@ function openPlusMenu(anchor) {
         subtitle: '',
         anchor,
         fill: body => {
-            const groups = plusMenu({ reply, tools });
+            const groups = plusMenu({ write: inChat ? draftMenuItems() : [], reply, tools });
             body.append(...(groups.length ? groups : [h('p', { class: 'pt-menu-foot', text: 'Open a chat first.' })]));
         },
     }));
@@ -5701,6 +5786,7 @@ function applyLayoutPrefs() {
 
 function syncExtras() {
     watchLorebooks();
+    syncDraft();
     if (!active) syncLorebookMode(null);
     applyTextSize();
     applyChatLook();
@@ -5714,7 +5800,7 @@ function syncExtras() {
     syncTriggerChips();
     syncPresetTabs();
     renderMeter();
-    if (active && settings.touchSizing) addSliderSteppers();
+    if (active && settings.touchSizing && settings.sliderSteppers) addSliderSteppers();
     else removeSliderSteppers();
     syncPageSections();
     if (!active || !settings.touchSizing) removeSettingDescriptions();
@@ -5990,6 +6076,8 @@ function reloadWhenIdle(force = false) {
 
 const PANEL_WIDTH_KEY = 'pt_panel_w';
 const PANEL_MIN = 360;
+/** How far past the widest width the edge must be dragged before the panel snaps to the full width. */
+const PANEL_SNAP = 60;
 let panelEdge = null;
 let panelEdgeFrame = 0;
 
@@ -6007,7 +6095,20 @@ function applyPanelWidth(width) {
     if (width) root.style.setProperty('--pt-panel-saved', `${Math.round(width)}px`);
     else root.style.removeProperty('--pt-panel-saved');
     root.classList.toggle('pt-panel-sized', !!width);
-    if (panelEdge) panelEdge.setAttribute('aria-valuenow', String(Math.round(width || panelWidthNow() || PANEL_MIN)));
+    // Dragged well past what leaves the chat 420px: the panel takes the whole width (issue #13).
+    const most = panelMostWidth();
+    root.classList.toggle('pt-panel-full', !!width && width > most + PANEL_SNAP);
+    if (panelEdge) {
+        panelEdge.setAttribute('aria-valuemax', String(Math.round(most + PANEL_SNAP + 1)));
+        panelEdge.setAttribute('aria-valuenow', String(Math.round(width || panelWidthNow() || PANEL_MIN)));
+    }
+}
+
+/** The widest the panel gets while the chat keeps 420px beside it. */
+function panelMostWidth() {
+    const rail = document.getElementById('pt-tabbar')?.getBoundingClientRect().right ?? 88;
+    const right = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pt-right')) || 0;
+    return Math.max(PANEL_MIN, window.innerWidth - rail - right - 420);
 }
 
 function storePanelWidth(width) {
@@ -6043,7 +6144,7 @@ function syncPanelEdge() {
         'aria-orientation': 'vertical',
         'aria-label': 'Panel width',
         'aria-valuemin': String(PANEL_MIN),
-        'aria-valuemax': '760',
+        'aria-valuemax': String(Math.round(panelMostWidth() + PANEL_SNAP + 1)),
         'aria-valuenow': String(Math.round(savedPanelWidth() || PANEL_MIN)),
         title: 'Drag to change the width. Double-click to reset.',
         tabindex: '0',
@@ -6528,6 +6629,28 @@ function registerOwnPages() {
         }),
         status: statusText,
         useSillyTavernForNow,
+        openDraft: () => openPage('pt-draft'),
+    }));
+    setupDraft({ context: ctx, settings: () => settings, save: saveSettings, openRefine: openDraftRefine });
+    definePage('pt-draft', draftSettingsPage({
+        sections: DRAFT_SECTIONS,
+        settings: draftSettings,
+        set: (key, value) => {
+            draftSettings()[key] = value;
+            saveDraftSettings();
+        },
+        pick: openChoiceSheet,
+        profiles: profileNames,
+        builtIn: builtInInstruction,
+        preview: openDraftPreview,
+        reset: () => {
+            resetDraftSettings();
+            refreshOwnPage();
+            globalThis.toastr?.success?.(t('Settings reset'), t('Draft helper'), { timeOut: 1500 });
+        },
+        standalone: standaloneInstalled,
+        enabled: () => !!settings.draftHelper,
+        setEnabled: on => setAppearance('draftHelper', on),
     }));
     definePage('pt-about', aboutPage({
         version: VERSION,

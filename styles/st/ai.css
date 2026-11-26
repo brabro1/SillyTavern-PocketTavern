@@ -535,3 +535,16 @@ html.pt-desktop.pt-prompt-full #completion_prompt_manager_popup .completion_prom
 html.pt-on #lm_button_panel_pin_div {
     display: none !important;
 }
+
+/* Presets: SillyTavern puts two to four sliders side by side (Dynamic Temperature, Mirostat, DRY, XTC, Beam
+   Search), which crowded each name into its number box on a phone and in the panel. One slider per row, like
+   the rest of the page. The !important rules beat SillyTavern's flex-flow: row and its fixed widths. */
+html.pt-touch .drawer-content .flex-container.flexFlowRow:has(> .flexFlowColumn > .neo-range-slider) {
+    flex-wrap: wrap !important;
+    gap: 0 !important;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowRow:has(> .flexFlowColumn > .neo-range-slider) > * {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+}

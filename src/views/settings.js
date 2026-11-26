@@ -7,7 +7,7 @@ import { listGroup, listRow } from '../ui/list.js';
 export const SETTINGS_PAGES = ['user-settings-button', 'persona-management-button', 'backgrounds-button', 'extensions-settings-button'];
 
 /** Pocket Tavern's own pages inside Settings: Back from them returns to Settings. */
-export const SETTINGS_OWN_PAGES = ['pt-appearance', 'pt-pocket', 'pt-about'];
+export const SETTINGS_OWN_PAGES = ['pt-appearance', 'pt-pocket', 'pt-about', 'pt-draft'];
 
 /**
  * @param {object} actions supplied by the shell

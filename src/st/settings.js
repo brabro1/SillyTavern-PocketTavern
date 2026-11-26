@@ -132,8 +132,12 @@ function stepButton(input, direction) {
         : h('button', { type: 'button', class: 'pt-step pt-step-down', 'aria-label': 'Less', onclick }, ['−']);
 }
 
+/**
+ * − and + beside sliders' numbers (Settings → Pocket Tavern → "− and + beside sliders", off by default; issue
+ * #12). They are added next to SillyTavern's number box, never around it, so its own nodes stay where they are.
+ */
 export function addSliderSteppers(root = document) {
-    if (!deps.active() || !deps.settings().touchSizing) return;
+    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().sliderSteppers) return;
     // Chat Completion sliders keep their number in a .range-block-counter box.
     for (const counter of root.querySelectorAll('.range-block-counter')) {
         const input = counter.querySelector('input[type="number"]');
@@ -142,22 +146,20 @@ export function addSliderSteppers(root = document) {
         counter.prepend(stepButton(input, -1));
         counter.append(stepButton(input, 1));
     }
-    // Text Completion, KoboldAI and NovelAI sliders have a bare number box; wrap it.
+    // Text Completion, KoboldAI and NovelAI sliders have a bare number box: the buttons go on either side.
     for (const input of root.querySelectorAll('input.neo-range-input[type="number"]')) {
-        if (input.closest('.range-block-counter, .pt-step-wrap')) continue;
-        const wrap = h('span', { class: 'pt-step-wrap' });
-        input.before(wrap);
-        wrap.append(stepButton(input, -1), input, stepButton(input, 1));
+        if (input.closest('.range-block-counter') || input.previousElementSibling?.classList.contains('pt-step')) continue;
+        input.classList.add('pt-step-input');
+        input.parentElement?.classList.add('pt-step-host');
+        input.before(stepButton(input, -1));
+        input.after(stepButton(input, 1));
     }
 }
 
 export function removeSliderSteppers() {
-    document.querySelectorAll('.pt-step-wrap').forEach(wrap => {
-        const input = wrap.querySelector('input');
-        if (input) wrap.before(input);
-        wrap.remove();
-    });
     document.querySelectorAll('.pt-step').forEach(node => node.remove());
+    document.querySelectorAll('.pt-step-input').forEach(node => node.classList.remove('pt-step-input'));
+    document.querySelectorAll('.pt-step-host').forEach(node => node.classList.remove('pt-step-host'));
     document.querySelectorAll('.range-block-counter.pt-stepper').forEach(node => node.classList.remove('pt-stepper'));
 }
 

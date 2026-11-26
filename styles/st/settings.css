@@ -147,30 +147,6 @@ html.pt-touch #rm_extensions_block .extension_container {
     margin: 0;
 }
 
-/* With − and + around the number. */
-html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > .pt-step-wrap,
-html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > div:has(> .pt-step-wrap) {
-    grid-column: 2;
-    grid-row: 1;
-    width: auto;
-}
-
-.pt-step-wrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-}
-
-html.pt-touch .pt-step-wrap > .neo-range-input,
-html.pt-touch .drawer-content .flexFlowColumn:has(> .neo-range-slider) .pt-step-wrap > .neo-range-input {
-    flex: 0 0 auto;
-    width: 4.6em !important;
-    min-width: 4.6em;
-    padding-inline: 4px !important;
-    text-align: center;
-}
-
 .pt-menu-row-note {
     color: var(--pt-text-secondary);
     font-size: 0.85em;
@@ -295,38 +271,80 @@ html.pt-rtl .pt-news {
     text-overflow: ellipsis;
 }
 
-html.pt-touch .range-block-counter.pt-stepper {
-    display: flex !important;
-    align-items: center;
-    gap: 4px;
-}
-
-html.pt-touch .range-block-counter.pt-stepper {
-    flex: 0 0 auto;
-    width: auto !important;
-    min-width: 0;
-}
-
-html.pt-touch .range-block-counter.pt-stepper input {
-    flex: 0 0 auto;
-    width: 4.6em !important;
-    min-width: 4.6em;
-    padding-inline: 4px !important;
-    text-align: center;
-}
-
-/* − and + replace the browser's own arrows. Firefox always shows them, and they
-   covered the number (32768 read as "327"). */
-html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number'] {
+/* SillyTavern's number boxes beside sliders: no browser spin arrows (Firefox always showed them, and they
+   covered the number: 32768 read as "327"). Typing the value is one tap. */
+html.pt-touch :is(.range-block-counter, .drawer-content) input[type='number'] {
     -moz-appearance: textfield;
     appearance: textfield;
     font-variant-numeric: tabular-nums;
 }
 
-html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number']::-webkit-inner-spin-button,
-html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='number']::-webkit-outer-spin-button {
+html.pt-touch :is(.range-block-counter, .drawer-content) input[type='number']::-webkit-inner-spin-button,
+html.pt-touch :is(.range-block-counter, .drawer-content) input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+/* − and + beside sliders (Settings → Pocket Tavern, off by default; issue #12): one pill, [− | value | +].
+   The buttons are siblings of SillyTavern's number box, never a wrapper around it. The !important rules
+   beat SillyTavern's and the legacy restyle's widths and corners on its number box. */
+html.pt-touch .drawer-content .flex-container.flexFlowColumn.pt-step-host:has(> .neo-range-slider),
+html.pt-setnav #user-settings-block-content .flexBasis48p.pt-step-host:has(> input[type='range']) {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    column-gap: 0;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn.pt-step-host:has(> .neo-range-slider) > :first-child,
+html.pt-setnav #user-settings-block-content .flexBasis48p.pt-step-host:has(> input[type='range']) > small:first-child {
+    margin-inline-end: var(--pt-space-3);
+}
+
+/* As specific as the legacy rule that spans every child across the row. */
+html.pt-touch .drawer-content .flex-container.flexFlowColumn.pt-step-host:has(> .neo-range-slider) > .pt-step-down,
+html.pt-setnav #user-settings-block-content .flexBasis48p.pt-step-host:has(> input[type='range']) > .pt-step-down {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn.pt-step-host:has(> .neo-range-slider) > .pt-step-input,
+html.pt-setnav #user-settings-block-content .flexBasis48p.pt-step-host:has(> input[type='range']) > .pt-step-input {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn.pt-step-host:has(> .neo-range-slider) > .pt-step-up,
+html.pt-setnav #user-settings-block-content .flexBasis48p.pt-step-host:has(> input[type='range']) > .pt-step-up {
+    grid-column: 4;
+    grid-row: 1;
+}
+
+/* A number box inside its own little box: the three sit in a row there. */
+html.pt-touch div.pt-step-host:not(.flexFlowColumn, .flexBasis48p) {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    width: auto !important;
+}
+
+html.pt-touch .range-block-counter.pt-stepper {
+    display: flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0;
+    width: auto !important;
+    min-width: 0;
+}
+
+html.pt-touch :is(.range-block-counter.pt-stepper input, .pt-step-input) {
+    flex: 0 0 auto;
+    width: 4.6em !important;
+    min-width: 4.6em;
+    height: 40px !important;
+    margin: 0 !important;
+    padding-inline: var(--pt-space-1) !important;
+    border-radius: 0 !important;
+    border-inline-width: 0 !important;
+    text-align: center;
 }
 
 .pt-step {
@@ -335,23 +353,33 @@ html.pt-touch :is(.range-block-counter.pt-stepper, .pt-step-wrap) input[type='nu
     align-items: center;
     justify-content: center;
     width: 44px;
-    height: 44px;
+    height: 40px;
     padding: 0;
     border: 1px solid var(--pt-border);
-    border-radius: 50%;
     background: var(--pt-surface);
     color: var(--pt-text-primary);
     font: inherit;
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
 
+.pt-step-down {
+    border-inline-end: 0;
+    border-start-start-radius: var(--pt-radius-full);
+    border-end-start-radius: var(--pt-radius-full);
+}
+
+.pt-step-up {
+    border-inline-start: 0;
+    border-start-end-radius: var(--pt-radius-full);
+    border-end-end-radius: var(--pt-radius-full);
+}
+
 .pt-step:active {
     background: var(--pt-surface-elevated);
-    transform: scale(0.92);
 }
 
 .pt-sec-off {

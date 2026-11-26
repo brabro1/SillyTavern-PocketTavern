@@ -4725,7 +4725,7 @@ html.pt-touch .pt-selrow > .pt-help {
 
 /* -- Sliders on the Settings page: name and number on one line, slider under -- */
 
-html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > :is(.pt-step-wrap, input[type='number']) {
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > input[type='number'] {
     grid-row: 1;
     grid-column: 2;
 }
@@ -6081,9 +6081,24 @@ html.pt-desktop.pt-page-open {
 }
 
 /* A width dragged by hand (the panel's edge): never under 360px, and never so
-   wide that the chat gets less than 420px (accounting for any open right-hand tool panel). */
+   wide that the chat gets less than 420px (accounting for any open right-hand tool panel)... */
 html.pt-desktop.pt-panel-sized {
-    --pt-panel-w: clamp(360px, var(--pt-panel-saved), max(360px, min(760px, 100vw - var(--pt-rail-w) - var(--pt-right) - 420px)));
+    --pt-panel-w: clamp(360px, var(--pt-panel-saved), max(360px, 100vw - var(--pt-rail-w) - var(--pt-right) - 420px));
+}
+
+/* ...unless it was dragged past that: then it takes the whole width and the chat steps aside until the panel
+   closes (issue #13). SillyTavern keeps the chat; it only leaves the layout, so the page never scrolls sideways. */
+html.pt-desktop.pt-page-open.pt-panel-full {
+    --pt-panel-w: calc(100vw - var(--pt-rail-w) - var(--pt-right));
+}
+
+html.pt-desktop.pt-page-open.pt-panel-full :is(#sheld, #pt-no-chat) {
+    display: none;
+}
+
+/* The edge stays inside the window, where it can be dragged back. */
+html.pt-desktop.pt-page-open.pt-panel-full #pt-panel-edge {
+    transform: translateX(-8px);
 }
 
 /* When both a left page panel and right tool panel are open on narrower wide screens, slim both side columns so the chat stays >= 360px. */

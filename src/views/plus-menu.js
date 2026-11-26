@@ -14,12 +14,14 @@ import { listGroup, listRow } from '../ui/list.js';
  */
 
 /**
- * @param {{ reply: PlusItem[], tools: PlusItem[] }} items rows that do not apply right now are left out by the shell
+ * @param {{ write?: PlusItem[], reply: PlusItem[], tools: PlusItem[] }} items rows that do not apply right now are left
+ *        out by the shell; `write` is the Draft helper's group (DESIGN.md → Message box → Draft helper)
  * @returns {HTMLElement[]}
  */
-export function plusMenu({ reply, tools }) {
+export function plusMenu({ write = [], reply, tools }) {
     const row = item => listRow({ title: item.title, rawTitle: item.rawTitle, subtitle: item.subtitle, icon: item.icon, start: item.start, end: 'none', onClick: item.run });
     const groups = [];
+    if (write.length) groups.push(listGroup({ header: 'Write', rows: write.map(row) }));
     if (reply.length) groups.push(listGroup({ header: 'Reply', rows: reply.map(row) }));
     if (tools.length) groups.push(listGroup({ header: 'Tools', rows: tools.map(row) }));
     return groups;

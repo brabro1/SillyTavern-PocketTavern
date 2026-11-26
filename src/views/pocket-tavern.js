@@ -21,6 +21,7 @@ export const SWITCH_GROUPS = [
         { key: 'fastChat', id: 'pt_fastchat', label: 'Faster long chats', hint: 'Skips drawing messages far off screen, so long chats scroll smoothly.' },
         { key: 'contextMeter', id: 'pt_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
         { key: 'saveDrafts', id: 'pt_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
+        { key: 'draftHelper', id: 'pt_draft', label: 'Draft helper', hint: 'Enhance my draft, Write for me and Continue my draft in +.' },
         { key: 'sendEffect', id: 'pt_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
         { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', only: 'gg' },
     ] },
@@ -43,6 +44,7 @@ export const SWITCH_GROUPS = [
         { key: 'backGesture', id: 'pt_back', label: 'Back gesture closes panels', hint: 'Android back closes the open page, popup or sheet first.', core: true },
         { key: 'touchSizing', id: 'pt_touch', label: 'Touch-friendly panels', hint: 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.', core: true },
         { key: 'chatStyle', id: 'pt_chat', label: 'Modern chat look', hint: 'Message cards, bigger text and a rounded message box.', core: true },
+        { key: 'sliderSteppers', id: 'pt_steppers', label: '− and + beside sliders', hint: "Buttons that move a slider's number one step. Typing the number is often quicker." },
         { key: 'longSelects', id: 'pt_long', label: 'Searchable long dropdowns (experimental)', hint: 'Use the same list for any dropdown with 14 or more choices.', core: true },
     ] },
     { title: 'Notifications and device', switches: [
@@ -72,6 +74,7 @@ const MODE_NAMES = { auto: 'Automatic', phone: 'Phones only', never: 'Off' };
  * @param {() => void} actions.pickMode opens the choices for "Use it on this device"
  * @param {() => string} actions.status one line: is Pocket Tavern on here, and with which layout
  * @param {() => void} actions.useSillyTavernForNow
+ * @param {() => void} actions.openDraft the Draft helper's own settings page
  * @returns {import('../shell/page.js').PageSpec}
  */
 export function pocketTavernPage(actions) {
@@ -84,6 +87,9 @@ export function pocketTavernPage(actions) {
             body.append(listGroup({ rows: [
                 listRow({ title: 'Use it on this device', subtitle: actions.status(), icon: 'phone', end: 'picker', value: t(MODE_NAMES[actions.mode()] ?? MODE_NAMES.auto), onClick: actions.pickMode }),
                 listRow({ title: 'Use SillyTavern for now', subtitle: "SillyTavern's own screens until you come back or reload.", icon: 'log-out', onClick: actions.useSillyTavernForNow }),
+            ] }));
+            body.append(listGroup({ rows: [
+                listRow({ title: 'Draft helper', subtitle: 'Enhance, write or continue your message', icon: 'wand', onClick: actions.openDraft }),
             ] }));
             for (const group of SWITCH_GROUPS) {
                 const rows = group.switches

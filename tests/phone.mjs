@@ -605,7 +605,8 @@ await step('+ (Reply and Tools, in place of ☰ and the wand) and ⋯ open sheet
         groups: [...document.querySelectorAll('#pt-sheet .pt-list-header')].map(el => el.textContent),
         rows: [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].map(el => el.textContent),
     }));
-    if (plus.groups.join() !== 'Reply,Tools') throw new Error(`+ groups: ${plus.groups.join(', ')}`);
+    // Write (the Draft helper, on by default), then Reply and Tools.
+    if (plus.groups.join() !== 'Write,Reply,Tools') throw new Error(`+ groups: ${plus.groups.join(', ')}`);
     for (const want of ['Regenerate', 'Continue', 'Impersonate', "Author's Note", 'Token Counter']) {
         if (!plus.rows.some(title => title.includes(want))) throw new Error(`+ has no "${want}": ${plus.rows.join(', ')}`);
     }
@@ -1104,9 +1105,9 @@ await step('the prompt editor reaches the tabs, opens full screen and asks befor
         await page.waitForTimeout(800);
         await openStPage(page, 'ai-config-button');
         await until(() => !!document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'), null, 15000);
-        // Beside − and +: no browser arrows over the number (Firefox always shows them), and room for seven digits.
+        // No browser arrows over the number (Firefox always shows them), and room for seven digits (with or without − and +).
         const box = await page.evaluate(() => {
-            const input = [...document.querySelectorAll('#ai-config-button .range-block-counter.pt-stepper input[type="number"]')].find(box => box.getClientRects().length);
+            const input = [...document.querySelectorAll('#ai-config-button .range-block-counter input[type="number"]')].find(box => box.getClientRects().length);
             const style = getComputedStyle(input);
             const measure = document.createElement('canvas').getContext('2d');
             measure.font = style.font;

@@ -23,7 +23,7 @@ This is the design and UX specification for Pocket Tavern 3.0, on **Phone** and 
 - Cards inside cards.
 - Emoji as UI icons. Use the monochrome icon set in `src/ui/icons.js`.
 - The words "Close" or "Done" as the control that dismisses something (use ✕).
-- −/+ steppers on continuous values (temperature, token counts).
+- −/+ steppers on continuous values (temperature, token counts), unless the person turns them on (Settings → Pocket Tavern → "− and + beside sliders"); then they are one pill: [− | value | +].
 - "More" catch-all menus, a sheet opened from another sheet, and two routes to the same screen.
 - Permanent status text ("Connected").
 - More than one primary button on a screen.
@@ -86,7 +86,7 @@ Paragraphs in messages are 0.75em apart (Compact 0.5em). Quotes and code blocks 
 | Screen edge padding | 16 | 24 (panel 16) |
 | Header height | 52 (Compact 48) + safe area | 52 |
 | Tab bar | 56 + safe area | none: rail 72 wide |
-| Panel width | none | 320–560, default 400. Editors widen it to 720 |
+| Panel width | none | 320–560, default 400. Editors widen it to 720. Dragged: from 360 to the full width |
 | Chat column | full width | max 760, or SillyTavern's Chat width when narrower |
 | Tool column | none | 280–360 |
 | Row height | 52 (Compact 44) | 44 |
@@ -105,7 +105,7 @@ A control inside a container with 4px padding steps down one radius so corners s
 
 ### Elevation
 
-Depth comes from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines, not shadows. `--pt-shadow-float` is only for things that float above content: popovers, dialogs, toasts and the floating message box.
+Depth comes from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines, not shadows. `--pt-shadow-float` is only for things that float above content: popovers, dialogs, toasts, the floating message box and the Draft helper's bar.
 
 ### Z-index bands
 
@@ -237,6 +237,7 @@ Every settings page (Appearance, Pocket Tavern, About) starts with a filter fiel
 - **Pocket Tavern:**
   - Use it on this device (Automatic, Phones only, Off), with a line saying whether it is on here
   - Use SillyTavern for now
+  - **Draft helper** (a row to its own page; DESIGN.md → The chat → Message box)
   - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Characters and lorebooks, Pictures, Navigation, Notifications and device, Updates), each with one line saying what it does. A switch that only applies to one layout or to an installed extension shows only there
 - **About:** the version, What's new, Update Pocket Tavern, SillyTavern updates, Install as an app (until installed), Guide, GitHub, Report a problem
 - **Switches are kept.** Pocket Tavern is meant to be customizable: a 2.x switch is never removed, only made clearer, grouped or given a better default. A new feature gets a switch when someone could reasonably want it off. When the remake changes how a feature works, its switch keeps meaning "this feature on or off".
@@ -253,7 +254,7 @@ Every settings page (Appearance, Pocket Tavern, About) starts with a filter fiel
 
 - **Rail | Panel | Chat | (Tool column).** There is no full-width top bar. The panel and the chat each have their own header.
 - The **rail** lists the five places, icon over label. Clicking a place opens it in the panel. Clicking the active place hides the panel, so the chat gets the room.
-- The **panel** is a stack, like the phone (‹ in its header). Drag its edge to resize. Its width is remembered.
+- The **panel** is a stack, like the phone (‹ in its header). Drag its edge to resize, until the chat keeps 420px; dragging further snaps it to the full width and hides the chat until the panel closes or is dragged back (issue #13). Double-click the edge to reset. Its width is remembered.
 - The **chat column** always shows the open chat. With none open, it shows a calm empty state, and Chats is open in the panel.
 - The **tool column** (Author's Note, CFG, token probabilities) docks at the end. When room runs out the panel narrows first. The chat column never drops below 480px.
 - **Overlays:** menus are popovers anchored to their trigger. Pickers with search, short forms and confirmations are centred dialogs (max 560px). Editors open in the widened panel.
@@ -514,10 +515,18 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
     - **Where they go**, when SillyTavern has a prompt breakdown for this chat (the one behind a message's prompt view): character, persona, lorebooks, chat history, and other. Before the first reply in a visit, it shows only used and total.
     - One action: **Open prompt settings** (AI → Prompts or Formatting).
   - **Send** is a 44px accent circle anchored at the end that never shrinks. While a reply is written it becomes **Stop** (same circle, a square inside, a soft pulsing ring).
-  - **`+` opens one sheet (desktop: popover) with two groups:**
+  - **`+` opens one sheet (desktop: popover) with these groups:**
+    - **Write** (the Draft helper, while its switch is on): Enhance my draft, Write for me, Continue my draft, then **Writing as: name** (each tap moves to the next: you, the character or each group member, the narrator; the menu stays open) and **Undo** when there is something to undo.
     - **Reply:** Regenerate, Continue, Impersonate, Attach.
     - **Tools:** Author's Note, CFG, Token probabilities, quick reply sets, other extensions' tools.
     - This replaces SillyTavern's ☰ and wand menus.
+  - **Draft helper** (built in from the Draft Enhancer extension; Settings → Pocket Tavern → Draft helper):
+    - Every request runs through SillyTavern's Impersonate, so the preset, lorebooks, persona and history apply; Pocket Tavern only adds one note describing the task. The result streams into the message box, already cleaned of reasoning, trackers and status blocks, and nothing is sent until the person sends it.
+    - **Result bar**, right above the message box while a result is fresh: ‹ 2/3 › (earlier results, last 8), **Keep**, **Regenerate**, **Refine**, **Discard**, as 44px pill buttons in one row that scrolls sideways when narrow. While working it says "Writing…" with **Cancel**. It goes away on Keep, Discard, sending, or switching chats.
+    - **Refine** opens a sheet: Shorter, Longer, More dialogue, More detail, More emotion, Simpler wording, and a field for your own change.
+    - Shortcuts in the message box on desktop: `Alt+E`, `Alt+W`, `Alt+C`, `Alt+Z`. Slash commands: `/enhance-draft`, `/write-for-me`, `/continue-draft`.
+    - Its settings page has the groups General, Writing, Model compatibility, Instructions and Clean-up, then **Preview the note** and **Reset to defaults**. Settings saved by the Draft Enhancer extension are taken over the first time.
+    - While the Draft Enhancer extension itself is installed and on, the built-in one stays off (its settings page says so), so nothing runs twice.
   - **Quick replies:** one row of chips above the field that scrolls sideways.
   - **Extension buttons** that fit cleanly beside Send stay (one at most, such as Guided Generations as a single button). Everything else goes into `+`.
   - **Floating** (default) floats over the chat with a fade behind it. **Docked** sits flat along the bottom edge.
@@ -643,7 +652,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 | **The chat pushes over the tabs on a phone** | Room and focus, like every messaging app. The tab toggle and its setting disappear | One extra tap (back) to change place from a chat |
 | **No permanent connection status** (#9) | 99% of the time it is fine. Problems get a banner, a fix, and a dot on AI | Users can always check on AI |
 | **✕ dismisses, words commit** (#9) | "Close" read like a label. A cross is universal | none |
-| **No −/+ steppers** (#12) | SillyTavern's steps (0.01, 1 token) made them useless and they took a third of the row | Typing the value is one tap; the slider covers rough changes |
+| **No −/+ steppers by default** (#12) | SillyTavern's steps (0.01, 1 token) made them useless and they took a third of the row | Typing the value is one tap; the slider covers rough changes. A switch brings them back as one pill |
 | **Actions round, containers rectangular** (#9) | One shape per role, and pills read clearly | none |
 | **One ⋯ menu per object, shown wherever the object is** | Consistent actions without counting as extra routes | none |
 | **No `backdrop-filter`** | Phone GPUs and broken fixed layers | Over chat backgrounds, cards are tinted, not blurred |
