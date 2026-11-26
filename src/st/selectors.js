@@ -22,10 +22,14 @@ export const MESSAGE_EDITOR = '#curEditTextarea';
 
 /** SillyTavern's whole message area at the bottom of the chat (quick replies, the box, its buttons). */
 export const MESSAGE_FORM = '#form_sheld';
+/** The row holding the text field (extensions such as Input History add their buttons to it). */
+export const MESSAGE_ROW = '#nonQRFormItems';
 /** The message box's text field. */
 export const MESSAGE_BOX = '#send_textarea';
 /** The row with the text field and its buttons (the Draft helper's result bar sits right above it). */
 export const SEND_FORM = '#send_form';
+/** The buttons at the end of the message box (Send, and what extensions add beside it). */
+export const SEND_FORM_RIGHT = '#rightSendForm';
 /** Send, and Stop while a reply is written. */
 export const SEND_BUTTON = '#send_but';
 export const STOP_BUTTON = '#mes_stop';

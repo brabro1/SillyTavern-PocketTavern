@@ -1,0 +1,372 @@
+/* Guided Generations (src/compat/guided-generations.js): its row, the Guide button beside Send, its menus and popups.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* ==========================================================================
+   Guided Generations: its row of buttons in the message box looks and taps
+   like the box's own tools (44px, no borders, muted icons).
+   ========================================================================== */
+
+/* Its own buttons on one line (menus at the start, actions at the end); quick
+   replies it takes in get the line under them, as in SillyTavern itself. */
+html.pt-chat #send_form > #gg-action-button-container {
+    flex: 1 1 100% !important;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0;
+    gap: 0 4px;
+}
+
+html.pt-chat #gg-action-button-container :is(.gg-menu-buttons-container, .gg-regular-buttons-container) {
+    flex-wrap: wrap;
+    gap: 0 4px;
+}
+
+html.pt-chat #gg-action-button-container > .gg-regular-buttons-container {
+    order: 1;
+    margin-inline-start: auto;
+}
+
+html.pt-chat #gg-action-button-container > #gg-qr-container {
+    order: 2;
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+html.pt-chat #gg-action-button-container > #gg-qr-container:empty {
+    display: none;
+}
+
+html.pt-chat #gg-action-button-container :is(.gg-action-button, .gg-menu-button) {
+    justify-content: center;
+    gap: 4px;
+    min-width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+}
+
+html.pt-chat #gg-action-button-container :is(.gg-action-button, .gg-menu-button):active {
+    background: var(--pt-surface-elevated);
+}
+
+html.pt-chat #gg-action-button-container .pg-guide-counter {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   Guided Generations as one button (html.pt-gg, only when it is installed):
+   its row of icons is hidden and a Guide button beside Send opens a sheet.
+   ========================================================================== */
+
+html.pt-gg #gg-action-button-container > :is(.gg-menu-buttons-container, .gg-regular-buttons-container) {
+    display: none !important;
+}
+
+/* The row itself goes too, unless it holds the quick replies. */
+html.pt-gg #send_form > #gg-action-button-container:not(:has(#gg-qr-container > *)) {
+    display: none !important;
+}
+
+.pt-gg-btn {
+    display: none;
+}
+
+html.pt-chat.pt-gg .pt-gg-btn {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.pt-gg-btn .pt-svg {
+    width: 22px;
+    height: 22px;
+}
+
+.pt-gg-btn:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-gg-btn:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: -2px;
+}
+
+/* How many persistent guides are active (only shown when there are some). */
+.pt-gg-count {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 2px;
+    box-sizing: border-box;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--pt-text-primary);
+    color: var(--pt-bg);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.pt-gg-count[hidden] {
+    display: none;
+}
+
+/* With one more button in the row, a narrow phone shows your persona as its picture. */
+@media (max-width: 480px) {
+    html.pt-chat.pt-gg .pt-persona-name {
+        display: none;
+    }
+
+    html.pt-chat.pt-gg .pt-persona-chip {
+        padding-right: 4px;
+    }
+}
+
+/* The sheet starts with what you typed: the actions use it as their instruction. */
+.pt-gg-instruction {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pt-gg-instruction:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-gg-instruction-label {
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pt-gg-instruction-text {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.pt-gg-instruction-empty .pt-gg-instruction-text {
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+}
+
+/* With its own row back on (the switch is off), its two pop-up menus open in
+   the middle of the screen with 44px rows, instead of above a button where a
+   long menu ran off the top of the screen. */
+html.pt-touch:not(.pt-desktop) .gg-tools-menu.shown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 16px !important;
+    right: 16px;
+    z-index: 5000;
+    box-sizing: border-box;
+    max-height: 70dvh;
+    padding: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-bg);
+    transform: translateY(-50%);
+}
+
+html.pt-touch .gg-tools-menu > a.interactable {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px !important;
+    border-radius: var(--pt-radius-sm);
+    font-size: 16px;
+}
+
+/* Its own popups (Edit Guides, Stat Tracker, Fun, Edit Intros, Corrections)
+   open as a bottom sheet on a phone and a dialog on a computer, above
+   Pocket Tavern's bars, with a 44px close button and 44px controls. Back and
+   Escape close them. */
+html.pt-touch body > .gg-popup {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 5000;
+    width: auto;
+    height: auto;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+html.pt-touch body > .gg-popup > .gg-popup-content {
+    position: absolute;
+    inset: auto 0 0 0;
+    box-sizing: border-box;
+    width: auto;
+    max-width: none;
+    max-height: 88dvh;
+    padding: 0 calc(16px + var(--pt-safe-right)) calc(16px + var(--pt-safe-bottom)) calc(16px + var(--pt-safe-left));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 0;
+    border-top: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
+    background: var(--pt-bg);
+    color: var(--pt-text-primary);
+    box-shadow: none;
+    transform: none;
+}
+
+html.pt-touch.pt-motion-full body > .gg-popup > .gg-popup-content {
+    animation: pt-gg-sheet-in var(--pt-dur) var(--pt-ease);
+}
+
+@keyframes pt-gg-sheet-in {
+    from {
+        transform: translateY(24px);
+        opacity: 0;
+    }
+}
+
+html.pt-touch body > .gg-popup .gg-popup-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 0 12px;
+    padding: 12px 0 8px;
+    border-bottom: 1px solid var(--pt-border);
+    background: var(--pt-bg);
+}
+
+html.pt-touch body > .gg-popup .gg-popup-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+html.pt-touch body > .gg-popup .gg-popup-close {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-inline-end: -12px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 24px;
+    line-height: 1;
+}
+
+html.pt-touch body > .gg-popup .gg-popup-footer {
+    position: sticky;
+    bottom: calc(-16px - var(--pt-safe-bottom));
+    margin: 0 -16px;
+    padding: 12px 16px calc(12px + var(--pt-safe-bottom));
+    border-top: 1px solid var(--pt-border);
+    background: var(--pt-bg);
+}
+
+html.pt-touch body > .gg-popup :is(.gg-popup-footer button, .gg-popup-footer .menu_button, .gg-button, .gg-button-secondary) {
+    min-height: 44px;
+}
+
+html.pt-touch body > .gg-popup :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    box-sizing: border-box;
+    min-height: 44px;
+    font-size: 16px;
+}
+
+html.pt-touch body > .gg-popup .gg-option {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    border-radius: var(--pt-radius-sm);
+}
+
+/* Choices that only showed on hover (a phone cannot hover) are always shown, as chips. */
+html.pt-touch body > .gg-popup .gg-option:has(.gg-suboptions) {
+    flex: 1 1 100%;
+}
+
+html.pt-touch body > .gg-popup .gg-suboptions {
+    position: static;
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+    padding: 8px 0 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+html.pt-touch body > .gg-popup .gg-suboption {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+}
+
+html.pt-touch.pt-desktop body > .gg-popup > .gg-popup-content {
+    inset: 50% auto auto 50%;
+    width: min(640px, calc(100vw - 48px));
+    max-height: min(86vh, 900px);
+    padding: 0 16px 16px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    transform: translate(-50%, -50%);
+}
+
+html.pt-touch.pt-desktop.pt-motion-full body > .gg-popup > .gg-popup-content {
+    animation: none;
+}
+
+html.pt-touch.pt-desktop body > .gg-popup .gg-popup-footer {
+    bottom: -16px;
+    padding-bottom: 12px;
+}

@@ -1,0 +1,26 @@
+/* ScenePulse (src/compat/scenepulse.js): its button next to Send moves to + → Tools; its panel sits between the bars.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* ==========================================================================
+   ScenePulse (another extension). On phones it adds a button next to Send and
+   a round floating copy of it. The row next to Send has no room for another
+   button (Send got squeezed) and the floating copy sat on Send, so both stay
+   hidden and ScenePulse opens from the wand's Tools sheet. Its full-screen
+   panel covers our bars. On computers its side panel starts below the top
+   bar, so its own toolbar shows.
+   ========================================================================== */
+
+html.pt-on #sp-mobile-fab,
+html.pt-touch.pt-chat:not(.pt-desktop) #rightSendForm > #sp-st-restore {
+    display: none !important;
+}
+
+html.pt-shell #sp-panel:is(.sp-mode-mobile, .sp-mode-tablet) {
+    z-index: 4015 !important;
+}
+
+/* Pinned (!important): ScenePulse sets the top itself, from SillyTavern's top bar, which Pocket Tavern hides. */
+html.pt-shell #sp-panel:not(.sp-mode-mobile, .sp-mode-tablet) {
+    top: var(--topBarBlockSize) !important;
+}

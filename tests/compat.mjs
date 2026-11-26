@@ -1,5 +1,6 @@
 // Walks through Pocket Tavern together with other extensions people use with it:
-// every Guided Generations action, menu and popup, and Input History. Needs a
+// every Guided Generations action, menu and popup, Input History, and the message box's tool row at 320,
+// 360 and 412 px wide with both on. Needs a
 // running SillyTavern (test data only) with both installed, for example in
 // data/default-user/extensions. Requests to the AI are blocked, so nothing is
 // generated. Screenshots of failures and popups go to results/compat.
@@ -94,6 +95,54 @@ await check('patch is on only because GG is installed', async () => {
     if (s.nextToSend !== 'send_but') throw new Error(`next to ${s.nextToSend}`);
     return `button ${s.btn.join('x')} beside Send, label "${s.label}"`;
 });
+
+// Before any action runs (a Guided Swipe below leaves SillyTavern waiting on the blocked AI, Send hidden).
+// The message box's tool row with these extensions on, at the narrow phone widths (AGENTS.md → Known traps:
+// buttons added next to Send squeeze it). Every tool keeps a 44px hit area, Send stays a 44px circle, and
+// nothing leaves the screen.
+for (const width of [320, 360, 412]) {
+    await check(`tool row at ${width} px: every button 44px, Send whole, nothing off screen`, async () => {
+        await page.setViewportSize({ width, height: 812 });
+        // Back to the chat (an earlier check leaves the Extensions page open).
+        for (let i = 0; i < 4 && await page.evaluate(() => !!document.documentElement.dataset.ptPage); i++) {
+            await page.locator('#pt-appbar .pt-ab-back').click();
+            await page.waitForTimeout(400);
+        }
+        // SillyTavern hides Send while it is not connected, and this test blocks the AI: show it as it is
+        // when connected for the measurement, then put SillyTavern's state back.
+        const hidden = await page.evaluate(() => {
+            const send = document.getElementById('send_but');
+            const was = send.classList.contains('displayNone');
+            send.classList.remove('displayNone');
+            return was;
+        });
+        await page.waitForTimeout(600);
+        const row = await page.evaluate(() => {
+            const box = el => { const r = el.getBoundingClientRect(); return { id: el.id || el.className.split(' ')[0], w: Math.round(r.width), h: Math.round(r.height), left: Math.round(r.left), right: Math.round(r.right) }; };
+            const shown = el => el.getBoundingClientRect().width > 0 && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
+            const tools = [...document.querySelectorAll('#leftSendForm > *, #rightSendForm > *')].filter(shown).map(box);
+            const send = box(document.getElementById('send_but'));
+            const form = box(document.getElementById('send_form'));
+            return { tools, send, form, vw: window.innerWidth };
+        });
+        const small = row.tools.filter(tool => tool.w < 44 || tool.h < 44);
+        const off = row.tools.filter(tool => tool.left < 0 || tool.right > row.vw);
+        await page.screenshot({ path: `${OUT}/tool-row-${width}.png` });
+        if (hidden) await page.evaluate(() => document.getElementById('send_but').classList.add('displayNone'));
+        if (row.send.w < 44 || row.send.h < 44) {
+            const why = await page.evaluate(() => {
+                const look = id => { const el = document.getElementById(id); if (!el) return 'missing'; const cs = getComputedStyle(el); return `${cs.display}/${cs.visibility}/${el.style.cssText}/${el.parentElement?.id}`; };
+                return { send: look('send_but'), stop: look('mes_stop'), generating: document.body.dataset.generating ?? null, cls: [...document.documentElement.classList].filter(c => /gen|stream|reply/.test(c)).join(' ') };
+            });
+            throw new Error(`Send is ${row.send.w}×${row.send.h}: ${JSON.stringify(why)}`);
+        }
+        if (small.length) throw new Error(`under 44px: ${JSON.stringify(small)}`);
+        if (off.length || row.form.right > row.vw || row.form.left < 0) throw new Error(`off screen: ${JSON.stringify({ off, form: row.form })}`);
+        return `${row.tools.length} buttons: ${row.tools.map(tool => tool.w).join(', ')}`;
+    });
+}
+await page.setViewportSize({ width: 375, height: 812 });
+await page.waitForTimeout(400);
 
 await check('sheet lists the actions GG shows, with names and notes', async () => {
     await openGuide();

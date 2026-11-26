@@ -1,0 +1,19 @@
+/* Chat Top Bar (an official extension): at the top of the chat column on desktop.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* Chat Top Bar (an official extension) sits at the top of the chat column, as it
+   does without themes. Moonlit Echoes pins it to the middle of the window instead,
+   which on a computer is not the middle of the chat (issue #8). */
+html.pt-desktop #sheld > #extensionTopBar {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: auto !important;
+    flex-shrink: 0;
+}
+
+html.pt-desktop #sheld:has(> #extensionTopBar) {
+    padding-top: 0 !important;
+}

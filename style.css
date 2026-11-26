@@ -1,6 +1,6 @@
 /* Pocket Tavern's stylesheet, named in manifest.json. It only imports; the rules live in styles/.
    Order: tokens, shared behaviour, components, the legacy 2.x styles (carved out milestone by milestone),
-   then Pocket Tavern's views and SillyTavern's own screens, which replace parts of it. */
+   then Pocket Tavern's views and SillyTavern's own screens, which replace parts of it, then other extensions. */
 @import url("styles/tokens.css");
 @import url("styles/base.css");
 @import url("styles/components/button.css");
@@ -33,3 +33,10 @@
 @import url("styles/st/settings.css");
 @import url("styles/st/lorebooks.css");
 @import url("styles/st/personas.css");
+@import url("styles/compat/guided-generations.css");
+@import url("styles/compat/input-history.css");
+@import url("styles/compat/scenepulse.css");
+@import url("styles/compat/moonlit-echoes.css");
+@import url("styles/compat/chat-completion-tabs.css");
+@import url("styles/compat/character-library.css");
+@import url("styles/compat/chat-top-bar.css");

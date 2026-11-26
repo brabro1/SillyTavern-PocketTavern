@@ -52,6 +52,10 @@ import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } 
 import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
 import { clearBanners, hideBanner, showBanner } from '../shell/banners.js';
+import { closeGuidedPopup, ggPresent, guidedPopups, isGuidedPopup, openGuidedPopups, setupGuidedGenerations, syncGuided } from '../compat/guided-generations.js';
+import { CHARACTER_LIBRARY_OVERLAY, closeCharacterLibrary } from '../compat/character-library.js';
+import { endInputHistoryBrowse, onComposerInput, onInputHistoryClick, setupInputHistory } from '../compat/input-history.js';
+import { scenePulseRow } from '../compat/scenepulse.js';
 import { closeLoreEntry, editedLorebook, lore, lorebookList, openLoreEntry, openLorebook, openLorebookSettings, pickActiveLorebooks, scan, setupLorebookScreens, startObserver, stopObserver, syncLoreEntries, syncLorebookMode, syncWandShortcut, watchLorebooks, wiPage } from '../st/lorebooks.js';
 import { PAGE_SECTIONS, SEARCH_PAGES, addSliderSteppers, buildSettings, closePageSection, describeExtensions, describeSettings, extnav, install, installApp, isStandalone, maybeShowDesktopNotice, maybeShowWhatsNew, openSettingSearch, openSillyTavernSection, openSillyTavernUpdates, openWhatsNew, pageSectionOpen, pageSections, pickTheme, removeSettingDescriptions, removeSliderSteppers, revealSetting, setSwitch, settingItems, setupSettingsScreens, statusText, syncManifest, syncPageSections, syncSettingsInputs, updatePocketTavern, updateStatusLine, yourThemeColors } from '../st/settings.js';
 
@@ -399,34 +403,11 @@ const OVERLAYS = [
     { selector: '#shadow_select_chat_popup', close: '#select_chat_cross' },
     { selector: '#character_popup', close: '#character_cross' },
     // Character Library (another extension) in its Embedded Panel mode: a page of its own (issue #1).
-    { selector: '#charlib-embedded-container', close: () => closeCharacterLibrary() },
+    CHARACTER_LIBRARY_OVERLAY,
 ];
-
-/** Closes Character Library's embedded panel the way it closes itself (its button toggles it). */
-function closeCharacterLibrary() {
-    const panel = document.getElementById('charlib-embedded-container');
-    if (!isShown(panel)) return false;
-    const toggle = document.querySelector('#st-gallery-btn, #charlib-launcher-dropdown [data-action="library"]');
-    if (toggle) toggle.click();
-    else panel.style.display = 'none';
-    return true;
-}
 
 function isShown(element) {
     return !!element && getComputedStyle(element).display !== 'none';
-}
-
-/** Guided Generations' own popups (Edit Guides, Stat Tracker, Fun, Edit Intros, Corrections), when it is installed. */
-function openGuidedPopups() {
-    if (!active) return [];
-    return [...document.querySelectorAll('body > .gg-popup')].filter(popup => popup.style.display !== 'none' && isShown(popup));
-}
-
-/** Closes one the way its own × does. */
-function closeGuidedPopup(popup) {
-    const close = popup.querySelector('.gg-popup-close, .gg-close-button');
-    if (close) close.click();
-    else popup.style.display = 'none';
 }
 
 // ------------------------------------------------------- message editor
@@ -478,12 +459,12 @@ function watchOverlays(on) {
     nav.observer?.disconnect();
     nav.observer = null;
     if (!on) return;
-    // Guided Generations adds its popups to <body> and shows or hides them with their style.
+    // Guided Generations adds its popups to <body> and shows or hides them with their style (src/compat/guided-generations.js).
     const watchGuidedPopup = popup => nav.observer.observe(popup, { attributes: true, attributeFilter: ['style'] });
     nav.observer = new MutationObserver(records => {
         for (const record of records) {
             for (const node of record.addedNodes ?? []) {
-                if (node.classList?.contains('gg-popup')) watchGuidedPopup(node);
+                if (isGuidedPopup(node)) watchGuidedPopup(node);
                 // Layers another extension adds later (Character Library makes its panel on first use).
                 if (node.nodeType === 1 && OVERLAYS.some(overlay => node.matches(overlay.selector))) nav.observer.observe(node, { attributes: true, attributeFilter: ['style', 'class'] });
             }
@@ -495,7 +476,7 @@ function watchOverlays(on) {
         if (element) nav.observer.observe(element, { attributes: true, attributeFilter: ['style', 'class'] });
     }
     nav.observer.observe(document.body, { childList: true });
-    document.querySelectorAll('body > .gg-popup').forEach(watchGuidedPopup);
+    guidedPopups().forEach(watchGuidedPopup);
 }
 
 function scheduleHistorySync(delay = 220) {
@@ -4124,7 +4105,7 @@ function syncComposer() {
         composer.persona = null;
         composer.plus?.remove();
         composer.plus = null;
-        document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
+        endInputHistoryBrowse();
         syncGuided();
         return;
     }
@@ -4169,279 +4150,6 @@ function syncComposer() {
     updatePersonaButton();
     renderMeter();
     syncGuided();
-}
-
-// -- Guided Generations: its row of buttons becomes one button next to Send
-
-/*
- * Guided Generations (another extension) adds a row of icon buttons to the
- * message box and two small pop-up menus that open above them. When it is
- * installed, Pocket Tavern folds all of that into one Guide button beside Send.
- * The button opens a sheet: the instruction you typed, then every action with
- * a name and a line on what it does, and its menus as sheets of their own.
- * Its buttons stay in the page (hidden) and the sheet presses them, so its own
- * settings and logic decide what happens. Without Guided Generations, none of
- * this exists.
- */
-const guided = { button: null, count: null, watch: null, frame: 0, held: false };
-
-const GG_ACTIONS = [
-    { id: 'gg_response_button', group: 'reply', icon: 'chat', label: 'Guided response', note: 'Writes the next reply the way your instruction says' },
-    { id: 'gg_swipe_button', group: 'reply', icon: 'refresh', label: 'Guided swipe', note: 'A new version of the last reply that follows your instruction' },
-    { id: 'gg_continue_button', group: 'reply', icon: 'arrow-right', label: 'Guided continue', note: 'Carries on the last reply, following your instruction' },
-    { id: 'gg_impersonate_button', group: 'mine', icon: 'user', label: 'Write my message as "I"', note: 'Turns your instruction into your next message. Run it again to get your instruction back.' },
-    { id: 'gg_impersonate_button_2nd', group: 'mine', icon: 'contact', label: 'Write my message as "you"', note: 'The same, written in the second person' },
-    { id: 'gg_impersonate_button_3rd', group: 'mine', icon: 'users', label: 'Write my message as "they"', note: 'The same, written in the third person' },
-];
-
-/** Its tool buttons repeat items of its Tools menu, so the sheet lists them there once. */
-const GG_MENU_COPIES = new Set(['gg_simple_send_button', 'gg_recover_input_button', 'gg_edit_intros_button', 'gg_corrections_button', 'gg_separated_thinking_button', 'gg_spellchecker_button', 'gg_clear_input_button', 'gg_undo_button', 'gg_revert_button']);
-
-function ggRow() {
-    return document.getElementById('gg-action-button-container');
-}
-
-function ggPresent() {
-    return !!ggRow();
-}
-
-function syncGuided() {
-    const root = document.documentElement;
-    const right = document.getElementById('rightSendForm');
-    const watching = active && settings.chatStyle;
-    const on = watching && settings.ggButton && ggPresent() && !!right;
-    root.classList.toggle('pt-gg', on);
-    // Its switch in Pocket Tavern's settings only shows when Guided Generations is installed.
-    const switchRowLabel = document.getElementById('pt_ggbutton')?.closest('label');
-    if (switchRowLabel) switchRowLabel.hidden = !ggPresent();
-    watchGuided(watching);
-    if (!on) {
-        guided.button?.remove();
-        guided.button = null;
-        return;
-    }
-    if (!guided.button || !guided.button.isConnected) {
-        guided.button?.remove();
-        guided.count = h('span', { class: 'pt-gg-count', 'aria-hidden': 'true', hidden: true });
-        guided.button = h('button', { type: 'button', class: 'pt-gg-btn' }, [ui('compass'), guided.count]);
-        wireGuideButton(guided.button);
-    }
-    // Right next to Send: it is the other way to send.
-    const send = document.getElementById('send_but');
-    if (send?.parentElement === right) {
-        if (guided.button.nextElementSibling !== send) right.insertBefore(guided.button, send);
-    } else if (guided.button.parentElement !== right) {
-        right.append(guided.button);
-    }
-    updateGuideCount();
-}
-
-/** Guided Generations builds its row after Pocket Tavern starts and rebuilds it when its settings change. */
-function watchGuided(on) {
-    const form = document.getElementById('send_form');
-    if (!on || !form) {
-        guided.watch?.disconnect();
-        guided.watch = null;
-        return;
-    }
-    if (guided.watch) return;
-    guided.watch = new MutationObserver(() => {
-        if (guided.frame) return;
-        guided.frame = requestAnimationFrame(() => {
-            guided.frame = 0;
-            syncGuided();
-        });
-    });
-    guided.watch.observe(form, { childList: true, subtree: true, characterData: true });
-}
-
-/** How many of its persistent guides are active, from the counter on its own button. */
-function guideCount() {
-    const number = parseInt((document.getElementById('pg_guide_counter_span')?.textContent ?? '').replace(/\D+/g, ''), 10);
-    return Number.isFinite(number) ? number : 0;
-}
-
-function updateGuideCount() {
-    if (!guided.button) return;
-    const count = guideCount();
-    const text = count ? String(count) : '';
-    if (guided.count.textContent !== text) guided.count.textContent = text;
-    guided.count.hidden = !count;
-    const label = count ? t('Guided Generations, {count} guides active', { count }) : t('Guided Generations');
-    if (guided.button.getAttribute('aria-label') !== label) {
-        guided.button.setAttribute('aria-label', label);
-        guided.button.title = label;
-    }
-}
-
-/** A tap opens the sheet; holding runs the last action again. */
-function wireGuideButton(button) {
-    let timer = 0;
-    const stop = () => {
-        window.clearTimeout(timer);
-        timer = 0;
-    };
-    button.addEventListener('pointerdown', event => {
-        if (event.button !== 0) return;
-        guided.held = false;
-        stop();
-        timer = window.setTimeout(() => {
-            timer = 0;
-            const last = lastGuidedAction();
-            if (!last) return;
-            guided.held = true;
-            buzz([8, 40, 8]);
-            runGuided(last.element, last.id);
-        }, 500);
-    });
-    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) button.addEventListener(type, stop);
-    // No text-selection or link menu on a long press.
-    button.addEventListener('contextmenu', event => event.preventDefault());
-    button.addEventListener('click', () => {
-        if (guided.held) {
-            guided.held = false;
-            return;
-        }
-        buzz(6);
-        openGuidedSheet();
-    });
-}
-
-function lastGuidedAction() {
-    const id = settings.ggLast;
-    const action = GG_ACTIONS.find(item => item.id === id);
-    const element = id ? document.getElementById(id) : null;
-    return action && element && ggRow()?.contains(element) ? { id, element, label: action.label } : null;
-}
-
-/** Presses one of its buttons or menu items, after the sheet is gone. */
-function runGuided(element, id) {
-    if (id && settings.ggLast !== id) {
-        settings.ggLast = id;
-        saveSettings();
-    }
-    closeSheet(true);
-    // Its menu items are links to "#"; keep the page where it is.
-    element.addEventListener('click', event => event.preventDefault(), { once: true });
-    element.click();
-}
-
-function openGuidedSheet() {
-    const row = ggRow();
-    if (!row) return;
-    showSheet(new MenuSheet({
-        title: 'Guided Generations',
-        subtitle: '',
-        fill: body => {
-            const typed = document.getElementById('send_textarea')?.value.trim() ?? '';
-            const preview = h('span', { class: 'pt-gg-instruction-text' });
-            // Your own words, never translated.
-            preview.textContent = typed || t('Type in the message box how the AI should steer, then pick an action. With nothing typed, each action works like the normal one.');
-            body.append(h('button', {
-                type: 'button',
-                class: `pt-gg-instruction${typed ? '' : ' pt-gg-instruction-empty'}`,
-                'aria-label': typed ? t('Your instruction. Tap to edit it.') : t('No instruction yet. Tap to type one.'),
-                onclick: () => {
-                    closeSheet(true);
-                    document.getElementById('send_textarea')?.focus();
-                },
-            }, [h('span', { class: 'pt-gg-instruction-label', text: typed ? 'Your instruction' : 'No instruction yet' }), preview]));
-
-            const rowsFor = group => GG_ACTIONS
-                .filter(action => action.group === group)
-                .map(action => ({ action, element: document.getElementById(action.id) }))
-                .filter(({ element }) => element && row.contains(element))
-                .map(({ action, element }) => actionRow(ui(action.icon, 'pt-menu-row-icon'), t(action.label), t(action.note), () => runGuided(element, action.id)));
-            const reply = rowsFor('reply');
-            const mine = rowsFor('mine');
-            if (reply.length) body.append(h('p', { class: 'pt-menu-heading', text: 'Steer the reply' }), h('div', { class: 'pt-menu-list' }, reply));
-            if (mine.length) body.append(h('p', { class: 'pt-menu-heading', text: 'Your message' }), h('div', { class: 'pt-menu-list' }, mine));
-
-            // Buttons it adds that Pocket Tavern has no name for yet.
-            const known = new Set(GG_ACTIONS.map(action => action.id));
-            const other = [...row.querySelectorAll('.gg-action-button')]
-                .filter(button => !known.has(button.id) && !GG_MENU_COPIES.has(button.id))
-                .map(button => actionRow(faIcon(wrapIcon(button)), button.title || button.id, '', () => runGuided(button, '')));
-            if (other.length) body.append(h('p', { class: 'pt-menu-heading', text: 'More actions' }), h('div', { class: 'pt-menu-list' }, other));
-
-            const count = guideCount();
-            const more = [];
-            if (document.getElementById('pg_tools_menu')) {
-                more.push(actionRow(ui('book', 'pt-menu-row-icon'), t('Persistent guides'), count ? t('{count} active', { count }) : t('None active'), () => openGuidedMenu('pg_tools_menu', 'Persistent guides', 'Notes the AI keeps in mind for this chat')));
-            }
-            if (document.getElementById('gg_tools_menu')) {
-                more.push(actionRow(ui('list', 'pt-menu-row-icon'), t('Tools'), t('Simple send, spellchecker, corrections and more'), () => openGuidedMenu('gg_tools_menu', 'Guided Generations tools', '')));
-            }
-            more.push(actionRow(ui('settings', 'pt-menu-row-icon'), t('Guided Generations settings'), t('Choose which actions show and how they work'), () => openGuidedSettings()));
-            body.append(h('p', { class: 'pt-menu-heading', text: 'More' }), h('div', { class: 'pt-menu-list' }, more));
-
-            const last = lastGuidedAction();
-            body.append(h('p', {
-                class: 'pt-menu-foot',
-                text: last ? t('Hold the guide button to run {action} again.', { action: t(last.label) }) : t('After you use an action, hold the guide button to run it again.'),
-            }));
-        },
-    }));
-}
-
-/** Font Awesome classes sit on the button itself; faIcon looks for them inside an element. */
-function wrapIcon(button) {
-    const holder = document.createElement('span');
-    const copy = button.cloneNode(false);
-    copy.removeAttribute('id');
-    holder.append(copy);
-    return holder;
-}
-
-/** One of its menus (Persistent guides, Tools) as a sheet: the same items, groups and descriptions. */
-function openGuidedMenu(menuId, title, subtitle) {
-    const menu = document.getElementById(menuId);
-    if (!menu) return;
-    showSheet(new MenuSheet({
-        title,
-        subtitle,
-        fill: body => {
-            let rows = [];
-            const flush = () => {
-                if (rows.length) body.append(h('div', { class: 'pt-menu-list' }, rows));
-                rows = [];
-            };
-            for (const node of menu.children) {
-                if (node.tagName === 'HR') {
-                    flush();
-                    continue;
-                }
-                if (node.tagName !== 'A' || !(node.textContent ?? '').trim()) continue;
-                rows.push(actionRow(faIcon(node), itemLabel(node), node.title || '', () => runGuided(node, '')));
-            }
-            flush();
-        },
-    }));
-}
-
-function openGuidedSettings() {
-    closeSheet(true);
-    openPage('extensions-settings-button');
-    setTimeout(() => {
-        const drawer = document.getElementById('gg_versionBadge')?.closest('.inline-drawer');
-        if (!drawer) return;
-        const content = drawer.querySelector('.inline-drawer-content');
-        if (content && getComputedStyle(content).display === 'none') drawer.querySelector('.inline-drawer-toggle')?.click();
-        drawer.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, 250);
-}
-
-// -- Input History (another extension): its arrows show when they can help
-
-/** After its arrows bring back an earlier message they stay until you type your own words. */
-function onInputHistoryClick(event) {
-    if (!active || !settings.chatStyle) return;
-    if (event.target.closest?.('#nonQRFormItems .stih--arrows')) document.getElementById('nonQRFormItems')?.classList.add('pt-ih-browse');
-}
-
-function onComposerInput(event) {
-    if (!active) return;
-    if (event.isTrusted && event.target?.id === 'send_textarea') document.getElementById('nonQRFormItems')?.classList.remove('pt-ih-browse');
 }
 
 /**
@@ -5707,7 +5415,7 @@ function openPlusMenu(anchor) {
         ...(inChat ? fromOptions(PLUS_TOOLS) : []),
         ...wandItems.filter(item => item !== attach).map(wandRow),
         ...extraOptions,
-        ...[scenePulseRow()].filter(Boolean),
+        ...[scenePulseRow({ ui, press: pressMenuItem })].filter(Boolean),
     ];
     showSheet(new MenuSheet({
         title: t('Reply and tools'),
@@ -5836,21 +5544,7 @@ const TOOL_NOTES = {
     translate_chat: 'Translate every message in this chat',
     translate_input_message: 'Translate the message you are typing',
     pt_wand_lorebooks: 'Choose the lorebooks for all chats',
-    'sp-st-restore': 'Characters, mood and quests in this scene',
 };
-
-/** ScenePulse puts its button next to Send, where a phone has no room for it (Send got squeezed), so it opens from + → Tools instead. */
-function scenePulseRow() {
-    const button = document.getElementById('sp-st-restore');
-    if (!button || button.style.display === 'none') return null;
-    const art = button.querySelector('svg')?.cloneNode(true);
-    if (art) {
-        art.querySelectorAll('[class]').forEach(node => node.removeAttribute('class'));
-        art.setAttribute('class', 'pt-menu-row-icon pt-list-row-icon');
-        art.setAttribute('aria-hidden', 'true');
-    }
-    return { rawTitle: 'ScenePulse', subtitle: TOOL_NOTES['sp-st-restore'], start: art ?? ui('puzzle', 'pt-menu-row-icon pt-list-row-icon'), run: () => pressMenuItem(button) };
-}
 
 const PICTURE_NOTES = {
     sd_you: 'The character',
@@ -6589,6 +6283,25 @@ function syncConnectionBanner() {
 
 /** Pocket Tavern's own pages (AI, Settings) with the actions they need from here. */
 /** src/views/messages.js: versions, folding and Jump to latest, with the switches and helpers from here. */
+/** src/compat/: other extensions' patches, with the helpers from here. */
+function setupCompat() {
+    setupGuidedGenerations({
+        active: () => active,
+        settings: () => settings,
+        saveSettings,
+        ui,
+        buzz,
+        showSheet,
+        closeSheet,
+        MenuSheet,
+        actionRow,
+        faIcon,
+        itemLabel,
+        openPage,
+    });
+    setupInputHistory({ active: () => active, settings: () => settings });
+}
+
 /** src/st/characters.js: the Characters screens, with the switches and helpers from here. */
 function setupCharacterScreens() {
     setupCharacters({
@@ -6905,6 +6618,7 @@ function init() {
     setupLorebookHelpers();
     setupMessageView();
     setupCharacterScreens();
+    setupCompat();
     setupAiScreenHelpers();
     registerOwnPages();
     // Pick the language before anything is drawn.

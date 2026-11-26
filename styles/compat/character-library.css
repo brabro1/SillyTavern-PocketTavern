@@ -1,0 +1,24 @@
+/* Character Library (src/compat/character-library.js): its embedded panel takes a page's place.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* Character Library (another extension) in its Embedded Panel mode: a fixed panel from
+   SillyTavern's top bar to the bottom of the screen, under Pocket Tavern's bars (issue #1: the
+   tab bar and the rail covered it). It takes a page's place: between the top bar and the tab bar
+   on a phone, beside the rail on a computer. Pinned over its own inline sizes and phone rule. */
+html.pt-shell #charlib-embedded-container {
+    top: var(--topBarBlockSize) !important;
+    bottom: auto !important;
+    height: var(--pt-page-h) !important;
+    z-index: var(--pt-z-page) !important;
+}
+
+html.pt-shell.pt-desktop #charlib-embedded-container {
+    left: var(--pt-rail-w) !important;
+    right: 0 !important;
+    width: auto !important;
+}
+
+html.pt-shell.pt-ios-kb #charlib-embedded-container {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize)) !important;
+}

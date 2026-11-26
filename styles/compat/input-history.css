@@ -1,0 +1,116 @@
+/* Input History (src/compat/input-history.js): its arrows and history button at the end of the message box.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* ==========================================================================
+   Input History (another extension): its buttons sit at the end of the text
+   field. While you type your own words only its history list button shows; on
+   an empty box, or after the arrows brought back an earlier message, the
+   arrows show too. Its history list is readable and 44px per row.
+   ========================================================================== */
+
+html.pt-chat #nonQRFormItems > .stih--buttons:not(.stih--hidden) {
+    z-index: 1;
+    display: flex;
+    grid-area: text !important;
+    align-self: end;
+    justify-self: end;
+    margin: 0;
+}
+
+html.pt-chat #nonQRFormItems > .stih--buttons .stih--arrows:not(.stih--hidden) {
+    display: flex;
+    flex-direction: row;
+}
+
+html.pt-chat #nonQRFormItems > .stih--buttons .stih--button:not(.stih--hidden) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font-size: 16px;
+    opacity: 1;
+}
+
+html.pt-chat #nonQRFormItems > .stih--buttons .stih--button:active {
+    background: var(--pt-surface-elevated);
+}
+
+html.pt-chat #nonQRFormItems:not(.pt-ih-browse) > #send_textarea:not(:placeholder-shown) ~ .stih--buttons .stih--arrows {
+    display: none;
+}
+
+/* Room at the end of the text for the buttons that show. */
+html.pt-chat #nonQRFormItems:has(> .stih--buttons:not(.stih--hidden) .stih--button.stih--menuTrigger:not(.stih--hidden)) > #send_textarea {
+    padding-inline-end: 48px;
+}
+
+html.pt-chat #nonQRFormItems:has(> .stih--buttons:not(.stih--hidden) .stih--arrows:not(.stih--hidden)) > #send_textarea:placeholder-shown,
+html.pt-chat #nonQRFormItems.pt-ih-browse:has(> .stih--buttons:not(.stih--hidden) .stih--arrows:not(.stih--hidden)) > #send_textarea {
+    padding-inline-end: 136px;
+}
+
+/* SillyTavern keeps the hint on one line; it ends with "…" before the buttons. */
+html.pt-chat #nonQRFormItems:has(> .stih--buttons:not(.stih--hidden)) > #send_textarea::placeholder {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Docked: the field sits between your persona and Send. */
+html.pt-chat.pt-docked #nonQRFormItems > .stih--buttons:not(.stih--hidden) {
+    margin-inline-end: 52px;
+    margin-bottom: 1px;
+}
+
+html.pt-chat #nonQRFormItems > .stih--history {
+    left: 0;
+    right: 0;
+    z-index: var(--pt-z-chat);
+    box-sizing: border-box;
+    width: auto;
+    max-height: 50dvh;
+    padding: 4px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-bg);
+    filter: none;
+    font-size: 16px;
+}
+
+html.pt-chat #nonQRFormItems > .stih--history .stih--item {
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: var(--pt-radius-sm);
+    opacity: 1;
+}
+
+html.pt-chat #nonQRFormItems > .stih--history .stih--item:active {
+    background: var(--pt-surface-elevated);
+}
+
+html.pt-chat #nonQRFormItems > .stih--history .stih--item .stih--title {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+html.pt-chat #nonQRFormItems > .stih--history .stih--item .stih--title::first-line {
+    color: var(--pt-text-primary);
+    font-size: 16px;
+}

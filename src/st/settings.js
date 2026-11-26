@@ -14,6 +14,7 @@ import { refreshOwnPage } from '../shell/page.js';
 import { SWITCHES } from '../views/pocket-tavern.js';
 import { presetTabs, setPresetTab } from '../st/ai.js';
 import { addFormattingRows, refreshFormattingRows, removeFormattingRows } from './formatting.js';
+import { showChatCompletionTabOf } from '../compat/chat-completion-tabs.js';
 
 /** The choices in the Extensions panel's Pocket Tavern section. */
 const SIZES = { auto: 'Automatic', comfortable: 'Comfortable', compact: 'Compact' };
@@ -223,8 +224,7 @@ export function settingItems(root) {
 
 export function revealSetting(row) {
     // Chat Completion Tabs keeps Parameters and Prompts apart: switch to the tab that holds it.
-    const tab = row.closest('.openai-tab-content:not(.active)');
-    if (tab) document.getElementById(tab.id.replace('-content-', '-btn-'))?.click();
+    showChatCompletionTabOf(row);
     // Pocket Tavern's own Parameters / Prompts tabs, the same way.
     if (presetTabs.bar && row.closest('#ai_response_configuration') && !row.closest('#respective-presets-block')) setPresetTab(row.closest('.pt-ptab-prompts') ? 'prompts' : 'params');
     const section = row.closest('[data-pt-sec]')?.dataset.ptSec;

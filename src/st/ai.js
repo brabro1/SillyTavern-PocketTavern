@@ -7,6 +7,7 @@
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { refreshOwnPage } from '../shell/page.js';
+import { chatCompletionTab, chatCompletionTabsShown } from '../compat/chat-completion-tabs.js';
 
 /**
  * What the legacy app hands over (set once by setupAiScreens()).
@@ -279,7 +280,7 @@ export function syncPresetTabs() {
     const scope = document.getElementById('ai_response_configuration');
     const head = document.querySelector('#openai_api-presets > div');
     const want = deps.active() && deps.settings().touchSizing && document.getElementById('main_api')?.value === 'openai'
-        && !document.querySelector('.openai-tab-buttons') && !!head && !!scope?.contains(manager) && !!scope.querySelector(':scope > #respective-presets-block');
+        && !chatCompletionTabsShown() && !!head && !!scope?.contains(manager) && !!scope.querySelector(':scope > #respective-presets-block');
     if (!want) {
         if (presetTabs.bar || presetTabs.marked.length) teardownPresetTabs();
         return;
@@ -412,7 +413,7 @@ export function openPresetsOn(tab) {
             ours.click();
             return;
         }
-        const theirs = [...document.querySelectorAll('.openai-tab-buttons button, .openai-tab-buttons .menu_button')].find(node => (tab === 'prompts' ? /prompt/i : /param/i).test(node.textContent));
+        const theirs = chatCompletionTab(tab);
         if (theirs) theirs.click();
         else if (tab === 'prompts') document.getElementById('completion_prompt_manager')?.scrollIntoView({ block: 'start' });
     }, 400);

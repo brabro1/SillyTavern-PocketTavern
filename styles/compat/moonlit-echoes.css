@@ -1,0 +1,14 @@
+/* Moonlit Echoes (a theme extension). Most of what it needs is pinning in Pocket Tavern's own rules
+   (marked "Moonlit Echoes" there), because it restyles SillyTavern's markup; this file holds what is its own.
+   Keyed on the extension's own markup, so without it nothing here matches (AGENTS.md → Engineering
+   standards → Compatibility). !important here beats the extension's own rules, as each comment says. */
+
+/* ==========================================================================
+   Moonlit Echoes (theme extension): its chat styles draw the messages (see
+   Chat above). It fades the message box until it is hovered or focused;
+   phones cannot hover, so the box stays fully visible.
+   ========================================================================== */
+
+html.pt-chat #send_form {
+    opacity: 1 !important;
+}
