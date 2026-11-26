@@ -21,7 +21,7 @@
     overflow: hidden;
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
-    box-shadow: var(--pt-shadow-card);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
 }
 
 .pt-list-row,
@@ -190,4 +190,10 @@ html.pt-compact :is(.pt-list-row, .pt-list-row-main) {
    rounded edge never sits on the next. Pages space their groups with the page's own gap. */
 .pt-menu-body > .pt-list-section + .pt-list-section {
     margin-top: var(--pt-space-3);
+}
+
+/* Rows ease between their quiet, hovered and pressed states. */
+.pt-list-row,
+.pt-list-row-main {
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur-fast) var(--pt-ease);
 }

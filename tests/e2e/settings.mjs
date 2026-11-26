@@ -173,6 +173,48 @@ for (const layout of ['phone', 'desktop']) {
             await back(page, phone);
         });
 
+        await step("a SillyTavern theme picked in SillyTavern's settings never shows through a Pocket Tavern theme", async () => {
+            const start = await page.evaluate(() => ({ st: document.getElementById('themes').value, pt: SillyTavern.getContext().extensionSettings.mobileUI.theme, css: document.getElementById('customCSS').value }));
+            const look = () => page.evaluate(() => {
+                const html = getComputedStyle(document.documentElement);
+                return {
+                    text: html.getPropertyValue('--SmartThemeBodyColor').trim(),
+                    border: html.getPropertyValue('--SmartThemeBorderColor').trim(),
+                    checkbox: html.getPropertyValue('--SmartThemeCheckboxBgColorR').trim(),
+                    scale: html.getPropertyValue('--fontScale').trim(),
+                    flat: document.getElementById('chat_display').value === '0',
+                    shape: document.getElementById('avatar_style').value,
+                    media: document.getElementById('custom-style')?.getAttribute('media') ?? null,
+                };
+            });
+            try {
+                await page.evaluate(() => {
+                    const box = document.getElementById('customCSS');
+                    box.value = '#chat .mes_text { color: rgb(255, 0, 0) !important; }';
+                    jQuery(box).trigger('input');
+                });
+                await page.waitForTimeout(800);
+                const base = await look();
+                for (const name of ['Cappuccino', 'Celestial Macaron']) {
+                    const has = await page.evaluate(value => [...document.querySelectorAll('#themes option')].some(option => option.value === value), name);
+                    if (!has) continue;
+                    await page.evaluate(value => { const select = document.getElementById('themes'); select.value = value; jQuery(select).trigger('change'); }, name);
+                    await page.waitForTimeout(1500);
+                    const now = await look();
+                    if (JSON.stringify(now) !== JSON.stringify(base) || !now.flat || now.media !== 'not all') throw new Error(`${name}: ${JSON.stringify({ base, now })}`);
+                }
+            } finally {
+                await page.evaluate(({ st, css }) => {
+                    const select = document.getElementById('themes');
+                    if (select.value !== st) { select.value = st; jQuery(select).trigger('change'); }
+                    const box = document.getElementById('customCSS');
+                    box.value = css;
+                    jQuery(box).trigger('input');
+                }, start);
+                await page.waitForTimeout(1500);
+            }
+        });
+
         await step('no errors from Pocket Tavern', async () => {
             if (errors.length) throw new Error(errors.join(' | '));
         });

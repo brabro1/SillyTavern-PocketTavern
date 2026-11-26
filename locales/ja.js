@@ -338,7 +338,6 @@ export default {
     "No chats yet. Chat starts the first one.": "まだチャットはありません。「チャット」で最初のチャットを始めます。",
     "Character preview": "キャラクターのプレビュー",
     "1 message": "1 件のメッセージ",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Pocket Tavern のテーマがチャットを描くため、有効な間は SillyTavern のチャットスタイル「{style}」はオフになります。設定 → テーマ で SillyTavern のテーマを選ぶと元に戻ります。",
     "No chats yet.": "まだチャットはありません。",
     "This needs {name}'s chat, so it is open now.": "これには {name} のチャットが必要なので、開きました。",
     "Could not export the character.": "キャラクターを書き出せませんでした。",
@@ -899,4 +898,20 @@ export default {
     "List view": "リスト表示",
     "How the personas are shown": "ペルソナの表示方法",
     "In use": "使用中",
+
+    // Characters without their chat, quick picks
+    "Delete {name}? Their chats are deleted too. This cannot be undone.": "{name} を削除しますか？チャットも削除され、元に戻せません。",
+    "{name} now uses this lorebook.": "{name} はこのロアブックを使うようになりました。",
+    "{name} has no lorebook now.": "{name} のロアブックを外しました。",
+    "Lorebook": "ロアブック",
+    "Linked to {name} and exported with the card": "{name} に紐づき、カードと一緒に書き出されます",
+    "Open the page of {name}": "{name} のページを開く",
+    "Character page": "キャラクターページ",
+    "Scroll back": "前へ",
+    "Scroll on": "次へ",
+
+    // SillyTavern themes and Pocket Tavern themes
+    "SillyTavern's Custom CSS": "SillyTavern のカスタム CSS",
+    "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "Pocket Tavern のテーマでも SillyTavern 設定のカスタム CSS を使います。SillyTavern のテーマは自分の CSS をそこに入れます。",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Pocket Tavern のテーマがチャットを描くため、オンの間は SillyTavern の {style} チャットスタイルはオフです。設定 → 外観 で SillyTavern のテーマを選ぶと戻ります。",
 };

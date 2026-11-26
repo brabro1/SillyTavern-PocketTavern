@@ -49,7 +49,7 @@ Run from `tests/`. Point them at your test instance with `ST_URL=http://127.0.0.
 | `node screenshots.mjs` | Retakes the README screenshots | Releases that change the look |
 | `CHROME_CHANNEL=chrome node brand.mjs` | Redraws the banner and social preview from `docs/brand/banner.html` | When the banner screenshots change |
 
-Gate on the exit code (`(node phone.mjs > log.txt) || exit 1`). A pipe hides failures. Screenshots go in `tests/results/`, which git ignores.
+To recheck a few steps, `ONLY="a–z strip|sheet has a title" node phone.mjs` runs only the steps whose names contain one of the words. Gate on the exit code (`(node phone.mjs > log.txt) || exit 1`). A pipe hides failures. Screenshots go in `tests/results/`, which git ignores.
 
 ## Where things go (3.0)
 

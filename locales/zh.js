@@ -338,7 +338,6 @@ export default {
     "No chats yet. Chat starts the first one.": "还没有聊天。点“聊天”开始第一个。",
     "Character preview": "角色预览",
     "1 message": "1 条消息",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Pocket Tavern 的主题负责绘制聊天，因此在它启用期间 SillyTavern 的“{style}”聊天样式会关闭。在 设置 → 主题 中选择 SillyTavern 主题即可恢复。",
     "No chats yet.": "还没有聊天。",
     "This needs {name}'s chat, so it is open now.": "这需要 {name} 的聊天，所以已打开它。",
     "Could not export the character.": "无法导出该角色。",
@@ -899,4 +898,20 @@ export default {
     "List view": "列表视图",
     "How the personas are shown": "人设的显示方式",
     "In use": "使用中",
+
+    // Characters without their chat, quick picks
+    "Delete {name}? Their chats are deleted too. This cannot be undone.": "删除 {name}？其聊天也会被删除。此操作无法撤销。",
+    "{name} now uses this lorebook.": "{name} 现在使用这本世界书。",
+    "{name} has no lorebook now.": "{name} 现在没有世界书。",
+    "Lorebook": "世界书",
+    "Linked to {name} and exported with the card": "关联到 {name}，并随角色卡导出",
+    "Open the page of {name}": "打开 {name} 的页面",
+    "Character page": "角色页面",
+    "Scroll back": "向前滚动",
+    "Scroll on": "向后滚动",
+
+    // SillyTavern themes and Pocket Tavern themes
+    "SillyTavern's Custom CSS": "SillyTavern 的自定义 CSS",
+    "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "在 Pocket Tavern 主题下也使用 SillyTavern 设置中的自定义 CSS。SillyTavern 主题会把它自己的 CSS 放在那里。",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Pocket Tavern 的主题负责绘制聊天，所以开启时 SillyTavern 的 {style} 聊天样式会关闭。在 设置 → 外观 中选择 SillyTavern 主题即可恢复。",
 };

@@ -68,12 +68,23 @@ html.pt-desktop.pt-no-chat .pt-no-chat-empty {
     overflow: hidden;
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
-    box-shadow: var(--pt-shadow-card);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
 }
 
-/* A chat row on its own is a card too. */
+/* A chat row on its own is a card too; on desktop it lifts a little under the mouse. */
 .pt-chats-rows > .pt-chat-row > .pt-chat-row-main {
-    box-shadow: var(--pt-shadow-card);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+}
+
+@media (hover: hover) {
+    html.pt-motion-full .pt-chats-rows > .pt-chat-row > .pt-chat-row-main:hover,
+    html.pt-motion-full .pt-chat-group-card:hover {
+        transform: translateY(-2px);
+    }
+}
+
+html.pt-motion-full .pt-chat-group-card {
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
 }
 
 /* The rows inside share the card's surface. */
@@ -333,6 +344,67 @@ html.pt-motion-off .pt-chat-loading {
     transition: none;
 }
 
+/* A row that scrolls sideways (the quick picks): ‹ and › sit over its ends on desktop while there is more to
+   see; the wheel and a mouse drag scroll it too (src/views/chats.js → scrollRow). */
+.pt-scroll-row {
+    position: relative;
+}
+
+.pt-scroll-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: none;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    transform: translateY(-50%);
+    padding: 0;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface-elevated);
+    box-shadow: var(--pt-shadow-float);
+    color: var(--pt-text-primary);
+    cursor: pointer;
+}
+
+.pt-scroll-arrow--start {
+    inset-inline-start: calc(-1 * var(--pt-space-2));
+}
+
+.pt-scroll-arrow--end {
+    inset-inline-end: calc(-1 * var(--pt-space-2));
+}
+
+html.pt-desktop .pt-scroll-row--start .pt-scroll-arrow--start,
+html.pt-desktop .pt-scroll-row--end .pt-scroll-arrow--end {
+    display: grid;
+}
+
+html.pt-rtl .pt-scroll-arrow svg {
+    transform: scaleX(-1);
+}
+
+.pt-scroll-row-dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.pt-scroll-row-dragging .pt-quick-pick {
+    pointer-events: none;
+}
+
+/* A chat's picture opens the character's page. */
+.pt-chat-row-picture--link .pt-avatar {
+    transition: transform var(--pt-dur-fast) var(--pt-ease), box-shadow var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    .pt-chat-row-main:hover .pt-chat-row-picture--link .pt-avatar {
+        box-shadow: 0 0 0 2px var(--pt-surface-elevated), 0 0 0 4px color-mix(in srgb, var(--pt-accent) 60%, transparent);
+    }
+}
+
 /* Quick picks (DESIGN.md → Chats (home)): the Assistant and the people chatted with most recently, as 56px
    pictures with names in a row that scrolls sideways. The open chat's pick gets an accent ring. */
 .pt-quick-picks {
@@ -342,6 +414,7 @@ html.pt-motion-off .pt-chat-loading {
     padding: var(--pt-space-1) var(--pt-space-4);
     overflow-x: auto;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--pt-space-4);
     scrollbar-width: none;
     overscroll-behavior-x: contain;
 }

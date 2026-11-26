@@ -78,6 +78,20 @@ for (const layout of ['phone', 'desktop']) {
             if (await page.evaluate(() => SillyTavern.getContext().characters.length < 8)) return console.log('      (too few characters for an A–Z strip; checked with the full test data)');
             const strip = await page.evaluate(() => { const node = document.getElementById('pt_az'); return node ? { letters: node.childElementCount, shown: !!node.getBoundingClientRect().height } : null; });
             if (!strip?.shown || strip.letters < 3) throw new Error(JSON.stringify(strip));
+            if (phone) return;
+            // On a computer the strip runs the list's full height, and moving the mouse down it scrolls, no click.
+            const list = () => page.evaluate(() => document.getElementById('rm_print_characters_block').scrollTop);
+            const box = await page.locator('#pt_az').boundingBox();
+            const room = await page.evaluate(() => { const l = document.getElementById('rm_print_characters_block'); return { list: l.clientHeight, strip: document.getElementById('pt_az').getBoundingClientRect().height }; });
+            if (room.strip < room.list - 24) throw new Error(`the strip is ${room.strip}px beside a ${room.list}px list`);
+            const top = await list();
+            await page.mouse.move(box.x + box.width / 2, box.y + 6);
+            await page.mouse.move(box.x + box.width / 2, box.y + box.height - 6, { steps: 8 });
+            await page.waitForTimeout(400);
+            const moved = await list();
+            await page.mouse.move(box.x - 200, box.y + 10);
+            await page.evaluate(() => document.getElementById('rm_print_characters_block').scrollTop = 0);
+            if (moved - top < 100) throw new Error(`hovering down the strip scrolled ${moved - top}px`);
         });
 
         await step('tapping a character opens their page, not their chat: picture, name, ★ and ⋯, Chat · New chat · Edit, and their chats', async () => {
@@ -130,6 +144,58 @@ for (const layout of ['phone', 'desktop']) {
             if (phone) await page.locator('#pt-appbar .pt-ab-back').click();
             else await page.keyboard.press('Escape');
             await waitFor(page, 'the list', () => !document.getElementById('pt-page') && document.documentElement.dataset.ptPage === 'rightNavHolder');
+        });
+
+        await step("on their card, Lorebook, Duplicate and Delete work on them without opening their chat", async () => {
+            const chatNow = () => page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.() ?? null);
+            const openCard = async () => {
+                if (await page.evaluate(() => document.documentElement.classList.contains('pt-card-peek'))) return;
+                await page.evaluate(tapCharacter, 'Seraphina');
+                await waitFor(page, 'the page', () => document.getElementById('pt-page')?.dataset.page === 'pt-character');
+                await page.locator('#pt-page .pt-character-actions .pt-button', { hasText: 'Edit' }).click();
+                await waitFor(page, 'their card', () => document.getElementById('character_name_pole')?.value === 'Seraphina' && document.documentElement.classList.contains('pt-card-peek'));
+                await page.waitForTimeout(400);
+            };
+            // SillyTavern's own question, answered No so nothing changes in the test data.
+            const cancelPopup = async label => {
+                await waitFor(page, label, () => !!document.querySelector('dialog.popup[open] .popup-button-cancel'));
+                const text = await page.evaluate(() => document.querySelector('dialog.popup[open] .popup-content')?.textContent ?? '');
+                await page.evaluate(() => document.querySelector('dialog.popup[open] .popup-button-cancel').click());
+                await waitFor(page, `${label} closed`, () => !document.querySelector('dialog.popup[open]'));
+                return text;
+            };
+            const start = await chatNow();
+            await openCard();
+            await page.evaluate(() => document.getElementById('world_button').click());
+            await waitFor(page, 'the lorebook sheet', () => document.querySelector('#pt-sheet .pt-sheet-title, #pt-sheet [role="heading"]')?.textContent === 'Lorebook' && !!document.querySelector('#pt-sheet .pt-list-row'));
+            const none = await page.evaluate(() => document.querySelector('#pt-sheet .pt-list-row-title')?.textContent);
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await waitFor(page, 'sheet closed', () => !document.getElementById('pt-sheet'));
+            if (none !== 'None') throw new Error(`the lorebook sheet starts with ${none}`);
+            await page.evaluate(() => document.getElementById('dupe_button').click());
+            await cancelPopup('the duplicate question');
+            await page.evaluate(() => document.getElementById('delete_button').click());
+            const question = await cancelPopup('the delete question');
+            if (!/Delete Seraphina\?/.test(question)) throw new Error(`delete asked: ${question}`);
+            if (await chatNow() !== start) throw new Error('a card button opened their chat');
+            if (!await page.evaluate(() => document.documentElement.classList.contains('pt-card-peek'))) throw new Error('the card closed');
+        });
+
+        await step("the card's New chat opens their chat and starts a new one (SillyTavern asks first)", async () => {
+            const label = await page.evaluate(() => document.querySelector('.pt-card-go-chat')?.textContent.trim());
+            if (label !== 'New chat') throw new Error(`the button says ${label}`);
+            await page.locator('.pt-card-go-chat').click();
+            await waitFor(page, "SillyTavern's new chat question in Seraphina's chat", () => SillyTavern.getContext().name2 === 'Seraphina' && !!document.querySelector('dialog.popup[open] .popup-button-cancel'), null, 12000);
+            await page.evaluate(() => document.querySelector('dialog.popup[open] .popup-button-cancel').click());
+            await waitFor(page, 'question closed', () => !document.querySelector('dialog.popup[open]'));
+            await page.waitForTimeout(800);
+            if (phone) {
+                await page.evaluate(() => { document.querySelector('.pt-tabs-btn')?.click(); });
+                await page.waitForTimeout(200);
+            }
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
+            await waitFor(page, 'Characters again', () => document.documentElement.dataset.ptPage === 'rightNavHolder' && !document.getElementById('pt-page'));
+            await page.waitForTimeout(500);
         });
 
         await step("Characters → Lorebooks → Characters switches each time, even with SillyTavern's Characters lock on", async () => {

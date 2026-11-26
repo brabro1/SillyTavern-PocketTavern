@@ -46,7 +46,7 @@ import { atBottom, cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd
 import { chatsPage, chatsWelcome } from '../views/chats.js';
 import { characterPage } from '../views/character.js';
 import { promptEditor, promptEditorMode, promptEditorOpen, closePromptEditor, promptEditorDirty, leavePromptEditor, promptFull, setPromptFull, syncPromptEditorSession, syncPromptNameBox, fitTextarea, syncPresetTabs, syncTriggerChips, aiStatus, aiQuickRows, openPresetsOn, refreshAiPage, setupAiScreens } from '../st/ai.js';
-import { aboutCharacter, characterTarget, checkCardPeek, editCharacter, fetchCharacterChats, isCurrentCharacter, onCardPeekPress, onCharacterTap, onExportClick, openCharacterChatFor, openCharacterMenu, pressForCharacter, setupCharacters, syncCharacterPage, targetCharacter } from '../st/characters.js';
+import { aboutCharacter, characterTarget, checkCardPeek, favoriteCharacter, openCharacterPage, editCharacter, fetchCharacterChats, isCurrentCharacter, onCardPeekPress, onCharacterTap, onExportClick, openCharacterChatFor, openCharacterMenu, pressForCharacter, setupCharacters, syncCharacterPage, targetCharacter } from '../st/characters.js';
 import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { button as uiButton } from '../ui/button.js';
@@ -67,6 +67,8 @@ const DEFAULTS = Object.freeze({
     appShell: true,
     chatStyle: true,
     touchSizing: true,
+    /** SillyTavern's Custom CSS while a Pocket Tavern theme is on (a SillyTavern theme puts its own CSS there). */
+    stCustomCss: false,
     /** The Draft helper (built in from the Draft Enhancer extension): Enhance, Write and Continue in +. */
     draftHelper: true,
     /** − and + beside sliders' numbers (issue #12: off; typing the number is quicker). */
@@ -664,6 +666,12 @@ function backFromPage() {
     // The Draft helper's page is opened from Settings → Pocket Tavern.
     if (id === 'pt-draft') {
         openPage('pt-pocket');
+        return;
+    }
+    // A character's page opened from Chats goes back to Chats.
+    if (id === 'pt-character' && characterFromChats.chid !== null && characterFromChats.chid === characterTarget.chid) {
+        characterFromChats.chid = null;
+        openPage('pt-chats');
         return;
     }
     const place = id ? placeOf(id) : null;
@@ -1481,6 +1489,7 @@ function applyAppearance() {
     }
     syncThemeColor(theme);
     syncChatStyleForTheme();
+    watchStThemePicks();
 }
 
 /** Runs `change` behind a circular reveal that grows from `origin` (View Transitions). */
@@ -5016,17 +5025,23 @@ function pickChatLook(look) {
  * chat cards) off, puts it back. Only on those changes: a Chat Style you pick afterwards stays.
  */
 function syncChatStyleForTheme() {
+    syncStCustomCss();
     const select = document.getElementById('chat_display');
     if (!select) return;
     const own = active && settings.chatStyle && ownThemeOn() ? String(settings.theme) : '';
     if (own) {
-        if (settings.chatStyleFor === own) return;
+        if (settings.chatStyleFor === own) {
+            // Still on: a SillyTavern theme just picked in SillyTavern's own settings may have switched Chat Style
+            // back to Bubbles or Document, so Pocket Tavern's theme keeps drawing the chat. A style picked by hand stays.
+            if (select.value !== '0' && Date.now() - stThemePickedAt < 1500) useFlatChatStyle();
+            return;
+        }
         settings.chatStyleFor = own;
         if (select.value !== '0') {
             const name = stChatStyleName();
             settings.stChatStyle = select.value;
             useFlatChatStyle();
-            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.", { style: t(name) }), '', { timeOut: 7000 });
+            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.", { style: t(name) }), '', { timeOut: 7000 });
         }
         saveSettings();
         return;
@@ -5037,6 +5052,62 @@ function syncChatStyleForTheme() {
     settings.stChatStyle = '';
     saveSettings();
     if (back && select.value === '0' && select.querySelector(`option[value="${CSS.escape(back)}"]`)) $j()(select).val(back).trigger('change');
+}
+
+/**
+ * SillyTavern's Custom CSS (Settings → SillyTavern → Custom CSS). Picking a SillyTavern theme puts that theme's own
+ * CSS there, so while a Pocket Tavern theme is on it is set aside (a `media` that matches nothing), unless
+ * Appearance → "SillyTavern's Custom CSS" is on. "Your theme" and SillyTavern's themes always use it.
+ */
+function syncStCustomCss() {
+    const style = document.getElementById('custom-style');
+    if (!style) return;
+    const off = active && ownThemeOn() && !settings.stCustomCss;
+    if (off && style.getAttribute('media') !== 'not all') {
+        style.setAttribute('media', 'not all');
+        style.dataset.ptOff = '1';
+    } else if (!off && style.dataset.ptOff) {
+        style.removeAttribute('media');
+        delete style.dataset.ptOff;
+    }
+}
+
+/** When a SillyTavern theme was last picked: the avatar shape it sets right after is the theme's, not yours. */
+let stThemePickedAt = 0;
+
+/**
+ * A SillyTavern theme picked in SillyTavern's own settings: Pocket Tavern's theme stays in charge. Its Chat Style
+ * goes back to Flat and the avatar shape you chose comes back (a theme brings its own).
+ */
+function watchStThemePicks() {
+    const $ = $j();
+    $(document).off('.ptStTheme');
+    if (!active) return;
+    const shape = document.getElementById('avatar_style');
+    if (shape && typeof settings.avatarShape !== 'string') {
+        settings.avatarShape = shape.value;
+        saveSettings();
+    }
+    $(document).on('change.ptStTheme', '#themes', () => {
+        stThemePickedAt = Date.now();
+        window.setTimeout(() => {
+            if (!active) return;
+            syncChatStyleForTheme();
+            const select = document.getElementById('avatar_style');
+            if (ownThemeOn() && select && typeof settings.avatarShape === 'string' && select.value !== settings.avatarShape
+                && select.querySelector(`option[value="${CSS.escape(settings.avatarShape)}"]`)) {
+                $(select).val(settings.avatarShape).trigger('change');
+            }
+        }, 400);
+    });
+    // A shape you pick yourself (Appearance or SillyTavern's own setting) is the one kept.
+    $(document).on('change.ptStTheme', '#avatar_style', function () {
+        if (Date.now() - stThemePickedAt < 1500) return;
+        if (settings.avatarShape !== this.value) {
+            settings.avatarShape = this.value;
+            saveSettings();
+        }
+    });
 }
 
 /** SillyTavern's Chat Style when it is not Flat (Pocket Tavern's message cards only draw over Flat), else ''. */
@@ -6567,6 +6638,17 @@ function setupMessageView() {
     });
 }
 
+/** A character's page opened from Chats (a quick pick, a chat's picture): Back returns to Chats. */
+const characterFromChats = { chid: null };
+
+/** Opens a chat's character's page, without opening the chat. */
+function showCharacterFromChats(chat) {
+    const chid = (ctx().characters ?? []).findIndex(character => character.avatar === chat.avatar);
+    if (chid < 0) return;
+    characterFromChats.chid = String(chid);
+    openCharacterPage(chid);
+}
+
 function registerOwnPages() {
     definePage('pt-chats', chatsPage({
         recentChats: recentChatsForHome,
@@ -6574,6 +6656,7 @@ function registerOwnPages() {
         isOpen: isOpenChat,
         isPinned: isPinnedChat,
         openChat: chat => openChatFile(chat),
+        showCharacter: chat => showCharacterFromChats(chat),
         chatMenu: (chat, button) => openHomeChatMenu(chat, button),
         searchIndex: searchIndexForHome,
         chooseCharacter: () => shell?.onTab('rightNavHolder'),
@@ -6583,7 +6666,7 @@ function registerOwnPages() {
         withOwner: {
             newChat: chat => afterOpening(chat, () => document.getElementById('option_start_new_chat')?.click()),
             allChats: chat => afterOpening(chat, () => document.getElementById('option_select_chat')?.click()),
-            character: chat => afterOpening(chat, () => openPage('rightNavHolder')),
+            character: chat => showCharacterFromChats(chat),
         },
     }));
     loadStartModules();
@@ -6611,7 +6694,7 @@ function registerOwnPages() {
             await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 60)));
             await editCharacter(chid);
         },
-        favorite: () => pressForCharacter(characterTarget.chid, '#favorite_button'),
+        favorite: () => favoriteCharacter(characterTarget.chid),
         menu: anchor => openCharacterMenu(anchor),
     }));
     definePage('pt-ai', aiPage({

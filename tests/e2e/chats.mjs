@@ -122,7 +122,7 @@ for (const layout of ['phone', 'desktop']) {
 
         await step('quick picks first (the Assistant, then recent people), then pinned and recent chats under date headers; no message box', async () => {
             const home = await page.evaluate(() => ({
-                first: document.querySelector('#pt-page .pt-chats-results > *')?.className ?? '',
+                first: document.querySelector('#pt-page .pt-chats-results > *')?.querySelector('.pt-quick-picks') ? 'pt-quick-picks' : '',
                 picks: [...document.querySelectorAll('#pt-page .pt-quick-pick-name')].map(el => el.textContent),
                 size: Math.round(document.querySelector('#pt-page .pt-quick-pick .pt-avatar')?.getBoundingClientRect().width ?? 0),
                 headers: [...document.querySelectorAll('#pt-page .pt-list-header')].map(el => el.textContent),
@@ -136,9 +136,28 @@ for (const layout of ['phone', 'desktop']) {
             if (new Set(home.picks).size !== home.picks.length) throw new Error(`a pick shows twice: ${home.picks}`);
         });
 
-        await step("a quick pick opens that person's latest chat", async () => {
+        await step("a quick pick opens that person's page, not a chat, and Back returns to Chats", async () => {
             const name = await page.evaluate(() => document.querySelectorAll('#pt-page .pt-quick-pick-name')[1]?.textContent);
             await page.evaluate(() => document.querySelectorAll('#pt-page .pt-quick-pick')[1].click());
+            await waitFor(page, `${name}'s page`, who => document.getElementById('pt-page')?.dataset.page === 'pt-character' && document.querySelector('#pt-page .pt-character-name, #pt-page [role="heading"]')?.textContent.includes(who), name, 10000);
+            const chat = await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.());
+            if (chat !== undefined) throw new Error(`a chat opened: ${chat}`);
+            await page.locator('#pt-appbar .pt-ab-back').click();
+            await waitFor(page, 'back on Chats', () => document.getElementById('pt-page')?.dataset.page === 'pt-chats');
+        });
+
+        await step("a recent chat's picture opens the character page; the rest of the row opens the chat", async () => {
+            const name = await page.evaluate(() => {
+                const row = document.querySelector('#pt-page .pt-chat-row-picture--link')?.closest('.pt-chat-row');
+                return row?.querySelector('.pt-rc-title')?.textContent;
+            });
+            if (!name) throw new Error('no row with a picture link');
+            await page.evaluate(() => document.querySelector('#pt-page .pt-chat-row-picture--link').click());
+            await waitFor(page, `${name}'s page`, () => document.getElementById('pt-page')?.dataset.page === 'pt-character', null, 10000);
+            if (await page.evaluate(() => SillyTavern.getContext().getCurrentChatId?.()) !== undefined) throw new Error('the picture opened the chat');
+            await page.locator('#pt-appbar .pt-ab-back').click();
+            await waitFor(page, 'back on Chats', () => document.getElementById('pt-page')?.dataset.page === 'pt-chats');
+            await page.evaluate(openRow, name);
             await waitFor(page, `${name}'s chat`, who => SillyTavern.getContext().name2 === who && document.querySelectorAll('#chat .mes').length > 0, name, 10000);
             if (phone) {
                 await page.locator('#pt-appbar .pt-ab-back').click();
@@ -151,6 +170,31 @@ for (const layout of ['phone', 'desktop']) {
                 await waitFor(page, 'no chat open', () => SillyTavern.getContext().getCurrentChatId?.() === undefined, null, 10000);
                 await page.waitForTimeout(2500);
             }
+        });
+
+        if (!phone) await step('on a computer the quick picks scroll with the wheel and a drag, and a drag opens nothing', async () => {
+            await page.evaluate(() => document.querySelector('#pt-page .pt-quick-picks').scrollLeft = 0);
+            const row = await page.locator('#pt-page .pt-quick-picks').boundingBox();
+            const room = await page.evaluate(() => { const r = document.querySelector('#pt-page .pt-quick-picks'); return r.scrollWidth - r.clientWidth; });
+            if (room < 40) throw new Error(`the test data has too few picks to scroll (${room}px)`);
+            const arrows = () => page.evaluate(() => { const w = document.querySelector('#pt-page .pt-scroll-row'); return { start: w.classList.contains('pt-scroll-row--start'), end: w.classList.contains('pt-scroll-row--end') }; });
+            const atStart = await arrows();
+            if (atStart.start || !atStart.end) throw new Error(`arrows at the start: ${JSON.stringify(atStart)}`);
+            await page.mouse.move(row.x + row.width / 2, row.y + row.height / 2);
+            await page.mouse.wheel(0, 200);
+            await page.waitForTimeout(300);
+            const wheeled = await page.evaluate(() => document.querySelector('#pt-page .pt-quick-picks').scrollLeft);
+            if (wheeled < 40) throw new Error(`the wheel moved the picks ${wheeled}px`);
+            const before = wheeled;
+            await page.mouse.move(row.x + row.width / 2, row.y + row.height / 2);
+            await page.mouse.down();
+            await page.mouse.move(row.x + row.width / 2 + 40, row.y + row.height / 2, { steps: 4 });
+            await page.mouse.move(row.x + row.width / 2 + 90, row.y + row.height / 2, { steps: 4 });
+            await page.mouse.up();
+            await page.waitForTimeout(400);
+            const dragged = await page.evaluate(() => ({ left: document.querySelector('#pt-page .pt-quick-picks').scrollLeft, page: document.getElementById('pt-page')?.dataset.page }));
+            if (before - dragged.left < 40 || dragged.page !== 'pt-chats') throw new Error(`drag: ${before} → ${JSON.stringify(dragged)}`);
+            await page.evaluate(() => document.querySelector('#pt-page .pt-quick-picks').scrollLeft = 0);
         });
 
         await step('a character with several chats gets one card: their latest, and a dropdown with New chat, All chats, Character and the rest', async () => {

@@ -130,16 +130,20 @@ export function chatWhen(time) {
  * @param {boolean} [options.pinned]
  * @param {() => void} options.onOpen
  * @param {((button: HTMLElement) => void) | null} [options.onMenu]
+ * @param {(() => void) | null} [options.onPicture] tapping the picture does this instead (a character's page)
  */
-export function chatRow({ who, picture, fileName, preview, count, time, open = false, pinned = false, onOpen, onMenu }) {
+export function chatRow({ who, picture, fileName, preview, count, time, open = false, pinned = false, onOpen, onMenu, onPicture = null }) {
     const name = h('b', { class: 'pt-rc-title', raw: who, dir: 'auto' });
     const line = h('span', { class: 'pt-rc-line' }, [name]);
     if (open) line.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
     else if (time) line.append(h('small', { class: 'pt-rc-when', raw: chatWhen(time) }));
     const meta = h('small', { class: 'pt-rc-meta' }, [chatTitleNode('span', 'pt-rc-chat', fileName)]);
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
-    const main = h('button', { type: 'button', class: 'pt-chat-row-main pt-focus pt-press', onclick: onOpen }, [
-        h('span', { class: 'pt-chat-row-picture' }, [picture, pinned ? h('span', { class: 'pt-chat-row-pin', title: 'Pinned' }, [svgIcon('bookmark')]) : null]),
+    const main = h('button', { type: 'button', class: 'pt-chat-row-main pt-focus pt-press', onclick: event => {
+        if (onPicture && event.target instanceof Element && event.target.closest('.pt-chat-row-picture')) onPicture();
+        else onOpen();
+    } }, [
+        h('span', { class: `pt-chat-row-picture${onPicture ? ' pt-chat-row-picture--link' : ''}`, title: onPicture ? 'Character page' : undefined }, [picture, pinned ? h('span', { class: 'pt-chat-row-pin', title: 'Pinned' }, [svgIcon('bookmark')]) : null]),
         h('span', { class: 'pt-rc-body' }, [line, previewBubble(preview), meta]),
     ]);
     return h('div', { class: `pt-chat-row${open ? ' pt-chat-row--open' : ''}` }, [main, onMenu ? rowMenuButton(onMenu) : null]);

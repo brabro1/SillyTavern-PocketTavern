@@ -16,7 +16,11 @@ page.on('pageerror', error => {
 });
 
 let failed = 0;
+// ONLY="words|other words" runs just the steps whose names contain one of them (a quick recheck).
+const only = process.env.ONLY ? process.env.ONLY.split('|').map(word => word.trim().toLowerCase()).filter(Boolean) : null;
 async function step(name, run) {
+    // The first step opens SillyTavern, so it always runs.
+    if (only && name !== 'Pocket Tavern turns on for a phone' && !only.some(word => name.toLowerCase().includes(word))) return;
     try {
         await run();
         console.log(`  ✓ ${name}`);
@@ -2442,7 +2446,7 @@ await step("More… on a character card stays above the Description tabs at 1920
     }
 });
 
-await step('tapping a character shows its page (not its chat); Chat, Edit and a recent chat do what they say; turned off it opens the chat', async () => {
+await step('tapping a character shows its page (not its chat); Chat, Edit, New chat and a recent chat do what they say; turned off it opens the chat', async () => {
     await ensureCharacters([['Aria', 'Hello, I am Aria.'], ['Seraphina', '*She smiles and sets down her cup.* "Welcome, traveler."']]);
     await ensureChat('Seraphina');
     await ensureChat('Aria');
@@ -2485,9 +2489,12 @@ await step('tapping a character shows its page (not its chat); Chat, Edit and a 
     if (!(await page.evaluate(() => !!document.getElementById('pt_card_tabs')?.getBoundingClientRect().height))) throw new Error('Edit did not show the card');
     if (await chatId() !== before) throw new Error("Edit opened the character's chat");
     if (!(await page.locator('#pt_card_go').isVisible())) throw new Error('the card has no Chat and Recent chats buttons');
-    // The card's Chat opens their chat.
+    // The card's New chat opens their chat and starts a new one: SillyTavern asks first (answered No here).
+    if (await page.locator('#pt_card_go .pt-card-go-chat').textContent() !== 'New chat') throw new Error("the card's button is not New chat");
     await page.locator('#pt_card_go .pt-card-go-chat').click();
-    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina', null, 10000);
+    await until(() => SillyTavern.getContext().characters[SillyTavern.getContext().characterId]?.name === 'Seraphina' && !!document.querySelector('dialog.popup[open] .popup-button-cancel'), null, 10000);
+    await page.evaluate(() => document.querySelector('dialog.popup[open] .popup-button-cancel').click());
+    await until(() => !document.querySelector('dialog.popup[open]'));
     await page.evaluate(async () => { const c = SillyTavern.getContext(); await c.selectCharacterById(String(c.characters.findIndex(x => x.name === 'Aria'))); });
     await page.waitForTimeout(1200);
     // Leaving a card without pressing Chat leaves you in your chat, with SillyTavern's card back on it.
@@ -2605,7 +2612,9 @@ await step('the A–Z strip: a light on the letter under the finger, a lens arou
             bubbleText: document.getElementById('pt_az_bubble')?.textContent,
         }));
         await page.mouse.up();
-        await page.waitForTimeout(250);
+        // The bubble lingers for a moment, then fades.
+        await page.mouse.move(box.x - 150, box.y);
+        await page.waitForTimeout(900);
         const after = await page.evaluate(() => document.getElementById('pt_az_bubble')?.classList.contains('pt-az-bubble-on'));
         if (!during.on || during.lens < 3 || !during.bubble) throw new Error(`while dragging: ${JSON.stringify(during)}`);
         if (during.active !== during.bubbleText) throw new Error(`the light is on ${during.active} but the bubble says ${during.bubbleText}`);

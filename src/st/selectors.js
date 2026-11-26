@@ -34,3 +34,8 @@ export const STOP_BUTTON = '#mes_stop';
 
 /** The Chat Completion preset picker; its chosen option names the preset a connection profile saves. */
 export const CHAT_COMPLETION_PRESET = '#settings_preset_openai';
+
+// ---- Chat options (SillyTavern's ☰ menu) ------------------------------------------------------
+
+/** "Start new chat" for the open character (SillyTavern asks first). */
+export const START_NEW_CHAT = '#option_start_new_chat';

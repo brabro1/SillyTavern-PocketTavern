@@ -187,3 +187,25 @@ html.pt-motion-off .pt-button--busy::before {
         animation: none;
     }
 }
+
+/* Depth (DESIGN.md → Elevation): filled buttons are raised, with a faint light along their top edge. */
+.pt-button--primary,
+.pt-button--secondary,
+.pt-button--danger-filled {
+    box-shadow: var(--pt-highlight), var(--pt-shadow-raise);
+}
+
+.pt-button--secondary {
+    box-shadow: var(--pt-highlight), 0 0 0 1px var(--pt-border), var(--pt-shadow-raise);
+}
+
+.pt-button,
+.pt-icon-button {
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    html.pt-motion-full .pt-button:is(:hover, :focus-visible):not(:disabled, :active) {
+        transform: translateY(-1px);
+    }
+}

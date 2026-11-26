@@ -338,7 +338,6 @@ export default {
     "No chats yet. Chat starts the first one.": "Чатов пока нет. «Чат» начнёт первый.",
     "Character preview": "Карточка персонажа",
     "1 message": "1 сообщение",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "Тема Pocket Tavern сама оформляет чат, поэтому стиль чата SillyTavern «{style}» отключён, пока она включена. Выбор темы SillyTavern в «Настройки → Темы» вернёт его.",
     "No chats yet.": "Чатов пока нет.",
     "This needs {name}'s chat, so it is open now.": "Для этого нужен чат с {name}, поэтому он открыт.",
     "Could not export the character.": "Не удалось экспортировать персонажа.",
@@ -899,4 +898,20 @@ export default {
     "List view": "Списком",
     "How the personas are shown": "Как показаны персоны",
     "In use": "Используется",
+
+    // Characters without their chat, quick picks
+    "Delete {name}? Their chats are deleted too. This cannot be undone.": "Удалить {name}? Чаты тоже удалятся. Это нельзя отменить.",
+    "{name} now uses this lorebook.": "{name} теперь использует этот лорбук.",
+    "{name} has no lorebook now.": "У {name} больше нет лорбука.",
+    "Lorebook": "Лорбук",
+    "Linked to {name} and exported with the card": "Привязан к {name} и экспортируется с карточкой",
+    "Open the page of {name}": "Открыть страницу {name}",
+    "Character page": "Страница персонажа",
+    "Scroll back": "Прокрутить назад",
+    "Scroll on": "Прокрутить вперёд",
+
+    // SillyTavern themes and Pocket Tavern themes
+    "SillyTavern's Custom CSS": "Свой CSS SillyTavern",
+    "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "Применять свой CSS из настроек SillyTavern и с темами Pocket Tavern. Тема SillyTavern кладёт туда свой CSS.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "Тема Pocket Tavern рисует чат, поэтому стиль чата {style} из SillyTavern выключен, пока она включена. Выбор темы SillyTavern в Настройки → Внешний вид вернёт его.",
 };

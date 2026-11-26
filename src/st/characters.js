@@ -10,6 +10,7 @@ import { shieldFromDrawerAutoClose } from './drawers.js';
 import { t } from '../core/i18n.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { chatTitleNode, messageCount, previewBubble } from '../ui/chat-row.js';
+import { START_NEW_CHAT } from './selectors.js';
 import { listGroup, listRow } from '../ui/list.js';
 
 const LOG = '[Pocket Tavern]';
@@ -236,6 +237,7 @@ export function openCharacterChatFor(chid, { stay = false, fileId = null, then =
     context.selectCharacterById(String(chid));
 }
 
+/** Card controls that still need the character's chat open (SillyTavern reads them from the open chat). */
 const CARD_NEEDS_CHAT = '#delete_button, #dupe_button, #world_button, .chat_lorebook_button, #char_connections_button, #tagInput, #character_open_media_overrides, #char-management-dropdown';
 
 /** On the card-only view, a button that needs the chat opens it, then does its job. */
@@ -251,6 +253,11 @@ export function onCardPeekPress(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
     if ((event.type === 'pointerdown') !== isSelect) return;
+    // These work on this character directly, through SillyTavern's own functions, so its chat stays shut.
+    if (target.matches(PEEK_DIRECT)) {
+        actOnCharacter(target.matches('#dupe_button') ? 'duplicate' : target.matches('#delete_button') ? 'delete' : 'lorebook', chid);
+        return;
+    }
     const name = ctx().characters[chid]?.name ?? '';
     globalThis.toastr?.info(t("This needs {name}'s chat, so it is open now.", { name }), '', { timeOut: 4000 });
     openCharacterChatFor(chid, {
@@ -263,6 +270,73 @@ export function onCardPeekPress(event) {
             else again.click();
         },
     });
+}
+
+/** Card controls that act on the shown character itself, without its chat (DESIGN.md → Character editor). */
+const PEEK_DIRECT = '#delete_button, #dupe_button, #world_button';
+
+/**
+ * Duplicate, Delete and Lorebook for any character, without opening its chat (the card-only view and the
+ * character page's ⋯): SillyTavern's own duplicateCharacter (it asks itself), deleteCharacter (after a
+ * question) and writeExtensionField.
+ * @param {'duplicate'|'delete'|'lorebook'} what
+ */
+async function actOnCharacter(what, chid) {
+    const context = ctx();
+    const character = context.characters?.[chid];
+    if (!character) return;
+    if (what === 'lorebook') {
+        pickPeekedLorebook(chid);
+        return;
+    }
+    const st = await import('/script.js');
+    if (what === 'duplicate') {
+        await st.duplicateCharacter({ avatar: character.avatar });
+        return;
+    }
+    const sure = await context.callGenericPopup(t('Delete {name}? Their chats are deleted too. This cannot be undone.', { name: character.name }), context.POPUP_TYPE.CONFIRM);
+    if (!sure) return;
+    endCardPeek();
+    await st.deleteCharacter(character.avatar, { deleteChats: true });
+    // Back to the list: the character is gone.
+    document.getElementById('rm_button_characters')?.click();
+    if (currentPageId() === 'pt-character') openPage('rightNavHolder');
+}
+
+/** ★ for any character, without opening its chat: SillyTavern's own favourite toggle, then its list again. */
+export async function favoriteCharacter(chid) {
+    const { CharacterContextMenu } = await import('/scripts/BulkEditOverlay.js');
+    await CharacterContextMenu.favorite(Number(chid));
+    await ctx().getCharacters();
+    if (currentPageId() === 'pt-character') refreshOwnPage();
+}
+
+/** The character's lorebook, picked from every lorebook and saved on the character (SillyTavern's writeExtensionField). */
+async function pickPeekedLorebook(chid) {
+    const context = ctx();
+    const character = context.characters?.[chid];
+    if (!character) return;
+    let names = [];
+    try {
+        names = (await import('/scripts/world-info.js')).world_names ?? [];
+    } catch {
+        names = [];
+    }
+    const current = character.data?.extensions?.world ?? '';
+    const choose = async name => {
+        closeSheet(true);
+        await context.writeExtensionField(Number(chid), 'world', name);
+        document.getElementById('world_button')?.classList.toggle('world_set', !!name);
+        globalThis.toastr?.success(name ? t('{name} now uses this lorebook.', { name: character.name }) : t('{name} has no lorebook now.', { name: character.name }), '', { timeOut: 2500 });
+    };
+    showSheet(new MenuSheet({
+        title: t('Lorebook'),
+        subtitle: t('Linked to {name} and exported with the card', { name: character.name }),
+        fill: body => body.append(listGroup({ rows: [
+            listRow({ title: 'None', icon: current ? 'x' : 'check', end: 'none', onClick: () => choose('') }),
+            ...names.map(name => listRow({ rawTitle: name, icon: name === current ? 'check' : 'book', end: 'none', onClick: () => choose(name) })),
+        ] })),
+    }));
 }
 
 /** Export on the card-only view: SillyTavern's export, for this character. */
@@ -297,17 +371,18 @@ async function exportCharacterFile(chid, format) {
     return true;
 }
 
-/** On the card: Chat (their latest chat) and Recent chats (pick one). */
+/** On the card: New chat (in their chat) and Recent chats (pick one). */
 function buildCardGo() {
     const chat = h('button', {
         type: 'button',
         class: 'pt-card-go-btn pt-card-go-chat',
         onclick: () => {
             buzz(6);
+            // A new chat: Recent chats (beside it) is the way back into an earlier one.
             const chid = peekedChid() ?? ctx().characterId;
-            if (chid !== undefined && chid !== null) openCharacterChatFor(chid);
+            if (chid !== undefined && chid !== null) openCharacterChatFor(chid, { then: () => document.querySelector(START_NEW_CHAT)?.click() });
         },
-    }, [ui('chat'), h('span', { text: 'Chat' })]);
+    }, [ui('chat-plus'), h('span', { text: 'New chat' })]);
     const recent = h('button', {
         type: 'button',
         class: 'pt-card-go-btn',
@@ -434,11 +509,11 @@ export function openCharacterMenu(anchor) {
         fill: body => {
             body.append(listGroup({ rows: [
                 row('file-export', 'Export', () => openExportSheet(chid)),
-                row('copy', 'Duplicate', () => pressForCharacter(chid, '#dupe_button')),
-                row('book', 'Lorebooks', () => pressForCharacter(chid, '#world_button')),
+                row('copy', 'Duplicate', () => actOnCharacter('duplicate', chid)),
+                row('book', 'Lorebooks', () => actOnCharacter('lorebook', chid)),
                 row('image', 'External media', () => pressForCharacter(chid, '#character_open_media_overrides')),
             ] }));
-            body.append(listGroup({ rows: [row('trash', 'Delete', () => pressForCharacter(chid, '#delete_button'), true)] }));
+            body.append(listGroup({ rows: [row('trash', 'Delete', () => actOnCharacter('delete', chid), true)] }));
         },
     });
     // The character's name is shown as it is.
@@ -731,6 +806,9 @@ function letterOf(name) {
 }
 
 /** A strip of letters on the right of the list; tap or slide to jump. Only for A–Z / Z–A order. */
+/** How long the letter bubble stays after the last move along the A–Z strip. */
+const AZ_BUBBLE_MS = 650;
+
 function buildAzStrip() {
     const holder = document.getElementById('rm_characters_block');
     const list = document.getElementById('rm_print_characters_block');
@@ -819,8 +897,21 @@ function buildAzStrip() {
             pending = null;
         });
     };
+    // The letter bubble shows while you move along the strip and fades soon after you stop, even if a finger
+    // stays down: the strip is something you slide over, not a button you hold.
+    let bubbleTimer = 0;
+    const settleBubble = () => {
+        window.clearTimeout(bubbleTimer);
+        bubbleTimer = window.setTimeout(() => bubble.classList.remove('pt-az-bubble-on'), AZ_BUBBLE_MS);
+    };
+    const slide = clientY => {
+        jump(clientY);
+        settleBubble();
+    };
     strip.addEventListener('pointerdown', event => {
         event.preventDefault();
+        // A mouse already slides by hovering; a finger (or pen) slides while it is down.
+        if (event.pointerType === 'mouse') return;
         try {
             strip.setPointerCapture?.(event.pointerId);
         } catch {
@@ -829,25 +920,29 @@ function buildAzStrip() {
         dragging = true;
         last = '';
         strip.classList.add('pt-az-active');
-        jump(event.clientY);
+        slide(event.clientY);
     });
     strip.addEventListener('pointermove', event => {
-        if (dragging) queue(event.clientY, jump);
-        // A mouse over the strip: the lens follows it, and nothing scrolls until you press.
-        else if (event.pointerType === 'mouse') queue(event.clientY, y => mark(indexAt(y)));
+        // A mouse over the strip scrolls the list as it moves, without a press.
+        if (dragging || event.pointerType === 'mouse') queue(event.clientY, slide);
     });
     const end = event => {
         dragging = false;
         last = '';
         strip.classList.remove('pt-az-active');
+        window.clearTimeout(bubbleTimer);
         bubble.classList.remove('pt-az-bubble-on');
         // Only a mouse still over the strip keeps the lens. A finger lifts away, and phones keep
         // :hover on the last thing touched, so a touch always puts the strip back to rest.
         if (event?.pointerType !== 'mouse' || !strip.matches(':hover')) mark(-1);
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) strip.addEventListener(type, end);
-    strip.addEventListener('pointerleave', () => {
-        if (!dragging) mark(-1);
+    strip.addEventListener('pointerleave', event => {
+        if (dragging) return;
+        last = '';
+        window.clearTimeout(bubbleTimer);
+        bubble.classList.remove('pt-az-bubble-on');
+        if (event.pointerType === 'mouse') mark(-1);
     });
     shieldFromDrawerAutoClose(strip);
     holder.append(strip);
@@ -857,7 +952,9 @@ function buildAzStrip() {
 /** Sits exactly beside the list, below the controls. Only writes when the place changed. */
 function placeAzStrip(strip, list, count) {
     const top = `${list.offsetTop + 6}px`;
-    const height = `${Math.max(120, Math.min(list.clientHeight - 12, count * 26))}px`;
+    // Desktop: the strip runs the list's full height in its own column; a phone keeps it compact.
+    const full = document.documentElement.classList.contains('pt-desktop');
+    const height = `${Math.max(120, full ? list.clientHeight - 12 : Math.min(list.clientHeight - 12, count * 26))}px`;
     if (strip.style.top !== top) strip.style.top = top;
     if (strip.style.height !== height) strip.style.height = height;
 }

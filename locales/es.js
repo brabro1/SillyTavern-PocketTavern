@@ -338,7 +338,6 @@ export default {
     "No chats yet. Chat starts the first one.": "Aún no hay chats. Chat empieza el primero.",
     "Character preview": "Vista previa del personaje",
     "1 message": "1 mensaje",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "El tema de Pocket Tavern dibuja el chat, así que el estilo de chat {style} de SillyTavern queda desactivado mientras está activo. Elegir un tema de SillyTavern en Ajustes → Temas lo recupera.",
     "No chats yet.": "Aún no hay chats.",
     "This needs {name}'s chat, so it is open now.": "Esto necesita el chat de {name}, así que ya está abierto.",
     "Could not export the character.": "No se pudo exportar el personaje.",
@@ -899,4 +898,20 @@ export default {
     "List view": "Vista de lista",
     "How the personas are shown": "Cómo se muestran las personas",
     "In use": "En uso",
+
+    // Characters without their chat, quick picks
+    "Delete {name}? Their chats are deleted too. This cannot be undone.": "¿Eliminar a {name}? Sus chats también se eliminan. No se puede deshacer.",
+    "{name} now uses this lorebook.": "{name} usa ahora este lorebook.",
+    "{name} has no lorebook now.": "{name} ya no tiene lorebook.",
+    "Lorebook": "Lorebook",
+    "Linked to {name} and exported with the card": "Vinculado a {name} y exportado con la ficha",
+    "Open the page of {name}": "Abrir la página de {name}",
+    "Character page": "Página del personaje",
+    "Scroll back": "Desplazar atrás",
+    "Scroll on": "Desplazar adelante",
+
+    // SillyTavern themes and Pocket Tavern themes
+    "SillyTavern's Custom CSS": "CSS personalizado de SillyTavern",
+    "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "Usa también el CSS personalizado de los ajustes de SillyTavern con los temas de Pocket Tavern. Un tema de SillyTavern guarda ahí su propio CSS.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "El tema de Pocket Tavern dibuja el chat, así que el estilo de chat {style} de SillyTavern queda desactivado mientras esté activo. Elegir un tema de SillyTavern en Ajustes → Apariencia lo recupera.",
 };

@@ -57,7 +57,7 @@ All tokens are `--pt-*` custom properties on `html.pt-on`. Nothing outside `src/
 | `--pt-card-user` / `--pt-card-bot` | subtle tints | subtle tints | Message cards (the only translucent surfaces over a chat background) |
 | `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat colour behind the chat |
 | `--pt-scrim` | black 40% | black 24% | Behind sheets and dialogs |
-| `--pt-shadow-card` | per theme | per theme | Cards and list groups: a soft, low lift |
+| `--pt-shadow-card`, `--pt-shadow-raise`, `--pt-shadow-bar`, `--pt-highlight` | per theme | per theme | The elevation scale (section 3 → Elevation) |
 | `--pt-shadow-float` | per theme | per theme | Only on floating layers: popovers, dialogs, toasts, floating message box |
 
 **Contrast:** body text, narration, dialogue, text on cards, on accent and on danger meet **4.5:1**. Secondary text, icons, borders of fields and the accent meet **3:1** on both `--pt-bg` and `--pt-surface`. `check.mjs` verifies every theme.
@@ -106,7 +106,17 @@ A control inside a container with 4px padding steps down one radius so corners s
 
 ### Elevation
 
-Depth comes mostly from surface steps (`bg` → `surface` → `surface-elevated`) and hairlines. Cards and list groups also sit on `--pt-shadow-card`, a soft, low shadow that lifts them off the page without a glow (the owner asked for more depth, 2026-11-27). `--pt-shadow-float` stays for things that float above content: popovers, dialogs, toasts, the floating message box and the Draft helper's bar.
+Depth comes from surface steps (`bg` → `surface` → `surface-elevated`) and a neutral shadow scale (the owner asked for a richer, more finished look, 2026-11-27). Shadows are never coloured and never glow.
+
+| Token | Use |
+|---|---|
+| `--pt-shadow-card` | Cards, list groups, character cards, message cards: a faint ring and a soft, low lift |
+| `--pt-shadow-raise` | Buttons and the active tab's pill: a little more lift |
+| `--pt-shadow-bar` / `--pt-shadow-bar-up` | The header and the tab bar (and the rail, sideways): a shadow over what scrolls under them |
+| `--pt-shadow-float` | Things that float above content: sheets, popovers, dialogs, toasts, the floating message box, the Draft helper's bar |
+| `--pt-highlight` | A faint light along the top edge of a raised surface (cards, buttons, the tab pill) |
+
+Light themes use the same scale, much softer. On desktop with a mouse, cards and buttons lift 1–3px on hover (transform only).
 
 ### Z-index bands
 
@@ -223,7 +233,8 @@ Phone                                  Desktop
 Every settings page (Appearance, Pocket Tavern, About) starts with a filter field ("Filter settings"). Typing hides the rows and groups that don't match; "Nothing matches that." shows when none do.
 
 - **Appearance:**
-  - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, Theme background (switch)
+  - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, Theme background (switch), SillyTavern's Custom CSS (switch, off: with a Pocket Tavern theme it is set aside, because a SillyTavern theme writes its own CSS there)
+  - **A Pocket Tavern theme owns the look.** Whatever SillyTavern theme was on before (or is picked later in SillyTavern's own settings), none of it shows through: its colours, checkbox colour, font scale, blur, text-shadow switch, Chat Style (a theme switching it is put back on Flat; one you pick by hand stays) and Custom CSS. Picking "Your theme" or one of SillyTavern's themes in Appearance brings them back. A new install starts on the Pocket theme
   - Chat look (Cards, Bubbles, Flat)
   - Text size (Small, Normal, Large, Extra large)
   - Reading font (System, SillyTavern's): the 2.x Modern font switch, renamed
@@ -483,8 +494,8 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### Chats (home)
 - **Header:** "Chats" and the Search everything field below it.
-- **Quick picks:** a row of 56px pictures with names that scrolls sideways: SillyTavern's **Assistant** first (ask anything, no character needed; its own permanent Assistant chat), then the characters and groups chatted with most recently (up to 10). Tapping one opens their latest chat.
-- **List:** **Pinned** chat rows, then **Recent** under date headers (Today, Yesterday, Earlier this week, Older): one card per character or group, newest first. The card shows their latest chat as a row; when there are more, a line under it ("3 more chats") opens a dropdown with **New chat**, **All chats** and **Character**, then their other recent chats. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
+- **Quick picks:** a row of 56px pictures with names that scrolls sideways: SillyTavern's **Assistant** first (ask anything, no character needed; its own permanent Assistant chat), then the characters and groups chatted with most recently (up to 10). Tapping a character opens their page (a group opens its latest chat). On desktop the row also scrolls with the mouse wheel and by dragging, and ‹ › appear at its ends while there is more to see.
+- **List:** **Pinned** chat rows, then **Recent** under date headers (Today, Yesterday, Earlier this week, Older): one card per character or group, newest first. Tapping a chat's picture opens the character's page; tapping anywhere else on it opens the chat. Back from a page opened this way returns to Chats. The card shows their latest chat as a row; when there are more, a line under it ("3 more chats") opens a dropdown with **New chat**, **All chats** and **Character**, then their other recent chats. With search text, results are grouped by kind (Places, Characters, Chats, Lorebooks, Settings).
 - **No message box** on this screen.
 - **Empty:** "No chats yet" · **Choose a character** (opens Characters).
 - **Where it lives:** on a phone it is the Chats place's screen while no chat is open; opening a chat (from here or anywhere) takes the screen, and ‹ in the chat closes it and comes back here. On desktop it fills the panel and stays there beside the chat it opened; Chats on the rail hides or shows it. With no chat open, desktop's chat column is a welcome: SillyTavern's logo, "Welcome back", its version, and **Ask the Assistant** (primary), **Show chats** (when the list is hidden) and **Choose a character**. SillyTavern's own start screen is hidden. At start-up SillyTavern may reopen its locked Characters panel; Pocket Tavern keeps it invisible and closes it, so Chats is the first thing you see.
@@ -542,9 +553,9 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 ### Character page
 - **Top:**
   - Picture (96, SillyTavern's shape) and name (`title`).
-  - Beside the name: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, then Delete in red). ★, Duplicate, Lorebooks, External media and Delete act on SillyTavern's *current* character, so for another character their chat opens first (with a short note saying so). Export downloads that character's file directly.
+  - Beside the name: ★ (favourite) and ⋯ (Export, Duplicate, Lorebooks, External media, then Delete in red). ★, Export, Duplicate, Lorebooks and Delete act on that character directly, through SillyTavern's own functions, so their chat stays shut. Only External media needs their chat, which then opens first (with a short note saying so).
   - A short about (creator's note or description), clamped to three lines with "More".
-- **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row.
+- **Actions:** **Chat** (primary, opens the latest chat), **New chat** and **Edit** (secondary), on one row. In the editor itself, the card's own buttons are **New chat** and **Recent chats**.
 - **Chats:** every chat with this character as chat rows (the chat's name, its last message, how many messages), newest first, with a filter field when there are more than eight.
 - **Nothing changes** until the user picks something.
 - **Where it opens:** on a phone, as a pushed page. On desktop, in the panel, with the chat staying beside it.
@@ -557,7 +568,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - **Details** (creator's note and tags)
   - SillyTavern's Advanced definitions (personality, scenario, examples, prompt overrides) stay in its own popup, opened by the labelled **Advanced** button: showing them as a tab would mean moving SillyTavern's nodes (AGENTS.md → Rules, 4).
 - **Saving:** changes save as you type, through SillyTavern.
-- **Editing without opening the chat:** SillyTavern's form is filled for that character, and saves go to it. Controls that act on SillyTavern's *current* character (delete, duplicate, persona links) open that character's chat first. Never point SillyTavern's current character at another character without opening its chat, or the open chat saves into the wrong folder.
+- **Editing without opening the chat:** SillyTavern's form is filled for that character, and saves go to it. ★, Duplicate, Delete and the character's lorebook act on that character directly, through SillyTavern's own functions (its favourite toggle, `duplicateCharacter`, `deleteCharacter` after a question, `writeExtensionField`), so its chat stays shut. The few controls SillyTavern only offers for the open chat (persona links, tags, external media, the management menu) open that character's chat first, with a short note. Never point SillyTavern's current character at another character without opening its chat, or the open chat saves into the wrong folder.
 
 ### Lorebooks
 - **Top:** **Active lorebooks** (global), a picker row showing how many are on ("3 of 17"); it opens the lorebook multi-picker. With the Easy lorebook picker switch off, it opens SillyTavern's own list instead. Then **Activation settings** (SillyTavern's scan depth, budget and the rest, as a page), **New lorebook** and **Import** (SillyTavern's own buttons).

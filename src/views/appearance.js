@@ -137,6 +137,7 @@ export function appearancePage(actions) {
             body.append(h('section', { class: 'pt-list-section' }, [h('div', { class: 'pt-list-header', text: 'From SillyTavern' }), fromSt, stNote]));
             const themeRows = [
                 listRow({ title: 'Theme background', subtitle: "Use the theme's backdrop instead of your chat background.", end: 'toggle', checked: !!actions.get('themeBackdrop'), onToggle: on => actions.set('themeBackdrop', on) }),
+                listRow({ title: "SillyTavern's Custom CSS", subtitle: "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.", end: 'toggle', checked: !!actions.get('stCustomCss'), onToggle: on => actions.set('stCustomCss', on) }),
                 listRow({ title: 'Chat background', subtitle: 'Pictures behind the chat', icon: 'image', onClick: actions.openBackgrounds }),
             ];
             if (actions.importTheme) themeRows.splice(1, 0, listRow({ title: 'Import a SillyTavern theme', subtitle: 'A theme file (.json) from SillyTavern', icon: 'file-import', onClick: () => actions.importTheme(() => { if (fromSt.isConnected) drawSt(); }) }));

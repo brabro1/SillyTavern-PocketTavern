@@ -360,8 +360,18 @@ export function themeCss(theme, scope) {
         ink.muted ? `--pt-text-secondary: ${ink.muted};` : '',
         ink.quote ? `--SmartThemeQuoteColor: ${ink.quote} !important;` : '',
     ].filter(Boolean).join('\n    ');
+    // SillyTavern's checkbox colour comes as four numbers; a Pocket Tavern theme uses its accent.
+    const accentRgb = parseColor(t.accent);
+    const checkbox = accentRgb ? `
+    --SmartThemeCheckboxBgColorR: ${Math.round(accentRgb.r)} !important;
+    --SmartThemeCheckboxBgColorG: ${Math.round(accentRgb.g)} !important;
+    --SmartThemeCheckboxBgColorB: ${Math.round(accentRgb.b)} !important;
+    --SmartThemeCheckboxBgColorA: 1 !important;` : '';
     return `${scope} {
     color-scheme: ${t.mode};
+    /* A SillyTavern theme picked before (or after) never shows through: its colours, text size and blur. */
+    --fontScale: 1 !important;
+    --blurStrength: 0 !important;${checkbox}
     --SmartThemeBodyColor: ${t.text} !important;
     --SmartThemeEmColor: ${t.muted} !important;
     --SmartThemeUnderlineColor: ${t.accent} !important;
@@ -394,8 +404,13 @@ export function themeCss(theme, scope) {
     --pt-card-bot: ${t.bot};
     --pt-backdrop: ${t.backdrop};${t.mode === 'light' ? `
     --pt-scrim: rgb(0 0 0 / 0.24);
-    --pt-shadow-float: 0 8px 24px rgb(22 24 29 / 0.12);
-    --pt-shadow-card: 0 1px 2px rgb(22 24 29 / 0.06), 0 8px 18px -10px rgb(22 24 29 / 0.14);` : ''}
+    --pt-shadow-float: 0 2px 6px rgb(22 24 29 / 0.08), 0 18px 44px -10px rgb(22 24 29 / 0.2);
+    --pt-shadow-card: 0 0 0 1px rgb(22 24 29 / 0.05), 0 1px 2px rgb(22 24 29 / 0.06), 0 12px 28px -14px rgb(22 24 29 / 0.18);
+    --pt-shadow-raise: 0 1px 2px rgb(22 24 29 / 0.1), 0 8px 18px -10px rgb(22 24 29 / 0.25);
+    --pt-shadow-bar: 0 10px 28px -18px rgb(22 24 29 / 0.3);
+    --pt-shadow-bar-up: 0 -10px 28px -18px rgb(22 24 29 / 0.3);
+    --pt-shadow-bar-side: 10px 0 28px -20px rgb(22 24 29 / 0.25);
+    --pt-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);` : ''}
 }
 /* A chat background shows: the chat itself is clear and each message is a tinted
    card over the picture. Bars, pages, sheets and the composer stay solid. */

@@ -338,7 +338,6 @@ export default {
     "No chats yet. Chat starts the first one.": "لا توجد دردشات بعد. «دردشة» تبدأ الأولى.",
     "Character preview": "معاينة الشخصية",
     "1 message": "رسالة واحدة",
-    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Themes brings it back.": "سمة Pocket Tavern ترسم الدردشة، لذا يتوقف نمط الدردشة {style} في SillyTavern ما دامت مفعّلة. اختيار سمة من SillyTavern في الإعدادات ← السمات يعيده.",
     "No chats yet.": "لا توجد دردشات بعد.",
     "This needs {name}'s chat, so it is open now.": "يحتاج هذا إلى دردشة {name}، لذا فُتحت الآن.",
     "Could not export the character.": "تعذّر تصدير الشخصية.",
@@ -899,4 +898,20 @@ export default {
     "List view": "عرض قائمة",
     "How the personas are shown": "طريقة عرض الهويات",
     "In use": "مستخدمة",
+
+    // Characters without their chat, quick picks
+    "Delete {name}? Their chats are deleted too. This cannot be undone.": "حذف {name}؟ ستُحذف محادثاتها أيضًا. لا يمكن التراجع.",
+    "{name} now uses this lorebook.": "تستخدم {name} الآن كتاب المعرفة هذا.",
+    "{name} has no lorebook now.": "لم يعد لدى {name} كتاب معرفة.",
+    "Lorebook": "كتاب المعرفة",
+    "Linked to {name} and exported with the card": "مرتبط بـ {name} ويُصدَّر مع البطاقة",
+    "Open the page of {name}": "افتح صفحة {name}",
+    "Character page": "صفحة الشخصية",
+    "Scroll back": "مرّر للخلف",
+    "Scroll on": "مرّر للأمام",
+
+    // SillyTavern themes and Pocket Tavern themes
+    "SillyTavern's Custom CSS": "CSS المخصص في SillyTavern",
+    "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.": "استخدم أيضًا CSS المخصص من إعدادات SillyTavern مع سمات Pocket Tavern. تضع سمة SillyTavern شيفرتها هناك.",
+    "Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.": "سمة Pocket Tavern ترسم المحادثة، لذا يتوقف نمط المحادثة {style} في SillyTavern ما دامت مفعّلة. اختيار سمة SillyTavern من الإعدادات ← المظهر يعيده.",
 };

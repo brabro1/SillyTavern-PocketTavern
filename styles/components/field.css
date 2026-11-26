@@ -148,3 +148,8 @@ html.pt-touch :is(.pt-text-field, .pt-search-box-input) {
 .pt-search-box-clear[hidden] {
     display: none;
 }
+
+/* The search field sits slightly in (DESIGN.md → Elevation). */
+.pt-search-box-input {
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.18);
+}

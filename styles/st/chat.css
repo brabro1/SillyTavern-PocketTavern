@@ -45,6 +45,12 @@ html.pt-chat #chat .mes .mes_reasoning_summary .mes_reasoning_header {
     min-width: 0;
 }
 
+/* A SillyTavern theme's "no text shadows" never reaches a Pocket Tavern theme: its own shadow (only over a chat
+   background) stays. The !important beats SillyTavern's body.noShadows * rule. */
+html.pt-on.pt-themed body.noShadows #chat .mes :is(.mes_text, .mes_text *, .name_text) {
+    text-shadow: 0 0 calc(var(--shadowWidth) * 1px) var(--SmartThemeShadowColor) !important;
+}
+
 /* SillyTavern sets overflow-x: hidden on the message buttons, which makes the browser scroll them
    vertically: the 40px buttons are taller than their row, so a scrollbar showed beside ✎. clip keeps the
    sideways clipping without making a scroll box (older Safari keeps visible). */

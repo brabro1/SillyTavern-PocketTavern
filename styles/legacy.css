@@ -160,7 +160,7 @@ dialog.pt-sheet.pt-sheet-open::backdrop {
     border-bottom: 0;
     border-radius: var(--pt-radius) var(--pt-radius) 0 0;
     background: var(--pt-bg);
-    box-shadow: none;
+    box-shadow: var(--pt-highlight), var(--pt-shadow-float);
     outline: none;
     transform: translateY(100%);
     transition: transform var(--pt-dur) var(--pt-ease);
@@ -390,9 +390,10 @@ html.pt-shell .pt-appbar {
     height: var(--topBarBlockSize);
     padding: var(--pt-safe-top) calc(8px + var(--pt-safe-right)) 0 calc(8px + var(--pt-safe-left));
     box-sizing: border-box;
-    border-bottom: 1px solid var(--pt-border);
+    border-bottom: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
     /* Nearly solid instead of live blur: blurring the chat behind on every scroll frame is heavy for phones. */
     background: var(--pt-bg);
+    box-shadow: var(--pt-shadow-bar);
     color: var(--pt-text-primary);
     text-shadow: none;
 }
@@ -544,8 +545,9 @@ html.pt-shell .pt-tabbar {
     height: var(--pt-bottom);
     padding: 0 var(--pt-safe-right) var(--pt-safe-bottom) var(--pt-safe-left);
     box-sizing: border-box;
-    border-top: 1px solid var(--pt-border);
-    background: var(--pt-bg);
+    border-top: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    background: color-mix(in srgb, var(--pt-surface) 55%, var(--pt-bg));
+    box-shadow: var(--pt-shadow-bar-up);
     text-shadow: none;
     transition: transform var(--pt-dur) var(--pt-ease);
 }
@@ -629,7 +631,24 @@ html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
     height: 100%;
     margin: 0 auto;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--pt-accent) 22%, transparent);
+    background: color-mix(in srgb, var(--pt-accent) 22%, var(--pt-surface));
+    box-shadow: var(--pt-highlight), var(--pt-shadow-raise);
+}
+
+.pt-tab-icon .pt-svg,
+.pt-tab-label {
+    transition: transform var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-tab-on .pt-tab-label {
+    color: var(--pt-text-primary);
+    transform: translateY(-1px);
+}
+
+@media (hover: hover) {
+    .pt-tab:not(.pt-tab-on):hover .pt-tab-icon {
+        background: color-mix(in srgb, var(--pt-text-primary) 7%, transparent);
+    }
 }
 
 .pt-tab {
@@ -776,6 +795,7 @@ html.pt-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle
        that this layout flattens, so cards lost their colour and text vanished over a light picture. */
     background: var(--pt-card-bot);
     background-color: var(--pt-card-bot) !important;
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
 }
 
 html.pt-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user='true'] {
@@ -6127,7 +6147,8 @@ html.pt-desktop .pt-tabbar {
     overflow-x: hidden;
     overflow-y: auto;
     border-top: 0;
-    border-right: 1px solid var(--pt-border);
+    border-right: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    box-shadow: var(--pt-shadow-bar-side);
     scrollbar-width: none;
 }
 
