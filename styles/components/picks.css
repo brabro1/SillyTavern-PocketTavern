@@ -113,3 +113,78 @@ html.pt-rtl .pt-scroll-arrow svg {
 html.pt-motion-full .pt-quick-pick .pt-avatar {
     transition: transform var(--pt-dur-fast) var(--pt-ease);
 }
+
+/* Portrait picks (Characters → Favorites): small 3:4 cards like the character grid's, the picture filling the
+   card and the name on a neutral scrim at its foot. They scroll sideways in the same row as the picks above. */
+.pt-pick-card {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    overflow: hidden;
+    width: 88px;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: 0;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface-elevated);
+    box-shadow: var(--pt-shadow-card);
+    color: var(--pt-on-avatar);
+    font-family: var(--pt-font-ui);
+    cursor: pointer;
+    scroll-snap-align: start;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* The picture (or the name's initial on its colour) fills the card, whatever SillyTavern's avatar shape. */
+.pt-pick-card .pt-avatar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    --pt-avatar-size: 88px;
+}
+
+.pt-pick-card .pt-avatar-img {
+    object-position: center 20%;
+}
+
+.pt-pick-card .pt-avatar--initial {
+    align-items: center;
+    padding-block-end: var(--pt-space-5);
+}
+
+.pt-pick-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 52%, var(--pt-photo-scrim));
+    pointer-events: none;
+}
+
+.pt-pick-card-name {
+    position: absolute;
+    inset-inline: var(--pt-space-2);
+    inset-block-end: var(--pt-space-2);
+    z-index: 1;
+    overflow: hidden;
+    font-size: var(--pt-text-xs);
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (hover: hover) {
+    .pt-pick-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--pt-shadow-raise);
+    }
+}
+
+html.pt-motion-full .pt-pick-card,
+html.pt-motion-light .pt-pick-card {
+    transition: transform var(--pt-dur-fast) var(--pt-ease);
+}

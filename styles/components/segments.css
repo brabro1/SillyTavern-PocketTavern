@@ -32,8 +32,28 @@ html.pt-phone .pt-segments {
     text-overflow: ellipsis;
     overflow: hidden;
     cursor: pointer;
-    transition: background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur-fast) var(--pt-ease);
     -webkit-tap-highlight-color: transparent;
+}
+
+/* Pressed (DESIGN.md → Motion): it scales to 0.97 and an unpicked segment shows a faint fill under the finger. */
+.pt-segment:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.pt-segment[aria-checked="false"]:active:not(:disabled) {
+    background: color-mix(in srgb, var(--pt-surface-elevated) 60%, transparent);
+    color: var(--pt-text-primary);
+}
+
+html.pt-motion-off .pt-segment:active {
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-segment:active {
+        transform: none;
+    }
 }
 
 .pt-segment[aria-checked="true"] {

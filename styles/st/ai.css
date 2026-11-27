@@ -563,15 +563,16 @@ html.pt-afnav #AdvancedFormatting .pt-fmt-top > * {
 }
 
 html.pt-afnav #AdvancedFormatting .pt-fmt-cc {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--pt-space-2);
 }
 
-/* The same test as SillyTavern's own "Grayed-out options…" notice. */
-html.pt-afnav #top-settings-holder:has(#main_api option[value='openai']:checked) #AdvancedFormatting .pt-fmt-cc {
-    display: flex;
+/* Shown only with Chat Completion (src/st/formatting.js); a :has() test on the whole top bar re-ran on every
+   change inside the pages. */
+html.pt-afnav #AdvancedFormatting .pt-fmt-cc[hidden] {
+    display: none;
 }
 
 /* SillyTavern's small ⏻ buttons are the switch rows now. The !important beats .checkbox_label's flex. */

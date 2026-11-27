@@ -13,6 +13,9 @@ const ROUNDS = Number(process.env.ROUNDS ?? 2);
 const browser = await chromium.launch({ channel: process.env.CHROME_CHANNEL || undefined });
 const context = await browser.newContext({ ...devices['Pixel 7'] });
 const page = await context.newPage();
+// The long test chat lives only in this page: every chat save is answered here and never reaches the server.
+// (Replacing SillyTavern's saveChat was not enough: extensions such as Message Summarize save it their own way.)
+await page.route(/\/api\/chats\/(group\/)?save/, route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
 const cdp = await context.newCDPSession(page);
 await cdp.send('Performance.enable');
 
@@ -115,11 +118,14 @@ const scenarios = {
     async 'sit idle in the chat (10 s)'() {
         await page.waitForTimeout(10000);
     },
-    async 'open and close Settings and Themes'() {
+    async 'open and close Settings and Appearance'() {
+        // Pocket Tavern's own pages: with it off there is nothing to open, so that run measures nothing.
         for (let i = 0; i < 2; i++) {
-            await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Themes')?.click(); });
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-settings"]')?.click());
+            await page.waitForTimeout(500);
+            await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Appearance')?.click());
             await page.waitForTimeout(700);
-            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="chat"]')?.click());
             await page.waitForTimeout(600);
         }
     },
@@ -256,6 +262,7 @@ Style recalcs: ${recalcCount}, ${recalc.toFixed(0)} ms. Top causes:`);
 console.log(`CPU slowed down ${SLOWDOWN}×, ${ROUNDS} rounds, median shown. Times in ms of main-thread work.\n`);
 console.log(`${'scenario'.padEnd(50)} ${'mode'.padEnd(5)}   total  script   style  layout blocked slowfr  worst`);
 const results = {};
+try {
 for (const [name, run] of Object.entries(scenarios)) {
     for (const on of [true, false]) {
         await setPocketTavern(on);
@@ -267,5 +274,11 @@ for (const [name, run] of Object.entries(scenarios)) {
         console.log(`${name.padEnd(50)} ${(on ? 'on' : 'off').padEnd(5)} ${fmt(row.task)} ${fmt(row.script)} ${fmt(row.style)} ${fmt(row.layout)} ${fmt(row.blocked)} ${fmt(row.slowFrames)} ${fmt(row.worstFrame)}`);
     }
 }
-await setPocketTavern(true);
+} finally {
+    // Pocket Tavern goes back on even when a scenario fails (the switch is saved in the test copy's settings),
+    // and SillyTavern gets a moment to save it.
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 }).catch(() => {});
+    await setPocketTavern(true).catch(() => {});
+    await page.waitForTimeout(2000);
+}
 await browser.close();

@@ -12,11 +12,9 @@ html.pt-desktop {
     --pt-rail-w: 88px;
     --pt-rail-item: 64px;
     --pt-panel-w: clamp(380px, 30vw, 460px);
-    --pt-bottom: 0px;
     --pt-left: var(--pt-rail-w);
     --pt-right: 0px;
     --pt-tool-w: clamp(320px, 24vw, 420px);
-    --pt-page-h: calc(100dvh - var(--topBarBlockSize));
     --pt-avail: calc(100vw - var(--pt-left) - var(--pt-right));
     --pt-col: min(max(var(--sheldWidth, 50vw), 560px), calc(var(--pt-avail) - 48px));
 }

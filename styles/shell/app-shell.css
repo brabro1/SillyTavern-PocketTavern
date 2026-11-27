@@ -13,15 +13,119 @@
 html.pt-shell {
     --pt-appbar-h: 56px;
     --pt-tabbar-h: 62px;
-    --pt-bottom: calc(var(--pt-tabbar-h) + var(--pt-safe-bottom));
     /* Pinned (!important): themes set it too (Moonlit Echoes, on phones), which shrank the top bar and dropped the notch space. */
     --topBarBlockSize: calc(var(--pt-appbar-h) + var(--pt-safe-top)) !important;
+}
+
+/* The space the tab bar takes at the bottom (--pt-bottom) and a page's height between the bars (--pt-page-h).
+   They change whenever the tabs tuck away in a chat or the keyboard comes up, so they are set only on the
+   elements that use them and do not inherit: set on <html>, every change restyled the whole page (all the
+   chat's messages), which held up opening and closing pages by tens of milliseconds on a phone. Browsers
+   without @property get the same values, inherited. The lists name each element by an id, a class or an
+   attribute: an entry ending in a bare tag (#movingDivs > div) made every change re-check every element of
+   that tag, so the desktop's tool panels are only in the rules that rarely change. */
+@property --pt-bottom {
+    syntax: '*';
+    inherits: false;
+}
+
+@property --pt-page-h {
+    syntax: '*';
+    inherits: false;
+}
+
+html.pt-shell :is(
+    .pt-tabbar,
+    #sheld,
+    .pt-page,
+    #top-settings-holder .drawer-content,
+    #character_popup,
+    #completion_prompt_manager_popup,
+    #charlib-embedded-container,
+    #movingDivs > div,
+    #chat [data-pt-editing],
+    #world_popup_entries_list .pt-entry-open,
+    #options,
+    #options .options-content,
+    #extensionsMenu
+) {
+    --pt-bottom: calc(var(--pt-tabbar-h) + var(--pt-safe-bottom));
     --pt-page-h: calc(100dvh - var(--topBarBlockSize) - var(--pt-bottom));
 }
 
+/* In a chat the tabs tuck away (styles/shell/tucked-tabs.css). */
+html.pt-shell.pt-tabs-tucked :is(
+    .pt-tabbar,
+    #sheld,
+    .pt-page,
+    #top-settings-holder .drawer-content,
+    #character_popup,
+    #completion_prompt_manager_popup,
+    #charlib-embedded-container,
+    #chat [data-pt-editing],
+    #world_popup_entries_list .pt-entry-open,
+    #options,
+    #options .options-content,
+    #extensionsMenu
+) {
+    --pt-bottom: var(--pt-safe-bottom);
+}
+
 /* The keyboard is up: the tab bar steps aside so the message box sits on the keyboard. */
-html.pt-shell.pt-keyboard {
+html.pt-shell.pt-keyboard :is(
+    .pt-tabbar,
+    #sheld,
+    .pt-page,
+    #top-settings-holder .drawer-content,
+    #character_popup,
+    #completion_prompt_manager_popup,
+    #charlib-embedded-container,
+    #chat [data-pt-editing],
+    #world_popup_entries_list .pt-entry-open,
+    #options,
+    #options .options-content,
+    #extensionsMenu
+) {
     --pt-bottom: 0px;
+}
+
+/* The desktop layout has a rail instead of a tab bar (also with the app shell switched off). */
+html.pt-desktop :is(
+    .pt-tabbar,
+    #sheld,
+    .pt-page,
+    #top-settings-holder .drawer-content,
+    #character_popup,
+    #completion_prompt_manager_popup,
+    #charlib-embedded-container,
+    #movingDivs > div,
+    #chat [data-pt-editing],
+    #world_popup_entries_list .pt-entry-open,
+    #options,
+    #options .options-content,
+    #extensionsMenu
+) {
+    --pt-bottom: 0px;
+    --pt-page-h: calc(100dvh - var(--topBarBlockSize));
+}
+
+/* Safari's keyboard does not shrink the page: pages end at the visible height (styles/shell/ios.css). */
+html.pt-shell.pt-ios-kb :is(
+    .pt-tabbar,
+    #sheld,
+    .pt-page,
+    #top-settings-holder .drawer-content,
+    #character_popup,
+    #completion_prompt_manager_popup,
+    #charlib-embedded-container,
+    #chat [data-pt-editing],
+    #world_popup_entries_list .pt-entry-open,
+    #options,
+    #options .options-content,
+    #extensionsMenu
+) {
+    --pt-bottom: 0px;
+    --pt-page-h: calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize));
 }
 
 /* SillyTavern puts a transform on <html>, which makes it the box that fixed
@@ -244,7 +348,6 @@ html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
     height: 30px;
     border-radius: 999px;
     font-size: 20px;
-    transition: background var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
 }
 
 .pt-tab-label {
@@ -294,7 +397,9 @@ html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
 
 .pt-tab-icon .pt-svg,
 .pt-tab-label {
-    transition: transform var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
+    /* Only the motion animates: the colour of the tab you pick changes at once (a colour transition repainted
+       every icon and label on the main thread for the length of the slide). */
+    transition: transform var(--pt-dur) var(--pt-ease);
 }
 
 html.pt-motion-full .pt-tab-on .pt-tab-label {

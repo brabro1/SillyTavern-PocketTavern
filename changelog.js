@@ -5,7 +5,7 @@ export const CHANGES = [
         items: [
             "Pocket Tavern 3.0, first beta: rebuilt from the ground up with five places, the same on a phone and a computer: Chats, Characters, Lorebooks, AI and Settings. There is no More menu any more; everything lives in exactly one place.",
             "Chats is the new home: your recent and pinned chats, and one search for chats, characters, lorebooks and settings. In a chat, ‹ goes back, ⋯ holds the chat's actions (search, translate, rename, chat files), and + in the message box replaces ☰ and the wand.",
-            "Characters has a Filter sheet, a Favorites row and a page for each character. AI shows whether you're connected, with your preset, connection, samplers and formatting one tap away. Settings is a short list: Appearance (themes and the chat background), Chat and layout, Personas, SillyTavern, Extensions, Pocket Tavern and About.",
+            "Characters has a Filter sheet, Favorites as portrait cards and a page for each character. AI shows whether you're connected, with your preset, connection, samplers and formatting one tap away. Settings is a short list: Appearance (themes and the chat background), Chat and layout, Personas, SillyTavern, Extensions, Pocket Tavern and About.",
             "Safer: if something in Pocket Tavern goes wrong, it steps aside and SillyTavern's own screens show, with a button to come back. Settings → Pocket Tavern → Use SillyTavern for now does the same on purpose. Every switch is still there.",
             "For theme and extension authors: classes, ids and variables now start with pt- instead of stmui- (html.pt-on, .pt-*, --pt-*). Your settings carry over.",
         ],

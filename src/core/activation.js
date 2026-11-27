@@ -41,7 +41,10 @@ import { scan, startObserver, stopObserver, syncLoreEntries, syncLorebookMode, s
 import { addSliderSteppers, install, removeSettingDescriptions, removeSliderSteppers, syncManifest, syncPageSections, updateStatusLine } from '../st/settings.js';
 import { active, buzz, COMPACT_BELOW, ctx, LOG, motionAllowed, setActive, settings, shouldBeActive } from './state.js';
 import { safe } from './lifecycle.js';
-import { SEND_BUTTON } from '../st/selectors.js';
+import { CHAT, KEYBOARD_FOLLOWERS, SEND_BUTTON } from '../st/selectors.js';
+import { h } from './dom.js';
+import { CHARACTER_LIBRARY_PANEL } from '../compat/character-library.js';
+import { SUMMARY_PROGRESS } from '../compat/message-summarize.js';
 
 const SOURCE = 'activation';
 /** The chat's resize listener, one wrapped copy so it can be removed again. */
@@ -245,7 +248,35 @@ export function setFeatureClasses() {
  * whole page. SillyTavern's transform on <html> (a fix for flicker in Chrome)
  * is turned off there too, so the bars are fixed to the screen, not the page.
  */
-const ios = { frame: 0 };
+const ios = { frame: 0, sheet: null };
+
+/**
+ * The elements that follow Safari's keyboard (styles/shell/ios.css). The visible top and height change every
+ * frame while the keyboard slides, so they are set on these elements only (--pt-ios-top and --pt-ios-h do not
+ * inherit): on <html> each change restyled the whole page. Each entry names an id, a class or an attribute.
+ */
+const IOS_KEYBOARD_ELEMENTS = [
+    '.pt-appbar', '.pt-tabbar', '.pt-page', '.pt-chat-finder', '.pt-banners', `${CHAT} [data-pt-editing]`,
+    ...KEYBOARD_FOLLOWERS, CHARACTER_LIBRARY_PANEL, SUMMARY_PROGRESS,
+].join(', ');
+
+/** Puts the visible top and height on the keyboard-following elements, or takes them away (null). */
+function setIosKeyboardVars(top, height) {
+    if (top === null) {
+        ios.sheet?.remove();
+        ios.sheet = null;
+        return;
+    }
+    if (!ios.sheet) {
+        ios.sheet = h('style', { id: 'pt-ios-vars' });
+        ios.sheet.textContent = `html.pt-ios-kb :is(${IOS_KEYBOARD_ELEMENTS}) { --pt-ios-top: 0px; --pt-ios-h: 100dvh; }`;
+        document.head.append(ios.sheet);
+    }
+    const rule = ios.sheet.sheet?.cssRules[0];
+    if (!rule) return;
+    if (rule.style.getPropertyValue('--pt-ios-top') !== top) rule.style.setProperty('--pt-ios-top', top);
+    if (rule.style.getPropertyValue('--pt-ios-h') !== height) rule.style.setProperty('--pt-ios-h', height);
+}
 
 export function syncIosViewport() {
     const root = document.documentElement;
@@ -254,15 +285,8 @@ export function syncIosViewport() {
     const vv = window.visualViewport;
     const keyboard = on && !!vv && keyboardUp();
     root.classList.toggle('pt-ios-kb', keyboard);
-    if (keyboard) {
-        const top = `${Math.round(vv.offsetTop)}px`;
-        const visible = `${Math.round(vv.height)}px`;
-        if (root.style.getPropertyValue('--pt-ios-top') !== top) root.style.setProperty('--pt-ios-top', top);
-        if (root.style.getPropertyValue('--pt-ios-h') !== visible) root.style.setProperty('--pt-ios-h', visible);
-    } else {
-        root.style.removeProperty('--pt-ios-top');
-        root.style.removeProperty('--pt-ios-h');
-    }
+    if (keyboard) setIosKeyboardVars(`${Math.round(vv.offsetTop)}px`, `${Math.round(vv.height)}px`);
+    else setIosKeyboardVars(null);
 }
 
 export function scheduleIosViewport() {

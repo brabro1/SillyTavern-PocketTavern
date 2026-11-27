@@ -61,6 +61,9 @@ export const STOP_BUTTON = '#mes_stop';
 
 // ---- AI --------------------------------------------------------------------------------------
 
+/** The API picker (Connection settings); "openai" is Chat Completion. */
+export const MAIN_API = '#main_api';
+
 /** The Chat Completion preset picker; its chosen option names the preset a connection profile saves. */
 export const CHAT_COMPLETION_PRESET = '#settings_preset_openai';
 
@@ -124,3 +127,12 @@ export const TOOL_PANEL_HOLDER = '#movingDivs';
 export const TOOL_PANELS = '#movingDivs > div';
 /** A floating panel's own close button. */
 export const TOOL_PANEL_CLOSE = '.floating_panel_close, #logprobsViewerClose, .dragClose, [id$="Close"]';
+
+// ---- Keyboard and tab bar followers ------------------------------------------------------------
+
+/** SillyTavern's elements that size themselves to the visible screen while Safari's keyboard is up
+    (src/core/activation.js → the iPhone keyboard variables; styles/shell/ios.css). */
+export const KEYBOARD_FOLLOWERS = [
+    '#sheld', '#top-settings-holder .drawer-content', '#character_popup', '#completion_prompt_manager_popup',
+    '#toast-container', '#world_popup_entries_list .pt-entry-open', '#options', '#options .options-content', '#extensionsMenu',
+];

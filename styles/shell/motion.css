@@ -81,10 +81,6 @@ html.pt-motion-full .pt-tab-on .pt-tab-icon .pt-svg {
     animation: pt-pop var(--pt-dur-slow) var(--pt-ease);
 }
 
-html.pt-motion-full .pt-tab-label {
-    transition: color var(--pt-dur) var(--pt-ease);
-}
-
 html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, .pt-plus-btn) {
     transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
 }

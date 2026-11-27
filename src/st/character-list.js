@@ -8,7 +8,7 @@ import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { safe } from '../core/lifecycle.js';
 import { listGroup, listRow } from '../ui/list.js';
-import { pick, pickRow } from '../ui/picks.js';
+import { pickCard, pickRow } from '../ui/picks.js';
 import { svgIcon } from '../ui/icons.js';
 import { BULK_EDIT_BUTTON, BULK_MODE_CLASS, CHARACTER_FILTERS, CHARACTER_LIST, CHARACTER_LIST_TOP, CHARACTER_SEARCH } from './selectors.js';
 
@@ -188,7 +188,7 @@ function favoritePicks() {
     const picks = [];
     (context.characters ?? []).forEach((character, chid) => {
         if (!isFavorite(character)) return;
-        picks.push({ name: character.name, sort: character.name, node: pick({
+        picks.push({ name: character.name, sort: character.name, node: pickCard({
             name: character.name,
             picture: thumb(character.avatar),
             label: t('Open the page of {name}', { name: character.name }),
@@ -197,7 +197,7 @@ function favoritePicks() {
     });
     for (const group of context.groups ?? []) {
         if (!isFavorite(group)) continue;
-        picks.push({ name: group.name, sort: group.name, node: pick({
+        picks.push({ name: group.name, sort: group.name, node: pickCard({
             name: group.name,
             picture: group.avatar_url || undefined,
             label: t('Open the latest chat with {name}', { name: group.name }),

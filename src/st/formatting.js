@@ -11,25 +11,35 @@ import { notice } from '../ui/feedback.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { setToggle } from '../ui/toggle.js';
 import { openPresetsOn } from './ai.js';
-import { CONTEXT_SETTINGS, INSTRUCT_COLUMN, INSTRUCT_ENABLED, SYSPROMPT_BLOCK, SYSPROMPT_ENABLED } from './selectors.js';
+import { CONTEXT_SETTINGS, INSTRUCT_COLUMN, INSTRUCT_ENABLED, MAIN_API, SYSPROMPT_BLOCK, SYSPROMPT_ENABLED } from './selectors.js';
 
 /** Own nodes and listeners, undone by removeFormattingRows(). */
 let made = [];
 let unlisten = [];
 /** Each switch and the checkbox it shows. */
 let switches = [];
+/** The Chat Completion notes, shown while that is the API. */
+let notes = [];
+
+/** Shows the notes only with Chat Completion (SillyTavern's own test for its "Grayed-out options…" notice). */
+function syncChatCompletionNotes() {
+    const chatCompletion = document.querySelector(MAIN_API)?.value === 'openai';
+    for (const note of notes) note.hidden = !chatCompletion;
+}
 
 const SWITCHES = {
     instruct: { box: INSTRUCT_ENABLED, title: 'Instruct mode', subtitle: "Wraps each message in the template's sequences", icon: 'list' },
     sysprompt: { box: SYSPROMPT_ENABLED, title: 'Use the system prompt', subtitle: 'Sends these instructions before the chat', icon: 'scroll' },
 };
 
-/** The note shown (by CSS) only while Chat Completion is the API. */
+/** The note shown only while Chat Completion is the API (syncChatCompletionNotes). */
 function chatCompletionNote() {
-    return h('div', { class: 'pt-fmt-cc', 'data-pt': '1' }, [
+    const note = h('div', { class: 'pt-fmt-cc', 'data-pt': '1' }, [
         notice({ status: 'info', text: 'Chat Completion ignores the greyed-out settings here. What it sends is set in AI → Prompts.' }),
         button({ label: 'Open Prompts', icon: 'list', onClick: () => openPresetsOn('prompts') }),
     ]);
+    notes.push(note);
+    return note;
 }
 
 function switchRow(id) {
@@ -71,11 +81,24 @@ export function addFormattingRows(markAs) {
         markAs(own, id);
         made.push(own);
     }
+    syncChatCompletionNotes();
+    // The API picker: a person's pick fires its change; SillyTavern's own switches (a connection profile) announce it.
+    const api = document.querySelector(MAIN_API);
+    const onApi = safe('formatting', syncChatCompletionNotes);
+    api?.addEventListener('change', onApi);
+    const { eventSource, eventTypes } = globalThis.SillyTavern?.getContext?.() ?? {};
+    const event = eventTypes?.MAIN_API_CHANGED;
+    if (event) eventSource?.on?.(event, onApi);
+    unlisten.push(() => {
+        api?.removeEventListener('change', onApi);
+        if (event) eventSource?.removeListener?.(event, onApi);
+    });
 }
 
 /** SillyTavern may set a checkbox without telling anyone (loading settings): read them again. */
 export function refreshFormattingRows() {
     for (const { control, box } of switches) setToggle(control, !!document.querySelector(box)?.checked);
+    syncChatCompletionNotes();
 }
 
 export function removeFormattingRows() {
@@ -84,4 +107,5 @@ export function removeFormattingRows() {
     made = [];
     unlisten = [];
     switches = [];
+    notes = [];
 }

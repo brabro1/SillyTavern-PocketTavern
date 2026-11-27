@@ -57,6 +57,7 @@ All tokens are `--pt-*` custom properties on `html.pt-on`. Nothing outside `src/
 | `--pt-card-user` / `--pt-card-bot` | subtle tints | subtle tints | Message cards (the only translucent surfaces over a chat background) |
 | `--pt-backdrop` | `#0e0f12` | `#f6f7f9` | Flat colour behind the chat |
 | `--pt-scrim` | black 40% | black 24% | Behind sheets and dialogs |
+| `--pt-photo-scrim` | black 80% | black 80% | The neutral fade under a name drawn on a picture (character cards, Favorites) |
 | `--pt-shadow-card`, `--pt-shadow-raise`, `--pt-shadow-bar`, `--pt-highlight` | per theme | per theme | The elevation scale (section 3 → Elevation) |
 | `--pt-shadow-float` | per theme | per theme | Only on floating layers: popovers, dialogs, toasts, floating message box |
 
@@ -559,7 +560,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **Filter** opens a sheet: **Show** (Favorites, Groups, Folders) and **Tags** (every tag, with its colour). Each row shows Any, Only or Hidden, and a tap moves it on (SillyTavern's own three states, through its own hidden buttons). Then **Edit tags** and **Clear all filters**.
 - **While anything is filtered:** a row of chips under the toolbar, one per filter (a hidden one struck through), each removed with a tap, and **Clear**. SillyTavern's "N hidden" note is a quiet line under the results.
 - **Sort and view** opens a sheet: **Show as** (Grid, List), then **Sort by** (SillyTavern's orders).
-- **The list starts with** **Favorites** (characters and groups as 56px picks, the same row as Chats home's quick picks; a character opens their page, a group its chat) and **All characters** with the total. While searching or filtering, the header reads **Results** and Favorites step aside. SillyTavern's own favourites row and filter buttons stay hidden.
+- **The list starts with** **Favorites** (characters and groups as small portrait cards, 88px wide at 3:4, in a row that scrolls sideways: the picture fills the card and the name sits on the neutral photo scrim, like the grid's cards; a character opens their page, a group its chat) and **All characters** with the total in a count pill right after it. Both headings start where the cards start. While searching or filtering, the header reads **Results** and Favorites step aside. SillyTavern's own favourites row and filter buttons stay hidden.
 - **Grid:** picture cards (3:4, name at the bottom) with the card shadow; a favourite wears a gold star in a dark 24px circle at the top end corner. On desktop a card lifts and its picture leans in under the mouse.
 - **A card's menu:** a long press (finger, 0.5 s) or right click (mouse) opens it: Open their page, Chat, New chat, Edit · ★, Lorebook, Duplicate, Export, Select several · Delete. During SillyTavern's bulk select, its own menu stays.
 

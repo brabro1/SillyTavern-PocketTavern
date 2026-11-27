@@ -16,7 +16,7 @@ const initialOf = name => [...String(name).trim()][0]?.toLocaleUpperCase() ?? '?
  * @param {object} options
  * @param {string} options.name the character's or persona's name (user data; used for the initial and alt text)
  * @param {string} [options.src] the picture's URL
- * @param {24|32|40|56|96} [options.size]
+ * @param {24|32|40|56|96|'card'} [options.size] ('card' fills its parent: styles in the parent's component)
  */
 export function avatar({ name, src, size = 40 }) {
     const box = h('span', { class: `pt-avatar pt-avatar--${size}`, style: `--pt-avatar-hue: ${nameHue(name)}` });

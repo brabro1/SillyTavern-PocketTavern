@@ -68,6 +68,11 @@ function saveEditor() {
 export function syncEditorState() {
     const on = deps.active() && editorOpen();
     document.documentElement.classList.toggle('pt-editing', on);
+    // The message being edited is marked, so the full-page editor's size (styles/shell/app-shell.css →
+    // --pt-bottom) is set on it alone and not on every message of the chat.
+    const host = on ? editingTextarea()?.closest('.mes') : null;
+    for (const marked of document.querySelectorAll('[data-pt-editing]')) if (marked !== host) marked.removeAttribute('data-pt-editing');
+    if (host && !host.hasAttribute('data-pt-editing')) host.setAttribute('data-pt-editing', '');
     if (on) {
         const box = editingTextarea();
         // SillyTavern sizes the box to its text; the page gives it the whole height instead.

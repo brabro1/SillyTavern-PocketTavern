@@ -788,15 +788,19 @@ html.pt-charpage #rm_print_characters_block > .pt-char-top {
     margin: 0 0 var(--pt-space-1);
 }
 
+/* Both headings start where the cards start (a 4px optical inset), and the count sits right after its label. */
 html.pt-charpage .pt-char-top .pt-list-header {
-    margin: var(--pt-space-2) var(--pt-space-1) 0;
+    margin: var(--pt-space-2) 0 0;
+    padding: 0 var(--pt-space-1);
 }
 
 /* The Favorites row stays inside the list: reaching past its edges (as the Chats page's picks do) made the
    whole list scroll sideways, because the list is SillyTavern's scroll box. */
 html.pt-charpage .pt-char-top .pt-quick-picks {
+    gap: var(--pt-space-3);
     margin: 0;
-    padding: var(--pt-space-1) 0 var(--pt-space-2);
+    /* Room under the cards for their shadow (the row clips what reaches past it). */
+    padding: var(--pt-space-2) 0 var(--pt-space-4);
     scroll-padding-inline: 0;
 }
 
@@ -807,12 +811,22 @@ html.pt-charpage #rm_print_characters_block {
 
 html.pt-charpage .pt-char-count {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--pt-space-2);
+    margin-block-start: var(--pt-space-2);
+}
+
+/* The row carries the space above, so the label and the count centre on one line. */
+html.pt-charpage .pt-char-top .pt-char-count .pt-list-header {
+    margin: 0;
+    padding-inline-end: 0;
 }
 
 html.pt-charpage .pt-char-count-n {
+    min-width: 24px;
     padding: 0 var(--pt-space-2);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
     border-radius: var(--pt-radius-full);
     background: var(--pt-surface-elevated);
     color: var(--pt-text-secondary);
@@ -923,7 +937,7 @@ html.pt-charpage body.charListGrid #rm_print_characters_block :is(.character_sel
     width: auto;
     margin: 0;
     padding: 28px 8px 8px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+    background: linear-gradient(transparent, var(--pt-photo-scrim));
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block .ch_name {
@@ -1099,7 +1113,7 @@ html.pt-charpage body.charListGrid #rm_print_characters_block :is(.character_sel
     flex-direction: column;
     justify-content: flex-end;
     padding: 8px;
-    background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.82));
+    background: linear-gradient(180deg, transparent 55%, var(--pt-photo-scrim));
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block :is(.character_select_container, .group_select_container) {

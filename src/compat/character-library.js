@@ -4,6 +4,8 @@
 // panel on the page) nothing here does anything.
 
 const PANEL = '#charlib-embedded-container';
+/** Its embedded panel (it follows Safari's keyboard like a page: src/core/activation.js). */
+export const CHARACTER_LIBRARY_PANEL = PANEL;
 const TOGGLE = '#st-gallery-btn, #charlib-launcher-dropdown [data-action="library"]';
 
 const isShown = element => !!element && getComputedStyle(element).display !== 'none';

@@ -6,10 +6,6 @@
    it is not right under the message box; the arrow in the box brings it back.
    ========================================================================== */
 
-html.pt-shell.pt-tabs-tucked {
-    --pt-bottom: var(--pt-safe-bottom);
-}
-
 /* SillyTavern caps the chat at the screen minus its own message box; ours floats, so the chat fills the space. */
 html.pt-chat.pt-shell #chat {
     max-height: none;

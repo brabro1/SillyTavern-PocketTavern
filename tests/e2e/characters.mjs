@@ -83,7 +83,7 @@ for (const layout of ['phone', 'desktop']) {
                 hotswap: getComputedStyle(document.getElementById('CharListButtonAndHotSwaps')).display,
                 first: document.getElementById('rm_print_characters_block').firstElementChild?.id,
                 headers: [...document.querySelectorAll('#pt_char_top .pt-list-header')].map(node => node.textContent),
-                favorites: [...document.querySelectorAll('#pt_char_top .pt-quick-pick-name')].map(node => node.textContent),
+                favorites: [...document.querySelectorAll('#pt_char_top .pt-pick-card-name')].map(node => node.textContent),
                 count: document.querySelector('#pt_char_top .pt-char-count-n')?.textContent,
                 wanted: SillyTavern.getContext().characters.filter(character => character.fav === true || character.fav === 'true').length,
                 total: SillyTavern.getContext().characters.length + (SillyTavern.getContext().groups?.length ?? 0),

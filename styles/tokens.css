@@ -29,6 +29,8 @@
     --pt-on-avatar: #fff;
     /* Behind sheets and dialogs, and the one shadow, for floating layers only. Light themes set lighter ones. */
     --pt-scrim: rgb(0 0 0 / 0.4);
+    /* The neutral scrim under a name drawn on a picture (character cards, Favorites); the same in every theme. */
+    --pt-photo-scrim: rgb(0 0 0 / 0.8);
     --pt-shadow-float: 0 2px 6px rgb(0 0 0 / 0.28), 0 18px 44px -10px rgb(0 0 0 / 0.6);
     /* Elevation (DESIGN.md → Elevation): cards and groups lift softly; buttons a little more; bars cast a shadow
        over what scrolls under them. --pt-highlight is a faint light along a raised surface's top edge. */

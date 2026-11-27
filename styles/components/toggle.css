@@ -33,7 +33,12 @@
     height: 24px;
     border-radius: var(--pt-radius-full);
     background: var(--pt-text-secondary);
-    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), scale var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+/* Pressed: the knob gives a little under the finger (scale composes with its slide). */
+.pt-toggle:active:not(:disabled) .pt-toggle-knob {
+    scale: 0.86;
 }
 
 .pt-toggle[aria-checked="true"]::before {
@@ -60,8 +65,16 @@ html.pt-motion-off .pt-toggle-knob {
     transition: background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
+html.pt-motion-off .pt-toggle:active .pt-toggle-knob {
+    scale: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .pt-toggle-knob {
         transition: background-color var(--pt-dur-fast) var(--pt-ease);
+    }
+
+    html .pt-toggle:active .pt-toggle-knob {
+        scale: none;
     }
 }

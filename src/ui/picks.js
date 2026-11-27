@@ -92,6 +92,24 @@ export function pick({ name, picture, label, onClick, open = false }) {
 }
 
 /**
+ * A pick as a small portrait card (Characters → Favorites): the picture fills a 3:4 card and the name sits on
+ * a neutral scrim at its foot, like the character grid's cards. Same options as pick().
+ * @param {{ name: string, picture?: string, label: string, onClick: () => void }} options
+ */
+export function pickCard({ name, picture, label, onClick }) {
+    return h('button', {
+        type: 'button',
+        class: 'pt-pick-card pt-focus pt-press',
+        'aria-label': label,
+        title: label,
+        onclick: onClick,
+    }, [
+        avatar({ name, src: picture, size: 'card' }),
+        h('span', { class: 'pt-pick-card-name', raw: name, dir: 'auto' }),
+    ]);
+}
+
+/**
  * The row of picks, with its ‹ › on desktop.
  * @param {HTMLElement[]} picks
  * @param {string} label the row's name for screen readers (translated)

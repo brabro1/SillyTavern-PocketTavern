@@ -4,6 +4,9 @@
 // editor and its progress bar are styled in styles/compat/message-summarize.css. Keyed on its own qvink_memory
 // markup, so without the extension nothing here matches. (Its code is AGPL: read for its markup only.)
 
+/** Its progress bar over the chat (it follows Safari's keyboard like the chat: src/core/activation.js). */
+export const SUMMARY_PROGRESS = '#sheld > .qvink_progress_bar';
+
 const ACTIONS = [
     { cls: 'qvink_memory_remember_button', label: 'Remember', note: 'Keep this summary in long-term memory' },
     { cls: 'qvink_memory_forget_button', label: 'Leave out', note: 'Never put this summary into memory' },

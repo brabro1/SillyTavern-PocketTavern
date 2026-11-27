@@ -159,7 +159,13 @@ function sharpPicture(info, width) {
                 if (!response.ok) throw new Error(String(response.status));
                 const blob = await response.blob();
                 if (!deps.active() || !deps.settings().sharpPictures) throw new Error('cancelled');
-                bitmap = await createImageBitmap(blob);
+                // Decoded straight at the size needed (the browser does it off the main thread); browsers without
+                // the option decode at full size and the canvas below scales it down.
+                try {
+                    bitmap = await createImageBitmap(blob, { resizeWidth: width, resizeQuality: 'high' });
+                } catch {
+                    bitmap = await createImageBitmap(blob);
+                }
                 const scale = Math.min(1, width / bitmap.width);
                 const canvas = document.createElement('canvas');
                 canvas.width = Math.round(bitmap.width * scale);

@@ -17,9 +17,17 @@ html.pt-ios {
     perspective: none !important;
 }
 
-html.pt-shell.pt-ios-kb {
-    --pt-bottom: 0px;
-    --pt-page-h: calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize));
+/* --pt-bottom and --pt-page-h follow Safari's keyboard too: styles/shell/app-shell.css.
+   --pt-ios-top and --pt-ios-h are set only on the elements that follow the keyboard, by script
+   (src/core/activation.js → IOS_KEYBOARD_ELEMENTS), and do not inherit, so a change restyles those alone. */
+@property --pt-ios-top {
+    syntax: '*';
+    inherits: false;
+}
+
+@property --pt-ios-h {
+    syntax: '*';
+    inherits: false;
 }
 
 html.pt-shell.pt-ios-kb .pt-appbar {
