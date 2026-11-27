@@ -792,10 +792,17 @@ html.pt-charpage .pt-char-top .pt-list-header {
     margin: var(--pt-space-2) var(--pt-space-1) 0;
 }
 
+/* The Favorites row stays inside the list: reaching past its edges (as the Chats page's picks do) made the
+   whole list scroll sideways, because the list is SillyTavern's scroll box. */
 html.pt-charpage .pt-char-top .pt-quick-picks {
-    margin: 0 calc(-1 * var(--pt-space-3));
-    padding: var(--pt-space-1) var(--pt-space-3) var(--pt-space-2);
-    scroll-padding-inline: var(--pt-space-3);
+    margin: 0;
+    padding: var(--pt-space-1) 0 var(--pt-space-2);
+    scroll-padding-inline: 0;
+}
+
+/* The list only ever scrolls up and down, whatever another extension or a long name puts in it. */
+html.pt-charpage #rm_print_characters_block {
+    overflow-x: hidden;
 }
 
 html.pt-charpage .pt-char-count {

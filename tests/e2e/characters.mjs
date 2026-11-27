@@ -94,6 +94,15 @@ for (const layout of ['phone', 'desktop']) {
             if (!top.headers.includes('All characters') || top.count !== String(top.total)) throw new Error(`header: ${JSON.stringify(top)}`);
         });
 
+        await step('the list never scrolls sideways (the Favorites row stays inside it)', async () => {
+            const sizes = await page.evaluate(() => {
+                const list = document.getElementById('rm_print_characters_block');
+                list.scrollLeft = 50;
+                return { scroll: list.scrollWidth, client: list.clientWidth, left: list.scrollLeft };
+            });
+            if (sizes.scroll > sizes.client + 1 || sizes.left !== 0) throw new Error(`the list scrolls sideways: ${JSON.stringify(sizes)}`);
+        });
+
         await step('Filter: Favorites goes any → only through SillyTavern\'s own button, a chip shows it, and ✕ undoes it', async () => {
             await page.locator('#pt_char_toolbar .pt-ctool-filter').click();
             await waitFor(page, 'the Filter sheet', () => [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].some(node => node.textContent === 'Favorites'));
