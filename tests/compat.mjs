@@ -437,6 +437,26 @@ await check('history list opens readable with 44px rows', async () => {
     return JSON.stringify(s);
 });
 
+// Message Summarize (when installed): its message buttons are a Summary group in the message sheet, with short
+// names and notes; its own separator never shows among the message buttons.
+if (await page.evaluate(() => !!document.querySelector('#message_template .qvink_memory_remember_button'))) {
+    await check('Message Summarize: its buttons are a Summary group in the message sheet', async () => {
+        await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+        await page.waitForTimeout(300);
+        await page.evaluate(() => [...document.querySelectorAll('#chat .mes')].pop().querySelector('.pt-mes-more, .extraMesButtonsHint')?.click());
+        await sheetOpen();
+        const sheet = await page.evaluate(() => ({
+            headings: [...document.querySelectorAll('#pt-sheet .pt-menu-heading')].map(node => node.textContent),
+            rows: [...document.querySelectorAll('#pt-sheet .pt-action-row .pt-row-text > span:first-child')].map(node => node.textContent),
+            separator: [...document.querySelectorAll('#chat .qvink_memory_button_separator')].some(node => node.getBoundingClientRect().width > 0),
+        }));
+        await closeSheet();
+        const want = ['Remember', 'Leave out', 'Edit summary', 'Summarize again'];
+        if (!sheet.headings.includes('Summary') || want.some(name => !sheet.rows.includes(name)) || sheet.separator) throw new Error(JSON.stringify(sheet));
+        return sheet.rows.join(', ');
+    });
+}
+
 await check('no page errors from Pocket Tavern', async () => {
     const ours = errors.filter(e => /\bpt-[a-z]|Pocket|Mobile-UI/i.test(e));
     if (ours.length) throw new Error(ours.join(' | '));

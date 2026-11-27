@@ -5,7 +5,7 @@
 
 /* The summary under a message: a quiet note with a coloured edge that says where it stands in memory, in place
    of coloured text (its dark red and grey could not be read on dark themes). A tap edits it (its own behaviour). */
-html.pt-chat #chat .mes .qvink_memory_display {
+html.pt-chat #chat .mes div.qvink_memory_display {
     --pt-qm-edge: var(--pt-border);
     /* Under the text, in the message grid's row for what extensions add (styles/legacy.css → the chat). */
     grid-area: extra;
@@ -22,48 +22,54 @@ html.pt-chat #chat .mes .qvink_memory_display {
     transition: background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
+/* It adds the box to every message, empty where there is no summary yet (to keep its spacing steady): an
+   empty box shows nothing. Only the summary div: its editor is a textarea with the same class. */
+html.pt-chat #chat .mes div.qvink_memory_display:not(:has(> span:not(:empty))) {
+    display: none;
+}
+
 @media (hover: hover) {
-    html.pt-chat #chat .mes .qvink_memory_display:hover {
+    html.pt-chat #chat .mes div.qvink_memory_display:hover {
         background: color-mix(in srgb, var(--pt-qm-edge) 16%, transparent);
     }
 }
 
 /* Short-term memory, long-term memory, marked for long-term but past the limit, left out. */
-html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_short_memory) {
+html.pt-chat #chat .mes div.qvink_memory_display:has(.qvink_short_memory) {
     --pt-qm-edge: var(--pt-info);
 }
 
-html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_long_memory) {
+html.pt-chat #chat .mes div.qvink_memory_display:has(.qvink_long_memory) {
     --pt-qm-edge: var(--pt-ok);
 }
 
-html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_old_memory) {
+html.pt-chat #chat .mes div.qvink_memory_display:has(.qvink_old_memory) {
     --pt-qm-edge: var(--pt-warn);
 }
 
-html.pt-chat #chat .mes .qvink_memory_display:has(.qvink_exclude_memory) {
+html.pt-chat #chat .mes div.qvink_memory_display:has(.qvink_exclude_memory) {
     --pt-qm-edge: var(--pt-text-secondary);
 }
 
 /* The text keeps the theme's readable secondary colour whatever its state; the edge carries the state. */
-html.pt-chat #chat .mes .qvink_memory_display :is(.qvink_short_memory, .qvink_long_memory, .qvink_old_memory, .qvink_exclude_memory) {
+html.pt-chat #chat .mes div.qvink_memory_display :is(.qvink_short_memory, .qvink_long_memory, .qvink_old_memory, .qvink_exclude_memory) {
     color: var(--pt-text-secondary);
     text-shadow: none;
 }
 
-html.pt-chat #chat .mes .qvink_memory_display .qvink_lagging_memory {
+html.pt-chat #chat .mes div.qvink_memory_display .qvink_lagging_memory {
     opacity: 0.6;
 }
 
-html.pt-chat #chat .mes .qvink_memory_display .qvink_exclude_memory {
+html.pt-chat #chat .mes div.qvink_memory_display .qvink_exclude_memory {
     text-decoration: line-through;
 }
 
-html.pt-chat #chat .mes .qvink_memory_display p {
+html.pt-chat #chat .mes div.qvink_memory_display p {
     margin: 0;
 }
 
-html.pt-chat #chat .mes .qvink_memory_display .qvink_memory_reasoning {
+html.pt-chat #chat .mes div.qvink_memory_display .qvink_memory_reasoning {
     color: var(--pt-text-secondary);
     font-size: var(--pt-text-xs);
     font-weight: 600;

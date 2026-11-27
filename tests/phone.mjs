@@ -2825,6 +2825,8 @@ await step('no errors from Pocket Tavern', async () => {
     if (extensionErrors.length) throw new Error(extensionErrors.join(' | '));
 });
 
+// SillyTavern saves settings about a second after a change: let the last restore land before closing.
+await page.waitForTimeout(2000);
 await browser.close();
 console.log(failed ? `\n${failed} step(s) failed. Screenshots are in tests/results.` : '\nAll steps passed.');
 process.exit(failed ? 1 : 0);
