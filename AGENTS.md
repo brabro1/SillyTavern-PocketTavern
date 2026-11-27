@@ -36,7 +36,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | done |
 | M5 | Settings (hub, Appearance, Personas, Pocket Tavern with every switch, grouped; About) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | done |
 | M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | done |
-| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | planned |
+| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | beta out (3.0.0-beta.1, 2026-11-27); release after the owner\'s OK |
 
 **M7 slices** (one commit each, every suite green, the legacy part deleted in the same change):
 
@@ -47,7 +47,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 5. ✅ **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
 6. ✅ **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
 7. ✅ **CSS**: `styles/legacy.css` split into `styles/shell/`, `styles/views/`, `styles/st/` alongside each slice above, then deleted.
-8. **Release**: README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (later betas `3.0.0-beta.2`, …; the numbers stay, no 0.x), then the release after the owner's OK.
+8. **Release** (beta published 2026-11-27): README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (later betas `3.0.0-beta.2`, …; the numbers stay, no 0.x), then the release after the owner's OK.
 
 - **Parallel lanes** (M1b ∥ M1c, then M2 ∥ M3 ∥ M4 ∥ M5) each own their `src/views/<view>.js`, `styles/views/`, `src/st/<screen>.js`, `styles/st/<screen>.css`, and their own section in `src/st/selectors.js` and in each `locales/` file. QA writes `tests/e2e/<view>.mjs` beside each lane. Docs checks the translations when a lane ends.
 - **Owner reviews** with screenshots after M0, after M1, after M2–M5, and before the release.
