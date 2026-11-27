@@ -6,7 +6,7 @@
 
 **SillyTavern that feels like a real app, on every device.**
 
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbrabro1%2FSillyTavern-PocketTavern%2Fmain%2Fmanifest.json&query=%24.version&label=alpha&color=E8783A&style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/github/v/release/brabro1/SillyTavern-PocketTavern?label=alpha&color=E8783A&style=flat-square)](CHANGELOG.md)
 [![SillyTavern](https://img.shields.io/badge/SillyTavern-1.19%2B-6c4bd8?style=flat-square)](https://github.com/SillyTavern/SillyTavern)
 [![Platform](https://img.shields.io/badge/made%20for-Android%20%C2%B7%20iPhone%20%C2%B7%20iPad%20%C2%B7%20computers-3ddc84?style=flat-square)](#requirements)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
@@ -27,7 +27,7 @@ Pocket Tavern is a SillyTavern extension with two layouts that share the same th
 ### 📱 On phones
 **Android, iPhone, and iPad held upright**
 
-Tabs at the bottom, readable messages and buttons sized for your thumb.
+Five tabs at the bottom, readable messages and buttons sized for your thumb.
 
 </td>
 <td width="50%" valign="top">
@@ -35,14 +35,17 @@ Tabs at the bottom, readable messages and buttons sized for your thumb.
 ### 💻 On desktop
 **Computers, and tablets held sideways**
 
-A sidebar with every page, pages beside the chat and keyboard shortcuts.
+A rail with the five places, pages beside the chat and keyboard shortcuts.
 
 </td>
 </tr>
 </table>
 
+> [!NOTE]
+> **This is the Pocket Tavern 3.0 beta** (`3.0.0-beta.1`), rebuilt around five places: **Chats, Characters, Lorebooks, AI and Settings**. Coming from 2.x? The [guide](docs/guide.md#where-did-it-go-coming-from-2x) shows where everything went, and the [changelog](CHANGELOG.md#300-beta1) lists what changed.
+
 > [!WARNING]
-> **Pocket Tavern is in alpha.** Things can change between updates and you may find bugs, so keep your own backups. If something breaks, [tell me](#feedback).
+> **Pocket Tavern is in alpha, and 3.0 is a beta.** Things can change between updates and you may find bugs, so keep your own backups. If something breaks, [tell me](#feedback). If Pocket Tavern itself runs into a problem, it steps aside and SillyTavern's own screens show, with a button to come back.
 
 > [!IMPORTANT]
 > After installing or updating, **reload the SillyTavern page** (twice if the old look is still there).
@@ -53,50 +56,50 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 
 <table>
 <tr>
-<td align="center" width="33%"><img src="docs/screenshots/chat.jpg" alt="Chat with the top bar; in a chat the tabs tuck away"><br><sub><b>Chat</b></sub></td>
-<td align="center" width="33%"><img src="docs/screenshots/characters.jpg" alt="Characters as picture cards with the A–Z strip"><br><sub><b>Characters</b></sub></td>
-<td align="center" width="33%"><img src="docs/screenshots/card.jpg" alt="Character card with tabs"><br><sub><b>Character card</b></sub></td>
+<td align="center" width="33%"><img src="docs/screenshots/chat.jpg" alt="A chat: ‹, the character and ⋯ on top, your persona, + and the context ring in the message box"><br><sub><b>Chat</b></sub></td>
+<td align="center" width="33%"><img src="docs/screenshots/characters.jpg" alt="Characters: search, Filter, a Favorites row and picture cards"><br><sub><b>Characters</b></sub></td>
+<td align="center" width="33%"><img src="docs/screenshots/character-page.jpg" alt="A character's page: Chat, New chat, Edit and their chats"><br><sub><b>A character's page</b></sub></td>
 </tr>
 <tr>
 <td align="center"><img src="docs/screenshots/compact.jpg" alt="Compact size with the docked message box"><br><sub><b>Compact size, docked message box</b></sub></td>
-<td align="center"><img src="docs/screenshots/themes.jpg" alt="Theme picker"><br><sub><b>Themes</b></sub></td>
+<td align="center"><img src="docs/screenshots/themes.jpg" alt="Settings → Appearance: the chat background, then the themes"><br><sub><b>Appearance</b></sub></td>
 <td align="center"><img src="docs/screenshots/context.jpg" alt="The Context page: how full the context is and what filled it"><br><sub><b>Context</b></sub></td>
 </tr>
 </table>
 
-<p align="center"><b>On a computer:</b> every page sits on a sidebar on the left and opens beside the chat.</p>
+<p align="center"><b>On a computer:</b> the five places sit on a rail on the left and open beside the chat.</p>
 
-<p align="center"><img src="docs/screenshots/desktop.jpg" alt="Pocket Tavern on a computer: every page on the sidebar, Presets beside the chat"></p>
+<p align="center"><img src="docs/screenshots/desktop.jpg" alt="Pocket Tavern on a computer: the rail, the AI page beside the chat"></p>
 
 <details>
-<summary><b>More screenshots</b> &nbsp;<sub>(22 more: chats, settings, lorebooks, presets, themes)</sub></summary>
+<summary><b>More screenshots</b> &nbsp;<sub>(22 more: chats, settings, lorebooks, AI, themes)</sub></summary>
 <br>
 
 <table>
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/before.jpg" alt="SillyTavern on a phone without Pocket Tavern"><br><sub><b>Before (no Pocket Tavern)</b></sub></td>
-<td align="center" width="33%"><img src="docs/screenshots/recent.jpg" alt="Recent chats on the start screen"><br><sub><b>Recent chats</b></sub></td>
+<td align="center" width="33%"><img src="docs/screenshots/recent.jpg" alt="Chats: pinned and recent chats, grouped by character"><br><sub><b>Chats</b></sub></td>
 <td align="center" width="33%"><img src="docs/screenshots/editor.jpg" alt="Message editor"><br><sub><b>Message editor</b></sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/character-sheet.jpg" alt="Tapping a character shows Chat, New chat, Edit and its recent chats"><br><sub><b>A character's sheet</b></sub></td>
-<td align="center"><img src="docs/screenshots/history.jpg" alt="Chat history: each chat with its last message as a bubble"><br><sub><b>Chat history</b></sub></td>
+<td align="center"><img src="docs/screenshots/card.jpg" alt="Editing a character's card, with tabs"><br><sub><b>Character card</b></sub></td>
+<td align="center"><img src="docs/screenshots/history.jpg" alt="Chat files: each chat with its last message as a bubble"><br><sub><b>Chat files</b></sub></td>
 <td align="center"><img src="docs/screenshots/notifications.jpg" alt="Notifications as calm cards with a small coloured icon"><br><sub><b>Notifications</b></sub></td>
 </tr>
 <tr>
 <td align="center"><img src="docs/screenshots/tabs-shown.jpg" alt="The arrow in the message box brought the tabs back"><br><sub><b>Tabs shown in a chat</b></sub></td>
 <td align="center"><img src="docs/screenshots/translate.jpg" alt="Chat translated to Spanish"><br><sub><b>Translated chat</b></sub></td>
-<td align="center"><img src="docs/screenshots/chat-options.jpg" alt="Chat options grouped into Reply, This chat and Chats"><br><sub><b>Chat options (☰)</b></sub></td>
+<td align="center"><img src="docs/screenshots/chat-options.jpg" alt="+ in the message box: Write, Reply and Tools"><br><sub><b>+ (Reply and tools)</b></sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/settings.jpg" alt="Settings as a list of sections"><br><sub><b>Settings</b></sub></td>
+<td align="center"><img src="docs/screenshots/settings-place.jpg" alt="Settings: Appearance, Chat and layout, Personas, SillyTavern, Extensions, Pocket Tavern, About"><br><sub><b>Settings</b></sub></td>
+<td align="center"><img src="docs/screenshots/settings.jpg" alt="SillyTavern's own settings as a list of sections"><br><sub><b>SillyTavern's settings</b></sub></td>
 <td align="center"><img src="docs/screenshots/settings-section.jpg" alt="The Display section: switches on the right, a line on what each does"><br><sub><b>A settings section</b></sub></td>
-<td align="center"><img src="docs/screenshots/more.jpg" alt="More menu"><br><sub><b>More</b></sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/lorebooks.jpg" alt="Lorebook picker"><br><sub><b>Lorebook picker</b></sub></td>
+<td align="center"><img src="docs/screenshots/lorebooks.jpg" alt="The lorebooks that are on in every chat"><br><sub><b>Active lorebooks</b></sub></td>
 <td align="center"><img src="docs/screenshots/lorebook-entries.jpg" alt="Lorebook entries as cards with keyword chips"><br><sub><b>Lorebook entries</b></sub></td>
-<td align="center"><img src="docs/screenshots/presets.jpg" alt="Presets with − and + beside each slider"><br><sub><b>Presets</b></sub></td>
+<td align="center"><img src="docs/screenshots/presets.jpg" alt="AI → Samplers: the preset and its sliders"><br><sub><b>Presets (AI → Samplers)</b></sub></td>
 </tr>
 <tr>
 <td align="center"><img src="docs/screenshots/prompt-editor.jpg" alt="Prompt editor"><br><sub><b>Prompt editor</b></sub></td>
@@ -128,10 +131,10 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 #### 📱 On your phone
 <sub>Android, iPhone, iPad</sub>
 
-- Tabs at the bottom for Chat, Characters, Lorebooks and Presets, with everything else under **More**. In a chat they tuck away; the arrow in the message box brings them back.
+- Five tabs at the bottom: **Chats, Characters, Lorebooks, AI and Settings**. In a chat they step aside; ‹ takes you back.
 - Every page opens full screen, menus slide up from the bottom, and the back gesture closes whatever is open.
 - Two sizes (**Comfortable** and **Compact**) and two message boxes (**Floating** and **Docked**).
-- **More → Install as an app** puts SillyTavern on your home screen without the browser bar.
+- **Settings → About → Install as an app** puts SillyTavern on your home screen without the browser bar.
 
 </td>
 <td width="50%" valign="top">
@@ -139,11 +142,10 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 #### 💻 On desktop
 <sub>Computers, tablets held sideways</sub>
 
-- A sidebar with every page: Chat, Characters, Lorebooks, Presets, API, Personas, Formatting, Settings, Backgrounds and Extensions.
-- Pages open beside the chat and stay open while you chat. Drag a page's edge to make it wider.
-- Compact like SillyTavern itself, so plenty of the chat fits (More → Themes → Size → Comfortable for more room).
+- A rail with the same five places. A place opens in a panel beside the chat and stays open while you chat; click it again to hide the panel, or drag its edge to make it wider.
+- Compact like SillyTavern itself, so plenty of the chat fits (**Settings → Chat and layout → Density** for more room).
 - Author's Note, CFG and Token probabilities open in a column beside the chat.
-- <kbd>Esc</kbd> closes things, and <kbd>Ctrl</kbd>+<kbd>K</kbd> opens Search everything.
+- <kbd>Esc</kbd> goes back one step, and <kbd>Ctrl</kbd>+<kbd>K</kbd> searches everything.
 
 </td>
 </tr>
@@ -152,9 +154,11 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 
 #### 💬 Chatting
 
-- Clean message cards, swipes in a small ‹ 1/3 › pill (› on the last reply makes a new version), and drag the last reply sideways for another version.
+- **Chats** is home: pinned and recent chats grouped by character, and one search for chats, characters, lorebooks and settings.
+- In a chat, **⋯** has the chat's actions (search, translate, rename, chat files) and **+** has the next reply (Regenerate, Continue, Impersonate, attach a file) and the tools.
+- Clean message cards, swipe arrows with the count between them (‹ 2/3 ›), and drag the last reply sideways for another version.
 - Your persona in the message box, and a context ring that shows how full the model's memory is.
-- Edit a message on a full page, search the chat, translate it, and open pictures full screen.
+- The **Draft helper** in +: Enhance my draft, Write for me and Continue my draft.
 
 </td>
 <td width="50%" valign="top">
@@ -162,7 +166,8 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 #### 🎨 Make it yours
 
 - 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
-- Cards, bubbles or flat messages, four text sizes, and animations you can turn down or off. Notifications are calm cards, and on a computer every list has a slim scrollbar.
+- Cards, bubbles or flat messages, four text sizes, your device's font or SillyTavern's, and animations you can turn down or off.
+- Every helper has its own switch under **Settings → Pocket Tavern**.
 - Menus in English, Spanish, Portuguese, Russian, Chinese, Japanese and Arabic.
 
 </td>
@@ -170,32 +175,29 @@ A sidebar with every page, pages beside the chat and keyboard shortcuts.
 <tr>
 <td width="50%" valign="top">
 
-#### 🗂️ Characters, personas, lorebooks and presets
+#### 🗂️ Characters, lorebooks and AI
 
-- Characters and personas as picture cards, with search, favorites and an A–Z strip you can slide along.
-- Choosing a character shows its sheet first: **Chat**, **New chat**, **Edit** and its recent chats (turn it off with **Character preview**). **Edit** opens the card without opening the chat; the card's **Chat** and **Recent chats** buttons open it.
-- Character cards with tabs for Description, First message and Notes.
-- Lorebook entries as cards with keyword chips, and a searchable picker.
-- − and + beside every slider, a line on what each setting does, and a prompt editor with full screen.
-- Settings, Formatting and Extensions open on a short list: each section, or each extension, opens on its own page.
-- With Chat Completion, Presets has Parameters and Prompts tabs, so the prompt list is one tap away.
+- Characters as picture cards with search, a **Filter** sheet, a Favorites row and a menu on each card.
+- Each character has a page: **Chat**, **New chat**, **Edit** and their chats. **Edit** opens the card without opening the chat.
+- **Lorebooks** has its own tab: what's on in every chat, activation settings, and each lorebook's entries as cards with keyword chips.
+- **AI** shows whether you're connected, with your preset, connection, samplers and formatting one tap away.
+- SillyTavern's own settings, Formatting and Extensions open on a short list, each section on its own page.
 
 </td>
 <td width="50%" valign="top">
 
 #### ⚡ Handy extras
 
-- **Quick switch:** change persona, connection, model or preset in two taps.
-- **Search everything:** characters, chats, lorebooks and settings in one box.
-- **Recent chats** grouped by character on the start screen, each with its last message drawn like a message in your theme's colours, and ⋯ to pin, rename or delete. Chat history looks the same. An eye button there hides the message box for more room.
-- A banner when SillyTavern stops answering (handy with Termux).
-- **Updates in one tap:** **More → Update Pocket Tavern**, and **More → SillyTavern updates** tells you when a new SillyTavern is out and how to update it.
+- A banner when the connection drops or SillyTavern stops answering (handy with Termux), with a button that fixes it.
+- Translate a chat, search in it, and open pictures full screen.
+- **Use SillyTavern for now** (Settings → Pocket Tavern) shows the original SillyTavern for this visit, with a button to come back.
+- **Updates in one tap:** **Settings → About → Update Pocket Tavern**, and **SillyTavern updates** tells you when a new SillyTavern is out and how to update it.
 
 </td>
 </tr>
 </table>
 
-<p align="center"><sub>Every helper has its own switch. The full list of changes is in <a href="CHANGELOG.md">CHANGELOG.md</a>.</sub></p>
+<p align="center"><sub>The full list of changes is in <a href="CHANGELOG.md">CHANGELOG.md</a>, and the <a href="docs/guide.md">guide</a> shows how to get around.</sub></p>
 
 <br>
 
@@ -219,6 +221,21 @@ https://github.com/brabro1/SillyTavern-PocketTavern
 **3.** Reload the page.
 
 <details>
+<summary><b>Try the 3.0 beta</b></summary>
+<br>
+
+The beta lives on the `3.0` branch. In **Install extension**, type `3.0` as the branch (the field under the link), or from a terminal:
+
+```bash
+cd ~/SillyTavern/data/default-user/extensions
+git clone -b 3.0 https://github.com/brabro1/SillyTavern-PocketTavern
+```
+
+Already have Pocket Tavern from a terminal? Run `git fetch && git checkout 3.0` in its folder. Your settings carry over, and going back (`git checkout main`) keeps them too.
+
+</details>
+
+<details>
 <summary><b>Install from Termux instead</b></summary>
 <br>
 
@@ -232,7 +249,7 @@ Then reload SillyTavern in your browser.
 </details>
 
 > [!TIP]
-> **Update:** **More → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). Once nothing is in progress, the page reloads automatically (switch **Reload after updates** off to reload by hand) and shows a short **What's new** list once.
+> **Update:** **Settings → About → Update Pocket Tavern** (or **Extensions → Manage extensions**, then update Pocket Tavern). Once nothing is in progress, the page reloads automatically (switch **Reload after updates** off to reload by hand) and shows a short **What's new** list once.
 >
 > **Remove:** **Extensions → Manage extensions**, then delete Pocket Tavern.
 
@@ -242,13 +259,15 @@ Then reload SillyTavern in your browser.
 
 | What | Where |
 | :--- | :--- |
-| 🎨 Theme (Pocket Tavern's and your SillyTavern themes), chat look, size, message box, chat width, animations | **More → Themes** |
-| 🔤 Text size and every helper's switch | **More → Phone features** (**Features** on a computer) |
-| ⚙️ Turn it on or off, or choose where it runs | **More → Pocket Tavern settings** |
-| 🔍 Search characters, chats, lorebooks and settings | **More → Search everything** (or <kbd>Ctrl</kbd>+<kbd>K</kbd> on a computer) |
-| ⬆️ Update Pocket Tavern, or check for a new SillyTavern | **More → Update Pocket Tavern** / **More → SillyTavern updates** |
+| 💬 Your chats, and search for anything | **Chats** (or <kbd>Ctrl</kbd>+<kbd>K</kbd> on a computer) |
+| 🔌 Connection, model, preset, samplers, formatting | **AI** |
+| 🎨 Theme (Pocket Tavern's and your SillyTavern themes) and the chat background | **Settings → Appearance** |
+| 🔤 Chat look, text size, font, layout, density, message box, chat width, animations | **Settings → Chat and layout** |
+| 🧑 Personas | **Settings → Personas** (switch persona from the message box) |
+| ⚙️ Where it runs, Use SillyTavern for now, and every helper's switch | **Settings → Pocket Tavern** |
+| ⬆️ What's new, updates, Install as an app, the guide | **Settings → About** |
 
-**Choose where it runs:** in Pocket Tavern settings, set "Use it on this device" to **Automatic** (phones and computers), **Phones only** (keeps the original SillyTavern on your computer) or **Off on this device**.
+**Choose where it runs:** in **Settings → Pocket Tavern**, set "Use it on this device" to **Automatic** (phones and computers), **Phones only** (keeps the original SillyTavern on your computer) or **Off on this device**.
 
 <details>
 <summary><b>Start SillyTavern with one tap</b> &nbsp;<sub>(Android and Termux)</sub></summary>
@@ -284,7 +303,7 @@ Yes. Pocket Tavern runs in your browser, so install it on that SillyTavern and o
 <summary><b>Everything feels too big.</b></summary>
 <br>
 
-Pick **Compact** under **More → Themes → Size**, and a smaller text size under **More → Phone features** (**Features** on a computer).
+Pick **Compact** under **Settings → Chat and layout → Density**, and a smaller **Text size** on the same page.
 
 </details>
 
@@ -292,7 +311,7 @@ Pick **Compact** under **More → Themes → Size**, and a smaller text size und
 <summary><b>Where did the tabs go?</b></summary>
 <br>
 
-In a chat they tuck away on a phone so you don't tap them by accident. Tap the arrow in the message box to bring them back, or turn off **Hide tabs in a chat** under **More → Phone features**.
+In a chat they step aside on a phone so you don't tap them by accident. Tap **‹** to go back to Chats, or the arrow in the message box to bring them back. To keep them, turn off **Hide tabs in a chat** under **Settings → Pocket Tavern**.
 
 </details>
 
@@ -300,7 +319,7 @@ In a chat they tuck away on a phone so you don't tap them by accident. Tap the a
 <summary><b>The page beside the chat is too narrow on my computer.</b></summary>
 <br>
 
-Drag its right edge to make it wider; double-click the edge to reset it. For long prompts, the prompt editor has a full-screen button next to Save.
+Drag its right edge to make it wider (up to where the chat keeps about 420px); double-click the edge to reset it. Click the place you're on to hide the panel. For long prompts, the prompt editor has a full-screen button next to Save.
 
 </details>
 
@@ -308,7 +327,7 @@ Drag its right edge to make it wider; double-click the edge to reset it. For lon
 <summary><b>Does it work with other extensions?</b></summary>
 <br>
 
-Most of them. Their panels show up under **More**, and their buttons fit into the message box. Some get special care, listed under [Compatibility](#compatibility). If one doesn't work, [tell me](#feedback).
+Most of them. Their settings are under **Settings → Extensions**, their menu items under **+** in the message box, and their buttons fit into the message box. Some get special care, listed under [Compatibility](#compatibility). If one doesn't work, [tell me](#feedback).
 
 </details>
 
@@ -316,7 +335,7 @@ Most of them. Their panels show up under **More**, and their buttons fit into th
 <summary><b>I use Guided Generations. Where did its buttons go?</b></summary>
 <br>
 
-They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **More → Phone features** (**Features** on a computer).
+They're in the guide button (the compass) next to Send. Hold it to repeat your last action. To get its own row back, turn off **Guided Generations button** under **Settings → Pocket Tavern**.
 
 </details>
 
@@ -324,7 +343,7 @@ They're in the guide button (the compass) next to Send. Hold it to repeat your l
 <summary><b>Does it work on iPhone and iPad?</b></summary>
 <br>
 
-Yes, they're supported just like Android. Safari's keyboard gets its own handling, so the bars, chat and editors stay in view while you type. An iPad held upright gets the phone layout, and held sideways the desktop layout; set the chat width under **More → Themes → Chat width**. To use it like an app, tap **Share → Add to Home Screen** in Safari.
+Yes, they're supported just like Android. Safari's keyboard gets its own handling, so the bars, chat and editors stay in view while you type. An iPad held upright gets the phone layout, and held sideways the desktop layout; set the chat width under **Settings → Chat and layout → Chat width**. To use it like an app, tap **Share → Add to Home Screen** in Safari.
 
 </details>
 
@@ -332,7 +351,7 @@ Yes, they're supported just like Android. Safari's keyboard gets its own handlin
 <summary><b>My chat background doesn't show.</b></summary>
 <br>
 
-Pocket Tavern's own themes come with their own background. Pick a background on the **Backgrounds** page and Pocket Tavern switches to yours, or turn off **Theme background** under **More → Themes**. With a background showing, the messages become tinted cards so the picture shows through them and between them, while the bars, pages, menus and message box stay solid and readable. Nothing is blurred. SillyTavern themes and **Your theme** always show your background.
+Pocket Tavern's own themes come with their own background. Pick one under **Settings → Appearance → Chat background** and Pocket Tavern switches to yours, or turn off **Theme background** under **Settings → Appearance**. With a background showing, the messages become tinted cards so the picture shows through them and between them, while the bars, pages, menus and message box stay solid and readable. Nothing is blurred. SillyTavern themes and **Your theme** always show your background.
 
 </details>
 
@@ -340,7 +359,7 @@ Pocket Tavern's own themes come with their own background. Pick a background on 
 <summary><b>Where did SillyTavern's UI Theme list go?</b></summary>
 <br>
 
-It moved to **More → Themes → From SillyTavern**. Every SillyTavern theme you have (and any you import there) shows up as a card. Its message cards use its own **User Message** and **AI Message** colours, and over your background it keeps its text shadow too, with the text kept readable (Pocket Tavern doesn't blur anything). **Your theme** uses SillyTavern's colors exactly as they are, and **Settings → Look → Theme Colors** changes it.
+It moved to **Settings → Appearance → From SillyTavern**. Every SillyTavern theme you have (and any you import there) shows up as a card. Its message cards use its own **User Message** and **AI Message** colours, and over your background it keeps its text shadow too, with the text kept readable (Pocket Tavern doesn't blur anything). **Your theme** uses SillyTavern's colors exactly as they are, and **Settings → Look → Theme Colors** changes it.
 
 Pocket Tavern's chat look (cards, bubbles, flat) needs SillyTavern's Chat Style on **Flat**, and picking a look sets that for you. One of Pocket Tavern's own themes does too, so a SillyTavern theme's Bubbles (Cappuccino, Azure) no longer shows through it; picking a SillyTavern theme again, or turning Pocket Tavern off, brings your old Chat Style back.
 
@@ -350,7 +369,7 @@ Pocket Tavern's chat look (cards, bubbles, flat) needs SillyTavern's Chat Style 
 <summary><b>I don't want it on my computer.</b></summary>
 <br>
 
-In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
+In **Settings → Pocket Tavern**, set "Use it on this device" to **Phones only**, or use **Use SillyTavern for now** for this visit only.
 
 </details>
 
@@ -366,11 +385,12 @@ In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
 | **Computers** (Windows, macOS, Linux) | ✅ Desktop layout, in any up-to-date browser |
 | **Guided Generations** | ✅ One guide button with a menu that explains every action |
 | **Input History, Quick Replies** | ✅ Input History sits in the text field; quick replies are slim chips |
-| **Moonlit Echoes** | ✅ Keep **Themes** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style**. Switches and page layouts keep Pocket Tavern's shape |
-| **ScenePulse** | ✅ Opens from the wand (**Tools**) on a phone |
+| **Moonlit Echoes** | ✅ Keep **Settings → Appearance** on **Your theme**, and pick its chat styles under **Settings → Look → Chat Style**. Switches and page layouts keep Pocket Tavern's shape |
+| **ScenePulse** | ✅ Opens from **+ → Tools** on a phone |
 | **Chat Completion Tabs** | ✅ Its tabs match Pocket Tavern's and stay at the top of Presets as you scroll |
 | **Chat Top Bar** | ✅ Its bar sits at the top of the chat, also with Moonlit Echoes |
-| **Character Library** | ✅ Its embedded panel opens from **More** and fits between Pocket Tavern's bars; Back closes it |
+| **Character Library** | ✅ Its embedded panel fits between Pocket Tavern's bars; Back closes it |
+| **Message Summarize** (Qvink Memory) | ✅ Summaries sit under the message text; its buttons are a Summary group in the message's ⋯ |
 | **Other extensions** | Work alongside it |
 
 ## Privacy
@@ -379,7 +399,7 @@ In Pocket Tavern settings, set "Use it on this device" to **Phones only**.
 > - Pocket Tavern only changes how SillyTavern looks. Your characters, chats, lorebooks and SillyTavern theme are never changed.
 > - Its settings are saved with your SillyTavern settings. Unsent messages and the page width you choose on a computer stay in your browser.
 > - **Translate** sends chat text to Google Translate straight from your browser, or, if you picked another service in SillyTavern's Chat Translation, to that service through your SillyTavern server.
-> - **More → SillyTavern updates** asks GitHub for the newest SillyTavern version when you open it. Nothing else is sent anywhere.
+> - **Settings → About → SillyTavern updates** asks GitHub for the newest SillyTavern version when you open it. Nothing else is sent anywhere.
 
 <br>
 

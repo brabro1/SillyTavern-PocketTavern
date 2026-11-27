@@ -806,12 +806,19 @@ export async function installApp() {
 
 // -- what's new
 
+/** "3.0.0-beta.2" → [3, 0, 0, 2]; a release ("3.0.0") gets Infinity last, so it comes after its betas. */
+function versionParts(version) {
+    const [core, pre] = String(version).split('-');
+    const parts = core.split('.').map(part => Number(part) || 0);
+    return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0, pre ? Number(pre.replace(/\D+/g, '')) || 0 : Infinity];
+}
+
+/** Above 0 when `a` is newer than `b`, below 0 when older, 0 when the same. */
 function compareVersions(a, b) {
-    const pa = String(a).split('.').map(Number);
-    const pb = String(b).split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-        const diff = (pa[i] || 0) - (pb[i] || 0);
-        if (diff) return diff;
+    const pa = versionParts(a);
+    const pb = versionParts(b);
+    for (let i = 0; i < 4; i++) {
+        if (pa[i] !== pb[i]) return pa[i] > pb[i] ? 1 : -1;
     }
     return 0;
 }

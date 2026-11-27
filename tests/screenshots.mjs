@@ -49,7 +49,15 @@ const closeSheet = async () => {
 const tab = async id => {
     await page.evaluate(want => document.querySelector(`.pt-tab[data-tab="${want}"]`).click(), id);
     if (id === 'chat') await until(() => !document.documentElement.dataset.ptPage);
-    else await until(want => document.documentElement.dataset.ptPage === want, id);
+    else {
+        // A place reopens the page you left it on: ‹ goes back to the place's root.
+        await until(() => !!document.documentElement.dataset.ptPage);
+        for (let i = 0; i < 4 && await page.evaluate(want => document.documentElement.dataset.ptPage !== want, id); i++) {
+            await page.evaluate(() => document.querySelector('#pt-appbar .pt-ab-back')?.click());
+            await page.waitForTimeout(500);
+        }
+        await until(want => document.documentElement.dataset.ptPage === want, id);
+    }
     await settle();
 };
 const openThemes = async () => {
@@ -69,8 +77,22 @@ const setTheme = async theme => {
     await settle(1000);
     await leaveThemes();
 };
+/** AI → Samplers (SillyTavern's preset page). */
+const openSamplers = async () => {
+    await tab('pt-ai');
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Samplers')?.click());
+    await until(() => document.documentElement.dataset.ptPage === 'ai-config-button');
+    await settle();
+};
+/** Settings → Chat and layout (the chat look, text size, layout, density, message box, animations). */
+const openChatLayout = async () => {
+    await tab('pt-settings');
+    await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Chat and layout')?.click());
+    await until(() => !!document.querySelector('#pt-page .pt-segments[aria-label="Chat look"]'));
+    await settle();
+};
 const setLook = async label => {
-    await openThemes();
+    await openChatLayout();
     await page.locator('#pt-page .pt-segments[aria-label="Chat look"] .pt-segment', { hasText: label }).click();
     await settle();
     await leaveThemes();
@@ -120,8 +142,9 @@ const guideButtonWasOn = await page.evaluate(() => {
     return true;
 });
 
-// A known starting point: SillyTavern's own colors and the Cards look.
-await setTheme('st');
+// A known starting point: Pocket Tavern's default theme (Pocket) and the Cards look. The theme in use is put back at the end.
+const themeBefore = await page.evaluate(() => SillyTavern.getContext().extensionSettings.mobileUI.theme);
+await setTheme('pocket');
 await setLook('Cards');
 await openDemoChat();
 
@@ -215,14 +238,13 @@ if (want('characters')) {
     await tab('chat');
 }
 
-if (want('character-sheet')) {
+if (want('character-page')) {
     await tab('rightNavHolder');
     await page.evaluate(() => document.getElementById('rm_button_characters')?.click());
     await until(() => document.querySelector('#rm_print_characters_block .character_select'));
     await page.evaluate(() => [...document.querySelectorAll('#rm_print_characters_block .character_select')].find(row => row.querySelector('.ch_name')?.textContent.trim() === 'Seraphina')?.click());
-    await until(() => document.querySelector('#pt-sheet .pt-cs-chat .pt-bubble'));
-    await shot('character-sheet');
-    await closeSheet();
+    await until(() => document.getElementById('pt-page')?.dataset.page === 'pt-character' && !!document.querySelector('#pt-page .pt-chat-row'));
+    await shot('character-page');
     await tab('chat');
 }
 
@@ -296,11 +318,7 @@ if (want('lorebook-entries')) {
 }
 
 if (want('presets')) {
-    await tab('ai-config-button');
-    await page.evaluate(() => {
-        const first = [...document.querySelectorAll('.pt-step-wrap, .range-block-counter.pt-stepper')].find(el => el.offsetParent);
-        first?.closest('.flex-container, .range-block')?.scrollIntoView({ block: 'start' });
-    });
+    await openSamplers();
     await shot('presets');
     await tab('chat');
 }
@@ -316,7 +334,7 @@ if (want('prompt-editor')) {
     try {
         await setApi('openai');
         await page.waitForTimeout(800);
-        await tab('ai-config-button');
+        await openSamplers();
         await until(() => document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action'));
         await page.evaluate(() => document.querySelector('#completion_prompt_manager_list .prompt-manager-edit-action').click());
         await until(() => document.documentElement.classList.contains('pt-prompt-editor'));
@@ -380,7 +398,7 @@ if (want('glass')) {
     await page.evaluate(value => { SillyTavern.getContext().extensionSettings.mobileUI.themeBackdrop = value; SillyTavern.getContext().saveSettingsDebounced(); }, backdrop);
 }
 
-await setTheme('st');
+await setTheme('pocket');
 
 if (want('recent')) {
     await page.locator('#pt-appbar .pt-ab-back').click();
@@ -415,7 +433,7 @@ if (want('desktop')) {
         await context.selectCharacterById(String(context.characters.findIndex(item => item.name === 'Seraphina')));
     });
     await tabPage.waitForTimeout(2000);
-    await tabPage.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-ai"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Presets')?.click(); });
+    await tabPage.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-ai"]').click(); });
     await tabPage.waitForTimeout(1200);
     await tabPage.evaluate(() => document.getElementById('chat').scrollTo(0, 1e9));
     await tabPage.evaluate(() => document.getAnimations().forEach(animation => { try { animation.finish(); } catch {} }));
@@ -472,5 +490,6 @@ if (guideButtonWasOn) {
     await page.evaluate(() => document.getElementById('pt_ggbutton')?.click());
     await page.waitForTimeout(2500);
 }
+if (themeBefore && themeBefore !== 'pocket') await setTheme(themeBefore);
 await browser.close();
 console.log('\nDone. Check the pictures, then run node brand.mjs to redraw the banner if chat, settings or characters changed.');

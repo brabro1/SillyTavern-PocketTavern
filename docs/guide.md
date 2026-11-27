@@ -1,7 +1,7 @@
 # Getting around Pocket Tavern
 
 > [!NOTE]
-> This guide describes **Pocket Tavern 3.0**, which is being built now. For the version you have installed, see the [README](../README.md#where-to-find-things).
+> This guide describes **Pocket Tavern 3.0** (in beta on the `3.0` branch). Coming from 2.x? The table at the end shows where everything went.
 
 Pocket Tavern has **five places**. Everything you can do lives in exactly one of them, and they are the same on a phone and on a computer.
 
@@ -60,7 +60,7 @@ Pocket Tavern has **five places**. Everything you can do lives in exactly one of
 - **Click the place you're on** again to hide the panel and give the chat the whole window. **Drag the panel's edge** to make it wider or narrower.
 - Author's Note, CFG and token probabilities open in a column on the right.
 - Message buttons stay faint until you point at a message.
-- **On a tablet or a small laptop**, choose the layout yourself under **Settings → Appearance → Layout**: Automatic, Phone or Desktop. Desktop needs a window at least 768 pixels wide.
+- **On a tablet or a small laptop**, choose the layout yourself under **Settings → Chat and layout → Layout**: Automatic, Phone or Desktop. Desktop needs a window at least 768 pixels wide.
 - **Keyboard:**
   - <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on a Mac) searches everything: characters, chats, lorebooks, settings and the five places.
   - <kbd>Esc</kbd> closes the top menu or dialog, then goes back in the panel.
@@ -89,7 +89,8 @@ If Pocket Tavern itself runs into a problem, it steps aside by itself: SillyTave
 | More → Formatting | **AI** → Formatting (or Prompts) |
 | More → Quick switch | Persona: the message box. Model, preset, connection: **AI** |
 | More → Personas | **Settings → Personas** (switch from the message box) |
-| More → Themes, More → Backgrounds | **Settings → Appearance** |
+| More → Themes, More → Backgrounds | **Settings → Appearance** (themes and the chat background) |
+| More → Themes → Size, Message box, Chat look, Animations; Text size | **Settings → Chat and layout** |
 | More → Extensions | **Settings → Extensions** |
 | More → Phone features / Features, More → Pocket Tavern settings | **Settings → Pocket Tavern** |
 | More → Search everything | The search at the top of **Chats** (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> on a computer) |
@@ -100,5 +101,5 @@ If Pocket Tavern itself runs into a problem, it steps aside by itself: SillyTave
 | More → What's new, updates, Install as an app | **Settings → About** |
 | ☰ and the wand in the message box | **`+`** in the message box |
 | The ^ button that showed the tabs in a chat | Tap **‹** to go back. The tabs are there |
-| −/+ next to slider numbers | Tap the number to type it, or drag the slider |
+| −/+ next to slider numbers | Tap the number to type it, or drag the slider (**Settings → Pocket Tavern → − and + beside sliders** brings them back) |
 | Docs, GitHub and Discord on the start screen | **Settings → About** |

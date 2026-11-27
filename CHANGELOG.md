@@ -1,5 +1,52 @@
 # Changelog
 
+## 3.0.0-beta.1
+
+The first beta of Pocket Tavern 3.0: a rebuild with one map of five places, one set of components, and a safer start. It answers GitHub issues #9 (one design language), #10 (panel locks), #11 (repeated navigation buttons), #12 (− and + beside sliders) and #13 (a wider panel on a computer). Install it from the `3.0` branch to try it; 2.28.1 stays the release on `main` until 3.0.0.
+
+### Both
+
+- **Five places.** Chats, Characters, Lorebooks, AI and Settings, on the tab bar on a phone and the rail on a computer. Everything lives in exactly one place, and **More** is gone. The guide has a table of where each 2.x item went ([docs/guide.md](docs/guide.md#where-did-it-go-coming-from-2x)).
+- **Chats is the home.** Your pinned and recent chats, grouped by character, with the Assistant at the top, and one search for chats, characters, lorebooks, settings and the places themselves (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> on a computer). It replaces SillyTavern's start screen and its navigation buttons (#11).
+- **The chat.** The header is ‹, the character's picture and name, and ⋯. ⋯ holds what belongs to the chat: Search this chat, Translate chat, Rename, Save checkpoint, Convert to group, Chat files and Delete messages. **+** in the message box replaces SillyTavern's ☰ and wand: the Draft helper (Enhance my draft, Write for me, Continue my draft), Reply (Regenerate, Continue, Impersonate, Attach a file) and Tools (Author's Note, CFG, Token probabilities and what other extensions add). Problems show as a banner under the header ("Not connected" with **Fix**), and placeholder messages show while a chat loads.
+- **Characters.** A Filter sheet for favourites, groups and tags, a Favorites row, and a menu on each card (long-press, or right-click on a computer). Each character has a page with their chats, **Chat**, **New chat** and **Edit**, and links to their lorebook and tags. Editing a card no longer opens the character's chat. The A–Z strip is gone, and the list fills its space.
+- **AI.** A status card says whether you're connected and to what; under it are your preset, Connection settings, Samplers and Formatting. A small dot on the AI tab means something needs a look. In Formatting, Instruct mode and the System prompt each have a plain switch row at the top instead of SillyTavern's small ⏻ button, and with Chat Completion a note says what is greyed out and leads to the Prompts.
+- **Lorebooks.** Its own place: the lorebooks that are on in every chat, activation settings, new and import, and every lorebook as a row that opens its entries.
+- **Settings.** A short list: **Appearance** (the chat background first, then Pocket Tavern's themes and your SillyTavern themes), **Chat and layout** (chat look, text size, reading font, avatar shape, icons, layout, density, message box and animations), **Personas**, **SillyTavern**, **Extensions**, **Pocket Tavern** (where it runs, Use SillyTavern for now, and every switch in groups) and **About** (version, What's new, updates, Install as an app, the guide). Every switch from 2.x is still there.
+- **− and + beside sliders** (#12) are now a switch, off by default: tap a number to type it, or drag the slider. Settings → Pocket Tavern → − and + beside sliders brings them back.
+- **SillyTavern's panel locks** (#10) are hidden while Pocket Tavern is on. They did nothing here, because every page opens from the tab bar or the rail.
+- **Fails back to SillyTavern.** If something in Pocket Tavern goes wrong, it stops for this visit: SillyTavern's own screens show, with one note that your chats are safe and a **Back to Pocket Tavern** button. **Settings → Pocket Tavern → Use SillyTavern for now** does the same on purpose. Turning Pocket Tavern off leaves SillyTavern exactly as it was.
+- **Message Summarize** (qvink's Qvink Memory): its summary sits under the message text in Pocket Tavern's cards, its editor and progress bar match the look, and its four buttons are a Summary group in the message's ⋯ with a short name and a line on what each does.
+- **The Draft helper** is built in (from the Draft Enhancer extension): Enhance my draft, Write for me and Continue my draft in +, with its own settings page.
+
+### Phone
+
+- **The tab bar** is always at the bottom outside a chat. In a chat the tabs step aside; ‹ goes back to Chats, and the arrow in the message box still brings the tabs back if **Hide tabs in a chat** is on.
+- **Layout** (Settings → Chat and layout): Automatic, Phone or Desktop. Automatic gives phones the phone layout and computers and tablets held sideways the desktop layout.
+
+### Desktop
+
+- **The rail** on the left has the five places. A place opens in the **panel** beside the chat; click the place you're on to hide the panel. The panel can now be dragged wide enough to leave the chat only about 420px (#13).
+- **The docked message box** runs along the whole chat area as one bar.
+- <kbd>Esc</kbd> goes back one step at a time: the top menu, the chat search, an open lorebook entry, a tool panel, then the page.
+
+### For theme and extension authors
+
+Pocket Tavern's names changed from `stmui` to `pt`. If your CSS or extension targets Pocket Tavern, rename:
+
+| 2.x | 3.0 |
+|---|---|
+| `html.stmui-on` | `html.pt-on` |
+| `html.stmui-wide` | `html.pt-desktop` (and `html.pt-phone` on the phone layout; exactly one is on) |
+| `html.stmui-shell`, `html.stmui-chat` | `html.pt-shell`, `html.pt-chat`; `html.pt-in-chat` is on while a chat is open |
+| `stmui-touch`, `-compact`, `-docked`, `-glass`, `-rtl`, `-ios-kb`, `-motion-off`, … | `pt-touch`, `pt-compact`, `pt-docked`, `pt-glass`, `pt-rtl`, `pt-ios-kb`, `pt-motion-off`, … |
+| `.stmui-*`, `#stmui-*`, `#stmui_*`, `data-stmui-*` | `.pt-*`, `#pt-*`, `#pt_*`, `data-pt-*` |
+| `--stmui-surface`, `--stmui-line` and the other token aliases | removed: use the tokens (`--pt-bg`, `--pt-border`, …) |
+| other `--stmui-*` variables | `--pt-*` |
+| `stmui_*` keys in the browser's storage | `pt_*` (copied once; the old keys stay, so 2.x still works) |
+
+Pocket Tavern's settings stay under `extension_settings.mobileUI`, so nothing is lost when you update or go back to 2.x.
+
 ## 2.28.1
 
 Fixes for GitHub issues #6, #7 and #8.
