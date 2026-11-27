@@ -654,7 +654,6 @@ export default {
     "Use it on this device": "Usar neste dispositivo",
     "System": "Sistema",
     "SillyTavern's": "O do SillyTavern",
-    "Theme, chat look, text and layout": "Tema, visual da conversa, texto e layout",
     "Your SillyTavern colors": "Suas cores do SillyTavern",
     "Pocket Tavern themes": "Temas do Pocket Tavern",
     "Use the theme's backdrop instead of your chat background.": "Usa o fundo do tema em vez do fundo da sua conversa.",
@@ -955,4 +954,8 @@ export default {
     "Change the summary by hand": "Mudar o resumo à mão",
     "Summarize again": "Resumir de novo",
     "Ask the AI for a new summary of this message": "Pedir à IA um novo resumo desta mensagem",
+    // Settings: Appearance and Chat and layout
+    "Themes and chat background": "Temas e fundo do chat",
+    "Chat and layout": "Chat e layout",
+    "Chat look, text, layout and motion": "Visual do chat, texto, layout e animação",
 };

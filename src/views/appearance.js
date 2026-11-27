@@ -107,11 +107,16 @@ function themeCard({ id, colors, name, note, selected, onPick }) {
 export function appearancePage(actions) {
     return {
         title: 'Appearance',
-        long: 'Theme, chat look, text and layout',
+        long: 'Themes and chat background',
         icon: 'palette',
         render: body => {
-            body.append(filterField(body));
             const current = actions.theme();
+
+            // The chat background first: the thing people change most here.
+            body.append(listGroup({ rows: [
+                listRow({ title: 'Chat background', subtitle: 'Pictures behind the chat', icon: 'image', onClick: actions.openBackgrounds }),
+                listRow({ title: 'Theme background', subtitle: "Use the theme's backdrop instead of your chat background.", end: 'toggle', checked: !!actions.get('themeBackdrop'), onToggle: on => actions.set('themeBackdrop', on) }),
+            ] }));
 
             // Themes: Pocket Tavern's own, then SillyTavern's made to fit.
             const own = h('div', { class: 'pt-themes' }, THEMES.map(theme => themeCard({
@@ -136,12 +141,27 @@ export function appearancePage(actions) {
             body.append(h('section', { class: 'pt-list-section' }, [h('div', { class: 'pt-list-header', text: 'Pocket Tavern themes' }), own]));
             body.append(h('section', { class: 'pt-list-section' }, [h('div', { class: 'pt-list-header', text: 'From SillyTavern' }), fromSt, stNote]));
             const themeRows = [
-                listRow({ title: 'Theme background', subtitle: "Use the theme's backdrop instead of your chat background.", end: 'toggle', checked: !!actions.get('themeBackdrop'), onToggle: on => actions.set('themeBackdrop', on) }),
                 listRow({ title: "SillyTavern's Custom CSS", subtitle: "Also use the Custom CSS from SillyTavern's settings with Pocket Tavern's themes. A SillyTavern theme puts its own CSS there.", end: 'toggle', checked: !!actions.get('stCustomCss'), onToggle: on => actions.set('stCustomCss', on) }),
-                listRow({ title: 'Chat background', subtitle: 'Pictures behind the chat', icon: 'image', onClick: actions.openBackgrounds }),
             ];
-            if (actions.importTheme) themeRows.splice(1, 0, listRow({ title: 'Import a SillyTavern theme', subtitle: 'A theme file (.json) from SillyTavern', icon: 'file-import', onClick: () => actions.importTheme(() => { if (fromSt.isConnected) drawSt(); }) }));
+            if (actions.importTheme) themeRows.unshift(listRow({ title: 'Import a SillyTavern theme', subtitle: 'A theme file (.json) from SillyTavern', icon: 'file-import', onClick: () => actions.importTheme(() => { if (fromSt.isConnected) drawSt(); }) }));
             body.append(listGroup({ rows: themeRows }));
+        },
+    };
+}
+
+/**
+ * Chat and layout (Settings → Chat and layout): how the chat looks and the app is laid out, apart from the themes so
+ * neither page is a long scroll (DESIGN.md → Settings). Takes the same actions as appearancePage.
+ * @param {object} actions see appearancePage
+ * @returns {import('../shell/page.js').PageSpec}
+ */
+export function displayPage(actions) {
+    return {
+        title: 'Chat and layout',
+        long: 'Chat look, text, layout and motion',
+        icon: 'chat',
+        render: body => {
+            body.append(filterField(body));
 
             // The chat.
             const look = actions.chatLook();

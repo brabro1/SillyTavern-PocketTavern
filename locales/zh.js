@@ -654,7 +654,6 @@ export default {
     "Use it on this device": "在此设备上使用",
     "System": "系统",
     "SillyTavern's": "SillyTavern 的",
-    "Theme, chat look, text and layout": "主题、聊天外观、文字和布局",
     "Your SillyTavern colors": "你的 SillyTavern 配色",
     "Pocket Tavern themes": "Pocket Tavern 主题",
     "Use the theme's backdrop instead of your chat background.": "使用主题自带的背景而不是你的聊天背景。",
@@ -955,4 +954,8 @@ export default {
     "Change the summary by hand": "手动修改摘要",
     "Summarize again": "重新摘要",
     "Ask the AI for a new summary of this message": "让 AI 重新为这条消息写摘要",
+    // Settings: Appearance and Chat and layout
+    "Themes and chat background": "主题和聊天背景",
+    "Chat and layout": "聊天和布局",
+    "Chat look, text, layout and motion": "聊天外观、文字、布局和动画",
 };

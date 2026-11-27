@@ -74,9 +74,9 @@ for (const layout of ['phone', 'desktop']) {
         await openSettings(page);
         await page.screenshot({ path: `${OUT}/${layout}-hub.png` });
 
-        await step('the hub: Appearance, Personas, SillyTavern, Extensions, then Pocket Tavern and About', async () => {
+        await step('the hub: Appearance, Chat and layout, Personas, SillyTavern, Extensions, then Pocket Tavern and About', async () => {
             const titles = await page.evaluate(rowTitles);
-            const order = ['Appearance', 'Personas', 'SillyTavern', 'Extensions', 'Pocket Tavern', 'About'].map(title => titles.indexOf(title));
+            const order = ['Appearance', 'Chat and layout', 'Personas', 'SillyTavern', 'Extensions', 'Pocket Tavern', 'About'].map(title => titles.indexOf(title));
             if (order.some(at => at === -1) || order.some((at, i) => i && at < order[i - 1])) throw new Error(JSON.stringify(titles));
         });
 
@@ -90,7 +90,17 @@ for (const layout of ['phone', 'desktop']) {
             await waitFor(page, 'the theme picked', want => SillyTavern.getContext().extensionSettings.mobileUI.theme === want && document.querySelector('#pt-page .pt-theme-on')?.dataset.theme === want, other);
         });
 
-        await step('Appearance: Text size is a segmented control that saves at once', async () => {
+        await step('Appearance starts with the chat background and holds only themes; the rest is on Chat and layout', async () => {
+            const look = await page.evaluate(() => ({
+                first: document.querySelector('#pt-page .pt-list-row-title')?.textContent,
+                choices: [...document.querySelectorAll('#pt-page .pt-choice-setting .pt-list-header')].map(node => node.textContent),
+            }));
+            if (look.first !== 'Chat background' || look.choices.length) throw new Error(JSON.stringify(look));
+            await back(page, phone);
+            await openOwn(page, 'Chat and layout', 'pt-display');
+        });
+
+        await step('Chat and layout: Text size is a segmented control that saves at once', async () => {
             const next = saved.textSize === 'large' ? 'normal' : 'large';
             const group = page.locator('#pt-page .pt-choice-setting', { hasText: 'Text size' });
             await group.locator(`.pt-segment[data-value="${next}"]`).click();

@@ -230,11 +230,13 @@ Phone                                  Desktop
 
 ### Settings inventory
 
-Every settings page (Appearance, Pocket Tavern, About) starts with a filter field ("Filter settings"). Typing hides the rows and groups that don't match; "Nothing matches that." shows when none do.
+Every long settings page (Chat and layout, Pocket Tavern, About) starts with a filter field ("Filter settings"). Typing hides the rows and groups that don't match; "Nothing matches that." shows when none do.
 
-- **Appearance:**
-  - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, Theme background (switch), SillyTavern's Custom CSS (switch, off: with a Pocket Tavern theme it is set aside, because a SillyTavern theme writes its own CSS there)
+- **Appearance** (themes and the background only, so it never needs a long scroll):
+  - Chat background (opens Backgrounds) and Theme background (switch), first
+  - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, SillyTavern's Custom CSS (switch, off: with a Pocket Tavern theme it is set aside, because a SillyTavern theme writes its own CSS there)
   - **A Pocket Tavern theme owns the look.** Whatever SillyTavern theme was on before (or is picked later in SillyTavern's own settings), none of it shows through: its colours, checkbox colour, font scale, blur, text-shadow switch, Chat Style (a theme switching it is put back on Flat; one you pick by hand stays) and Custom CSS. Picking "Your theme" or one of SillyTavern's themes in Appearance brings them back. A new install starts on the Pocket theme
+- **Chat and layout** (everything else about how it looks):
   - Chat look (Cards, Bubbles, Flat)
   - Text size (Small, Normal, Large, Extra large)
   - Reading font (System, SillyTavern's): the 2.x Modern font switch, renamed
@@ -244,7 +246,6 @@ Every settings page (Appearance, Pocket Tavern, About) starts with a filter fiel
   - Density (Automatic, Comfortable, Compact)
   - Message box (Floating, Docked)
   - Chat width (desktop)
-  - Chat background (opens Backgrounds)
   - SillyTavern's look (opens Settings → SillyTavern → Look: avatar shape, font scale and the rest)
   - Animations (Smooth, Light, Off); the OS's Reduce motion is always honoured
 - **Pocket Tavern:**
@@ -593,7 +594,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **The AI tab** shows a small warning dot while nothing is connected.
 
 ### Settings
-- Rows: **Appearance**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.
+- Rows: **Appearance**, **Chat and layout**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.
 - SillyTavern's own look section is part of Appearance, with the controls Pocket Tavern overrides hidden (UI theme colours, blur, Chat Style).
 - Each settings page has its own filter field.
 

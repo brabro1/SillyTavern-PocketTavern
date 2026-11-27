@@ -248,7 +248,7 @@ await step('there is no More: Settings and AI list their rows', async () => {
         return page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-list-row-title')].map(node => node.textContent));
     };
     const settings = await rows('pt-settings');
-    for (const want of ['Appearance', 'Personas', 'SillyTavern', 'Extensions', 'Pocket Tavern', 'About']) {
+    for (const want of ['Appearance', 'Chat and layout', 'Personas', 'SillyTavern', 'Extensions', 'Pocket Tavern', 'About']) {
         if (!settings.includes(want)) throw new Error(`Settings has no "${want}"`);
     }
     const ai = await rows('pt-ai');
@@ -1358,7 +1358,7 @@ await step('a theme gives way to the background you pick, every theme shows it u
         await until(() => !document.documentElement.dataset.ptTheme);
         // SillyTavern's Bubbles style pauses the chat look; picking one puts Chat Style back on Flat.
         await setPref('chat_display', '1');
-        await openThemesSheet();
+        await placeRow(page, 'pt-settings', 'Chat and layout', 'pt-display');
         const paused = await page.evaluate(() => {
             const group = document.querySelector('#pt-page .pt-segments[aria-label="Chat look"]').closest('.pt-choice-setting');
             return {

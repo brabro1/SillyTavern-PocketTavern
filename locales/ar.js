@@ -654,7 +654,6 @@ export default {
     "Use it on this device": "استخدامه على هذا الجهاز",
     "System": "النظام",
     "SillyTavern's": "خط SillyTavern",
-    "Theme, chat look, text and layout": "السمة ومظهر المحادثة والنص والتخطيط",
     "Your SillyTavern colors": "ألوان SillyTavern الخاصة بك",
     "Pocket Tavern themes": "سمات Pocket Tavern",
     "Use the theme's backdrop instead of your chat background.": "استخدم خلفية السمة بدل خلفية محادثتك.",
@@ -955,4 +954,8 @@ export default {
     "Change the summary by hand": "تغيير الملخص يدويًا",
     "Summarize again": "التلخيص مرة أخرى",
     "Ask the AI for a new summary of this message": "طلب ملخص جديد لهذه الرسالة من الذكاء الاصطناعي",
+    // Settings: Appearance and Chat and layout
+    "Themes and chat background": "السمات وخلفية المحادثة",
+    "Chat and layout": "المحادثة والتخطيط",
+    "Chat look, text, layout and motion": "شكل المحادثة والنص والتخطيط والحركة",
 };

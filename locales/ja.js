@@ -654,7 +654,6 @@ export default {
     "Use it on this device": "このデバイスで使う",
     "System": "システム",
     "SillyTavern's": "SillyTavern のもの",
-    "Theme, chat look, text and layout": "テーマ、チャットの見た目、文字、レイアウト",
     "Your SillyTavern colors": "あなたの SillyTavern の色",
     "Pocket Tavern themes": "Pocket Tavern のテーマ",
     "Use the theme's backdrop instead of your chat background.": "チャット背景の代わりにテーマの背景を使います。",
@@ -955,4 +954,8 @@ export default {
     "Change the summary by hand": "要約を手で書き換えます",
     "Summarize again": "もう一度要約",
     "Ask the AI for a new summary of this message": "このメッセージの新しい要約を AI に頼みます",
+    // Settings: Appearance and Chat and layout
+    "Themes and chat background": "テーマとチャットの背景",
+    "Chat and layout": "チャットとレイアウト",
+    "Chat look, text, layout and motion": "チャットの見た目、文字、レイアウト、動き",
 };

@@ -32,7 +32,7 @@ import { AI_PAGES, aiPage } from '../views/ai.js';
 import { showBackPill } from '../shell/native.js';
 import { restartAll } from '../core/lifecycle.js';
 import { SETTINGS_OWN_PAGES, SETTINGS_PAGES, settingsPage } from '../views/settings.js';
-import { appearancePage } from '../views/appearance.js';
+import { appearancePage, displayPage } from '../views/appearance.js';
 import { DEVICE_MODES, pocketTavernPage } from '../views/pocket-tavern.js';
 import { aboutPage } from '../views/about.js';
 import { LOREBOOK_PAGE, lorebooksPage } from '../views/lorebooks.js';
@@ -6491,7 +6491,7 @@ function registerOwnPages() {
         importBook: () => document.getElementById('world_import_button')?.click(),
         openBook: openLorebook,
     }));
-    definePage('pt-appearance', appearancePage({
+    const appearanceActions = {
         get: key => settings[key],
         set: (key, value, origin) => setAppearance(key, value, origin),
         theme: () => (findTheme(settings.theme) || String(settings.theme).startsWith('st:')) ? String(settings.theme) : 'st',
@@ -6512,7 +6512,9 @@ function registerOwnPages() {
         setAvatarShape: value => { const select = document.getElementById('avatar_style'); if (select && select.value !== value) $j()(select).val(value).trigger('change'); },
         openBackgrounds: () => openPage('backgrounds-button'),
         openSillyTavernLook: () => openSillyTavernSection('look'),
-    }));
+    };
+    definePage('pt-appearance', appearancePage(appearanceActions));
+    definePage('pt-display', displayPage(appearanceActions));
     definePage('pt-pocket', pocketTavernPage({
         get: key => !!settings[key],
         set: setSwitch,

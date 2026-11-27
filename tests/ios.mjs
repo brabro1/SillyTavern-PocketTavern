@@ -122,8 +122,8 @@ for (const device of ['iPad Pro 11 landscape', 'iPad Pro 11', 'iPad Mini landsca
         return `: ${l.vw}x${l.vh}, ${wide ? 'desktop layout' : 'phone layout'}, chat ${col}px`;
     });
     if (device === 'iPad Pro 11 landscape') {
-        await check('iPad landscape: Chat width slider in Appearance changes the chat', async () => {
-            await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Appearance')?.click(); });
+        await check('iPad landscape: Chat width slider in Chat and layout changes the chat', async () => {
+            await page.evaluate(() => { document.querySelector('.pt-tab[data-tab="pt-settings"]').click(); [...document.querySelectorAll('#pt-page .pt-list-row')].find(row => row.querySelector('.pt-list-row-title')?.textContent === 'Chat and layout')?.click(); });
             await page.waitForTimeout(600);
             const before = await page.evaluate(() => Math.round(document.getElementById('sheld').getBoundingClientRect().width));
             const s = await page.evaluate(async () => {
