@@ -18,6 +18,14 @@ export const TOASTS = '#toast-container';
 /** The top-bar drawer that is open as a page. */
 export const OPEN_PAGE = '#top-settings-holder > .drawer > .drawer-content.openDrawer';
 
+// ---- Popups SillyTavern draws as plain boxes (Back closes them) ---------------------------------
+
+export const PROMPT_MANAGER_POPUP = '#completion_prompt_manager_popup';
+export const CHAT_HISTORY_POPUP = '#shadow_select_chat_popup';
+export const CHAT_HISTORY_CLOSE = '#select_chat_cross';
+export const CHARACTER_POPUP = '#character_popup';
+export const CHARACTER_POPUP_CLOSE = '#character_cross';
+
 // ---- Chat ----------------------------------------------------------------------------------------
 
 /** The chat's scroll container; SillyTavern empties it when a chat loads. */
