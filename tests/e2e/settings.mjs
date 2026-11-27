@@ -70,7 +70,7 @@ for (const layout of ['phone', 'desktop']) {
         await page.waitForFunction(() => document.documentElement.classList.contains('pt-on') && SillyTavern.getContext().characters.length, null, { timeout: 60000 });
         await page.waitForTimeout(5000);
         await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
-        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, textSize: s.textSize, jumpButton: s.jumpButton }; });
+        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, textSize: s.textSize ?? 'normal', jumpButton: s.jumpButton }; });
         await openSettings(page);
         await page.screenshot({ path: `${OUT}/${layout}-hub.png` });
 

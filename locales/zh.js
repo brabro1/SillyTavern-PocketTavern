@@ -958,4 +958,6 @@ export default {
     "Themes and chat background": "主题和聊天背景",
     "Chat and layout": "聊天和布局",
     "Chat look, text, layout and motion": "聊天外观、文字、布局和动画",
+    // A message's menu
+    "This message is no longer in the chat.": "这条消息已不在聊天中。",
 };

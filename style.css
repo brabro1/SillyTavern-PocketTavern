@@ -27,8 +27,12 @@
 @import url("styles/views/settings.css");
 @import url("styles/views/draft.css");
 @import url("styles/views/picture-viewer.css");
+@import url("styles/views/chat-finder.css");
+@import url("styles/views/context-ring.css");
+@import url("styles/views/persona-sheet.css");
 @import url("styles/st/message-box.css");
 @import url("styles/st/chat.css");
+@import url("styles/st/chat-history.css");
 @import url("styles/st/characters.css");
 @import url("styles/st/ai.css");
 @import url("styles/st/settings.css");

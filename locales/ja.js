@@ -958,4 +958,6 @@ export default {
     "Themes and chat background": "テーマとチャットの背景",
     "Chat and layout": "チャットとレイアウト",
     "Chat look, text, layout and motion": "チャットの見た目、文字、レイアウト、動き",
+    // A message's menu
+    "This message is no longer in the chat.": "このメッセージはもうチャットにありません。",
 };

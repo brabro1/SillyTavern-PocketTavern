@@ -1440,7 +1440,8 @@ await step('backgrounds are big enough to pick, the next-version button is an ar
         // Anything that opened by itself (What's new) closes first.
         await tab.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
         await tab.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 8000 }).catch(() => {});
-        await openThemes(tab);
+        // Chat width is on Settings → Chat and layout.
+        await placeRow(tab, 'pt-settings', 'Chat and layout', 'pt-display');
         await tab.waitForFunction(() => !!document.querySelector('#pt-page .pt-width-range'));
         const share = await tab.evaluate(() => {
             const input = document.querySelector('#pt-page .pt-width-range');

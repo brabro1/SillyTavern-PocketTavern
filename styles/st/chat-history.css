@@ -1,0 +1,35 @@
+/* SillyTavern's Chat history as chat rows (src/st/chat-history.js): ⋯ for the mouse, date headings. Moved from
+   styles/legacy.css in M7. */
+
+/* ==========================================================================
+   Chat history: ⋯ on a row answers the mouse
+   ========================================================================== */
+
+@media (hover: hover) {
+
+    #select_chat_popup .pt-rc-more:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+/* ==========================================================================
+   Chat history: date headings
+   ========================================================================== */
+
+html.pt-touch #select_chat_div .pt-date-heading {
+    margin: 12px 4px 4px;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+html.pt-touch #select_chat_div .pt-date-heading:first-child {
+    margin-top: 4px;
+}
+
+html.pt-touch #select_chat_search {
+    height: 44px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 16px;
+}

@@ -958,4 +958,6 @@ export default {
     "Themes and chat background": "السمات وخلفية المحادثة",
     "Chat and layout": "المحادثة والتخطيط",
     "Chat look, text, layout and motion": "شكل المحادثة والنص والتخطيط والحركة",
+    // A message's menu
+    "This message is no longer in the chat.": "لم تعد هذه الرسالة في المحادثة.",
 };

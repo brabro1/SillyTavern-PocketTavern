@@ -1,0 +1,280 @@
+/* The context ring and the Context sheet (src/features/context-ring.js). Moved from styles/legacy.css in M7. */
+
+.pt-ctx-ring {
+    position: relative;
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-ctx-ring:active {
+    transform: scale(0.92);
+}
+
+.pt-ctx-ring svg,
+.pt-ctx-big svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    overflow: visible;
+}
+
+.pt-ctx-track {
+    fill: none;
+    stroke: var(--pt-border);
+    stroke-width: 3.4;
+}
+
+.pt-ctx-fill {
+    fill: none;
+    stroke: var(--pt-accent);
+    stroke-width: 3.4;
+    stroke-linecap: round;
+    stroke-dasharray: 0 100;
+    transition: stroke-dasharray var(--pt-dur-slow) var(--pt-ease), stroke var(--pt-dur-slow) var(--pt-ease);
+}
+
+.pt-ctx-ring svg {
+    inset: 3px;
+    width: 38px;
+    height: 38px;
+}
+
+.pt-ctx-warn .pt-ctx-fill {
+    stroke: var(--pt-warn);
+}
+
+.pt-ctx-full .pt-ctx-fill {
+    stroke: var(--pt-danger);
+}
+
+/* Before the first reply: a dotted ring. */
+.pt-ctx-empty .pt-ctx-track {
+    stroke-dasharray: 2.2 3.6;
+}
+
+.pt-ctx-empty .pt-ctx-fill {
+    opacity: 0;
+}
+
+.pt-ctx-num {
+    position: relative;
+    color: var(--pt-text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+.pt-ctx-warn .pt-ctx-num {
+    color: var(--pt-warn);
+}
+
+.pt-ctx-full .pt-ctx-num {
+    color: var(--pt-danger);
+}
+
+/* -- The Context sheet ----------------------------------------------------- */
+
+.pt-ctx-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px 16px;
+}
+
+.pt-ctx-big {
+    position: relative;
+    display: grid;
+    flex: 0 0 auto;
+    place-content: center;
+    justify-items: center;
+    width: 92px;
+    height: 92px;
+}
+
+.pt-ctx-big .pt-ctx-track,
+.pt-ctx-big .pt-ctx-fill {
+    stroke-width: 3;
+}
+
+.pt-ctx-big .pt-ctx-num {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.pt-ctx-big .pt-ctx-num:not(:empty)::after {
+    content: '%';
+    margin-left: 1px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.pt-ctx-big.pt-ctx-empty .pt-ctx-num::after {
+    content: none;
+}
+
+.pt-ctx-unit {
+    position: relative;
+    margin-top: 4px;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+}
+
+.pt-ctx-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.pt-ctx-head b {
+    color: var(--pt-text-primary);
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-ctx-head small {
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.pt-ctx-head .pt-ctx-sub {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.pt-ctx-bar {
+    display: flex;
+    gap: 4px;
+    height: 12px;
+    margin: 0 16px 16px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-border) 70%, transparent);
+}
+
+.pt-ctx-bar > span {
+    flex-grow: 0;
+    flex-shrink: 0;
+    min-width: 4px;
+    background: var(--c);
+}
+
+html.pt-motion-full .pt-sheet-open .pt-ctx-bar > span {
+    animation: pt-ctx-grow var(--pt-dur-slow) var(--pt-ease) backwards;
+    transform-origin: left;
+}
+
+@keyframes pt-ctx-grow {
+    from { transform: scaleX(0); }
+}
+
+.pt-ctx-list {
+    margin: 0 12px;
+    overflow: hidden;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+}
+
+.pt-ctx-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+.pt-ctx-row:last-child {
+    border-bottom: 0;
+}
+
+.pt-ctx-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.pt-ctx-dot-free {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--pt-text-secondary);
+}
+
+.pt-ctx-name {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: var(--pt-text-primary);
+    font-size: 14px;
+}
+
+.pt-ctx-name small {
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-ctx-tok {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-ctx-tok b {
+    color: var(--pt-text-primary);
+    font-size: 14px;
+}
+
+.pt-ctx-tok small {
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+}
+
+.pt-ctx-row-free .pt-ctx-name,
+.pt-ctx-row-free .pt-ctx-tok b {
+    color: var(--pt-text-secondary);
+}
+
+.pt-ctx-note {
+    margin: 12px 16px 0;
+    padding: 12px 12px;
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.pt-ctx-note-warn {
+    background: rgba(240, 160, 48, 0.14);
+}
+
+.pt-ctx-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 12px 4px;
+}

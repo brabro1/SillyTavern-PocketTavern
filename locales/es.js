@@ -958,4 +958,6 @@ export default {
     "Themes and chat background": "Temas y fondo del chat",
     "Chat and layout": "Chat y diseño",
     "Chat look, text, layout and motion": "Aspecto del chat, texto, diseño y animación",
+    // A message's menu
+    "This message is no longer in the chat.": "Este mensaje ya no está en el chat.",
 };

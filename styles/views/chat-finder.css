@@ -1,0 +1,71 @@
+/* Search this chat (src/features/chat-finder.js). Moved from styles/legacy.css in M7. */
+
+/* ==========================================================================
+   Chat: search this chat
+   ========================================================================== */
+
+.pt-chat-finder {
+    position: fixed;
+    top: var(--topBarBlockSize, 56px);
+    left: 0;
+    right: 0;
+    z-index: var(--pt-z-finder);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 8px calc(8px + var(--pt-safe-right, 0px)) 8px calc(12px + var(--pt-safe-left, 0px));
+    border-bottom: 1px solid var(--pt-border);
+    background: var(--pt-bg);
+    box-shadow: none;
+    outline: 1px solid var(--pt-border);
+    animation: pt-fade var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-chat-finder input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+    margin: 0;
+    border-radius: 999px;
+    font-size: 16px;
+}
+
+.pt-find-count {
+    min-width: 34px;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-find-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-primary);
+    cursor: pointer;
+}
+
+.pt-find-btn:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-find-btn .pt-svg {
+    width: 20px;
+    height: 20px;
+}
+
+mark.pt-find-mark {
+    padding: 0 1px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--pt-accent) 55%, transparent);
+    color: inherit;
+}
