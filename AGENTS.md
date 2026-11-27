@@ -36,7 +36,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | done |
 | M5 | Settings (hub, Appearance, Personas, Pocket Tavern with every switch, grouped; About) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | done |
 | M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | done |
-| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | beta out (3.0.0-beta.1, 2026-11-27); release after the owner\'s OK |
+| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | beta out (3.0.0-beta.1, 2026-11-27); release after the owner's OK |
 
 **M7 slices** (one commit each, every suite green, the legacy part deleted in the same change):
 
