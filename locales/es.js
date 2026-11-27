@@ -960,4 +960,6 @@ export default {
     "Chat look, text, layout and motion": "Aspecto del chat, texto, diseño y animación",
     // A message's menu
     "This message is no longer in the chat.": "Este mensaje ya no está en el chat.",
+    // The tab bar's name for screen readers
+    "Main": "Principal",
 };

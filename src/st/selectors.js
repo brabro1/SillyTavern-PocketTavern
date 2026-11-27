@@ -15,6 +15,8 @@ export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
 
 /** SillyTavern's toasts (toastr's container). */
 export const TOASTS = '#toast-container';
+/** Every top-bar drawer's content (each is a page while open). */
+export const PAGE_DRAWERS = '#top-settings-holder > .drawer > .drawer-content';
 /** The top-bar drawer that is open as a page. */
 export const OPEN_PAGE = '#top-settings-holder > .drawer > .drawer-content.openDrawer';
 

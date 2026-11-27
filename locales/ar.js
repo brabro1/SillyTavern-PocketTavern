@@ -960,4 +960,6 @@ export default {
     "Chat look, text, layout and motion": "شكل المحادثة والنص والتخطيط والحركة",
     // A message's menu
     "This message is no longer in the chat.": "لم تعد هذه الرسالة في المحادثة.",
+    // The tab bar's name for screen readers
+    "Main": "الرئيسية",
 };

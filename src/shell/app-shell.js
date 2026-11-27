@@ -1,0 +1,668 @@
+// The app shell (DESIGN.md → Layouts): the top app bar (title, ‹, the chat's picture and ⋯), the tab bar on a phone
+// and the rail on desktop, the page area between them, tucking the tabs away in a chat, and following the keyboard.
+// One Shell exists while Pocket Tavern's shell is on; currentShell() returns it.
+import { closeCharacterLibrary } from '../compat/character-library.js';
+import { h } from '../core/dom.js';
+import { t } from '../core/i18n.js';
+import { isShown, scheduleHistorySync } from '../shell/history.js';
+import { IS_IOS, isTypingField, keyboardUp } from '../shell/layout.js';
+import { closeOwnPage, currentOwnPage, isOwnPage, pageSpec, refreshOwnPage, scrollOwnPageToTop } from '../shell/page.js';
+import { backFromPage, characterCardShown, closeDrawers, closePages, currentPageId, drawerById, goHome, openPage, pageInfo, placeOf, showCharacterList, TABS } from '../shell/pages.js';
+import { closeSheet, currentSheet } from '../shell/sheet.js';
+import { leavePromptEditor, promptEditorMode, promptEditorOpen, promptFull, setPromptFull, syncPresetTabs } from '../st/ai.js';
+import { checkCardPeek, syncCharacterPage } from '../st/characters.js';
+import { shieldFromDrawerAutoClose } from '../st/drawers.js';
+import { editedLorebook, syncLorebookMode, wiPage } from '../st/lorebooks.js';
+import { addSliderSteppers, closePageSection, describeExtensions, describeSettings, openSettingSearch, PAGE_SECTIONS, pageSections, SEARCH_PAGES } from '../st/settings.js';
+import { fillRanges } from '../st/slider-fill.js';
+import { LOREBOOK_PAGE } from '../views/lorebooks.js';
+import { composer } from '../views/message-box.js';
+import { atBottom } from '../views/messages.js';
+import { BULK_MODE_CLASS, CHARACTER_LIST, PAGE_DRAWERS } from '../st/selectors.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'app shell';
+
+/** @type {{ active: () => boolean, settings: () => object, context: () => any, chatsHome: () => object, connection: () => object, EASE: () => string, buzz: Function, endStartWindow: Function, ensurePhoneHome: Function, icon: Function, isConnected: Function, isWide: Function, motionAllowed: Function, openChatMenu: Function, syncChatsHome: Function, syncThemeNotes: Function, ui: Function } | null} */
+let deps = null;
+
+export function setupAppShell(supplied) {
+    deps = supplied;
+}
+
+
+/** The shell while it is on, or null. */
+let shell = null;
+
+export function currentShell() {
+    return shell;
+}
+
+class Shell {
+    constructor() {
+        this.drawerObserver = null;
+        this.destroyed = false;
+        /** The page each place was last on (AI → Presets…), so coming back opens it again. */
+        this.lastInPlace = {};
+        this.timers = new Set();
+        // Checked right away on resize, before the frame is drawn: the tab bar
+        // steps aside and the chat starts its slide in the frame the window
+        // changes, so there is one move, not two.
+        this.onResize = safe(SOURCE, () => {
+            if (this.destroyed) return;
+            this.checkKeyboard();
+            // The rail's tabs change height with the window.
+            if (deps.isWide()) this.placeRailPill();
+        });
+        this.lastHeight = window.innerHeight;
+        this.onFocusIn = safe(SOURCE, event => {
+            if (this.destroyed) return;
+            if (isTypingField(event.target)) this.after(400, () => this.checkKeyboard());
+            // Writing a message: the tabs go away again. With the on-screen
+            // keyboard they go when it opens (one move, not two); with a
+            // hardware keyboard there is no keyboard to wait for.
+            if (event.target?.id === 'send_textarea' && this.tabsOut) {
+                this.tabsOut = false;
+                this.tuckPending = true;
+                this.after(500, () => {
+                    if (!this.tuckPending) return;
+                    this.tuckPending = false;
+                    this.syncTuck(true);
+                });
+            }
+        });
+        this.tabsOut = false;
+        this.inChat = false;
+        this.touchY = null;
+        // Scrolling the chat with a finger or the wheel tucks the tabs away again
+        // (not the chat moving by itself while a reply streams in).
+        this.onChatTouchStart = safe(SOURCE, event => {
+            this.touchY = event.touches[0]?.clientY ?? null;
+        });
+        this.onChatTouchMove = safe(SOURCE, event => {
+            if (this.touchY === null || !this.tabsOut) return;
+            if (Math.abs((event.touches[0]?.clientY ?? this.touchY) - this.touchY) > 24) this.tuckAgain();
+        });
+        this.onChatWheel = safe(SOURCE, () => this.tuckAgain());
+        this.onFocusOut = safe(SOURCE, () => this.after(0, () => this.checkKeyboard()));
+        this.build();
+    }
+
+    after(ms, fn) {
+        const id = window.setTimeout(safe(SOURCE, () => {
+            this.timers.delete(id);
+            if (!this.destroyed) fn();
+        }), ms);
+        this.timers.add(id);
+        return id;
+    }
+
+    build() {
+        // ---- top app bar
+        this.back = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-back',
+            'aria-label': 'Back',
+            // Step back one level: prompt full-screen / dirty check first, then settings section, then page.
+            onclick: () => {
+                if (promptEditorOpen()) {
+                    if (promptFull()) setPromptFull(false);
+                    else leavePromptEditor();
+                    return;
+                }
+                // In a chat (phone): back to the Chats home.
+                if (!currentPageId() && this.inChat) {
+                    goHome();
+                    return;
+                }
+                if (!closePageSection()) backFromPage();
+            },
+        }, [deps.ui('arrow-left')]);
+        this.avatar = h('span', { class: 'pt-ab-avatar', 'aria-hidden': 'true' });
+        this.titleEl = h('span', { class: 'pt-ab-title' });
+        this.subEl = h('span', { class: 'pt-ab-sub' });
+        this.who = h('button', { type: 'button', class: 'pt-ab-who', onclick: () => this.onWhoClick() }, [
+            this.avatar,
+            h('span', { class: 'pt-ab-text' }, [this.titleEl, this.subEl]),
+        ]);
+        this.search = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-search',
+            'aria-label': t('Find a setting'),
+            title: t('Find a setting'),
+            onclick: () => openSettingSearch(),
+        }, [deps.ui('search')]);
+        // Back to the Chats home: closes the chat (SillyTavern's own Close chat). Desktop; a phone has ‹.
+        this.home = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-home',
+            'aria-label': 'Close the chat',
+            title: 'Close the chat',
+            onclick: () => goHome(),
+        }, [deps.ui('home')]);
+        // The chat's ⋯ menu: everything about the open chat (DESIGN.md → The chat).
+        this.menu = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-menu',
+            'aria-label': 'Chat menu',
+            title: 'Chat menu',
+            onclick: () => deps.openChatMenu(),
+        }, [deps.ui('ellipsis')]);
+        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.home, this.who, this.search, this.menu]);
+
+        // ---- bottom tab bar
+        this.tabs = new Map();
+        const tabButtons = TABS.map(tab => {
+            const button = h('button', {
+                type: 'button',
+                class: 'pt-tab',
+                'data-tab': tab.id,
+                'aria-label': tab.label,
+                onclick: () => this.onTab(tab.id),
+            }, [
+                h('span', { class: 'pt-tab-icon' }, [deps.ui(tab.icon)]),
+                h('span', { class: 'pt-tab-label', text: tab.label }),
+            ]);
+            this.tabs.set(tab.id, button);
+            return button;
+        });
+        // One pill slides between tabs instead of each tab fading its own background.
+        this.indicator = h('span', { class: 'pt-tab-indicator', 'aria-hidden': 'true' });
+        this.tabbar = h('nav', { id: 'pt-tabbar', class: 'pt-tabbar', 'aria-label': 'Main', 'data-pt': '1' }, [
+            this.indicator, ...tabButtons,
+        ]);
+
+        for (const el of [this.appbar, this.tabbar]) shieldFromDrawerAutoClose(el);
+
+        document.body.append(this.appbar, this.tabbar);
+
+        // The Characters page switches between list, editor and group views without events.
+        // On a phone, picking someone from the list lands in their chat, like a messaging app.
+        // On a computer the chat is already beside the page, so the page stays and shows their card.
+        this.jumpAt = 0;
+        this.onPanelClick = safe(SOURCE, event => {
+            const entry = event.target.closest?.(`${CHARACTER_LIST} .character_select, ${CHARACTER_LIST} .group_select`);
+            const bulk = document.querySelector(`${CHARACTER_LIST}.${BULK_MODE_CLASS}`);
+            if (entry && !bulk && !deps.isWide() && !event.target.closest('.ch_fav_icon, .tag, .bulk_select_checkbox')) {
+                this.jumpAt = Date.now();
+                // Tapping the character or group you are already chatting with does not change chats.
+                const context = deps.context();
+                const sameChar = entry.dataset.chid !== undefined && context.characterId !== undefined && String(entry.dataset.chid) === String(context.characterId);
+                const sameGroup = entry.dataset.grid !== undefined && context.groupId !== undefined && String(entry.dataset.grid) === String(context.groupId);
+                if (sameChar || sameGroup) this.after(200, closePages);
+            }
+            this.after(80, () => this.update());
+        });
+        document.getElementById('right-nav-panel')?.addEventListener('click', this.onPanelClick);
+
+        // Follow SillyTavern opening and closing its drawers, whoever triggers it.
+        this.drawerObserver = new MutationObserver(safe(SOURCE, records => {
+            // One page at a time: a drawer SillyTavern (or anyone) just opened replaces Pocket Tavern's own page.
+            // (A drawer that is still closing keeps its open class for a moment; that must not count.)
+            const opened = records.some(record => record.target.classList.contains('openDrawer') && !String(record.oldValue ?? '').split(/\s+/).includes('openDrawer'));
+            // While starting with no chat, SillyTavern reopens its locked Characters panel; the Chats page
+            // stays instead. This runs before the browser draws, so the panel never shows.
+            const reopened = opened && Date.now() < deps.chatsHome().startUntil && deps.context().getCurrentChatId?.() === undefined
+                && records.some(record => record.target.id === 'right-nav-panel' && record.target.classList.contains('openDrawer'));
+            if (reopened && currentOwnPage() === 'pt-chats') {
+                closeDrawers();
+                return;
+            }
+            if (opened && currentOwnPage()) closeOwnPage(true);
+            this.update();
+            deps.ensurePhoneHome();
+            scheduleHistorySync();
+        }));
+        for (const content of document.querySelectorAll(PAGE_DRAWERS)) {
+            this.drawerObserver.observe(content, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+        }
+        window.addEventListener('resize', this.onResize);
+        document.addEventListener('focusin', this.onFocusIn);
+        document.addEventListener('focusout', this.onFocusOut);
+        const chat = document.getElementById('chat');
+        chat?.addEventListener('touchstart', this.onChatTouchStart, { passive: true });
+        chat?.addEventListener('touchmove', this.onChatTouchMove, { passive: true });
+        chat?.addEventListener('wheel', this.onChatWheel, { passive: true });
+        this.checkKeyboard();
+        this.update();
+    }
+
+    /**
+     * In a chat the tab bar tucks away: it sat right under the message box and
+     * caught taps meant for it. The arrow in the message box brings it back.
+     */
+    syncTuck(animate = false) {
+        const root = document.documentElement;
+        const can = this.inChat && tabsTuckable();
+        if (!can) this.tabsOut = false;
+        root.classList.toggle('pt-tabs-tuckable', can);
+        this.setTucked(can && !this.tabsOut, animate);
+        syncTabsButton();
+    }
+
+    setTucked(on, animate) {
+        const root = document.documentElement;
+        if (root.classList.contains('pt-tabs-tucked') === on) return;
+        const form = document.getElementById('form_sheld');
+        const chat = document.getElementById('chat');
+        const atBottom = !!chat && chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
+        const glide = animate && deps.motionAllowed() && form && !root.classList.contains('pt-keyboard');
+        const before = glide ? form.getBoundingClientRect().top : 0;
+        root.classList.toggle('pt-tabs-tucked', on);
+        if (atBottom) chat.scrollTop = chat.scrollHeight;
+        if (!glide) return;
+        // Coming back it slides up from the bottom edge (going away, CSS slides it down).
+        if (!on) this.tabbar.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 220, easing: deps.EASE() });
+        // The message box (and the newest message above it) glide to their new place with the tabs.
+        const shift = form.getBoundingClientRect().top - before;
+        if (Math.abs(shift) < 4) return;
+        const frames = [{ transform: `translate3d(0, ${-shift}px, 0)` }, { transform: 'none' }];
+        const timing = { duration: 220, easing: deps.EASE() };
+        form.animate(frames, timing);
+        if (atBottom) chat.animate(frames, timing);
+    }
+
+    /** The arrow in the message box: show the tabs, or put them away again. */
+    toggleTabs() {
+        this.tabsOut = document.documentElement.classList.contains('pt-tabs-tucked');
+        this.syncTuck(true);
+    }
+
+    tuckAgain() {
+        if (!this.tabsOut) return;
+        this.tabsOut = false;
+        this.syncTuck(true);
+    }
+
+    destroy() {
+        this.destroyed = true;
+        window.clearTimeout(this.settleTimer);
+        for (const id of this.timers) window.clearTimeout(id);
+        this.timers.clear();
+        document.getElementById('right-nav-panel')?.removeEventListener('click', this.onPanelClick);
+        this.drawerObserver?.disconnect();
+        window.removeEventListener('resize', this.onResize);
+        document.removeEventListener('focusin', this.onFocusIn);
+        document.removeEventListener('focusout', this.onFocusOut);
+        const chat = document.getElementById('chat');
+        chat?.removeEventListener('touchstart', this.onChatTouchStart);
+        chat?.removeEventListener('touchmove', this.onChatTouchMove);
+        chat?.removeEventListener('wheel', this.onChatWheel);
+        this.tuckPending = false;
+        this.endGlide();
+        closeOwnPage(true);
+        this.appbar.remove();
+        this.tabbar.remove();
+        const root = document.documentElement;
+        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable');
+        syncTabsButton();
+        delete root.dataset.ptPage;
+    }
+
+    /**
+     * The on-screen keyboard opened or closed (Android shrinks the window for it).
+     * The tab bar steps aside, and the chat and the message box slide together,
+     * as one piece, to their new place, so nothing jumps and nothing gaps.
+     */
+    checkKeyboard() {
+        const root = document.documentElement;
+        if (root.classList.contains('pt-desktop')) {
+            this.endGlide();
+            root.classList.remove('pt-keyboard');
+            this.lastHeight = window.innerHeight;
+            return;
+        }
+        const height = window.innerHeight;
+        const keyboard = keyboardUp();
+        const was = root.classList.contains('pt-keyboard');
+        const before = this.lastHeight;
+        this.lastHeight = height;
+        if (height === before && keyboard === was) return;
+        const sheld = document.getElementById('sheld');
+        const chat = document.getElementById('chat');
+        this.endGlide();
+        // Where the chat ended on the screen before: the window already has its
+        // new height here, so take the change back out.
+        const oldBottom = sheld ? sheld.getBoundingClientRect().bottom - (height - before) : 0;
+        root.classList.toggle('pt-keyboard', keyboard);
+        // Tabs that were out when you started typing go away with the keyboard, in the same frame.
+        if (keyboard && this.tuckPending) {
+            this.tuckPending = false;
+            this.syncTuck();
+        }
+        if (!sheld || !chat) return;
+        const shift = Math.round(sheld.getBoundingClientRect().bottom - oldBottom);
+        // Reading the newest message: stay there. (Further up, SillyTavern itself
+        // keeps the line at the bottom edge in place when the chat changes height.)
+        // (Known while the jump-to-newest button watches the chat; otherwise assume so, as before.)
+        const wasAtBottom = atBottom();
+        const keepBottom = () => {
+            if (wasAtBottom) chat.scrollTop = chat.scrollHeight;
+        };
+        keepBottom();
+        const glide = Math.abs(shift) >= 8 && deps.motionAllowed() && !IS_IOS
+            && !root.classList.contains('pt-editing') && !currentPageId() && !currentSheet();
+        if (!glide) return;
+        const timing = { duration: 240, easing: deps.EASE() };
+        if (shift < 0) {
+            // Opening: the chat keeps its old height while it slides up (the top
+            // goes under the top bar), then takes its new height when it lands.
+            const tall = `${sheld.offsetHeight - shift}px`;
+            sheld.style.setProperty('height', tall, 'important');
+            sheld.style.setProperty('max-height', tall, 'important');
+            keepBottom();
+            this.glide = sheld.animate([{ transform: 'none' }, { transform: `translate3d(0, ${shift}px, 0)` }], timing);
+            this.glideLand = keepBottom;
+        } else {
+            // Closing: the chat already has its new height; it starts where it
+            // was and slides down, showing more of the chat above.
+            this.glide = sheld.animate([{ transform: `translate3d(0, ${-shift}px, 0)` }, { transform: 'none' }], timing);
+            this.glideLand = null;
+        }
+        this.glide.onfinish = () => this.endGlide();
+        this.glide.oncancel = () => this.endGlide();
+    }
+
+    /** Ends a keyboard slide: the chat back to its normal size, in place. */
+    endGlide() {
+        if (!this.glide) return;
+        const sheld = document.getElementById('sheld');
+        this.glide.cancel();
+        this.glide = null;
+        sheld?.style.removeProperty('height');
+        sheld?.style.removeProperty('max-height');
+        this.glideLand?.();
+        this.glideLand = null;
+    }
+
+    onTab(id) {
+        deps.buzz(6);
+        // The prompt editor sits over the Presets page and would stay over the next one.
+        if (promptEditorOpen()) {
+            if (currentSheet()) closeSheet(true);
+            leavePromptEditor(() => this.goTab(id));
+            return;
+        }
+        this.goTab(id);
+    }
+
+    goTab(id) {
+        // A place you picked yourself is never swapped for Chats by the start-up check (syncChatsHome).
+        deps.endStartWindow();
+        if (currentSheet()) closeSheet(true);
+        // Character Library's panel covers the chat and pages: any tab leaves it.
+        if (closeCharacterLibrary() && id === 'chat') return;
+        if (id === 'chat') {
+            const open = currentPageId();
+            // Desktop: the list in the panel beside the chat; Chats again hides it.
+            if (deps.isWide()) {
+                if (open === 'pt-chats') closePages();
+                else openPage('pt-chats');
+                return;
+            }
+            // Phone: the Chats page is the place's screen while no chat is open; with a chat open, the chat.
+            if (open === 'pt-chats') scrollOwnPageToTop();
+            else if (!open && this.tabsOut) this.tuckAgain();
+            else if (deps.context().getCurrentChatId?.() === undefined) openPage('pt-chats');
+            else closePages();
+            return;
+        }
+        const open = currentPageId();
+        // The place you are on (or one of its pages): on desktop that hides the panel, so the chat
+        // gets the room; on a phone it goes back to the place's root, or to its top.
+        if (open && placeOf(open) === id) {
+            if (deps.isWide()) {
+                closePages();
+                return;
+            }
+            if (isOwnPage(id)) {
+                if (open === id) scrollOwnPageToTop();
+                else openPage(id);
+                return;
+            }
+        }
+        if (isOwnPage(id)) {
+            // Each place keeps its page: coming back opens the page you left it on.
+            const last = this.lastInPlace[id];
+            openPage(last && drawerById(last) ? last : id);
+            return;
+        }
+        if (open === id) {
+            // Tapping the current tab goes "home" within it.
+            if (id === 'rightNavHolder') showCharacterList();
+            else if (closePageSection()) return;
+            else document.querySelector(`#${id} > .drawer-content`)?.scrollTo?.({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        // Switch to the list first, so the page slides in already showing it
+        // instead of showing the open character's card and then changing.
+        if (id === 'rightNavHolder') showCharacterList();
+        openPage(id);
+    }
+
+    /**
+     * On the rail the pill is placed on the active tab's icon: the rail's tabs are
+     * not all the same height, and on a short window the rail scrolls.
+     */
+    placeRailPill() {
+        const button = this.tabs.get(this.railTab);
+        const iconBox = button?.querySelector('.pt-tab-icon');
+        if (!iconBox || !button.offsetParent) return;
+        this.tabbar.style.setProperty('--pt-tab-y', `${button.offsetTop + iconBox.offsetTop}px`);
+    }
+
+    setSearchLabel(label) {
+        if (this.search.title === label) return;
+        this.search.title = label;
+        this.search.setAttribute('aria-label', label);
+    }
+
+    /** Called when SillyTavern switches chats. */
+    onChatChanged() {
+        if (this.jumpAt && Date.now() - this.jumpAt < 4000 && currentPageId() === 'rightNavHolder') closePages();
+        this.jumpAt = 0;
+        this.tabsOut = false;
+        this.update();
+    }
+
+    onWhoClick() {
+        if (currentPageId()) return;
+        const context = deps.context();
+        if (context.groupId || context.characterId !== undefined) openPage('rightNavHolder');
+        else {
+            showCharacterList();
+            openPage('rightNavHolder');
+        }
+    }
+
+    update() {
+        checkCardPeek();
+        const pageId = currentPageId();
+        // When SillyTavern swaps one drawer for another, none is open for a moment.
+        // Wait that out instead of flashing the chat header in between.
+        if (!pageId && this.lastPage) {
+            window.clearTimeout(this.settleTimer);
+            this.settleTimer = window.setTimeout(safe(SOURCE, () => {
+                this.lastPage = currentPageId();
+                this.render(this.lastPage);
+            }), 200);
+            return;
+        }
+        window.clearTimeout(this.settleTimer);
+        this.lastPage = pageId;
+        this.render(pageId);
+    }
+
+    render(pageId) {
+        const before = this.titleEl.textContent;
+        this.renderContent(pageId);
+        // A short slide when the title changes, so moving between pages feels connected.
+        if (before && before !== this.titleEl.textContent) {
+            // Two classes with the same animation: switching restarts it without forcing a layout.
+            this.swapFlip = !this.swapFlip;
+            this.who.classList.toggle('pt-ab-swap', this.swapFlip);
+            this.who.classList.toggle('pt-ab-swap-b', !this.swapFlip);
+        }
+    }
+
+    renderContent(pageId) {
+        const root = document.documentElement;
+        // Settings and Formatting open on their list of sections again next time.
+        for (const nav of PAGE_SECTIONS) if (nav.pageId !== pageId) nav.reset();
+        root.classList.toggle('pt-page-open', !!pageId);
+        if (pageId) root.dataset.ptPage = pageId;
+        else delete root.dataset.ptPage;
+
+        const wide = deps.isWide();
+        const tabId = placeOf(pageId);
+        if (pageId) this.lastInPlace[tabId] = pageId;
+        // A place's root has its title only; a page pushed in a place gets ‹ (DESIGN.md → Headers).
+        // A character's card inside Characters is a level down too.
+        const card = pageId === 'rightNavHolder' && characterCardShown();
+        this.appbar.classList.toggle('pt-ab-root', !!pageId && !card && (tabId === pageId || pageId === 'pt-chats'));
+        this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
+        for (const [id, button] of this.tabs) {
+            const on = id === tabId;
+            button.classList.toggle('pt-tab-on', on);
+            if (on) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+        }
+        this.railTab = tabId;
+        if (wide) this.placeRailPill();
+
+        if (pageId && !(wide && pageId === 'pt-chats')) {
+            const drawer = drawerById(pageId);
+            if (drawer && deps.settings().touchSizing) {
+                requestAnimationFrame(safe(SOURCE, () => fillRanges(drawer)));
+                addSliderSteppers(drawer);
+                pageSections(pageId)?.sync();
+                if (SEARCH_PAGES.includes(pageId)) {
+                    describeSettings(drawer);
+                    // Presets and API fill parts of their page a moment later.
+                    setTimeout(safe(SOURCE, () => describeSettings(drawer)), 600);
+                }
+                if (pageId === 'extensions-settings-button') describeExtensions();
+                if (pageId === 'ai-config-button') {
+                    syncPresetTabs();
+                    // Chat Completion Tabs builds its own tabs up to 2 seconds after an API switch; ours step aside then.
+                    setTimeout(syncPresetTabs, 2500);
+                }
+            }
+            if (pageId === 'backgrounds-button' || pageId === 'user-settings-button') deps.syncThemeNotes();
+            const info = drawer ? pageInfo(drawer) : (pageSpec(pageId) ?? { title: '', icon: 'fa-gear' });
+            // The AI page shows a banner while there is no connection: draw it again when that changes.
+            if (pageId === 'pt-ai' && this.aiConnected !== deps.isConnected()) {
+                this.aiConnected = deps.isConnected();
+                refreshOwnPage();
+            }
+            syncLorebookMode(pageId);
+            if (pageId === LOREBOOK_PAGE && wiPage.mode === 'settings') this.titleEl.textContent = t('Activation settings');
+            else if (pageId === LOREBOOK_PAGE && editedLorebook()) this.titleEl.textContent = editedLorebook();
+            else if (typeof info.rawTitle === 'function') this.titleEl.textContent = info.rawTitle();
+            else this.titleEl.textContent = t(info.title);
+            this.subEl.textContent = t(info.long ?? '');
+            this.subEl.classList.remove('pt-ab-offline');
+            // Switch back to "Presets" as soon as the editor starts sliding away.
+            const editorMode = promptEditorOpen() ? promptEditorMode() : null;
+            root.classList.toggle('pt-prompt-editor', !!editorMode);
+            if (editorMode === 'edit') {
+                const name = document.getElementById('completion_prompt_manager_popup_entry_form_name')?.value?.trim();
+                this.titleEl.textContent = t('Edit prompt');
+                this.subEl.textContent = name || t('New prompt');
+            } else if (editorMode === 'inspect') {
+                this.titleEl.textContent = t('Prompt list');
+                this.subEl.textContent = t('Prompts linked to this marker');
+            }
+            if (pageId === 'rightNavHolder') {
+                syncCharacterPage();
+                const editing = isShown(document.getElementById('rm_ch_create_block'));
+                const name = document.getElementById('character_name_pole')?.value?.trim();
+                if (editing) this.subEl.textContent = name ? t('Editing {name}', { name }) : t('New character');
+                else if (isShown(document.getElementById('rm_group_chats_block'))) this.subEl.textContent = t('Group chat');
+            }
+            let headIcon = info.icon;
+            const sections = pageSections(pageId);
+            const section = sections?.current();
+            if (section) {
+                this.titleEl.textContent = section.raw ? section.title : t(section.title);
+                this.subEl.textContent = t(sections.pageTitle);
+                headIcon = section.icon;
+            }
+            this.search.hidden = !SEARCH_PAGES.includes(pageId) || !!editorMode;
+            this.setSearchLabel(t('Find a setting'));
+            this.menu.hidden = true;
+            this.appbar.classList.remove('pt-ab-chat');
+            this.avatar.replaceChildren(deps.ui(headIcon));
+            this.avatar.classList.add('pt-ab-avatar-icon');
+            this.who.disabled = true;
+            this.appbar.classList.add('pt-ab-page');
+            this.inChat = false;
+            this.syncTuck();
+            return;
+        }
+
+        this.appbar.classList.remove('pt-ab-page');
+        root.classList.remove('pt-prompt-editor');
+        this.who.disabled = false;
+        const context = deps.context();
+        let name = t('Chats');
+        let image = null;
+        let hasChat = false;
+        if (context.groupId) {
+            const group = context.groups?.find(g => String(g.id) === String(context.groupId));
+            name = group?.name ?? t('Group chat');
+            hasChat = true;
+        } else if (context.characterId !== undefined && context.characters?.[context.characterId]) {
+            const character = context.characters[context.characterId];
+            name = character.name;
+            image = character.avatar && character.avatar !== 'none'
+                ? (context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`)
+                : null;
+            hasChat = true;
+        }
+        this.titleEl.textContent = name;
+        // The header never shows connection state (DESIGN.md); problems get a banner and a dot on AI.
+        this.subEl.textContent = '';
+        this.subEl.classList.remove('pt-ab-offline');
+        this.avatar.classList.remove('pt-ab-avatar-icon');
+        if (image) {
+            const existingImg = this.avatar.firstElementChild;
+            if (!(existingImg instanceof HTMLImageElement) || existingImg.getAttribute('src') !== image) {
+                this.avatar.replaceChildren(h('img', { src: image, alt: '' }));
+            }
+        } else {
+            this.avatar.replaceChildren(deps.ui(context.groupId ? 'users' : (hasChat ? 'user' : 'chats')));
+        }
+        // In a chat: ⋯. Search everything is the field on the Chats page.
+        this.menu.hidden = !hasChat;
+        this.search.hidden = true;
+        this.appbar.classList.toggle('pt-ab-chat', hasChat);
+        this.inChat = hasChat;
+        this.syncTuck();
+    }
+}
+
+function tabsTuckable() {
+    const root = document.documentElement;
+    return deps.active() && deps.settings().appShell && deps.settings().chatStyle && deps.settings().hideTabsInChat && !root.classList.contains('pt-desktop');
+}
+
+export function syncTabsButton() {
+    const button = composer.tabs;
+    if (!button) return;
+    const tucked = document.documentElement.classList.contains('pt-tabs-tucked');
+    const label = t(tucked ? 'Show tabs' : 'Hide tabs');
+    button.setAttribute('aria-expanded', String(!tucked));
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    button.classList.toggle('pt-tabs-btn-out', !tucked);
+}
+
+export function syncShell() {
+    const want = deps.active() && deps.settings().appShell;
+    if (want && !shell) shell = new Shell();
+    else if (!want && shell) {
+        shell.destroy();
+        shell = null;
+    }
+}
