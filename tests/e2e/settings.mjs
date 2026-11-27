@@ -212,7 +212,10 @@ for (const layout of ['phone', 'desktop']) {
                     // Pocket Tavern puts the look back over 1.8 s (src/themes/appearance.js → THEME_SETTLE_CHECKS).
                     await page.waitForTimeout(2300);
                     const now = await look();
-                    if (JSON.stringify(now) !== JSON.stringify(base) || !now.flat || now.media !== 'not all') throw new Error(`${name}: ${JSON.stringify({ base, now })}`);
+                    if (JSON.stringify(now) !== JSON.stringify(base) || !now.flat || now.media !== 'not all') {
+                        const saved = await page.evaluate(() => { const m = SillyTavern.getContext().extensionSettings.mobileUI; return { avatarShape: m.avatarShape, theme: m.theme, options: [...document.querySelectorAll('#avatar_style option')].map(o => o.value) }; });
+                        throw new Error(`${name}: ${JSON.stringify({ base, now, saved })}`);
+                    }
                 }
             } finally {
                 await page.evaluate(({ st, css }) => {
