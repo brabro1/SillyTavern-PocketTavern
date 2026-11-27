@@ -448,6 +448,16 @@ html.pt-shell #sheld {
 
 /* -- Pages: every top-bar drawer opens full-screen between the two bars ---- */
 
+/* A page being closed: SillyTavern marks its drawer closed but keeps it shown while its own closing animation
+   runs. Pocket Tavern's placement only applies to an open drawer, so for that moment the drawer stood at
+   SillyTavern's own spot (Characters on the right edge) and slid away. It is hidden at once instead; it keeps its
+   place in the layout, so SillyTavern's own code sees nothing change. (!important beats the inline display
+   SillyTavern's animation sets; the open drawer's rules below win as soon as it opens again.) */
+html.pt-shell #top-settings-holder .drawer-content.closedDrawer {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 html.pt-shell #top-settings-holder .drawer-content.openDrawer {
     top: var(--topBarBlockSize) !important;
     left: 0 !important;

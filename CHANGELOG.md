@@ -29,6 +29,7 @@ The first beta of Pocket Tavern 3.0: a rebuild with one map of five places, one 
 
 - **The rail** on the left has the five places. A place opens in the **panel** beside the chat; click the place you're on to hide the panel. The panel can now be dragged wide enough to leave the chat only about 420px (#13).
 - **The docked message box** runs along the whole chat area as one bar.
+- **Leaving Characters** no longer flashes its page at the right edge: SillyTavern's closing animation showed it there for a moment before it slid away. Every SillyTavern page now disappears at once when you leave it.
 - <kbd>Esc</kbd> goes back one step at a time: the top menu, the chat search, an open lorebook entry, a tool panel, then the page.
 
 ### For theme and extension authors

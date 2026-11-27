@@ -286,6 +286,8 @@ function syncStCustomCss() {
 
 /** When a SillyTavern theme was last picked: the avatar shape it sets right after is the theme's, not yours. */
 let stThemePickedAt = 0;
+/** When (ms after a SillyTavern theme is picked) Pocket Tavern puts your avatar shape and Chat Style back. */
+const THEME_SETTLE_CHECKS = [400, 1000, 1800];
 
 /**
  * A SillyTavern theme picked in SillyTavern's own settings: Pocket Tavern's theme stays in charge. Its Chat Style
@@ -302,7 +304,7 @@ export function watchStThemePicks() {
     }
     $(document).on('change.ptStTheme', UI_THEME_PICKER, () => {
         stThemePickedAt = Date.now();
-        window.setTimeout(safe(SOURCE, () => {
+        const restore = safe(SOURCE, () => {
             if (!deps.active()) return;
             syncChatStyleForTheme();
             const select = document.getElementById('avatar_style');
@@ -310,11 +312,14 @@ export function watchStThemePicks() {
                 && select.querySelector(`option[value="${CSS.escape(deps.settings().avatarShape)}"]`)) {
                 $(select).val(deps.settings().avatarShape).trigger('change');
             }
-        }), 400);
+        });
+        // SillyTavern applies a theme a little at a time (and later on a busy device): check again a few times,
+        // so a shape the theme sets late does not stay.
+        for (const delay of THEME_SETTLE_CHECKS) window.setTimeout(restore, delay);
     });
     // A shape you pick yourself (Appearance or SillyTavern's own setting) is the one kept.
     $(document).on('change.ptStTheme', AVATAR_STYLE, function () {
-        if (Date.now() - stThemePickedAt < 1500) return;
+        if (Date.now() - stThemePickedAt < THEME_SETTLE_CHECKS[THEME_SETTLE_CHECKS.length - 1] + 200) return;
         if (deps.settings().avatarShape !== this.value) {
             deps.settings().avatarShape = this.value;
             deps.saveSettings();

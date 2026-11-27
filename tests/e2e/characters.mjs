@@ -278,6 +278,28 @@ for (const layout of ['phone', 'desktop']) {
             await page.waitForTimeout(500);
         });
 
+        await step('leaving Characters, its page never shows at SillyTavern\'s own spot while it closes', async () => {
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
+            await page.waitForTimeout(1200);
+            // Every frame for a second after switching: SillyTavern's closing drawer must stay invisible.
+            const seen = await page.evaluate(async () => {
+                document.querySelector('.pt-tab[data-tab="pt-lorebooks"]').click();
+                const out = [];
+                const start = performance.now();
+                while (performance.now() - start < 1000) {
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                    const panel = document.getElementById('right-nav-panel');
+                    const box = panel?.getBoundingClientRect();
+                    const style = panel && getComputedStyle(panel);
+                    if (panel?.classList.contains('closedDrawer') && box.width > 0 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.02) {
+                        out.push(`${Math.round(performance.now() - start)}ms at ${Math.round(box.left)}–${Math.round(box.right)}`);
+                    }
+                }
+                return out;
+            });
+            if (seen.length) throw new Error(`the closing Characters page showed: ${seen.slice(0, 3).join(', ')}`);
+        });
+
         await step("Characters → Lorebooks → Characters switches each time, even with SillyTavern's Characters lock on", async () => {
             // Lorebooks is Pocket Tavern's own page: SillyTavern's Characters panel must close for it.
             const lock = await page.evaluate(() => document.getElementById('rm_button_panel_pin')?.checked ?? null);

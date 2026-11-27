@@ -209,7 +209,8 @@ for (const layout of ['phone', 'desktop']) {
                     const has = await page.evaluate(value => [...document.querySelectorAll('#themes option')].some(option => option.value === value), name);
                     if (!has) continue;
                     await page.evaluate(value => { const select = document.getElementById('themes'); select.value = value; jQuery(select).trigger('change'); }, name);
-                    await page.waitForTimeout(1500);
+                    // Pocket Tavern puts the look back over 1.8 s (src/themes/appearance.js → THEME_SETTLE_CHECKS).
+                    await page.waitForTimeout(2300);
                     const now = await look();
                     if (JSON.stringify(now) !== JSON.stringify(base) || !now.flat || now.media !== 'not all') throw new Error(`${name}: ${JSON.stringify({ base, now })}`);
                 }
