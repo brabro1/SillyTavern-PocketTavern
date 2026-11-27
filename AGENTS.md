@@ -44,10 +44,10 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 2. ✅ **Features** → `src/features/`: translate, pictures (sharp and animated), picture viewer, drafts, keep the screen on, the server banner, reload after an update.
 3. ✅ **The chat** → `src/views/` and `src/features/`: the message box and `+`, the context ring, the message menu and long press, the message editor, search in the chat, chat rows and chat history.
 4. ✅ **The shell** → `src/shell/`: the app shell, pages, sheets, choice sheets, the back gesture, the desktop panel's edge and tool panels, notifications.
-5. **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
+5. ✅ **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
 6. **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
 7. **CSS**: `styles/legacy.css` split into `styles/shell/`, `styles/views/`, `styles/st/` alongside each slice above, then deleted.
-8. **Release**: README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (version scheme as the owner decides), then the release after the owner's OK.
+8. **Release**: README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (later betas `3.0.0-beta.2`, …; the numbers stay, no 0.x), then the release after the owner's OK.
 
 - **Parallel lanes** (M1b ∥ M1c, then M2 ∥ M3 ∥ M4 ∥ M5) each own their `src/views/<view>.js`, `styles/views/`, `src/st/<screen>.js`, `styles/st/<screen>.css`, and their own section in `src/st/selectors.js` and in each `locales/` file. QA writes `tests/e2e/<view>.mjs` beside each lane. Docs checks the translations when a lane ends.
 - **Owner reviews** with screenshots after M0, after M1, after M2–M5, and before the release.

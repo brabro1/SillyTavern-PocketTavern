@@ -98,3 +98,11 @@ export const SYSPROMPT_ENABLED = '#sysprompt_enabled';
 export const CONTEXT_SETTINGS = '#ContextSettings';
 export const INSTRUCT_COLUMN = '#InstructSettingsColumn';
 export const SYSPROMPT_BLOCK = '#SystemPromptBlock';
+
+// ---- Looks (User Settings → UI Theme, Backgrounds) --------------------------------------------
+
+/** The UI theme picker and the avatar shape picker. */
+export const UI_THEME_PICKER = '#themes';
+export const AVATAR_STYLE = '#avatar_style';
+/** A background's thumbnail in the Backgrounds drawer. */
+export const BACKGROUND_THUMB = '#bg_menu_content .bg_example';

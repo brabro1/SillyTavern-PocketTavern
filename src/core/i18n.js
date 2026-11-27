@@ -67,3 +67,20 @@ export function addDictionary(code, entries) {
     Object.assign(dict, entries);
     DICTIONARIES[key] = dict;
 }
+
+/**
+ * Follows SillyTavern's language: picks the dictionary, mirrors the layout for Arabic and gives CSS the words it
+ * draws itself (Save, Cancel). With `on` false, takes the mirroring and the words away again.
+ */
+export function applyLanguage(on, locale) {
+    setLocale(locale);
+    const root = document.documentElement;
+    root.classList.toggle('pt-rtl', on && isRtl());
+    if (on) {
+        root.style.setProperty('--pt-l-save', JSON.stringify(t('Save')));
+        root.style.setProperty('--pt-l-cancel', JSON.stringify(t('Cancel')));
+    } else {
+        root.style.removeProperty('--pt-l-save');
+        root.style.removeProperty('--pt-l-cancel');
+    }
+}

@@ -19,7 +19,7 @@
 import '../core/prelude.js';
 import { svgIcon, iconCss, iconUrl } from '../ui/icons.js';
 import { findTheme, themeCss, themeFromSillyTavern, ST_THEME_COLORS } from '../themes/themes.js';
-import { t, setLocale, isRtl, currentLang } from '../core/i18n.js';
+import { t, setLocale, currentLang, applyLanguage } from '../core/i18n.js';
 import { VERSION } from '../../changelog.js';
 import { migrateSettings } from '../core/settings.js';
 import { h } from '../core/dom.js';
@@ -51,6 +51,8 @@ import { aboutCharacter, characterTarget, checkCardPeek, pickCharacterLorebook, 
 import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { setupPersonas, syncPersonaTabs } from '../st/personas.js';
+import { applyAppearance, applyLayoutPrefs, applyTextSize, applyChatLook, onBackgroundPick, ownThemeOn, pickChatLook, setAppearance, setupAppearance, stChatStyleName, syncChatStyleForTheme, syncThemeNotes, useFlatChatStyle, watchStThemePicks } from '../themes/appearance.js';
+import { currentTheme, importSillyTavernTheme, loadSillyTavernThemes, setupStThemes, stThemeColors, stThemes } from '../themes/st-themes.js';
 import { currentShell, setupAppShell, syncShell, syncTabsButton } from '../shell/app-shell.js';
 import { PAGES, TABS, backFromPage, characterCardShown, closeDrawers, closePages, currentPageId, drawerById, goHome, openPage, pageInfo, placeOf, setupPages, showCharacterList } from '../shell/pages.js';
 import { OVERLAYS, editorOpen, isShown, onPopState, openOverlays, resetHistoryTracking, scheduleHistorySync, setupHistory, syncEditorState, watchOverlays } from '../shell/history.js';
@@ -178,8 +180,6 @@ const COMPACT_BELOW = 520;
  * as a rail on the left, pages as a panel beside the chat, sheets as dialogs.
  * A sideways phone is wide but short, so it keeps the phone layout.
  */
-/** Phones narrower than this (most 360px Androids, foldable cover screens) get the compact size on Automatic. */
-const SMALL_PHONE_BELOW = 380;
 let settings = null;
 let active = false;
 /** Stopped for this visit by src/core/lifecycle.js (after an error); SillyTavern's own screens show. */
@@ -288,260 +288,6 @@ function shouldBeActive() {
     if (mode === 'never') return false;
     if (mode === 'phone') return detectPhone();
     return true;
-}
-
-// ------------------------------------------------------------ appearance
-
-function ensureStyle(id) {
-    let element = document.getElementById(id);
-    if (!element) {
-        element = h('style', { id });
-        document.head.append(element);
-    }
-    return element;
-}
-
-let originalThemeColor;
-let themeColorCall = 0;
-
-/** Android's status bar follows <meta name="theme-color">; match it to the app bar. */
-function syncThemeColor(theme) {
-    let meta = document.querySelector('meta[name="theme-color"]');
-    if (originalThemeColor === undefined) originalThemeColor = meta ? meta.getAttribute('content') : null;
-    if (!active) {
-        if (meta && originalThemeColor === null) meta.remove();
-        else if (meta) meta.setAttribute('content', originalThemeColor);
-        return;
-    }
-    if (!meta) {
-        meta = h('meta', { name: 'theme-color' });
-        document.head.append(meta);
-    }
-    const call = (themeColorCall += 1);
-    if (theme) {
-        meta.setAttribute('content', theme.bg);
-        return;
-    }
-    // Reading a CSS color makes the browser restyle the page at once; wait for the next frame instead.
-    const target = meta;
-    requestAnimationFrame(() => {
-        if (!active || !target.isConnected || call !== themeColorCall) return;
-        const own = getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeBlurTintColor').trim();
-        target.setAttribute('content', own || '#171717');
-    });
-}
-
-const TOAST_ICONS = { success: 'circle-check', info: 'info', warning: 'alert-triangle', error: 'alert-circle' };
-
-function toastIconCss() {
-    return Object.entries(TOAST_ICONS)
-        .map(([type, name]) => `html.pt-toasts #toast-container > .toast-${type} { --pt-t-icon: ${iconUrl(name)}; }`)
-        .join(' ')
-        // A grey magnifier drawn inside search boxes.
-        + ` html.pt-on { --pt-search-icon: ${iconUrl('search', '#909090')}; --pt-think-icon: ${iconUrl('bulb')}; --pt-regen-icon: ${iconUrl('refresh')}; --pt-chev-down-icon: ${iconUrl('chevron-down')}; --pt-chev-up-icon: ${iconUrl('chevron-up')}; --pt-info-icon: ${iconUrl('info')}; --pt-warn-icon: ${iconUrl('alert-triangle')}; --pt-error-icon: ${iconUrl('alert-circle')}; --pt-ok-icon: ${iconUrl('circle-check')}; }`;
-}
-
-/** A Pocket Tavern theme (not a SillyTavern one): only these have a background of their own. */
-function ownThemeOn() {
-    return !!findTheme(settings.theme);
-}
-
-/** True when a chat background picture is set (not SillyTavern's empty "transparent" one). */
-function chatBackgroundSet() {
-    for (const id of ['bg_custom', 'bg1']) {
-        const element = document.getElementById(id);
-        // The picture SillyTavern set on it: its computed value still shows the old one while it fades over.
-        const image = element ? element.style.backgroundImage || getComputedStyle(element).backgroundImage : 'none';
-        if (/url\(/.test(image) && !/__transparent/.test(image)) return true;
-    }
-    return false;
-}
-
-/**
- * A chat background shows (html.pt-glass): the chat turns clear and messages
- * become tinted cards over the picture. Off when a Pocket Tavern theme shows its
- * own background, or when no background picture is set.
- */
-function syncGlass() {
-    const root = document.documentElement;
-    const own = active && ownThemeOn() && settings.themeBackdrop;
-    root.classList.toggle('pt-glass', active && !own && chatBackgroundSet());
-}
-
-const glassWatch = { observer: null, frame: 0 };
-
-/** SillyTavern changes the background by restyling #bg1 (or #bg_custom for a chat's own). */
-function watchBackground() {
-    if (!active) {
-        glassWatch.observer?.disconnect();
-        glassWatch.observer = null;
-        cancelAnimationFrame(glassWatch.frame);
-        glassWatch.frame = 0;
-        stThemes.observer?.disconnect();
-        stThemes.observer = null;
-        return;
-    }
-    if (glassWatch.observer) return;
-    const targets = ['bg1', 'bg_custom'].map(id => document.getElementById(id)).filter(Boolean);
-    if (!targets.length) return;
-    glassWatch.observer = new MutationObserver(() => {
-        if (glassWatch.frame) return;
-        glassWatch.frame = requestAnimationFrame(() => {
-            glassWatch.frame = 0;
-            if (active) syncGlass();
-        });
-    });
-    for (const target of targets) glassWatch.observer.observe(target, { attributes: true, attributeFilter: ['style', 'class'] });
-}
-
-function applyAppearance() {
-    const root = document.documentElement;
-    const theme = active ? currentTheme() : null;
-    root.classList.toggle('pt-themed', !!theme);
-    // SillyTavern's themes have no background of their own: your chat background always shows, as in SillyTavern.
-    root.classList.toggle('pt-backdrop', !!theme && ownThemeOn() && settings.themeBackdrop);
-    syncGlass();
-    watchBackground();
-    root.classList.toggle('pt-font', active && settings.modernFont);
-    root.classList.toggle('pt-icons', active && settings.customIcons);
-    root.classList.toggle('pt-toasts', active && settings.niceToasts);
-    for (const level of Object.keys(MOTION_LABELS)) root.classList.toggle(`pt-motion-${level}`, active && settings.motion === level);
-    if (theme) root.dataset.ptTheme = theme.id;
-    else delete root.dataset.ptTheme;
-
-    if (active) {
-        ensureStyle('pt-theme-css').textContent = themeCss(theme, 'html.pt-on.pt-themed') + toastIconCss();
-        if (settings.customIcons) {
-            const icons = ensureStyle('pt-icons-css');
-            if (!icons.textContent) icons.textContent = iconCss('html.pt-icons');
-        }
-    } else {
-        document.getElementById('pt-theme-css')?.remove();
-        document.getElementById('pt-icons-css')?.remove();
-    }
-    syncThemeColor(theme);
-    syncChatStyleForTheme();
-    watchStThemePicks();
-}
-
-/** Runs `change` behind a circular reveal that grows from `origin` (View Transitions). */
-function revealChange(origin, change) {
-    const root = document.documentElement;
-    const canAnimate = typeof document.startViewTransition === 'function'
-        && settings.motion === 'full'
-        && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!canAnimate) {
-        change();
-        return;
-    }
-    const rect = origin?.getBoundingClientRect?.();
-    const x = rect ? rect.left + rect.width / 2 : innerWidth / 2;
-    const y = rect ? rect.top + rect.height / 2 : innerHeight / 2;
-    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-    root.classList.add('pt-vt');
-    // The browser runs the change once it has captured the old look. If that capture
-    // is ever delayed (busy or backgrounded page), apply the change anyway.
-    let done = false;
-    const run = () => {
-        if (done) return;
-        done = true;
-        change();
-    };
-    window.setTimeout(run, 700);
-    const transition = document.startViewTransition(run);
-    transition.ready.then(() => {
-        root.animate(
-            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-            { duration: 240, easing: EASE, pseudoElement: '::view-transition-new(root)' },
-        );
-    }).catch(() => {});
-    transition.finished.catch(() => {}).finally(() => root.classList.remove('pt-vt'));
-}
-
-function setAppearance(key, value, origin) {
-    if (settings[key] === value) return;
-    const change = () => {
-        settings[key] = value;
-        saveSettings();
-        applyAppearance();
-        syncExtras();
-        syncSettingsInputs();
-        currentShell()?.update();
-        // Switches already show their new state; re-render only what depends on the choice.
-        if (currentSheet() && !currentSheet().picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) currentSheet().refresh();
-        // The layout changes the whole interface.
-        if (key === 'layout') applyState();
-        // Switches and segments on a settings page already show their new state (and keep the filter).
-        const page = currentPageId();
-        if (!SETTINGS_OWN_PAGES.includes(page) || ['theme', 'layout', 'chatLook'].includes(key)) refreshOwnPage();
-    };
-    if (key === 'theme') revealChange(origin, change);
-    else change();
-}
-
-// -- SillyTavern's UI themes as Pocket Tavern themes
-
-/** The SillyTavern themes on the server (loaded when the Themes sheet opens) and the converted chosen one. */
-const stThemes = { list: null, loading: null, observer: null, made: { key: '', theme: null } };
-
-/** The colors Pocket Tavern keeps of a SillyTavern theme, saved with the choice so it applies at once on the next start. */
-function stThemeColors(raw) {
-    return { name: raw.name, ...Object.fromEntries(ST_THEME_COLORS.map(key => [key, raw[key] ?? null])) };
-}
-
-/** The theme in use: one of Pocket Tavern's, a SillyTavern theme made to fit, or null for "Your theme". */
-function currentTheme() {
-    const id = settings.theme;
-    const own = findTheme(id);
-    if (own || typeof id !== 'string' || !id.startsWith('st:')) return own;
-    const saved = settings.stTheme;
-    if (!saved || `st:${saved.name}` !== id) return null;
-    const key = JSON.stringify(saved);
-    if (stThemes.made.key !== key) stThemes.made = { key, theme: themeFromSillyTavern(saved) };
-    return stThemes.made.theme;
-}
-
-/** Asks SillyTavern for its saved UI themes (the same request it makes when it starts). */
-function loadSillyTavernThemes(force = false) {
-    if (stThemes.loading && !force) return stThemes.loading;
-    stThemes.loading = (async () => {
-        try {
-            const response = await fetch('/api/settings/get', { method: 'POST', headers: ctx().getRequestHeaders(), body: JSON.stringify({}) });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            stThemes.list = (Array.isArray(data?.themes) ? data.themes : []).filter(theme => theme && typeof theme.name === 'string' && theme.name);
-        } catch (error) {
-            console.warn(LOG, 'Could not load SillyTavern themes', error);
-            stThemes.loading = null;
-            return stThemes.list ?? [];
-        }
-        // The chosen one may have been changed in SillyTavern since: keep its colors current.
-        const chosen = stThemes.list.find(theme => `st:${theme.name}` === settings.theme);
-        if (chosen && JSON.stringify(stThemeColors(chosen)) !== JSON.stringify(settings.stTheme)) {
-            settings.stTheme = stThemeColors(chosen);
-            saveSettings();
-            applyAppearance();
-        }
-        return stThemes.list;
-    })();
-    return stThemes.loading;
-}
-
-/** SillyTavern's own "Import a theme file" (its button is hidden in Settings → Look while Pocket Tavern is on). */
-function importSillyTavernTheme(refresh) {
-    const select = document.getElementById('themes');
-    const button = document.getElementById('ui_preset_import_button');
-    if (!button) return;
-    // SillyTavern adds the imported theme to its list; then the sheet shows it too.
-    if (select && !stThemes.observer) {
-        stThemes.observer = new MutationObserver(() => {
-            stThemes.observer?.disconnect();
-            stThemes.observer = null;
-            loadSillyTavernThemes(true).then(refresh);
-        });
-        stThemes.observer.observe(select, { childList: true });
-    }
-    button.click();
 }
 
 const extras = {
@@ -950,192 +696,6 @@ function syncChatsHome() {
     else refreshChatsHome();
 }
 
-// -- chat: look (cards, bubbles, flat)
-
-function applyChatLook() {
-    const root = document.documentElement;
-    if (active && settings.chatStyle && settings.chatLook && settings.chatLook !== 'cards') root.dataset.ptLook = settings.chatLook;
-    else delete root.dataset.ptLook;
-}
-
-function pickChatLook(look) {
-    const switched = useFlatChatStyle();
-    if (switched) globalThis.toastr?.info(t("SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows."), '', { timeOut: 4000 });
-    if ((settings.chatLook || 'cards') !== look) setAppearance('chatLook', look);
-    else if (switched && currentSheet() && !currentSheet().picker) currentSheet().refresh();
-}
-
-// -- SillyTavern's own look (UI themes, Chat Style, backgrounds) next to Pocket Tavern's
-
-/**
- * A Pocket Tavern theme draws the whole look, the messages too. A SillyTavern theme picked
- * earlier (Cappuccino, Azure) often brings Chat Style: Bubbles, and SillyTavern then drew its
- * bubbles in Pocket Tavern's colours: the two looks fought. So when a Pocket Tavern theme
- * comes on (a new install, or picking one), SillyTavern's Chat Style goes to Flat once and the
- * old style is remembered; picking a SillyTavern theme again, or turning Pocket Tavern (or its
- * chat cards) off, puts it back. Only on those changes: a Chat Style you pick afterwards stays.
- */
-function syncChatStyleForTheme() {
-    syncStCustomCss();
-    const select = document.getElementById('chat_display');
-    if (!select) return;
-    const own = active && settings.chatStyle && ownThemeOn() ? String(settings.theme) : '';
-    if (own) {
-        if (settings.chatStyleFor === own) {
-            // Still on: a SillyTavern theme just picked in SillyTavern's own settings may have switched Chat Style
-            // back to Bubbles or Document, so Pocket Tavern's theme keeps drawing the chat. A style picked by hand stays.
-            if (select.value !== '0' && Date.now() - stThemePickedAt < 1500) useFlatChatStyle();
-            return;
-        }
-        settings.chatStyleFor = own;
-        if (select.value !== '0') {
-            const name = stChatStyleName();
-            settings.stChatStyle = select.value;
-            useFlatChatStyle();
-            globalThis.toastr?.info(t("Pocket Tavern's theme draws the chat, so SillyTavern's {style} chat style is off while it is on. Picking a SillyTavern theme in Settings → Appearance brings it back.", { style: t(name) }), '', { timeOut: 7000 });
-        }
-        saveSettings();
-        return;
-    }
-    if (!settings.chatStyleFor) return;
-    const back = settings.stChatStyle;
-    settings.chatStyleFor = '';
-    settings.stChatStyle = '';
-    saveSettings();
-    if (back && select.value === '0' && select.querySelector(`option[value="${CSS.escape(back)}"]`)) $j()(select).val(back).trigger('change');
-}
-
-/**
- * SillyTavern's Custom CSS (Settings → SillyTavern → Custom CSS). Picking a SillyTavern theme puts that theme's own
- * CSS there, so while a Pocket Tavern theme is on it is set aside (a `media` that matches nothing), unless
- * Appearance → "SillyTavern's Custom CSS" is on. "Your theme" and SillyTavern's themes always use it.
- */
-function syncStCustomCss() {
-    const style = document.getElementById('custom-style');
-    if (!style) return;
-    const off = active && ownThemeOn() && !settings.stCustomCss;
-    if (off && style.getAttribute('media') !== 'not all') {
-        style.setAttribute('media', 'not all');
-        style.dataset.ptOff = '1';
-    } else if (!off && style.dataset.ptOff) {
-        style.removeAttribute('media');
-        delete style.dataset.ptOff;
-    }
-}
-
-/** When a SillyTavern theme was last picked: the avatar shape it sets right after is the theme's, not yours. */
-let stThemePickedAt = 0;
-
-/**
- * A SillyTavern theme picked in SillyTavern's own settings: Pocket Tavern's theme stays in charge. Its Chat Style
- * goes back to Flat and the avatar shape you chose comes back (a theme brings its own).
- */
-function watchStThemePicks() {
-    const $ = $j();
-    $(document).off('.ptStTheme');
-    if (!active) return;
-    const shape = document.getElementById('avatar_style');
-    if (shape && typeof settings.avatarShape !== 'string') {
-        settings.avatarShape = shape.value;
-        saveSettings();
-    }
-    $(document).on('change.ptStTheme', '#themes', () => {
-        stThemePickedAt = Date.now();
-        window.setTimeout(() => {
-            if (!active) return;
-            syncChatStyleForTheme();
-            const select = document.getElementById('avatar_style');
-            if (ownThemeOn() && select && typeof settings.avatarShape === 'string' && select.value !== settings.avatarShape
-                && select.querySelector(`option[value="${CSS.escape(settings.avatarShape)}"]`)) {
-                $(select).val(settings.avatarShape).trigger('change');
-            }
-        }, 400);
-    });
-    // A shape you pick yourself (Appearance or SillyTavern's own setting) is the one kept.
-    $(document).on('change.ptStTheme', '#avatar_style', function () {
-        if (Date.now() - stThemePickedAt < 1500) return;
-        if (settings.avatarShape !== this.value) {
-            settings.avatarShape = this.value;
-            saveSettings();
-        }
-    });
-}
-
-/** SillyTavern's Chat Style when it is not Flat (Pocket Tavern's message cards only draw over Flat), else ''. */
-function stChatStyleName() {
-    const select = document.getElementById('chat_display');
-    if (!select || select.value === '0') return '';
-    return select.selectedOptions[0]?.textContent?.trim() || select.value;
-}
-
-/** Puts SillyTavern's Chat Style on Flat (it saves it); true when it changed. */
-function useFlatChatStyle() {
-    const select = document.getElementById('chat_display');
-    if (!select || select.value === '0') return false;
-    $j()(select).val('0').trigger('change');
-    return true;
-}
-
-function themeNote(id, key, text, actions = []) {
-    return h('div', { id, class: 'pt-inline-note', 'data-pt': '1', 'data-key': key }, [
-        h('p', { text }),
-        actions.length ? h('div', { class: 'pt-inline-note-actions' }, actions.map(([label, onclick]) => h('button', { type: 'button', class: 'pt-inline-note-btn', onclick }, [label]))) : null,
-    ]);
-}
-
-/** On the Backgrounds page: a Pocket Tavern theme's own background is covering chat backgrounds. */
-function syncBackgroundNote() {
-    const header = document.getElementById('bg-header-fixed');
-    let note = document.getElementById('pt_bg_note');
-    const theme = active ? currentTheme() : null;
-    const key = theme && ownThemeOn() && settings.themeBackdrop ? `theme:${theme.id}` : '';
-    if (!header || !key) {
-        note?.remove();
-        return;
-    }
-    if (note?.dataset.key === key) return;
-    note?.remove();
-    note = themeNote('pt_bg_note', key, t('The {theme} theme shows its own background, so chat backgrounds are hidden.', { theme: t(theme.name) }), [
-        ['Show chat backgrounds', () => setAppearance('themeBackdrop', false)],
-    ]);
-    header.prepend(note);
-}
-
-/**
- * At the top of Settings → Look: SillyTavern's UI Theme list is hidden there while
- * Pocket Tavern is on, because its themes are in Settings → Themes, made to fit.
- */
-function syncLookNote() {
-    const block = document.getElementById('UI-presets-block');
-    let note = document.getElementById('pt_look_note');
-    if (!block || !active) {
-        note?.remove();
-        return;
-    }
-    if (note) return;
-    note = themeNote('pt_look_note', 'moved', "Themes are in Settings → Appearance: Pocket Tavern's own, and your SillyTavern themes made to fit. Theme Colors below change \"Your theme\".", [
-        ['Open Appearance', () => openPage('pt-appearance')],
-    ]);
-    block.prepend(note);
-}
-
-function syncThemeNotes() {
-    syncBackgroundNote();
-    syncLookNote();
-}
-
-/**
- * Picking a background while a Pocket Tavern theme shows its own: the pick is what
- * you want to see, so the theme's background turns off.
- */
-function onBackgroundPick(event) {
-    if (!active || !settings.themeBackdrop || !ownThemeOn()) return;
-    const thumb = event.target.closest?.('#bg_menu_content .bg_example');
-    if (!thumb || event.target.closest('.jg-menu, .mobile-only-menu-toggle') || thumb.closest('.bg-selection-mode')) return;
-    setAppearance('themeBackdrop', false);
-    globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in Settings → Themes."), t('Showing your background'), { timeOut: 4000 });
-}
-
 // -- the message box's + (in place of SillyTavern's ☰ and wand) and the chat's ⋯
 
 /** Items of SillyTavern's ☰ menu in the + menu's two groups, each with a line on what it does. */
@@ -1421,43 +981,7 @@ function onHelpClick(event) {
     tip.classList.toggle('pt-help-open');
 }
 
-// -- language
-
-function applyLanguage() {
-    setLocale(ctx().getCurrentLocale?.() ?? navigator.language);
-    const root = document.documentElement;
-    root.classList.toggle('pt-rtl', active && isRtl());
-    if (active) {
-        root.style.setProperty('--pt-l-save', JSON.stringify(t('Save')));
-        root.style.setProperty('--pt-l-cancel', JSON.stringify(t('Cancel')));
-    } else {
-        root.style.removeProperty('--pt-l-save');
-        root.style.removeProperty('--pt-l-cancel');
-    }
-}
-
-function applyTextSize() {
-    const root = document.documentElement;
-    if (active && settings.textSize && settings.textSize !== 'normal') root.dataset.ptText = settings.textSize;
-    else delete root.dataset.ptText;
-}
-
-function isCompact() {
-    if (settings.uiSize === 'compact') return true;
-    if (settings.uiSize !== 'auto') return false;
-    // A computer (mouse or trackpad, desktop layout): compact, like SillyTavern's own density.
-    if (isWide() && matchMedia('(pointer: fine)').matches) return true;
-    const sides = [screen.width, screen.height].filter(n => n > 0);
-    return sides.length > 0 && Math.min(...sides) < SMALL_PHONE_BELOW;
-}
-
-/** Size (compact or comfortable), the message box style and the tucked tabs. */
-function applyLayoutPrefs() {
-    const root = document.documentElement;
-    root.classList.toggle('pt-compact', active && isCompact());
-    root.classList.toggle('pt-docked', active && settings.chatStyle && settings.composerStyle === 'docked');
-    currentShell()?.syncTuck();
-}
+// -- extras: what runs while Pocket Tavern is on, and what stops when it goes off
 
 function syncExtras() {
     watchLorebooks();
@@ -1511,7 +1035,7 @@ function syncExtras() {
     syncCharacterPage();
     syncChatsHome();
     syncChatHistory();
-    applyLanguage();
+    applyLanguage(active, ctx().getCurrentLocale?.() ?? navigator.language);
     syncEditorState();
     syncServerWatch();
     syncConnectionBanner();
@@ -1923,6 +1447,8 @@ function syncConnectionBanner() {
 /** src/views/messages.js: versions, folding and Jump to latest, with the switches and helpers from here. */
 /** src/features/: features with the switches and helpers from here. */
 function setupFeatures() {
+    setupAppearance({ active: () => active, settings: () => settings, EASE: () => EASE, MOTION_LABELS: () => MOTION_LABELS, applyState, syncExtras, saveSettings, $j, isWide });
+    setupStThemes({ active: () => active, settings: () => settings, context: ctx, applyAppearance, saveSettings });
     setupAppShell({ active: () => active, settings: () => settings, context: ctx, chatsHome: () => chatsHome, connection: () => connection, EASE: () => EASE, buzz, endStartWindow, ensurePhoneHome, icon, isConnected, isWide, motionAllowed, openChatMenu, syncChatsHome, syncThemeNotes, ui });
     setupPages({ settings: () => settings, icon, characterFromChats: () => characterFromChats });
     setupHistory({ active: () => active, settings: () => settings, $j, backFromPage, currentPageId });
@@ -2349,7 +1875,7 @@ function init() {
         applyState();
         // SillyTavern puts back the last message box text on load; sort it into the right chat.
         restoreDraft();
-        applyLanguage();
+        applyLanguage(active, ctx().getCurrentLocale?.() ?? navigator.language);
         if (!maybeShowDesktopNotice()) maybeShowWhatsNew();
         // SillyTavern reopens a locked panel shortly after it is ready; look again while it does.
         chatsHome.startUntil = Date.now() + 4000;
