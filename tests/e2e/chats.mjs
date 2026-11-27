@@ -174,9 +174,18 @@ for (const layout of ['phone', 'desktop']) {
 
         if (!phone) await step('on a computer the quick picks scroll with the wheel and a drag, and a drag opens nothing', async () => {
             await page.evaluate(() => document.querySelector('#pt-page .pt-quick-picks').scrollLeft = 0);
-            const row = await page.locator('#pt-page .pt-quick-picks').boundingBox();
-            const room = await page.evaluate(() => { const r = document.querySelector('#pt-page .pt-quick-picks'); return r.scrollWidth - r.clientWidth; });
+            // A fresh SillyTavern (CI) has only a pick or two: the row is narrowed until there is something to scroll.
+            const room = await page.evaluate(async () => {
+                const r = document.querySelector('#pt-page .pt-quick-picks');
+                if (r.scrollWidth - r.clientWidth < 120) {
+                    r.style.maxWidth = '100px';
+                    r.dispatchEvent(new Event('scroll'));
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                return r.scrollWidth - r.clientWidth;
+            });
             if (room < 40) throw new Error(`the test data has too few picks to scroll (${room}px)`);
+            const row = await page.locator('#pt-page .pt-quick-picks').boundingBox();
             const arrows = () => page.evaluate(() => { const w = document.querySelector('#pt-page .pt-scroll-row'); return { start: w.classList.contains('pt-scroll-row--start'), end: w.classList.contains('pt-scroll-row--end') }; });
             const atStart = await arrows();
             if (atStart.start || !atStart.end) throw new Error(`arrows at the start: ${JSON.stringify(atStart)}`);
@@ -194,7 +203,7 @@ for (const layout of ['phone', 'desktop']) {
             await page.waitForTimeout(400);
             const dragged = await page.evaluate(() => ({ left: document.querySelector('#pt-page .pt-quick-picks').scrollLeft, page: document.getElementById('pt-page')?.dataset.page }));
             if (before - dragged.left < 40 || dragged.page !== 'pt-chats') throw new Error(`drag: ${before} → ${JSON.stringify(dragged)}`);
-            await page.evaluate(() => document.querySelector('#pt-page .pt-quick-picks').scrollLeft = 0);
+            await page.evaluate(() => { const r = document.querySelector('#pt-page .pt-quick-picks'); r.scrollLeft = 0; r.style.removeProperty('max-width'); });
         });
 
         await step('a character with several chats gets one card: their latest, and a dropdown with New chat, All chats, Character and the rest', async () => {

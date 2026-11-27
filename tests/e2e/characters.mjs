@@ -39,11 +39,26 @@ for (const layout of ['phone', 'desktop']) {
     const errors = [];
     page.on('pageerror', error => { if (/Mobile-UI|PocketTavern|\bpt-[a-z]/i.test(`${error.stack ?? ''} ${error.message}`)) errors.push(error.message); });
     console.log(`${layout}:`);
+    // What this run sets up on a fresh SillyTavern (CI), put back in the finally below.
+    let guest = null;
+    let wasList = false;
     try {
         await page.goto(ST_URL, { waitUntil: 'domcontentloaded' });
         await page.waitForFunction(() => document.documentElement.classList.contains('pt-on') && SillyTavern.getContext().characters.length, null, { timeout: 60000 });
         await page.waitForTimeout(5000);
         await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+        // A fresh SillyTavern has only Seraphina: a second character gives the chat to come back to after Edit.
+        guest = await page.evaluate(async () => {
+            if (SillyTavern.getContext().characters.some(character => character.name !== 'Seraphina')) return null;
+            const st = await import('/script.js');
+            const response = await fetch('/api/characters/create', { method: 'POST', headers: st.getRequestHeaders(), body: JSON.stringify({ ch_name: 'Pocket Test Guest', first_mes: 'Hello, I am a test guest.' }) });
+            if (!response.ok) throw new Error(`could not add a test character: ${response.status}`);
+            await st.getCharacters();
+            return (await response.text()).trim();
+        });
+        // The grid is what these steps check; SillyTavern's own default is the list (put back afterwards).
+        wasList = await page.evaluate(() => !document.body.classList.contains('charListGrid'));
+        if (wasList) await page.evaluate(() => document.getElementById('charListGridToggle')?.click());
         // Start in a chat with someone other than Seraphina, so a chat switch would show.
         await page.evaluate(async () => {
             const context = SillyTavern.getContext();
@@ -330,6 +345,15 @@ for (const layout of ['phone', 'desktop']) {
             if (errors.length) throw new Error(errors.join(' | '));
         });
     } finally {
+        await page.evaluate(async ({ avatar, list }) => {
+            if (list && document.body.classList.contains('charListGrid')) document.getElementById('charListGridToggle')?.click();
+            if (!avatar) return;
+            const st = await import('/script.js');
+            await fetch('/api/characters/delete', { method: 'POST', headers: st.getRequestHeaders(), body: JSON.stringify({ avatar_url: avatar, delete_chats: true }) });
+            await st.getCharacters();
+        }, { avatar: guest, list: wasList }).catch(() => {});
+        // SillyTavern saves the view a second later.
+        await page.waitForTimeout(1500).catch(() => {});
         await context.close();
     }
 }
