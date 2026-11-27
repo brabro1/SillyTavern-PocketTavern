@@ -367,6 +367,8 @@ await step('message box: persona button, context ring and Context page; search t
     await until(() => document.querySelector('#leftSendForm .pt-persona-chip img') && document.querySelector('#rightSendForm .pt-ctx-ring'));
     await page.locator('.pt-ctx-ring').click();
     await until(() => document.querySelector('#pt-sheet .pt-ctx-hero'));
+    // The sheet draws again once the breakdown is read (slower on CI): wait for its action.
+    await until(() => document.querySelector('#pt-sheet .pt-ctx-actions button'));
     // One action, to where the prompt is put together (DESIGN.md → Message box → the context ring).
     const actions = await page.evaluate(() => [...document.querySelectorAll('#pt-sheet .pt-ctx-actions button')].map(b => b.textContent.trim()));
     if (actions.join() !== 'Open prompt settings') throw new Error(`context actions: ${actions.join(', ')}`);
