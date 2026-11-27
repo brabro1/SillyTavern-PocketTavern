@@ -1,7 +1,7 @@
 # Getting around Pocket Tavern
 
 > [!NOTE]
-> This guide describes **Pocket Tavern 3.0** (in beta on the `3.0` branch). Coming from 2.x? The table at the end shows where everything went.
+> This guide describes **Pocket Tavern 3.0**. Coming from 2.x? The table at the end shows where everything went.
 
 Pocket Tavern has **five places**. Everything you can do lives in exactly one of them, and they are the same on a phone and on a computer.
 

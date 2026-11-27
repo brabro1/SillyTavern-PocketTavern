@@ -42,10 +42,10 @@ A rail with the five places, pages beside the chat and keyboard shortcuts.
 </table>
 
 > [!NOTE]
-> **This is the Pocket Tavern 3.0 beta** (`3.0.0-beta.1`), rebuilt around five places: **Chats, Characters, Lorebooks, AI and Settings**. Coming from 2.x? The [guide](docs/guide.md#where-did-it-go-coming-from-2x) shows where everything went, and the [changelog](CHANGELOG.md#300-beta1) lists what changed.
+> **This is Pocket Tavern 3.0**, rebuilt around five places: **Chats, Characters, Lorebooks, AI and Settings**. Coming from 2.x? The [guide](docs/guide.md#where-did-it-go-coming-from-2x) shows where everything went, and the [changelog](CHANGELOG.md#300) lists what changed.
 
 > [!WARNING]
-> **Pocket Tavern is in alpha, and 3.0 is a beta.** Things can change between updates and you may find bugs, so keep your own backups. If something breaks, [tell me](#feedback). If Pocket Tavern itself runs into a problem, it steps aside and SillyTavern's own screens show, with a button to come back.
+> **Pocket Tavern is in alpha.** Things can change between updates and you may find bugs, so keep your own backups. If something breaks, [tell me](#feedback). If Pocket Tavern itself runs into a problem, it steps aside and SillyTavern's own screens show, with a button to come back.
 
 > [!IMPORTANT]
 > After installing or updating, **reload the SillyTavern page** (twice if the old look is still there).
@@ -219,21 +219,6 @@ https://github.com/brabro1/SillyTavern-PocketTavern
 ```
 
 **3.** Reload the page.
-
-<details>
-<summary><b>Try the 3.0 beta</b></summary>
-<br>
-
-The beta lives on the `3.0` branch. In **Install extension**, type `3.0` as the branch (the field under the link), or from a terminal:
-
-```bash
-cd ~/SillyTavern/data/default-user/extensions
-git clone -b 3.0 https://github.com/brabro1/SillyTavern-PocketTavern
-```
-
-Already have Pocket Tavern from a terminal? Run `git fetch && git checkout 3.0` in its folder. Your settings carry over, and going back (`git checkout main`) keeps them too.
-
-</details>
 
 <details>
 <summary><b>Install from Termux instead</b></summary>

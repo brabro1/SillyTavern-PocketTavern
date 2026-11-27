@@ -12,3 +12,52 @@
 html.pt-chat #send_form {
     opacity: 1 !important;
 }
+
+/* Its own chat styles (Echo, Whisper, Hush, Ripple, Tide; GitHub issue #14): Moonlit Echoes places ‹ and the
+   "count ›" group separately, with offsets worked out for its 60px count, and Pocket Tavern's own swipe rules
+   step back for these styles. ‹ then sat apart from the rest, plain and higher up. Here ‹ is the same round
+   32px button as ›, the count has a fixed width, and ‹ sits right beside the group (› 32px + the count's 40px
+   = 72px from the group's end; the count's text is centred, so it has the same space on both sides). Both keep Moonlit's own distance from the bottom. !important beats its positions,
+   which are !important too. */
+html.pt-chat:not(.pt-editing) body:is(.echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipeRightBlock {
+    right: var(--customMesPadding, 15px) !important;
+    align-items: center;
+    gap: var(--pt-space-1);
+}
+
+html.pt-chat:not(.pt-editing) body:is(.echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .swipes-counter {
+    justify-content: center;
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+    text-align: center;
+}
+
+html.pt-chat:not(.pt-editing) body:is(.echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > .swipe_left {
+    position: absolute !important;
+    right: calc(var(--customMesPadding, 15px) + 72px) !important;
+    left: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pt-text-primary) 7%, transparent);
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    opacity: 1;
+    transform: none;
+}
+
+/* With Input History too: Moonlit Echoes always shows its ↑ ↓ arrows (display: flex !important), so they stayed
+   while you typed and squeezed the text. They step aside once you type, as without Moonlit Echoes
+   (styles/compat/input-history.css); !important beats its own. */
+html.pt-chat #nonQRFormItems:not(.pt-ih-browse) > #send_textarea:not(:placeholder-shown) ~ .stih--buttons .stih--arrows {
+    display: none !important;
+}

@@ -294,6 +294,9 @@ for (const layout of ['phone', 'desktop']) {
         });
 
         await step('leaving Characters, its page never shows at SillyTavern\'s own spot while it closes', async () => {
+            // SillyTavern's closing animation runs only with animations on (Reduced motion off).
+            const reduced = await page.evaluate(() => document.getElementById('reduced_motion')?.checked ?? false);
+            if (reduced) await page.evaluate(() => document.getElementById('reduced_motion').click());
             await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
             await page.waitForTimeout(1200);
             // Every frame for a second after switching: SillyTavern's closing drawer must stay invisible.
@@ -306,12 +309,16 @@ for (const layout of ['phone', 'desktop']) {
                     const panel = document.getElementById('right-nav-panel');
                     const box = panel?.getBoundingClientRect();
                     const style = panel && getComputedStyle(panel);
-                    if (panel?.classList.contains('closedDrawer') && box.width > 0 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.02) {
+                    // Its own visibility is not enough: the card pictures inside turn visibility back on (they showed while
+                    // the panel itself was hidden). Only the panel's opacity hides everything in it.
+                    const cardShowing = [...(panel?.querySelectorAll('.avatar, img, .character_select, .group_select') ?? [])].some(node => { const r = node.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(node).visibility === 'visible'; });
+                    if (panel?.classList.contains('closedDrawer') && box.width > 0 && box.height > 0 && style.display !== 'none' && Number(style.opacity) > 0.02 && (style.visibility !== 'hidden' || cardShowing)) {
                         out.push(`${Math.round(performance.now() - start)}ms at ${Math.round(box.left)}–${Math.round(box.right)}`);
                     }
                 }
                 return out;
             });
+            if (reduced) await page.evaluate(() => document.getElementById('reduced_motion').click());
             if (seen.length) throw new Error(`the closing Characters page showed: ${seen.slice(0, 3).join(', ')}`);
         });
 

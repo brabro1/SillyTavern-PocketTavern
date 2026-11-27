@@ -1,8 +1,8 @@
 # Changelog
 
-## 3.0.0-beta.1
+## 3.0.0
 
-The first beta of Pocket Tavern 3.0: a rebuild with one map of five places, one set of components, and a safer start. It answers GitHub issues #9 (one design language), #10 (panel locks), #11 (repeated navigation buttons), #12 (− and + beside sliders) and #13 (a wider panel on a computer). Install it from the `3.0` branch to try it; 2.28.1 stays the release on `main` until 3.0.0.
+Pocket Tavern 3.0: a rebuild with one map of five places, one set of components, and a safer start. It answers GitHub issues #9 (one design language), #10 (panel locks), #11 (repeated navigation buttons), #12 (− and + beside sliders), #13 (a wider panel on a computer) and #14 (swipe buttons with Moonlit Echoes). It follows 3.0.0-beta.1, which was published on the `3.0` branch the same day; everything below is in this release.
 
 ### Both
 
@@ -18,6 +18,8 @@ The first beta of Pocket Tavern 3.0: a rebuild with one map of five places, one 
 - **Faster and more responsive.** Opening and closing pages in a chat, the tab bar tucking away and the keyboard coming up no longer restyle the whole page (with a long chat that took tens of milliseconds on a phone at every tap); on iPhone and iPad, following Safari's keyboard is about four times less work per frame. Segmented controls and switches answer a press like every other button, the tab bar's colours change at once instead of fading, sharp pictures are decoded at the size they are shown, and the character list no longer scrolls sideways.
 - **Fails back to SillyTavern.** If something in Pocket Tavern goes wrong, it stops for this visit: SillyTavern's own screens show, with one note that your chats are safe and a **Back to Pocket Tavern** button. **Settings → Pocket Tavern → Use SillyTavern for now** does the same on purpose. Turning Pocket Tavern off leaves SillyTavern exactly as it was.
 - **Message Summarize** (qvink's Qvink Memory): its summary sits under the message text in Pocket Tavern's cards, its editor and progress bar match the look, and its four buttons are a Summary group in the message's ⋯ with a short name and a line on what each does.
+- **Moonlit Echoes** (GitHub issue #14). In its own chat styles (Echo, Whisper, Hush, Ripple, Tide) the ‹ swipe button sat apart from the count and ›, without its round background and a little higher. All three now sit together as one row, like the rest of the app. With Input History too, its ↑ ↓ arrows step aside once you type, as they do without Moonlit Echoes.
+- **Your avatar shape** stays yours: picking a SillyTavern theme (which brings its own shape) while a Pocket Tavern theme is on now always puts your shape back. Pocket Tavern used to remember the shape only once, so it could put back an old one.
 - **The Draft helper** is built in (from the Draft Enhancer extension): Enhance my draft, Write for me and Continue my draft in +, with its own settings page.
 
 ### Phone
@@ -29,7 +31,7 @@ The first beta of Pocket Tavern 3.0: a rebuild with one map of five places, one 
 
 - **The rail** on the left has the five places. A place opens in the **panel** beside the chat; click the place you're on to hide the panel. The panel can now be dragged wide enough to leave the chat only about 420px (#13).
 - **The docked message box** runs along the whole chat area as one bar.
-- **Leaving Characters** no longer flashes its page at the right edge: SillyTavern's closing animation showed it there for a moment before it slid away. Every SillyTavern page now disappears at once when you leave it.
+- **Leaving Characters** no longer flashes its cards at the right edge: SillyTavern's closing animation showed them there for a moment while they slid away (the panel itself was hidden in the beta, its pictures were not). Every SillyTavern page now disappears at once when you leave it.
 - <kbd>Esc</kbd> goes back one step at a time: the top menu, the chat search, an open lorebook entry, a tool panel, then the page.
 
 ### For theme and extension authors

@@ -457,6 +457,47 @@ if (await page.evaluate(() => !!document.querySelector('#message_template .qvink
     });
 }
 
+// Moonlit Echoes (when installed and on): in its own chat styles, ‹, the count and › sit together in one row
+// (GitHub issue #14: ‹ sat apart, plain and higher up). The versions are added in this page only, never saved.
+if (await page.evaluate(() => !!document.querySelector('#chat_display option[value="3"]'))) {
+    await check('Moonlit Echoes: in each of its chat styles the swipe arrows and the count sit together', async () => {
+        await page.route(/\/api\/chats\/(group\/)?save/, route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+        const original = await page.evaluate(() => document.getElementById('chat_display').value);
+        const setStyle = value => page.evaluate(v => { const select = document.getElementById('chat_display'); select.value = v; select.dispatchEvent(new Event('change', { bubbles: true })); }, value);
+        const bad = [];
+        try {
+            await page.evaluate(async () => {
+                const context = SillyTavern.getContext();
+                const last = context.chat[context.chat.length - 1];
+                if (!last || last.is_user) return;
+                last.swipes = [last.mes, 'Another version.', 'A third version.'];
+                last.swipe_info = last.swipes.map(() => ({}));
+                last.swipe_id = 2;
+                last.mes = last.swipes[2];
+                await context.clearChat();
+                await context.printMessages();
+            });
+            for (const value of ['3', '4', '5', '6', '7']) {
+                await setStyle(value);
+                await page.waitForTimeout(800);
+                const row = await page.evaluate(() => {
+                    const mes = [...document.querySelectorAll('#chat .mes')].pop();
+                    const box = selector => mes.querySelector(selector)?.getBoundingClientRect();
+                    const left = box('.swipe_left'), counter = box('.swipes-counter'), right = box('.swipe_right');
+                    if (!left?.width || !right?.width || !counter?.width) return { missing: true };
+                    return { style: document.body.className.match(/\w+style/)?.[0], gap: Math.round(counter.left - left.right), rise: Math.round(Math.abs((left.top + left.bottom) / 2 - (right.top + right.bottom) / 2)), size: Math.round(left.width) };
+                });
+                if (row.missing || row.gap < -1 || row.gap > 12 || row.rise > 2 || row.size !== 32) bad.push(JSON.stringify(row));
+            }
+        } finally {
+            await setStyle(original);
+            await page.waitForTimeout(1500);
+        }
+        if (bad.length) throw new Error(bad.join(' | '));
+        return 'Echo, Whisper, Hush, Ripple, Tide';
+    });
+}
+
 await check('no page errors from Pocket Tavern', async () => {
     const ours = errors.filter(e => /\bpt-[a-z]|Pocket|Mobile-UI/i.test(e));
     if (ours.length) throw new Error(ours.join(' | '));

@@ -451,9 +451,11 @@ html.pt-shell #sheld {
 /* A page being closed: SillyTavern marks its drawer closed but keeps it shown while its own closing animation
    runs. Pocket Tavern's placement only applies to an open drawer, so for that moment the drawer stood at
    SillyTavern's own spot (Characters on the right edge) and slid away. It is hidden at once instead; it keeps its
-   place in the layout, so SillyTavern's own code sees nothing change. (!important beats the inline display
-   SillyTavern's animation sets; the open drawer's rules below win as soon as it opens again.) */
+   place in the layout, so SillyTavern's own code sees nothing change. Opacity, because children can turn
+   visibility back on (the character cards do) but cannot undo a parent's opacity. (!important beats SillyTavern's
+   own drawer styles while it closes; the open drawer's rules below win as soon as it opens again.) */
 html.pt-shell #top-settings-holder .drawer-content.closedDrawer {
+    opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
 }

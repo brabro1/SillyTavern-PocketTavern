@@ -1,6 +1,6 @@
 # Pocket Tavern: Design System
 
-This is the design and UX specification for Pocket Tavern 3.0, on **Phone** and **Desktop**. It describes the target. The code catches up milestone by milestone (see [`AGENTS.md`](AGENTS.md) → Status). When code and this document disagree, this document wins. To change a rule, change it here first, in the same change as the code.
+This is the design and UX specification for Pocket Tavern 3.0, on **Phone** and **Desktop**. When code and this document disagree, this document wins. To change a rule, change it here first, in the same change as the code.
 
 ---
 

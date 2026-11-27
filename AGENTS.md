@@ -9,64 +9,9 @@ Read in this order:
 
 ---
 
-## 1. Status: the 3.0 remake
+## 1. History
 
-Pocket Tavern is being rebuilt as 3.0: a new module structure, a five-place navigation map, and one component system (see `DESIGN.md`).
-
-**Carve, don't rewrite blind.** M0 moves the 2.x code whole into `src/legacy/app.js` and `styles/legacy.css`. Every later milestone takes its part out of the legacy files, builds it new, and **deletes the old part in the same change**. Never keep two versions of one feature. Until a milestone lands, the legacy code stays in charge of what it has not replaced. By M7 the legacy files are empty and are deleted.
-
-**Branches:** M0 lands on `main` (no visible change; it can ship as a 2.x patch). M1–M7 are built on the `3.0` branch, so people updating from `main` never get a half-new app. Testers install the branch. A 2.x hotfix on `main` is merged into `3.0` at once. `3.0` merges into `main` at the release.
-
-**Order and lanes** (a lane is one agent or session, in its own worktree when lanes run at once):
-
-```
-M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
-                     └─► M1c ┴─► M2 ∥ M3 ∥ M4 ∥ M5 ──► M6 ──► M7
-```
-
-| Milestone | Lane and scope | Done when | Status |
-|---|---|---|---|
-| M0 | One lane. `index.js` and `style.css` only import; 2.x code moves to `src/legacy/` and `styles/legacy.css`; `icons.js`, `themes.js`, `i18n.js`, `locales.js` move into `src/` and `locales/`; location-dependent URLs, `check.mjs` and CI follow | `check`, `phone.mjs`, `ios.mjs` (Chrome and WebKit) and `compat.mjs` pass unchanged; screenshots match 2.28.1 | done |
-| M1·0 | One lane, alone (touches everything). Rename `stmui-` → `pt-` everywhere, legacy included; migrate `stmui_*` localStorage keys | Same as M0, with the new names | done |
-| M1a | Core/ST. `src/core/lifecycle.js` (mount order, `safe()`, crash fallback, reverse teardown), `src/core/settings.js` (version and migrations), `src/st/selectors.js`, popup watch, translations split per language with a section per area | A forced error falls back to SillyTavern; turning off leaves nothing | done |
-| M1b | UI, after M1a's lifecycle API. `styles/tokens.css`, `base.css`, every component in `DESIGN.md` → Components, a test page that screenshots each | Component screenshots pass review on both layouts, light, dark, RTL | done |
-| M1c | Shell, beside M1b. `src/shell/layout.js` (Automatic/Phone/Desktop, the keyboard rule), tab bar and rail, page stacks and back order, sheet/dialog/popover with the shared close, "Use SillyTavern for now" and the Back pill | The new tab bar and rail lead to the existing (legacy) screens | done |
-| M2 | Chats and the chat: 2a Chats home and Search everything · 2b chat header, ⋯, messages, versions, thinking, chat-switch loading · 2c message box, `+`, context ring, banners | Their legacy parts are deleted; `e2e/chats.mjs`, `e2e/chat.mjs` pass | done |
-| M3 | Characters: grid, character page, character editor (restyled) | Legacy part deleted; `e2e/characters.mjs` passes | done |
-| M4 | AI: status card, quick rows, SillyTavern's connection, sampler, prompt and formatting screens (restyled) | Legacy part deleted; `e2e/ai.mjs` passes | done |
-| M5 | Settings (hub, Appearance, Personas, Pocket Tavern with every switch, grouped; About) and Lorebooks | Legacy part deleted; `e2e/settings.mjs`, `e2e/lorebooks.mjs` pass | done |
-| M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | done |
-| M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | beta out (3.0.0-beta.1, 2026-11-27); release after the owner's OK |
-
-**M7 slices** (one commit each, every suite green, the legacy part deleted in the same change):
-
-1. ✅ **Personas** → `src/st/personas.js` (its CSS is already in `styles/st/personas.css`).
-2. ✅ **Features** → `src/features/`: translate, pictures (sharp and animated), picture viewer, drafts, keep the screen on, the server banner, reload after an update.
-3. ✅ **The chat** → `src/views/` and `src/features/`: the message box and `+`, the context ring, the message menu and long press, the message editor, search in the chat, chat rows and chat history.
-4. ✅ **The shell** → `src/shell/`: the app shell, pages, sheets, choice sheets, the back gesture, the desktop panel's edge and tool panels, notifications.
-5. ✅ **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
-6. ✅ **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
-7. ✅ **CSS**: `styles/legacy.css` split into `styles/shell/`, `styles/views/`, `styles/st/` alongside each slice above, then deleted.
-8. **Release** (beta published 2026-11-27): README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (later betas `3.0.0-beta.2`, …; the numbers stay, no 0.x), then the release after the owner's OK.
-
-- **Parallel lanes** (M1b ∥ M1c, then M2 ∥ M3 ∥ M4 ∥ M5) each own their `src/views/<view>.js`, `styles/views/`, `src/st/<screen>.js`, `styles/st/<screen>.css`, and their own section in `src/st/selectors.js` and in each `locales/` file. QA writes `tests/e2e/<view>.mjs` beside each lane. Docs checks the translations when a lane ends.
-- **Owner reviews** with screenshots after M0, after M1, after M2–M5, and before the release.
-- **Guards:** screenshots are compared with 2.28.1 after M0 and M1·0; `perf.mjs` runs in every lane while legacy and new code run side by side.
-
-Update the Status column in the same commit that finishes a milestone. Delete this section after 3.0.0 ships.
-
-**Names changed in M1·0.** 2.x used the `stmui` prefix; 3.0 uses `pt` everywhere:
-
-| Old (2.x) | New (3.0) |
-|---|---|
-| `html.stmui-on` | `html.pt-on` |
-| `html.stmui-shell`, `html.stmui-chat` (the app-shell and chat-look switches) | `html.pt-shell`, `html.pt-chat`, until those switches go (M1c, M2). `html.pt-in-chat` (a chat is open) is new in M1c |
-| `html.stmui-wide` | `html.pt-desktop`. `html.pt-phone` arrives with `src/shell/layout.js` (M1c); then exactly one of the two is on |
-| `stmui-touch`, `-compact`, `-docked`, `-glass`, `-rtl`, `-ios-kb`, `-motion-off`, … | `pt-touch`, `pt-compact`, `pt-docked`, `pt-glass`, `pt-rtl`, `pt-ios-kb`, `pt-motion-off`, … |
-| `.stmui-*` / `#stmui-*` / `#stmui_*` elements, `data-stmui-*`, `dataset.stmui*` | `.pt-*` / `#pt-*` / `#pt_*`, `data-pt-*`, `dataset.pt*` |
-| `--stmui-*` aliases of the tokens (`--stmui-surface`, `--stmui-line`, …) | removed; uses point at the token itself (`--pt-bg`, `--pt-border`, …). Other `--stmui-*` variables are now `--pt-*` |
-| `stmui_*` localStorage keys | `pt_*`, copied once by `src/core/settings.js`; the old keys stay so 2.x still works |
-| `mobileUI` settings key | **unchanged, never renamed** (users' saved settings live there) |
+Pocket Tavern 3.0.0 shipped on 2026-11-27: the 2.x app was carved into the structure below in milestones M0–M7, part by part, deleting each old part in the same change, so `src/legacy/` and `styles/legacy.css` are gone. 3.0 renamed every `stmui` name to `pt` (classes, ids, `data-*`, variables, storage keys); the full table for theme and extension authors is in [`CHANGELOG.md`](CHANGELOG.md) → 3.0.0. The settings key `extension_settings.mobileUI` was never renamed and never will be: users' saved settings live there.
 
 ---
 
