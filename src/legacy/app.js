@@ -51,6 +51,11 @@ import { aboutCharacter, characterTarget, checkCardPeek, pickCharacterLorebook, 
 import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { setupPersonas, syncPersonaTabs } from '../st/personas.js';
+import { MenuSheet, closeSheet, currentSheet, setupSheet, showSheet } from '../shell/sheet.js';
+import { currentPersona, inActiveSection, openChoiceSheet, openPersonaChooser, pickFromSelect, setupChoiceSheet } from '../shell/choice-sheet.js';
+import { fillRanges, setupSliderFill, watchRanges } from '../st/slider-fill.js';
+import { setupPanelEdge, syncPanelEdge } from '../shell/panel-edge.js';
+import { onToastTouchEnd, onToastTouchMove, onToastTouchStart, setupToastSwipe } from '../shell/toast-swipe.js';
 import { markMissingAvatars, onAvatarError, setupMissingAvatars } from '../features/missing-avatars.js';
 import { openChatRowMenu, setupChatHistory, syncChatHistory } from '../st/chat-history.js';
 import { composer, loadPersonasModule, personaName, personaPicture, setupMessageBox, syncComposer, updatePersonaButton } from '../views/message-box.js';
@@ -208,7 +213,7 @@ let settings = null;
 let active = false;
 /** Stopped for this visit by src/core/lifecycle.js (after an error); SillyTavern's own screens show. */
 let paused = false;
-let sheet = null;
+let stopViewportFollow = null;
 
 // ---------------------------------------------------------------- utilities
 
@@ -314,92 +319,6 @@ function shouldBeActive() {
     return true;
 }
 
-// ------------------------------------------------------------------ sheets
-class MenuSheet {
-    /**
-     * @param {{ title: string, subtitle?: string, anchor?: Element, fill: (body: HTMLElement) => void }} options
-     *        anchor: the button that opened it; on desktop the sheet is then a popover beside it
-     */
-    constructor({ title, subtitle, anchor, fill }) {
-        this.picker = null;
-        this.anchor = anchor ?? null;
-        this.closing = false;
-        this.fill = fill;
-        this.dialog = h('dialog', { id: 'pt-sheet', class: 'pt-sheet pt-menu-sheet', 'aria-label': title });
-        this.panel = h('div', { class: 'pt-panel', tabindex: '-1' });
-        Object.assign(this, overlayHead({ title, subtitle, onClose: () => closeSheet() }));
-        this.body = h('div', { class: 'pt-menu-body' });
-        this.panel.append(this.head, this.body);
-        this.dialog.append(this.panel);
-        wireOverlay({ dialog: this.dialog, panel: this.panel, dragAreas: [this.head, this.body], onClose: () => closeSheet() });
-        this.refresh();
-    }
-
-    refresh() {
-        const scroll = this.body.scrollTop;
-        this.body.replaceChildren();
-        this.fill(this.body);
-        this.body.scrollTop = scroll;
-    }
-}
-
-let stopViewportFollow = null;
-
-function showSheet(instance) {
-    const previousFocus = sheet ? sheet.returnFocus : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-    if (sheet) closeSheet(true);
-    // Clean up any fading-out sheet so there is never a duplicate #pt-sheet ID.
-    for (const stale of document.querySelectorAll('dialog#pt-sheet')) {
-        if (stale.open) stale.close();
-        stale.remove();
-    }
-    sheet = instance;
-    sheet.returnFocus = previousFocus;
-    // The viewport follower runs all the time Pocket Tavern is on (see applyState);
-    // here the new sheet only needs to know whether the screen is short.
-    sheet.dialog.classList.toggle('pt-compact', (window.visualViewport?.height ?? window.innerHeight) < COMPACT_BELOW);
-    // The language of its labels, so long words (a tile name on a narrow phone) break with a hyphen.
-    sheet.dialog.lang = currentLang();
-    fitToViewport(sheet.dialog, COMPACT_BELOW);
-    if (sheet.anchor?.isConnected && isWide()) placePopover(sheet.dialog, sheet.anchor);
-    document.body.append(sheet.dialog);
-    sheet.dialog.showModal();
-    syncToasts();
-    // Opening focuses the first field; make sure that did not scroll the sheet.
-    sheet.dialog.scrollTop = 0;
-    requestAnimationFrame(() => sheet?.dialog.classList.add('pt-sheet-open'));
-    sheet.panel.focus({ preventScroll: true });
-    scheduleHistorySync();
-}
-
-function closeSheet(immediate = false) {
-    const current = sheet;
-    if (!current || current.closing) return;
-    current.closing = true;
-    sheet = null;
-    const finish = () => {
-        if (current.dialog.open) current.dialog.close();
-        // Before removing it: the toast container may be inside and must go back to the page.
-        syncToasts();
-        current.dialog.remove();
-        if (!immediate && !sheet && current.returnFocus?.isConnected && document.activeElement === document.body) {
-            current.returnFocus.focus({ preventScroll: true });
-        }
-    };
-    if (immediate) {
-        finish();
-    } else {
-        // Taps during the fade-out must not hit rows of a sheet that is already closing.
-        current.dialog.style.pointerEvents = 'none';
-        // New toasts during the fade-out go to the page, not into a dialog about to be removed.
-        current.dialog.setAttribute('closing', '');
-        syncToasts();
-        current.dialog.classList.remove('pt-sheet-open');
-        setTimeout(finish, 230);
-    }
-    scheduleHistorySync();
-}
-
 // ------------------------------------------------------- back gesture
 
 /**
@@ -463,7 +382,7 @@ function openLayerCount() {
     count += openOverlays().length;
     count += openGuidedPopups().length;
     count += document.querySelectorAll('dialog.popup[open]').length;
-    if (sheet) count += 1;
+    if (currentSheet()) count += 1;
     if (viewerOpen()) count += 1;
     if (editorOpen()) count += 1;
     if (chatFinderOpen()) count += 1;
@@ -534,7 +453,7 @@ function closeTopLayer() {
         closeViewer();
         return true;
     }
-    if (sheet) {
+    if (currentSheet()) {
         closeSheet();
         return true;
     }
@@ -1018,7 +937,7 @@ class Shell {
         };
         keepBottom();
         const glide = Math.abs(shift) >= 8 && motionAllowed() && !IS_IOS
-            && !root.classList.contains('pt-editing') && !currentPageId() && !sheet;
+            && !root.classList.contains('pt-editing') && !currentPageId() && !currentSheet();
         if (!glide) return;
         const timing = { duration: 240, easing: EASE };
         if (shift < 0) {
@@ -1056,7 +975,7 @@ class Shell {
         buzz(6);
         // The prompt editor sits over the Presets page and would stay over the next one.
         if (promptEditorOpen()) {
-            if (sheet) closeSheet(true);
+            if (currentSheet()) closeSheet(true);
             leavePromptEditor(() => this.goTab(id));
             return;
         }
@@ -1066,7 +985,7 @@ class Shell {
     goTab(id) {
         // A place you picked yourself is never swapped for Chats by the start-up check (syncChatsHome).
         endStartWindow();
-        if (sheet) closeSheet(true);
+        if (currentSheet()) closeSheet(true);
         // Character Library's panel covers the chat and pages: any tab leaves it.
         if (closeCharacterLibrary() && id === 'chat') return;
         if (id === 'chat') {
@@ -1344,35 +1263,6 @@ function syncShell() {
     }
 }
 
-// ------------------------------------------------------------ slider fill
-
-/** SillyTavern leaves the slider's filled part at a fixed width; make it follow the value. */
-function updateRangeFill(input) {
-    const min = input.min === '' ? 0 : Number(input.min);
-    const max = input.max === '' ? 100 : Number(input.max);
-    const value = Number(input.value);
-    const percent = max > min ? Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100)) : 0;
-    input.style.setProperty('--pt-fill', `${percent.toFixed(1)}%`);
-}
-
-function fillRanges(root = document) {
-    for (const input of root.querySelectorAll('input[type="range"]')) updateRangeFill(input);
-}
-
-function watchRanges(on) {
-    const $ = $j();
-    $(document).off('.ptRange');
-    if (on) {
-        // jQuery delegation sees both real input and SillyTavern's own .trigger('input').
-        $(document).on('input.ptRange change.ptRange', 'input[type="range"]', function () {
-            updateRangeFill(this);
-        });
-        fillRanges();
-    } else {
-        for (const input of document.querySelectorAll('input[type="range"]')) input.style.removeProperty('--pt-fill');
-    }
-}
-
 // ------------------------------------------------------------ appearance
 
 function ensureStyle(id) {
@@ -1551,7 +1441,7 @@ function setAppearance(key, value, origin) {
         syncSettingsInputs();
         shell?.update();
         // Switches already show their new state; re-render only what depends on the choice.
-        if (sheet && !sheet.picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) sheet.refresh();
+        if (currentSheet() && !currentSheet().picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) currentSheet().refresh();
         // The layout changes the whole interface.
         if (key === 'layout') applyState();
         // Switches and segments on a settings page already show their new state (and keep the filter).
@@ -1676,47 +1566,6 @@ function onGenerating(on) {
     extras.generating = on;
     updateJump();
     setAwake(on);
-}
-
-// -- notifications: swipe one sideways to dismiss it
-
-const toastSwipe = { el: null, x: 0, dx: 0 };
-
-function onToastTouchStart(event) {
-    if (!active || !settings.niceToasts) return;
-    const toast = event.target.closest?.('#toast-container > .toast');
-    if (!toast || event.touches.length !== 1) return;
-    toastSwipe.el = toast;
-    toastSwipe.x = event.touches[0].clientX;
-    toastSwipe.dx = 0;
-    toast.style.transition = 'none';
-}
-
-function onToastTouchMove(event) {
-    const toast = toastSwipe.el;
-    if (!toast) return;
-    toastSwipe.dx = event.touches[0].clientX - toastSwipe.x;
-    toast.style.transform = `translateX(${toastSwipe.dx}px)`;
-    toast.style.opacity = String(Math.max(0.2, 1 - Math.abs(toastSwipe.dx) / 260));
-}
-
-function onToastTouchEnd() {
-    const toast = toastSwipe.el;
-    if (!toast) return;
-    toastSwipe.el = null;
-    toast.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
-    if (Math.abs(toastSwipe.dx) > 80) {
-        toast.style.transform = `translateX(${toastSwipe.dx > 0 ? 120 : -120}%)`;
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            const toastr = globalThis.toastr;
-            if (toastr?.clear) toastr.clear($j()(toast), { force: true });
-            else toast.remove();
-        }, 200);
-    } else {
-        toast.style.transform = '';
-        toast.style.opacity = '';
-    }
 }
 
 // -- search everything: what the Chats page's search finds
@@ -2086,7 +1935,7 @@ function pickChatLook(look) {
     const switched = useFlatChatStyle();
     if (switched) globalThis.toastr?.info(t("SillyTavern's Chat Style is now Flat, so Pocket Tavern's chat look shows."), '', { timeOut: 4000 });
     if ((settings.chatLook || 'cards') !== look) setAppearance('chatLook', look);
-    else if (switched && sheet && !sheet.picker) sheet.refresh();
+    else if (switched && currentSheet() && !currentSheet().picker) currentSheet().refresh();
 }
 
 // -- SillyTavern's own look (UI themes, Chat Style, backgrounds) next to Pocket Tavern's
@@ -2260,281 +2109,6 @@ function onBackgroundPick(event) {
     globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in Settings → Themes."), t('Showing your background'), { timeOut: 4000 });
 }
 
-// -- choice sheets (quick switcher)
-
-/**
- * A sheet that lists choices with a search box when the list is long.
- * @param {{ title: string, subtitle?: string, options: { value: string, label: string, note?: string, image?: string }[], current?: string, onPick: (value: string) => void }} config
- */
-function openChoiceSheet({ title, subtitle = '', options, current, onPick }) {
-    showSheet(new MenuSheet({
-        title,
-        subtitle,
-        fill: body => {
-            const rows = options.map(option => {
-                const on = option.value === current;
-                return h('button', {
-                    type: 'button',
-                    class: `pt-menu-row pt-choice ${on ? 'pt-choice-on' : ''}`,
-                    'data-search': normalizeText(`${option.label} ${option.note ?? ''}`),
-                    'aria-pressed': String(on),
-                    onclick: () => {
-                        closeSheet(true);
-                        if (option.value !== current) onPick(option.value);
-                    },
-                }, [
-                    option.image ? h('img', { class: 'pt-choice-img', src: option.image, alt: '', loading: 'lazy' }) : null,
-                    h('span', { class: 'pt-row-text' }, [
-                        h('span', { raw: option.label }),
-                        option.note ? h('small', { raw: option.note }) : null,
-                    ]),
-                    on ? ui('check', 'pt-menu-row-icon') : null,
-                ]);
-            });
-            const empty = h('p', { class: 'pt-empty', text: 'Nothing matches that.', hidden: true });
-            if (options.length > 8) {
-                const search = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
-                search.addEventListener('input', () => {
-                    const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
-                    let shown = 0;
-                    for (const row of rows) {
-                        const ok = words.every(word => row.dataset.search.includes(word));
-                        row.hidden = !ok;
-                        if (ok) shown++;
-                    }
-                    empty.hidden = shown > 0;
-                });
-                body.append(search);
-            }
-            if (!options.length) body.append(h('p', { class: 'pt-menu-foot', text: t('Nothing to choose from here yet.') }));
-            body.append(h('div', { class: 'pt-menu-list' }, rows), empty);
-            requestAnimationFrame(() => body.querySelector('.pt-choice-on')?.scrollIntoView({ block: 'center' }));
-        },
-    }));
-}
-
-/** Is this control on screen in its page, i.e. not inside a section SillyTavern has hidden? */
-function inActiveSection(element, root, allowCollapsedDrawers = false) {
-    for (let node = element; node && node !== root; node = node.parentElement) {
-        if (allowCollapsedDrawers && node.classList?.contains('inline-drawer-content')) continue;
-        if (node.classList?.contains('displayNone') || node.style?.display === 'none') return false;
-    }
-    return true;
-}
-
-function pickFromSelect(select, value) {
-    select.value = value;
-    $j()(select).trigger('change');
-    select.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-function personaChoices() {
-    const power = ctx().powerUserSettings ?? {};
-    const names = power.personas ?? {};
-    const descriptions = power.persona_descriptions ?? {};
-    return Object.entries(names).map(([avatar, name]) => ({
-        value: avatar,
-        label: name || avatar,
-        note: (descriptions[avatar]?.description ?? '').replace(/\s+/g, ' ').slice(0, 70),
-        image: `/thumbnail?type=persona&file=${encodeURIComponent(avatar)}`,
-    })).sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function currentPersona() {
-    const src = document.querySelector('#user_avatar_block .avatar-container.selected')?.dataset.avatarId;
-    return src ?? globalThis.user_avatar ?? '';
-}
-
-async function choosePersona(avatar) {
-    try {
-        const personas = await loadPersonasModule();
-        if (!personas?.setUserAvatar) throw new Error('Personas module unavailable');
-        await personas.setUserAvatar(avatar);
-    } catch (error) {
-        console.warn(LOG, 'Could not switch persona', error);
-        globalThis.toastr?.error(t('Open Personas to switch instead.'), t('Could not switch persona'));
-    }
-}
-
-/**
- * Your persona: the current one as a card with an Edit button, then the others
- * to switch to, then a way to all persona settings.
- */
-async function openPersonaChooser() {
-    const module = await loadPersonasModule();
-    const instance = new MenuSheet({
-        title: t('Your persona'),
-        subtitle: t('Who you are in the chat'),
-        fill: body => {
-            // Read fresh each time: after switching, the sheet redraws with the new persona.
-            const current = module?.user_avatar || currentPersona();
-            const all = personaChoices();
-            const description = ctx().powerUserSettings?.persona_descriptions?.[current]?.description ?? '';
-            const name = h('b', { class: 'pt-persona-card-name' });
-            name.textContent = personaName(current) || t('No name');
-            const note = h('small', { class: 'pt-persona-card-desc' });
-            note.textContent = description.replace(/\s+/g, ' ').trim() || t('No description yet.');
-            body.append(h('div', { class: 'pt-persona-card' }, [
-                h('img', { class: 'pt-persona-card-img', src: personaPicture(current), alt: '' }),
-                h('span', { class: 'pt-persona-card-text' }, [name, note]),
-                current ? h('button', {
-                    type: 'button',
-                    class: 'pt-persona-card-edit',
-                    onclick: () => {
-                        buzz(6);
-                        openPersonaEditor(current);
-                    },
-                }, [ui('pencil'), h('span', { text: 'Edit' })]) : null,
-            ]));
-            const others = all.filter(option => option.value !== current);
-            if (others.length) {
-                body.append(h('p', { class: 'pt-menu-heading', text: t('Switch to') }));
-                const rows = others.map(option => h('button', {
-                    type: 'button',
-                    class: 'pt-menu-row pt-choice',
-                    'data-search': normalizeText(`${option.label} ${option.note ?? ''}`),
-                    onclick: async () => {
-                        // Stay open: you see the switch and can switch again.
-                        buzz(8);
-                        await choosePersona(option.value);
-                        if (sheet === instance) instance.refresh();
-                    },
-                }, [
-                    h('img', { class: 'pt-choice-img', src: option.image, alt: '', loading: 'lazy' }),
-                    h('span', { class: 'pt-row-text' }, [h('span', { raw: option.label }), option.note ? h('small', { raw: option.note }) : null]),
-                ]));
-                const empty = h('p', { class: 'pt-empty', text: 'Nothing matches that.', hidden: true });
-                if (others.length > 8) {
-                    const search = h('input', { type: 'search', class: 'text_pole pt-choice-search', placeholder: t('Search'), 'aria-label': t('Search') });
-                    search.addEventListener('input', () => {
-                        const words = normalizeText(search.value).split(/\s+/).filter(Boolean);
-                        let shown = 0;
-                        for (const row of rows) {
-                            const ok = words.every(word => row.dataset.search.includes(word));
-                            row.hidden = !ok;
-                            if (ok) shown++;
-                        }
-                        empty.hidden = shown > 0;
-                    });
-                    body.append(search);
-                }
-                body.append(h('div', { class: 'pt-menu-list' }, rows), empty);
-            }
-            body.append(h('div', { class: 'pt-menu-list' }, [h('button', {
-                type: 'button',
-                class: 'pt-menu-row',
-                onclick: () => {
-                    closeSheet(true);
-                    openPage('persona-management-button');
-                },
-            }, [ui('settings', 'pt-menu-row-icon'), h('span', { text: 'All persona settings' }), ui('chevron-right', 'pt-menu-row-go')])]));
-        },
-    });
-    showSheet(instance);
-}
-
-/** A quick editor for the current persona: its name and description. */
-function openPersonaEditor(avatar) {
-    if (!avatar) return;
-    const power = ctx().powerUserSettings ?? {};
-    const startName = power.personas?.[avatar] ?? '';
-    const startText = power.persona_descriptions?.[avatar]?.description ?? (avatar === currentPersona() ? power.persona_description ?? '' : '');
-    const nameInput = h('input', { type: 'text', class: 'text_pole pt-pe-name', 'aria-label': t('Name'), maxlength: '100', enterkeyhint: 'next' });
-    nameInput.value = startName;
-    const textInput = h('textarea', { class: 'text_pole pt-pe-text', rows: '8', 'aria-label': t('Description'), placeholder: t('Who are you? Looks, personality, anything the character should know about you.') });
-    textInput.value = startText;
-    nameInput.addEventListener('keydown', event => {
-        if (event.key === 'Enter' && !event.isComposing) {
-            event.preventDefault();
-            textInput.focus();
-        }
-    });
-    const count = h('small', { class: 'pt-pe-count' });
-    let countTimer = 0;
-    const recount = () => {
-        window.clearTimeout(countTimer);
-        countTimer = window.setTimeout(async () => {
-            try {
-                const tokens = await ctx().getTokenCountAsync?.(textInput.value);
-                if (typeof tokens === 'number') count.textContent = t('{count} tokens', { count: tokens.toLocaleString() });
-            } catch {
-                count.textContent = '';
-            }
-        }, 300);
-    };
-    textInput.addEventListener('input', () => {
-        fitTextarea(textInput);
-        recount();
-    });
-    const save = async () => {
-        const newName = nameInput.value.trim();
-        if (!newName) {
-            globalThis.toastr?.warning(t('Give your persona a name.'));
-            nameInput.focus();
-            return;
-        }
-        try {
-            await savePersonaEdits(avatar, { name: newName, nameChanged: newName !== startName, text: textInput.value, textChanged: textInput.value !== startText });
-            closeSheet();
-            globalThis.toastr?.success(newName, t('Persona saved'), { timeOut: 1800 });
-        } catch (error) {
-            console.warn(LOG, 'Could not save the persona', error);
-            globalThis.toastr?.error(t('Open Personas to edit it instead.'), t('Could not save the persona'));
-        }
-    };
-    showSheet(new MenuSheet({
-        title: t('Edit persona'),
-        subtitle: t('Name and description'),
-        fill: body => {
-            body.append(h('div', { class: 'pt-pe' }, [
-                h('div', { class: 'pt-pe-top' }, [
-                    h('img', { class: 'pt-persona-card-img', src: personaPicture(avatar), alt: '' }),
-                    h('label', { class: 'pt-pe-field' }, [h('small', { text: 'Name' }), nameInput]),
-                ]),
-                h('label', { class: 'pt-pe-field' }, [h('span', { class: 'pt-pe-label' }, [h('small', { text: 'Description' }), count]), textInput]),
-                h('div', { class: 'pt-pe-actions' }, [
-                    h('button', { type: 'button', class: 'pt-pe-btn', onclick: () => closeSheet() }, [h('span', { text: 'Cancel' })]),
-                    h('button', { type: 'button', class: 'pt-pe-btn pt-pe-save', onclick: save }, [ui('check'), h('span', { text: 'Save' })]),
-                ]),
-            ]));
-            requestAnimationFrame(() => fitTextarea(textInput));
-            recount();
-        },
-    }));
-}
-
-/** Writes the edits the same way SillyTavern's Personas page does. */
-async function savePersonaEdits(avatar, { name, nameChanged, text, textChanged }) {
-    const context = ctx();
-    const power = context.powerUserSettings;
-    const personas = await loadPersonasModule();
-    const isCurrent = (personas?.user_avatar || currentPersona()) === avatar;
-    if (textChanged) {
-        if (isCurrent) {
-            // SillyTavern's own description box saves it (and its token count) on input.
-            const box = document.getElementById('persona_description');
-            if (!box) throw new Error('No persona description box');
-            box.value = text;
-            box.dispatchEvent(new Event('input', { bubbles: true }));
-        } else {
-            power.persona_descriptions[avatar] = { ...(power.persona_descriptions[avatar] ?? {}), description: text };
-        }
-    }
-    if (nameChanged) {
-        const oldName = power.personas[avatar];
-        power.personas[avatar] = name;
-        if (isCurrent) {
-            const script = await import('/script.js');
-            script.setUserName?.(name, { toastPersonaNameChange: false });
-        }
-        await context.eventSource?.emit?.(context.eventTypes?.PERSONA_RENAMED ?? 'persona_renamed', { avatarId: avatar, oldName, newName: name });
-    }
-    context.saveSettingsDebounced?.();
-    await personas?.getUserAvatars?.(true, avatar);
-    personas?.setPersonaDescription?.();
-    updatePersonaButton();
-}
-
 // -- the message box's + (in place of SillyTavern's ☰ and wand) and the chat's ⋯
 
 /** Items of SillyTavern's ☰ menu in the + menu's two groups, each with a line on what it does. */
@@ -2580,7 +2154,7 @@ function draftMenuItems() {
             icon: 'mask',
             run: () => {
                 cycleWritingAs();
-                if (sheet && !sheet.closing) sheet.refresh();
+                if (currentSheet() && !currentSheet().closing) currentSheet().refresh();
             },
         },
     ];
@@ -3098,161 +2672,6 @@ function releaseKeptOpen() {
     for (const drawer of keptOpen.splice(0)) drawer.classList.remove('pinnedOpen');
 }
 
-// -- desktop: drag the panel's edge to make it wider
-
-const PANEL_WIDTH_KEY = 'pt_panel_w';
-const PANEL_MIN = 360;
-/** How far past the widest width the edge must be dragged before the panel snaps to the full width. */
-const PANEL_SNAP = 60;
-let panelEdge = null;
-let panelEdgeFrame = 0;
-
-function savedPanelWidth() {
-    try {
-        return Number(localStorage.getItem(PANEL_WIDTH_KEY)) || 0;
-    } catch {
-        return 0;
-    }
-}
-
-/** The stylesheet keeps it between 360px and what leaves the chat 480px. */
-function applyPanelWidth(width) {
-    const root = document.documentElement;
-    if (width) root.style.setProperty('--pt-panel-saved', `${Math.round(width)}px`);
-    else root.style.removeProperty('--pt-panel-saved');
-    root.classList.toggle('pt-panel-sized', !!width);
-    // Dragged well past what leaves the chat 420px: the panel takes the whole width (issue #13).
-    const most = panelMostWidth();
-    root.classList.toggle('pt-panel-full', !!width && width > most + PANEL_SNAP);
-    if (panelEdge) {
-        panelEdge.setAttribute('aria-valuemax', String(Math.round(most + PANEL_SNAP + 1)));
-        panelEdge.setAttribute('aria-valuenow', String(Math.round(width || panelWidthNow() || PANEL_MIN)));
-    }
-}
-
-/** The widest the panel gets while the chat keeps 420px beside it. */
-function panelMostWidth() {
-    const rail = document.getElementById('pt-tabbar')?.getBoundingClientRect().right ?? 88;
-    const right = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pt-right')) || 0;
-    return Math.max(PANEL_MIN, window.innerWidth - rail - right - 420);
-}
-
-function storePanelWidth(width) {
-    try {
-        if (width) localStorage.setItem(PANEL_WIDTH_KEY, String(Math.round(width)));
-        else localStorage.removeItem(PANEL_WIDTH_KEY);
-    } catch { /* private mode: the width lasts until reload */ }
-}
-
-/** The panel's current width as drawn (the stylesheet clamps the saved one). */
-function panelWidthNow() {
-    const panel = document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer');
-    return panel ? panel.getBoundingClientRect().width : 0;
-}
-
-function syncPanelEdge() {
-    const want = active && settings.appShell;
-    if (!want) {
-        cancelAnimationFrame(panelEdgeFrame);
-        panelEdgeFrame = 0;
-        panelEdge?.remove();
-        panelEdge = null;
-        applyPanelWidth(0);
-        document.documentElement.classList.remove('pt-resizing');
-        return;
-    }
-    applyPanelWidth(savedPanelWidth());
-    if (panelEdge) return;
-    panelEdge = h('div', {
-        id: 'pt-panel-edge',
-        class: 'pt-panel-edge',
-        role: 'separator',
-        'aria-orientation': 'vertical',
-        'aria-label': 'Panel width',
-        'aria-valuemin': String(PANEL_MIN),
-        'aria-valuemax': String(Math.round(panelMostWidth() + PANEL_SNAP + 1)),
-        'aria-valuenow': String(Math.round(savedPanelWidth() || PANEL_MIN)),
-        title: 'Drag to change the width. Double-click to reset.',
-        tabindex: '0',
-        'data-pt': '1',
-    });
-    shieldFromDrawerAutoClose(panelEdge);
-    let dragX = 0;
-    // Where on the edge it was grabbed, so the edge stays under the pointer instead of jumping to it.
-    let grab = 0;
-    let moved = false;
-    const railRight = () => document.getElementById('pt-tabbar')?.getBoundingClientRect().right ?? 88;
-    const dragged = () => Math.max(PANEL_MIN, dragX - grab - railRight());
-    const onMove = event => {
-        dragX = event.clientX;
-        moved = true;
-        if (panelEdgeFrame) return;
-        panelEdgeFrame = requestAnimationFrame(() => {
-            panelEdgeFrame = 0;
-            if (active && panelEdge) applyPanelWidth(dragged());
-        });
-    };
-    const onUp = event => {
-        try {
-            panelEdge?.releasePointerCapture?.(event.pointerId);
-        } catch {
-            // Capture was already released (e.g. pointercancel).
-        }
-        panelEdge?.removeEventListener('pointermove', onMove);
-        panelEdge?.removeEventListener('pointerup', onUp);
-        panelEdge?.removeEventListener('pointercancel', onUp);
-        cancelAnimationFrame(panelEdgeFrame);
-        panelEdgeFrame = 0;
-        document.documentElement.classList.remove('pt-resizing');
-        // A click without a drag (half of a double-click) changes nothing.
-        if (!moved || !active) return;
-        applyPanelWidth(dragged());
-        // Keep what is drawn, so a width past the limit does not linger unseen.
-        const width = Math.round(panelWidthNow() || dragged());
-        applyPanelWidth(width);
-        storePanelWidth(width);
-    };
-    panelEdge.addEventListener('pointerdown', event => {
-        if (event.button !== 0) return;
-        event.preventDefault();
-        dragX = event.clientX;
-        moved = false;
-        grab = event.clientX - railRight() - (panelWidthNow() || PANEL_MIN);
-        try {
-            panelEdge.setPointerCapture?.(event.pointerId);
-        } catch {
-            // Carry on without capture.
-        }
-        document.documentElement.classList.add('pt-resizing');
-        panelEdge.addEventListener('pointermove', onMove);
-        panelEdge.addEventListener('pointerup', onUp);
-        panelEdge.addEventListener('pointercancel', onUp);
-    });
-    panelEdge.addEventListener('dblclick', () => {
-        applyPanelWidth(0);
-        storePanelWidth(0);
-    });
-    panelEdge.addEventListener('keydown', event => {
-        const step = event.shiftKey ? 64 : 16;
-        let width = 0;
-        if (event.key === 'ArrowRight') width = panelWidthNow() + step;
-        else if (event.key === 'ArrowLeft') width = panelWidthNow() - step;
-        else if (event.key === 'Home') width = -1;
-        else return;
-        event.preventDefault();
-        if (width < 0) {
-            applyPanelWidth(0);
-            storePanelWidth(0);
-            return;
-        }
-        applyPanelWidth(Math.max(PANEL_MIN, width));
-        const drawn = Math.round(panelWidthNow() || Math.max(PANEL_MIN, width));
-        applyPanelWidth(drawn);
-        storePanelWidth(drawn);
-    });
-    document.body.append(panelEdge);
-}
-
 // -- desktop: SillyTavern's floating tool panels (Author's Note, CFG, token
 // probabilities, extension pop-outs) dock in a column right of the chat, which
 // moves over to make room. SillyTavern drew them in the top-left corner, under
@@ -3343,7 +2762,7 @@ function onWideShortcut(event) {
         event.preventDefault();
         return;
     }
-    if (isTypingField(document.activeElement) || sheet || document.querySelector('dialog[open]')) return;
+    if (isTypingField(document.activeElement) || currentSheet() || document.querySelector('dialog[open]')) return;
     event.preventDefault();
     focusChatsSearch();
 }
@@ -3353,7 +2772,7 @@ function onWideKeyDown(event) {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
     if (!document.documentElement.classList.contains('pt-desktop')) return;
     // Open sheets and SillyTavern's popups close themselves on Escape.
-    if (sheet || viewerOpen() || document.querySelector('dialog[open]') || editorOpen()) return;
+    if (currentSheet() || viewerOpen() || document.querySelector('dialog[open]') || editorOpen()) return;
     // The prompt editor: full screen first, then the editor (asking if there are unsaved changes).
     if (promptEditorOpen()) {
         event.preventDefault();
@@ -3417,7 +2836,7 @@ function applyState() {
         // A SillyTavern theme saved from an older version (or changed in SillyTavern since) gets its current values.
         if (changed && String(settings.theme).startsWith('st:')) loadSillyTavernThemes();
         // Kept running while on: adding and removing its page-wide variables for every sheet restyled the whole page twice.
-        if (!stopViewportFollow) stopViewportFollow = followViewport(() => sheet?.dialog, COMPACT_BELOW);
+        if (!stopViewportFollow) stopViewportFollow = followViewport(() => currentSheet()?.dialog, COMPACT_BELOW);
     } else {
         stopObserver();
         stopPopupWatch?.();
@@ -3477,12 +2896,17 @@ function syncConnectionBanner() {
 /** src/views/messages.js: versions, folding and Jump to latest, with the switches and helpers from here. */
 /** src/features/: features with the switches and helpers from here. */
 function setupFeatures() {
+    setupSheet({ isWide, scheduleHistorySync, compactBelow: COMPACT_BELOW });
+    setupChoiceSheet({ settings: () => settings, context: ctx, sheet: currentSheet, $j, buzz, closeSheet, icon, normalizeText, openPage, showSheet, ui, loadPersonasModule, personaName, personaPicture, updatePersonaButton, MenuSheet });
+    setupSliderFill({ $j });
+    setupPanelEdge({ active: () => active, settings: () => settings });
+    setupToastSwipe({ active: () => active, settings: () => settings, $j });
     setupMissingAvatars({ active: () => active, settings: () => settings, icon });
     setupChatHistory({ active: () => active, settings: () => settings, closeSheet, highlight, icon, showSheet, ui, wireOnce, MenuSheet });
     setupMessageBox({ active: () => active, settings: () => settings, context: ctx, shell: () => shell, buildPlusButton, buzz, currentPersona, openPersonaChooser, syncTabsButton, ui });
     setupChatScroll({ active: () => active, settings: () => settings, context: ctx });
-    setupMessageMenu({ active: () => active, settings: () => settings, context: ctx, sheet: () => sheet, actionRow, buzz, closeSheet, icon, showSheet, ui, MenuSheet });
-    setupContextRing({ active: () => active, settings: () => settings, context: ctx, composer: () => composer, sheet: () => sheet, closeSheet, icon, openPage, showSheet, MenuSheet });
+    setupMessageMenu({ active: () => active, settings: () => settings, context: ctx, sheet: currentSheet, actionRow, buzz, closeSheet, icon, showSheet, ui, MenuSheet });
+    setupContextRing({ active: () => active, settings: () => settings, context: ctx, composer: () => composer, sheet: currentSheet, closeSheet, icon, openPage, showSheet, MenuSheet });
     setupChatFinder({ active: () => active, context: ctx, motionAllowed, normalizeText, scheduleHistorySync, ui });
     setupKeepAwake({ active: () => active, settings: () => settings, generating: () => extras.generating });
     setupServerWatch({ active: () => active, settings: () => settings, context: ctx, isWide, buzz });
@@ -3491,7 +2915,7 @@ function setupFeatures() {
     setupPictures({ active: () => active, settings: () => settings, context: ctx, icon, isShown, shell: () => shell });
     setupTranslate({ active: () => active, settings: () => settings, context: ctx, shell: () => shell, buzz, icon, ui, normalizeText, saveSettings, primeChatSizes, showSheet, closeSheet, MenuSheet });
     setupFocusGuard({ active: () => active, isWide });
-    setupAutoReload({ settings: () => settings, context: ctx, sheetOpen: () => !!sheet || viewerOpen(), generating: () => extras.generating, editorOpen });
+    setupAutoReload({ settings: () => settings, context: ctx, sheetOpen: () => !!currentSheet() || viewerOpen(), generating: () => extras.generating, editorOpen });
 }
 
 /** src/st/personas.js: the Personas page, with the switches and helpers from here. */
@@ -3524,7 +2948,7 @@ function setupCharacterScreens() {
         context: ctx,
         active: () => active,
         settings: () => settings,
-        currentSheet: () => sheet,
+        currentSheet,
         shell: () => shell,
         isWide,
         icon,
@@ -3778,7 +3202,7 @@ function setupLorebookHelpers() {
         openPage,
         scheduleHistorySync,
         settings: () => settings,
-        sheet: () => sheet,
+        sheet: currentSheet,
         shell: () => shell,
         showSheet,
         syncEditorState,
@@ -3816,7 +3240,7 @@ function setupSettingsHelpers() {
         scheduleHistorySync,
         setAppearance,
         settings: () => settings,
-        sheet: () => sheet,
+        sheet: currentSheet,
         shell: () => shell,
         showSheet,
         stThemeColors,
@@ -3928,7 +3352,7 @@ function init() {
     }
     eventSource?.on?.(event_types.CHAT_CHANGED, () => {
         applyPendingAnimated();
-        sheet?.refresh();
+        currentSheet()?.refresh();
         shell?.onChatChanged();
         guardKeyboard();
         restoreDraft();

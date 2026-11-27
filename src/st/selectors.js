@@ -11,6 +11,13 @@ export const POPUP_DIALOG = 'dialog.popup';
 /** Older popups that SillyTavern shows and hides with a style instead of a <dialog>. */
 export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
 
+// ---- Pages and notifications ----------------------------------------------------------------
+
+/** SillyTavern's toasts (toastr's container). */
+export const TOASTS = '#toast-container';
+/** The top-bar drawer that is open as a page. */
+export const OPEN_PAGE = '#top-settings-holder > .drawer > .drawer-content.openDrawer';
+
 // ---- Chat ----------------------------------------------------------------------------------------
 
 /** The chat's scroll container; SillyTavern empties it when a chat loads. */
@@ -66,6 +73,11 @@ export const CHARACTER_SEARCH = '#character_search_bar';
 /** Bulk edit (select several), and the class SillyTavern puts on the list while it is on. */
 export const BULK_EDIT_BUTTON = '#bulkEditButton';
 export const BULK_MODE_CLASS = 'group_overlay_mode_select';
+
+// ---- Personas ---------------------------------------------------------------------------------
+
+/** SillyTavern's list of personas (each an .avatar-container; the one in use is .selected). */
+export const PERSONA_LIST = '#user_avatar_block';
 
 // ---- Formatting (Advanced Formatting) ----------------------------------------------------------
 
