@@ -299,8 +299,13 @@ export function watchStThemePicks() {
     const $ = deps.$j();
     $(document).off('.ptStTheme');
     if (!deps.active()) return;
+    // Your shape is SillyTavern's own setting as it is now: read again each time Pocket Tavern starts, so a shape
+    // changed while Pocket Tavern was off (or by another way) is never undone by an old remembered one.
+    // (Not just after a SillyTavern theme was picked: the shape on screen is the theme's then.)
     const shape = document.getElementById('avatar_style');
-    if (shape && typeof deps.settings().avatarShape !== 'string') {
+    const themeSettled = Date.now() - stThemePickedAt > THEME_SETTLE_CHECKS[THEME_SETTLE_CHECKS.length - 1] + 200
+        && (lastStTheme === null || (document.querySelector(UI_THEME_PICKER)?.value ?? null) === lastStTheme);
+    if (themeSettled && shape?.value && deps.settings().avatarShape !== shape.value) {
         deps.settings().avatarShape = shape.value;
         deps.saveSettings();
     }
