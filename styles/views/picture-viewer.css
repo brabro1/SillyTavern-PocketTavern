@@ -1,0 +1,152 @@
+/* The picture viewer (src/features/picture-viewer.js; DESIGN.md → Avatars and pictures). */
+
+.pt-viewer {
+    --pt-viewer-fade: 1;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--pt-dur) var(--pt-ease);
+}
+
+.pt-viewer::backdrop {
+    background: transparent;
+}
+
+.pt-viewer.pt-viewer-open {
+    opacity: 1;
+}
+
+.pt-viewer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.94);
+    opacity: var(--pt-viewer-fade);
+}
+
+.pt-viewer-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.pt-viewer-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    will-change: transform;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.pt-viewer-open .pt-viewer-img {
+    animation: pt-viewer-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+@keyframes pt-viewer-in {
+    from {
+        opacity: 0;
+        scale: 0.86;
+    }
+}
+
+.pt-viewer-top,
+.pt-viewer-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    transition: opacity var(--pt-dur) var(--pt-ease), transform var(--pt-dur) var(--pt-ease);
+}
+
+.pt-viewer-top {
+    top: 0;
+    padding: calc(12px + var(--pt-safe-top, 0px)) 12px 24px 16px;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), transparent);
+}
+
+.pt-viewer-bar {
+    bottom: 0;
+    justify-content: center;
+    padding: 24px 12px calc(16px + var(--pt-safe-bottom, 0px));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+
+.pt-viewer-bare .pt-viewer-top {
+    opacity: 0;
+    transform: translateY(-12px);
+    pointer-events: none;
+}
+
+.pt-viewer-bare .pt-viewer-bar {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+}
+
+.pt-viewer-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-viewer-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-viewer-btn:active {
+    background: rgba(255, 255, 255, 0.28);
+    transform: scale(0.92);
+}
+
+.pt-viewer-bar .pt-viewer-btn {
+    margin: 0 8px;
+}
+
+.pt-viewer-btn .pt-svg {
+    width: 22px;
+    height: 22px;
+}
+
+html.pt-motion-off .pt-viewer,
+html.pt-motion-off .pt-viewer-img {
+    transition: none;
+    animation: none;
+}

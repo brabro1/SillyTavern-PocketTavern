@@ -18,6 +18,13 @@ export const CHAT = '#chat';
 /** The text box SillyTavern puts in a message while you edit it. */
 export const MESSAGE_EDITOR = '#curEditTextarea';
 
+/** Where SillyTavern (and Pocket Tavern) put text you edit: a box there that takes focus right after a tap
+ *  elsewhere keeps the keyboard down (src/shell/focus-guard.js). */
+export const EDIT_AREAS = '#chat, #WorldInfo, #world_popup, #completion_prompt_manager_popup, #persona-management-block, #rm_ch_create_block, #pt-sheet';
+
+/** The wand menu's Translate chat (SillyTavern's translation extension). */
+export const TRANSLATE_CHAT = '#translate_chat';
+
 // ---- Message box ---------------------------------------------------------------------------
 
 /** SillyTavern's whole message area at the bottom of the chat (quick replies, the box, its buttons). */
@@ -52,6 +59,8 @@ export const CHARACTER_FILTERS = '#rm_characters_block .rm_tag_filter';
 export const CHARACTER_LIST = '#rm_print_characters_block';
 /** The box above the list (toolbar, search, filters). */
 export const CHARACTER_LIST_TOP = '#charListFixedTop';
+/** SillyTavern's favourites row above the list (hidden while the Characters pages are on). */
+export const FAVORITES_ROW = '#HotSwapWrapper';
 /** The search field SillyTavern filters the list with. */
 export const CHARACTER_SEARCH = '#character_search_bar';
 /** Bulk edit (select several), and the class SillyTavern puts on the list while it is on. */

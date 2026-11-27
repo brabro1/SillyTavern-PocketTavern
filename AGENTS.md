@@ -40,8 +40,8 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 
 **M7 slices** (one commit each, every suite green, the legacy part deleted in the same change):
 
-1. **Personas** → `src/st/personas.js` (its CSS is already in `styles/st/personas.css`).
-2. **Features** → `src/features/`: translate, pictures (sharp and animated), picture viewer, drafts, keep the screen on, the server banner, reload after an update.
+1. ✅ **Personas** → `src/st/personas.js` (its CSS is already in `styles/st/personas.css`).
+2. ✅ **Features** → `src/features/`: translate, pictures (sharp and animated), picture viewer, drafts, keep the screen on, the server banner, reload after an update.
 3. **The chat** → `src/views/` and `src/features/`: the message box and `+`, the context ring, the message menu and long press, the message editor, search in the chat, chat rows and chat history.
 4. **The shell** → `src/shell/`: the app shell, pages, sheets, choice sheets, the back gesture, the desktop panel's edge and tool panels, notifications.
 5. **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.

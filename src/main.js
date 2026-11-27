@@ -7,7 +7,7 @@ import './core/prelude.js';
 import { startAll } from './core/lifecycle.js';
 import { resumeLegacy, startLegacy } from './legacy/app.js';
 
-export { onPocketTavernUpdate } from './legacy/app.js';
+export { onPocketTavernUpdate } from './features/auto-reload.js';
 
 startAll([
     { name: 'the 2.x app', start: startLegacy, resume: resumeLegacy },
