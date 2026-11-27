@@ -106,3 +106,12 @@ export const UI_THEME_PICKER = '#themes';
 export const AVATAR_STYLE = '#avatar_style';
 /** A background's thumbnail in the Backgrounds drawer. */
 export const BACKGROUND_THUMB = '#bg_menu_content .bg_example';
+
+// ---- Start screen and menus --------------------------------------------------------------------
+
+/** The lorebook picker in World Info (its options name every lorebook). */
+export const LOREBOOK_PICKER = '#world_editor_select';
+/** The recent chats on SillyTavern's welcome screen. */
+export const WELCOME_RECENT_CHATS = '#chat .welcomePanel .recentChat';
+/** Image Generation's menu items (when that extension is on). */
+export const PICTURE_MENU_ITEMS = '#sd_dropdown [id]';
