@@ -6,7 +6,7 @@
 // - safe() wraps every callback Pocket Tavern hands to SillyTavern or the browser. The first error
 //   stops Pocket Tavern for this visit, so SillyTavern's own screens show, with one toast.
 // - While started, a page-wide listener does the same for uncaught errors thrown from Pocket
-//   Tavern's own files. It covers the legacy app, whose callbacks are not wrapped one by one.
+//   Tavern's own files: a net under safe(), for anything a wrapper misses.
 import { t } from './i18n.js';
 
 const LOG = '[Pocket Tavern]';

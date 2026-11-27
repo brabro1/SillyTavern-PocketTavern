@@ -18,5 +18,5 @@ export function closeCharacterLibrary() {
     return true;
 }
 
-/** Its panel as one of the layers Back closes (src/legacy/app.js → OVERLAYS). */
+/** Its panel as one of the layers Back closes (src/shell/history.js → OVERLAYS). */
 export const CHARACTER_LIBRARY_OVERLAY = { selector: PANEL, close: () => closeCharacterLibrary() };

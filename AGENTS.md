@@ -45,7 +45,7 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 3. ✅ **The chat** → `src/views/` and `src/features/`: the message box and `+`, the context ring, the message menu and long press, the message editor, search in the chat, chat rows and chat history.
 4. ✅ **The shell** → `src/shell/`: the app shell, pages, sheets, choice sheets, the back gesture, the desktop panel's edge and tool panels, notifications.
 5. ✅ **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
-6. **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
+6. ✅ **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
 7. **CSS**: `styles/legacy.css` split into `styles/shell/`, `styles/views/`, `styles/st/` alongside each slice above, then deleted.
 8. **Release**: README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (later betas `3.0.0-beta.2`, …; the numbers stay, no 0.x), then the release after the owner's OK.
 
@@ -79,7 +79,7 @@ src/
   main.js             boot: settings, decide if active, mount, register teardown
   core/               SillyTavern bridge (getContext, events), settings + migrations,
                       lifecycle (mount, teardown, safe(), crash fallback),
-                      h() safe DOM builder, i18n
+                      h() safe DOM builder, i18n, state, activation, start-up
   shell/              tab bar / rail, headers, page stack, sheet ⇄ dialog ⇄ popover,
                       back gesture, keyboard and viewport handling
   ui/                 components: buttons, rows, fields, number field, picker,
@@ -91,7 +91,6 @@ src/
   compat/             one file per other extension (guided-generations.js, …)
   features/           translate, drafts, context ring, server watch, pictures
   themes/             themes and SillyTavern theme conversion
-  legacy/             app.js: the 2.x code, carved out milestone by milestone (gone by M7)
 locales/              one file per language, loaded only when that language is on
 styles/               tokens.css, base.css, components/, views/, st/, compat/,
                       legacy.css (the 2.x styles, gone by M7)
@@ -150,7 +149,7 @@ Checks:    which tests and screenshots prove it
 8. **Z-index bands only** (`DESIGN.md`, Tokens). Never cover SillyTavern's own popups, extension settings or toasts. While one of SillyTavern's popups is open, Pocket Tavern steps aside (`html.pt-st-popup`, `DESIGN.md` → Layouts).
 9. **No globals.** State lives in modules. Nothing is added to `window`.
 10. **Fail back to SillyTavern.** A bug in Pocket Tavern must never leave someone without a working SillyTavern.
-    - Every callback Pocket Tavern hands to SillyTavern or the browser (events, observers, timers, animation frames, listeners) is wrapped in `safe()` from `src/core/lifecycle.js`. Until it is gone, the legacy app is covered instead by a page-wide listener that reacts only to uncaught errors whose top stack frame is in Pocket Tavern's folder.
+    - Every callback Pocket Tavern hands to SillyTavern or the browser (events, observers, timers, animation frames, listeners) is wrapped in `safe()` from `src/core/lifecycle.js`. Under that, a page-wide listener catches anything a wrapper misses: it reacts only to uncaught errors whose top stack frame is in Pocket Tavern's folder.
     - The first uncaught error tears Pocket Tavern down and switches to SillyTavern for this visit, as "Use SillyTavern for now" does. It logs once with the `[Pocket Tavern]` prefix and shows one toast (`DESIGN.md` → Using native SillyTavern). Errors after that are ignored until Pocket Tavern is started again (the Back to Pocket Tavern pill or a reload).
     - **Mounting is all-or-nothing.** Parts mount in order. If one throws, the parts already mounted are torn down in reverse order and the crash fallback runs.
     - **Teardown runs in reverse order**, and each teardown is wrapped on its own, so one that throws never stops the rest.

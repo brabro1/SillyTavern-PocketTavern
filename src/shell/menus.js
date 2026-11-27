@@ -10,6 +10,7 @@ import { cancelDraft, canUndo, cycleWritingAs, draftRunning, isDrafting, preview
 import { openTranslateSheet } from '../features/translate.js';
 import { closeSheet, currentSheet, MenuSheet, showSheet } from './sheet.js';
 import { listGroup, listRow } from '../ui/list.js';
+import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
 import { safe } from '../core/lifecycle.js';
 

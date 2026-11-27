@@ -1,14 +1,14 @@
-// Starts Pocket Tavern (AGENTS.md → Rules, 10). During the 3.0 remake the 2.x app in legacy/app.js
-// still runs everything that has not been rebuilt yet (AGENTS.md → Status).
+// Starts Pocket Tavern (AGENTS.md → Rules, 10): src/core/start.js waits for SillyTavern and wires every part;
+// src/core/lifecycle.js starts it all or nothing and falls back to SillyTavern after an error.
 //
 // Order matters: imports run in the order they are written, so the prelude (storage keys,
-// translations) is done before the legacy app loads.
+// translations) is done before the rest loads.
 import './core/prelude.js';
 import { startAll } from './core/lifecycle.js';
-import { resumeLegacy, startLegacy } from './legacy/app.js';
+import { resumeApp, startApp } from './core/start.js';
 
 export { onPocketTavernUpdate } from './features/auto-reload.js';
 
 startAll([
-    { name: 'the 2.x app', start: startLegacy, resume: resumeLegacy },
+    { name: 'Pocket Tavern', start: startApp, resume: resumeApp },
 ]);

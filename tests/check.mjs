@@ -162,9 +162,9 @@ try {
         const key = m[2].replace(/\\(['"\\])/g, '$1');
         if (!keys.includes(key)) missingKeys.push(key);
     }
-    // New code (outside src/legacy/) also passes labels to h() and components: text, title,
+    // Pocket Tavern's code also passes labels to h() and components: text, title,
     // aria-label, placeholder, label, header, long and subtitle values, and `label = '…'` defaults.
-    const newSource = await readAll(MODULES.filter(file => file.startsWith('src/') && !file.startsWith('src/legacy/')));
+    const newSource = await readAll(MODULES.filter(file => file.startsWith('src/')));
     for (const m of newSource.matchAll(/(?:\btext|'aria-label'|\btitle|\bplaceholder|\blabel|\bheader|\blong|\bsubtitle)\s*[:=]\s*(['"])((?:\\.|(?!\1).)*)\1/g)) {
         const key = m[2].replace(/\\(['"\\])/g, '$1');
         if (key && !/^(pt[-_]|#)/.test(key) && !keys.includes(key)) missingKeys.push(key);
@@ -289,10 +289,10 @@ try {
     fail('lifecycle', error);
 }
 
-// SillyTavern's ids live in src/st/selectors.js (src/compat/ has other extensions'; src/legacy/ is exempt until it is gone).
+// SillyTavern's ids live in src/st/selectors.js (src/compat/ has other extensions').
 try {
     const found = [];
-    for (const file of MODULES.filter(f => f.startsWith('src/') && !/^src\/(st|compat|legacy)\//.test(f))) {
+    for (const file of MODULES.filter(f => f.startsWith('src/') && !/^src\/(st|compat)\//.test(f))) {
         const text = await readFile(new URL(file, root), 'utf8');
         for (const m of text.matchAll(/['"`]#([A-Za-z_][\w-]*)/g)) {
             if (!/^pt[-_]/.test(m[1]) && !/^[0-9a-f]{3,8}$/i.test(m[1])) found.push(`${file}: #${m[1]}`);

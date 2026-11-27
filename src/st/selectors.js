@@ -1,7 +1,6 @@
 // Every SillyTavern id, class and attribute Pocket Tavern looks for, grouped by screen
 // (AGENTS.md → Engineering standards). Other files import these names; when a SillyTavern update
 // renames something, the fix is here. Each lane adds its screen's group; keep groups in this order.
-// The legacy app (src/legacy/) still has its own until each milestone moves them here.
 
 // ---- Popups ----------------------------------------------------------------------------------
 
@@ -15,6 +14,8 @@ export const POPUP_LEGACY_IDS = ['shadow_popup', 'shadow_select_chat_popup'];
 
 /** SillyTavern's toasts (toastr's container). */
 export const TOASTS = '#toast-container';
+/** The top bar's drawers themselves (extensions add their own). */
+export const TOP_DRAWERS = '#top-settings-holder > .drawer';
 /** Every top-bar drawer's content (each is a page while open). */
 export const PAGE_DRAWERS = '#top-settings-holder > .drawer > .drawer-content';
 /** The top-bar drawer that is open as a page. */
@@ -115,3 +116,11 @@ export const LOREBOOK_PICKER = '#world_editor_select';
 export const WELCOME_RECENT_CHATS = '#chat .welcomePanel .recentChat';
 /** Image Generation's menu items (when that extension is on). */
 export const PICTURE_MENU_ITEMS = '#sd_dropdown [id]';
+
+// ---- Tool panels (desktop) ---------------------------------------------------------------------
+
+/** SillyTavern's floating panels (Author's Note, CFG, token probabilities, extensions' pop-outs) and their holder. */
+export const TOOL_PANEL_HOLDER = '#movingDivs';
+export const TOOL_PANELS = '#movingDivs > div';
+/** A floating panel's own close button. */
+export const TOOL_PANEL_CLOSE = '.floating_panel_close, #logprobsViewerClose, .dragClose, [id$="Close"]';

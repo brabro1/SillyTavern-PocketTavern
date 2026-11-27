@@ -1,9 +1,9 @@
-// What has to happen before the legacy app loads (src/main.js imports this first, and imports run
-// in the order they are written). It moves into src/main.js's boot once the legacy app is gone.
+// What has to happen before the rest of Pocket Tavern loads (src/main.js imports this first, and imports run
+// in the order they are written): storage keys moved to their new names, and the translations loaded.
 import { loadLocale } from './i18n.js';
 import { migrateStorageKeys } from './settings.js';
 
-// The legacy app reads its storage keys and draws labels as soon as it starts.
+// Pocket Tavern reads its storage keys and draws labels as soon as it starts.
 migrateStorageKeys();
 
 let locale = globalThis.navigator?.language;
