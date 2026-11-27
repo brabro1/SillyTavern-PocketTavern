@@ -38,6 +38,17 @@ M0 ──► M1·0 ──► M1a ─┬─► M1b ┐
 | M6 | One lane, after M2. Every compatibility patch into `src/compat/`, checked with the real extensions; tool row measured at 320, 360, 412 | `compat.mjs` passes with each extension on | done |
 | M7 | One lane. Legacy files deleted; README, guide, screenshots, banner, changelogs, a note on renamed classes; 3.0.0 beta on the branch, then release after the owner's OK | CI green on `main`, release published | planned |
 
+**M7 slices** (one commit each, every suite green, the legacy part deleted in the same change):
+
+1. **Personas** → `src/st/personas.js` (its CSS is already in `styles/st/personas.css`).
+2. **Features** → `src/features/`: translate, pictures (sharp and animated), picture viewer, drafts, keep the screen on, the server banner, reload after an update.
+3. **The chat** → `src/views/` and `src/features/`: the message box and `+`, the context ring, the message menu and long press, the message editor, search in the chat, chat rows and chat history.
+4. **The shell** → `src/shell/`: the app shell, pages, sheets, choice sheets, the back gesture, the desktop panel's edge and tool panels, notifications.
+5. **Looks** → `src/themes/` and `src/st/`: appearance, SillyTavern's own look, its UI themes; language → `src/core/i18n.js`.
+6. **Start-up** → `src/main.js` and `src/core/`: init, activation, utilities. `src/legacy/app.js` is deleted.
+7. **CSS**: `styles/legacy.css` split into `styles/shell/`, `styles/views/`, `styles/st/` alongside each slice above, then deleted.
+8. **Release**: README, guide, screenshots, banner, changelogs, a note on renamed classes; `3.0.0-beta.1` on the branch (version scheme as the owner decides), then the release after the owner's OK.
+
 - **Parallel lanes** (M1b ∥ M1c, then M2 ∥ M3 ∥ M4 ∥ M5) each own their `src/views/<view>.js`, `styles/views/`, `src/st/<screen>.js`, `styles/st/<screen>.css`, and their own section in `src/st/selectors.js` and in each `locales/` file. QA writes `tests/e2e/<view>.mjs` beside each lane. Docs checks the translations when a lane ends.
 - **Owner reviews** with screenshots after M0, after M1, after M2–M5, and before the release.
 - **Guards:** screenshots are compared with 2.28.1 after M0 and M1·0; `perf.mjs` runs in every lane while legacy and new code run side by side.
