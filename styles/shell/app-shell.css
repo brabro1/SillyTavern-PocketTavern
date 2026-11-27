@@ -1,0 +1,427 @@
+/* The app shell (html.pt-shell): top app bar, bottom tab bar, pages between them, toasts.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   App shell (html.pt-shell): top app bar, bottom tab bar, pages
+   ========================================================================== */
+
+.pt-appbar,
+.pt-tabbar {
+    display: none;
+}
+
+html.pt-shell {
+    --pt-appbar-h: 56px;
+    --pt-tabbar-h: 62px;
+    --pt-bottom: calc(var(--pt-tabbar-h) + var(--pt-safe-bottom));
+    /* Pinned (!important): themes set it too (Moonlit Echoes, on phones), which shrank the top bar and dropped the notch space. */
+    --topBarBlockSize: calc(var(--pt-appbar-h) + var(--pt-safe-top)) !important;
+    --pt-page-h: calc(100dvh - var(--topBarBlockSize) - var(--pt-bottom));
+}
+
+/* The keyboard is up: the tab bar steps aside so the message box sits on the keyboard. */
+html.pt-shell.pt-keyboard {
+    --pt-bottom: 0px;
+}
+
+/* SillyTavern puts a transform on <html>, which makes it the box that fixed
+   elements are placed against. Give it the full screen height so the bars land
+   at the real top and bottom. */
+html.pt-shell {
+    height: 100%;
+}
+
+html.pt-shell body {
+    overflow-x: hidden;
+}
+
+/* -- Top app bar ---------------------------------------------------------- */
+
+html.pt-shell .pt-appbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 4010;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: var(--topBarBlockSize);
+    padding: var(--pt-safe-top) calc(8px + var(--pt-safe-right)) 0 calc(8px + var(--pt-safe-left));
+    box-sizing: border-box;
+    border-bottom: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    /* Nearly solid instead of live blur: blurring the chat behind on every scroll frame is heavy for phones. */
+    background: var(--pt-bg);
+    box-shadow: var(--pt-shadow-bar);
+    color: var(--pt-text-primary);
+    text-shadow: none;
+}
+
+.pt-appbar * {
+    text-shadow: none;
+}
+
+.pt-ab-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-primary);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.pt-ab-btn:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-ab-back {
+    display: none;
+}
+
+.pt-ab-page .pt-ab-back {
+    display: inline-flex;
+}
+
+/* A place's root (Characters, Lorebooks, AI, Settings) has its title only: the tab bar is the way out. */
+.pt-ab-page.pt-ab-root .pt-ab-back {
+    display: none;
+}
+
+.pt-ab-who {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    height: 48px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: var(--pt-radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    /* Start, not left: in Arabic the name sits next to its picture. */
+    text-align: start;
+    cursor: pointer;
+}
+
+.pt-ab-who:not([disabled]):active {
+    background: var(--pt-surface);
+}
+
+.pt-ab-who[disabled] {
+    cursor: default;
+    opacity: 1;
+}
+
+.pt-ab-avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-secondary);
+    font-size: 16px;
+    overflow: hidden;
+}
+
+.pt-ab-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pt-ab-avatar-icon {
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+}
+
+.pt-ab-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.pt-ab-title {
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-ab-sub {
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-ab-sub:empty {
+    display: none;
+}
+
+.pt-ab-sub.pt-ab-offline::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-inline-end: 8px;
+    border-radius: 50%;
+    background: var(--pt-danger);
+    vertical-align: 1px;
+}
+
+/* Small phones: the buttons sit closer, but their tap area stays 44px. */
+@media (max-width: 400px) {
+    .pt-ab-btn {
+        width: 44px;
+        margin: 0 -4px;
+    }
+}
+
+/* -- Bottom tab bar ------------------------------------------------------- */
+
+html.pt-shell .pt-tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 4010;
+    display: flex;
+    align-items: stretch;
+    height: var(--pt-bottom);
+    padding: 0 var(--pt-safe-right) var(--pt-safe-bottom) var(--pt-safe-left);
+    box-sizing: border-box;
+    border-top: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    background: color-mix(in srgb, var(--pt-surface) 55%, var(--pt-bg));
+    box-shadow: var(--pt-shadow-bar-up);
+    text-shadow: none;
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-shell.pt-keyboard .pt-tabbar {
+    display: none;
+}
+
+/* Gone at once when the keyboard opens: sliding away, it covered the message box above the keyboard. */
+html.pt-shell.pt-keyboard .pt-tabbar,
+html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
+    transition: none;
+}
+
+.pt-tab {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 8px 4px 4px;
+    border: 0;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-tab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 30px;
+    border-radius: 999px;
+    font-size: 20px;
+    transition: background var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
+}
+
+.pt-tab-label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-tab-on {
+    color: var(--pt-text-primary);
+}
+
+.pt-tab-on .pt-tab-icon {
+    color: var(--pt-accent);
+}
+
+.pt-tab-icon .pt-svg {
+    width: 23px;
+    height: 23px;
+}
+
+/* The pill behind the active tab; it slides from tab to tab. */
+.pt-tab-indicator {
+    position: absolute;
+    top: 7px;
+    left: var(--pt-safe-left);
+    width: calc((100% - var(--pt-safe-left) - var(--pt-safe-right)) / 5);
+    height: 32px;
+    pointer-events: none;
+    transform: translateX(calc(var(--pt-tab-index, 0) * 100%));
+}
+
+.pt-tab-indicator::before {
+    content: '';
+    display: block;
+    width: 58px;
+    height: 100%;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pt-accent) 22%, var(--pt-surface));
+    box-shadow: var(--pt-highlight), var(--pt-shadow-raise);
+}
+
+.pt-tab-icon .pt-svg,
+.pt-tab-label {
+    transition: transform var(--pt-dur) var(--pt-ease), color var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-tab-on .pt-tab-label {
+    color: var(--pt-text-primary);
+    transform: translateY(-1px);
+}
+
+@media (hover: hover) {
+    .pt-tab:not(.pt-tab-on):hover .pt-tab-icon {
+        background: color-mix(in srgb, var(--pt-text-primary) 7%, transparent);
+    }
+}
+
+.pt-tab {
+    position: relative;
+    z-index: 1;
+}
+
+/* -- Make room: SillyTavern's own top bar steps aside --------------------- */
+
+html.pt-shell #top-bar {
+    display: none !important;
+}
+
+html.pt-shell #top-settings-holder {
+    height: 0 !important;
+    min-height: 0;
+    pointer-events: none;
+}
+
+html.pt-shell #top-settings-holder > .drawer > .drawer-toggle {
+    display: none !important;
+}
+
+html.pt-shell #top-settings-holder .drawer-content {
+    pointer-events: auto;
+}
+
+html.pt-shell #sheld {
+    top: var(--topBarBlockSize) !important;
+    height: calc(100dvh - var(--topBarBlockSize) - var(--pt-bottom)) !important;
+    max-height: calc(100dvh - var(--topBarBlockSize) - var(--pt-bottom)) !important;
+    padding-left: var(--pt-safe-left);
+    padding-right: var(--pt-safe-right);
+}
+
+/* -- Pages: every top-bar drawer opens full-screen between the two bars ---- */
+
+html.pt-shell #top-settings-holder .drawer-content.openDrawer {
+    top: var(--topBarBlockSize) !important;
+    left: 0 !important;
+    width: 100dvw !important;
+    min-width: 100dvw !important;
+    max-width: 100dvw !important;
+    height: var(--pt-page-h) !important;
+    max-height: var(--pt-page-h) !important;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: var(--pt-bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    animation: pt-page-in var(--pt-dur) var(--pt-ease);
+}
+
+@keyframes pt-page-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+html.pt-shell #right-nav-panel .scrollableInner,
+html.pt-shell #left-nav-panel .scrollableInner {
+    max-height: none;
+}
+
+/* Character popup and similar full panels sit between the bars too. */
+html.pt-shell #character_popup {
+    top: var(--topBarBlockSize) !important;
+    height: var(--pt-page-h) !important;
+    max-height: var(--pt-page-h) !important;
+    border-radius: 0;
+}
+
+/* Toasts: below the app bar, full width, rounded. */
+html.pt-on body #toast-container {
+    top: calc(var(--topBarBlockSize) + 8px) !important;
+    left: calc(8px + var(--pt-safe-left)) !important;
+    right: calc(8px + var(--pt-safe-right)) !important;
+    width: auto !important;
+    transform: none !important;
+}
+
+html.pt-on body #toast-container > div {
+    width: 100% !important;
+    max-width: none;
+    margin: 0 0 8px;
+    border-radius: var(--pt-radius);
+    box-shadow: none;
+}
+
+/* Landscape phones: slimmer bars, labels beside icons. */
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-shell {
+        --pt-appbar-h: 46px;
+        --pt-tabbar-h: 46px;
+    }
+
+    .pt-tab {
+        flex-direction: row;
+        gap: 8px;
+        padding: 0 4px;
+    }
+
+    .pt-tab-icon {
+        width: 40px;
+        height: 30px;
+    }
+
+    .pt-ab-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .pt-ab-sub {
+        display: none;
+    }
+}

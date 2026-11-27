@@ -1,0 +1,60 @@
+/* Shared foundations: slim scroll bars on the desktop layout, and no blur anywhere (DESIGN.md).
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* On the desktop layout every list scrolls with a slim bar for the mouse: 8px of room, a 4px
+   rounded thumb that is faint until you point at the list, no track and no arrows. */
+
+html.pt-on.pt-desktop ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+html.pt-on.pt-desktop ::-webkit-scrollbar-track,
+html.pt-on.pt-desktop ::-webkit-scrollbar-track:hover,
+html.pt-on.pt-desktop ::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+html.pt-on.pt-desktop ::-webkit-scrollbar-button {
+    display: none;
+}
+
+html.pt-on.pt-desktop ::-webkit-scrollbar-thumb:vertical,
+html.pt-on.pt-desktop ::-webkit-scrollbar-thumb:horizontal {
+    min-width: 32px;
+    min-height: 32px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--pt-text-primary) 18%, transparent);
+    background-clip: padding-box;
+    box-shadow: none;
+}
+
+html.pt-on.pt-desktop :hover::-webkit-scrollbar-thumb:vertical,
+html.pt-on.pt-desktop :hover::-webkit-scrollbar-thumb:horizontal {
+    background-color: color-mix(in srgb, var(--pt-text-primary) 32%, transparent);
+}
+
+html.pt-on.pt-desktop ::-webkit-scrollbar-thumb:active {
+    background-color: color-mix(in srgb, var(--pt-text-primary) 48%, transparent);
+}
+
+/* Firefox draws its own thin bar from two colours. */
+@supports (-moz-appearance: none) {
+    :where(html.pt-on.pt-desktop) * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--pt-text-primary) 24%, transparent) transparent;
+    }
+}
+
+/* No blur anywhere (DESIGN.md): it lags phone GPUs, and a backdrop-filter makes an
+   element the containing block of its fixed children, which once put the full-screen
+   message editor and an opened lorebook entry far off the screen (2.25.1). This also
+   switches off SillyTavern's own blur on the chat, drawers and popups while Pocket
+   Tavern is on. */
+html.pt-on *,
+html.pt-on *::before,
+html.pt-on *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}

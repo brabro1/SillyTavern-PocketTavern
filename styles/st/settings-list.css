@@ -1,0 +1,180 @@
+/* Settings: a list of sections, rows with the switch on the right, explanations, Extensions as a list.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Settings: a list of sections, rows with the switch on the right, and a
+   line under each setting with SillyTavern's own explanation
+   ========================================================================== */
+
+/* -- Toggle rows: label and explanation on the left, the switch on the right -- */
+
+html.pt-touch .pt-setrow > :is(small, span):not(.pt-help) {
+    flex: 0 1 auto;
+    min-width: 0;
+    color: var(--pt-text-primary);
+    opacity: 1;
+    font-size: 16px;
+    white-space: normal;
+}
+
+html.pt-touch .pt-setrow > .pt-help {
+    order: 3;
+    flex: 1 0 100%;
+    padding-inline-end: 56px;
+}
+
+/* -- "Avatars: [Circle]" rows on the Settings page ------------------------ */
+
+html.pt-touch .pt-selrow > :is(span, label) {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--pt-text-primary);
+    font-size: 16px;
+}
+
+html.pt-touch .pt-selrow > :is(span, label) small {
+    font-size: inherit;
+}
+
+html.pt-touch .pt-selrow > .pt-help {
+    flex: 1 0 100%;
+}
+
+/* -- Sliders on the Settings page: name and number on one line, slider under -- */
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > input[type='number'] {
+    grid-row: 1;
+    grid-column: 2;
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > .pt-help {
+    grid-row: 2;
+}
+
+html.pt-setnav #user-settings-block-content .flexBasis48p:has(> input[type='range']) > small:not(:first-child):not(.pt-help) {
+    grid-row: 4;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+    text-align: start;
+}
+
+/* -- The explanation line ------------------------------------------------- */
+
+.pt-help {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    align-self: stretch;
+    margin: 0;
+    color: var(--pt-text-secondary);
+    opacity: 1;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: start;
+    white-space: normal;
+}
+
+html.pt-touch .drawer-content .range-block-title + .pt-help {
+    margin: 4px 0 4px;
+}
+
+/* Two lines at first; a tap shows the rest. */
+.pt-help.pt-help-open {
+    display: block;
+}
+
+/* -- Extensions page: one line on what each built-in extension does -------- */
+
+/* -- Extensions as a list, each opening as its own page (html.pt-extnav) --
+   Kahvana's feedback: the fold-out cards felt unlike the rest of Pocket
+   Tavern's lists. Each extension is a row in a grouped list, like Settings;
+   opening one hides everything beside it (index.js marks the open fold-out
+   .pt-ext-open and the boxes around it .pt-ext-path), and the top bar
+   shows its name with Back to the list. */
+
+/* Pinned: themes (Moonlit Echoes) give each header its own card with !important. */
+html.pt-extnav #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle) {
+    position: relative;
+    gap: 4px 12px;
+    min-height: 56px;
+    margin: 0 !important;
+    padding-block: 8px !important;
+    padding-inline: 16px 40px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    filter: none !important;
+}
+
+html.pt-extnav #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle) > .inline-drawer-icon {
+    display: none;
+}
+
+/* A chevron pointing to the page it opens, drawn with two borders, centred on the row. */
+html.pt-extnav #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle)::after {
+    content: '';
+    position: absolute;
+    top: calc(50% - 4px);
+    inset-inline-end: 20px;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--pt-text-muted);
+    border-bottom: 2px solid var(--pt-text-muted);
+    transform: rotate(-45deg);
+}
+
+html.pt-extnav.pt-rtl #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle)::after {
+    transform: rotate(135deg);
+}
+
+html.pt-extnav #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle):active {
+    background: var(--pt-surface-elevated) !important;
+}
+
+@media (hover: hover) {
+    html.pt-extnav #rm_extensions_block[data-pt-view='home'] .pt-ext-row > :is(.inline-drawer-header, .inline-drawer-toggle):hover {
+        background: var(--pt-surface-elevated) !important;
+    }
+}
+
+/* One extension open: only its settings, with no card around them and no name row
+   (the top bar shows the name). */
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] .extensions_block > :not(.pt-ext-path),
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] .pt-ext-path > :not(.pt-ext-path, .pt-ext-open),
+html.pt-extnav #rm_extensions_block[data-pt-view='ext'] .pt-ext-open > :is(.inline-drawer-header, .inline-drawer-toggle) {
+    display: none !important;
+}
+
+/* -- Chat options and Tools sheets ---------------------------------------- */
+
+.pt-menu-heading + .pt-menu-list {
+    margin-top: 0;
+}
+
+.pt-menu-sheet .pt-menu-heading:first-child {
+    margin-top: 4px;
+}
+
+.pt-action-row .pt-row-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pt-menu-row .pt-fa-icon {
+    flex: 0 0 auto;
+    width: 24px;
+    min-width: 24px;
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+    text-align: center;
+}
+
+.pt-menu-row-danger .pt-row-text > span {
+    color: var(--pt-danger);
+}
+
+.pt-menu-row-danger .pt-row-text > small {
+    color: var(--pt-text-secondary);
+}

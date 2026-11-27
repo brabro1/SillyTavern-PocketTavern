@@ -2,16 +2,19 @@
 // (also used for long dropdowns), the Lorebooks shortcut under +, what the Lorebooks page (src/views/lorebooks.js)
 // reads and opens, the World Info page as a lorebook's page or as Activation settings, and entry cards with
 // keyword chips. SillyTavern's nodes are marked, restyled (styles/st/lorebooks.css) and pressed, never moved.
-// Moved here whole from the legacy app (M5); its listeners are still registered by the legacy app, so errors in
-// them are caught by the lifecycle's page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
+// Moved here from the 2.x app (M5); every callback it hands out goes through safe()
+// (src/core/lifecycle.js).
 import { t } from '../core/i18n.js';
 import { h } from '../core/dom.js';
 import { overlayHead, wireOverlay } from '../shell/overlay.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { LOREBOOK_PAGE } from '../views/lorebooks.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'lorebooks';
 
 /**
- * What the legacy app hands over (set once by setupLorebookScreens()).
+ * What start-up hands over (src/core/wiring.js) (set once by setupLorebookScreens()).
  * @type {Record<string, any> | null}
  */
 let deps = null;
@@ -124,8 +127,8 @@ class Picker {
         const anchor = select.nextElementSibling?.classList.contains('select2') ? select.nextElementSibling : select;
         anchor.after(this.root);
         select.classList.add('pt-native-hidden');
-        $j()(select).on('change.pt', this.onChange);
-        this.optionObserver = new MutationObserver(() => this.render());
+        $j()(select).on('change.pt', safe(SOURCE, this.onChange));
+        this.optionObserver = new MutationObserver(safe(SOURCE, () => this.render()));
         this.optionObserver.observe(select, { childList: true, subtree: true, characterData: true });
         this.render();
     }
@@ -310,16 +313,16 @@ class Sheet {
             spellcheck: 'false',
             'aria-label': picker.config.searchLabel ?? 'Search lorebooks',
         });
-        this.input.addEventListener('input', () => {
+        this.input.addEventListener('input', safe(SOURCE, () => {
             this.query = this.input.value;
             this.renderList(true);
-        });
-        this.input.addEventListener('keydown', event => {
+        }));
+        this.input.addEventListener('keydown', safe(SOURCE, event => {
             if (event.key === 'Enter' && !event.isComposing) {
                 event.preventDefault();
                 this.input.blur();
             }
-        });
+        }));
         this.clearSearch = h('button', {
             type: 'button',
             class: 'pt-search-clear',
@@ -343,7 +346,7 @@ class Sheet {
         this.dialog.append(this.panel);
 
         wireOverlay({ dialog: this.dialog, panel: this.panel, dragAreas: [this.head, this.list], onClose: () => closeSheet() });
-        this.list.addEventListener('click', event => this.onListClick(event));
+        this.list.addEventListener('click', safe(SOURCE, event => this.onListClick(event)));
         this.renderTools();
         this.renderList(true);
     }
@@ -366,7 +369,7 @@ class Sheet {
             row.classList.add('pt-row-flash');
             if (!already) picker.commit(index, true);
             else this.refresh();
-            setTimeout(() => closeSheet(), 160);
+            setTimeout(safe(SOURCE, () => closeSheet()), 160);
         }
     }
 
@@ -510,7 +513,7 @@ class Sheet {
         else this.list.scrollTop = previousScroll;
         const firstSelected = this.list.querySelector('.pt-row-on:not(.pt-row-none)');
         if (resetScroll && !q && firstSelected && !picker.multi) {
-            requestAnimationFrame(() => firstSelected.scrollIntoView({ block: 'center' }));
+            requestAnimationFrame(safe(SOURCE, () => firstSelected.scrollIntoView({ block: 'center' })));
         }
     }
 }
@@ -597,14 +600,14 @@ export function scan() {
 
 function scheduleScan() {
     if (scanTimer) return;
-    scanTimer = window.setTimeout(scan, 120);
+    scanTimer = window.setTimeout(safe(SOURCE, scan), 120);
 }
 
 export function startObserver() {
     if (domObserver) return;
     const baseSelector = LOREBOOK_TARGETS.map(target => target.selector).join(',');
     let wasEditing = !!document.getElementById('curEditTextarea');
-    domObserver = new MutationObserver(records => {
+    domObserver = new MutationObserver(safe(SOURCE, records => {
         const selector = deps.settings().longSelects ? `${baseSelector},select` : baseSelector;
         let rescan = false;
         let layers = false;
@@ -640,7 +643,7 @@ export function startObserver() {
         // SillyTavern popups are <dialog>s appended to and removed from <body>.
         if (layers) scheduleHistorySync();
         if (editorChanged) syncEditorState();
-    });
+    }));
     domObserver.observe(document.body, { childList: true, subtree: true });
 }
 
@@ -766,7 +769,7 @@ export function pickActiveLorebooks() {
  */
 function onLorebooksChanged() {
     window.clearTimeout(wiPage.timer);
-    wiPage.timer = window.setTimeout(() => {
+    wiPage.timer = window.setTimeout(safe(SOURCE, () => {
         if (!deps.active()) return;
         const page = currentPageId();
         if (page === 'pt-lorebooks') refreshOwnPage();
@@ -774,7 +777,7 @@ function onLorebooksChanged() {
             if (wiPage.mode === 'book' && !editedLorebook()) openPage('pt-lorebooks');
             else deps.shell()?.render(page);
         }
-    }, 120);
+    }), 120);
 }
 
 export function watchLorebooks() {
@@ -872,8 +875,8 @@ export function openLoreEntry() {
 export function closeLoreEntry() {
     const entry = openLoreEntry();
     entry?.querySelector('.world_entry_thin_controls > .inline-drawer-toggle')?.click();
-    setTimeout(() => decorateEntries(false), 50);
-    setTimeout(() => decorateEntries(false), 400);
+    setTimeout(safe(SOURCE, () => decorateEntries(false)), 50);
+    setTimeout(safe(SOURCE, () => decorateEntries(false)), 400);
 }
 
 export function syncLoreEntries() {
@@ -892,17 +895,17 @@ export function syncLoreEntries() {
         return;
     }
     if (list && !lore.observer) {
-        lore.observer = new MutationObserver(records => {
+        lore.observer = new MutationObserver(safe(SOURCE, records => {
             if (records.every(record => record.target.closest?.('.pt-entry-keys'))) return;
             window.clearTimeout(lore.timer);
-            lore.timer = window.setTimeout(() => decorateEntries(false), 120);
-        });
+            lore.timer = window.setTimeout(safe(SOURCE, () => decorateEntries(false)), 120);
+        }));
         lore.observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
         wireOnce(list, 'input', event => {
             // Entry cards may have been switched off since (the observer goes with them).
             if (lore.observer && event.target.matches?.('textarea[name="key"]')) {
                 window.clearTimeout(lore.timer);
-                lore.timer = window.setTimeout(() => decorateEntries(false), 300);
+                lore.timer = window.setTimeout(safe(SOURCE, () => decorateEntries(false)), 300);
             }
         });
     }

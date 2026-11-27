@@ -1,0 +1,16 @@
+/* Lorebook entries: cards, keyword chips and the full-screen editor.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Lorebook entries: cards, keyword chips, full-screen editor
+   ========================================================================== */
+
+html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls :is(input, select) {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    height: 36px;
+    margin: 0;
+    padding: 0 8px;
+    font-size: 14px;
+}

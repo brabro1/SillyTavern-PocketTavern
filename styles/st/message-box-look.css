@@ -1,0 +1,254 @@
+/* The message box: floating over the chat, the text on top and the tools below, Send and Stop.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* -- Message box ---------------------------------------------------------- */
+
+/* The box floats over the chat: messages scroll on behind it, fading out
+   softly near the bottom so the box stays easy to read. The chat leaves room
+   at its end (the box's height, kept in --pt-form-h) for the last message. */
+html.pt-chat #form_sheld {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    /* 8px at the sides, like the message cards. */
+    padding: 16px 8px 8px;
+    box-sizing: border-box;
+    border: 0;
+    background: none !important;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+/* The fade sits behind the box (SillyTavern gives #form_sheld a z-index, so -1
+   stays inside it). Its sides fade out too: over a chat background a full-width
+   fade read as a dark slab with straight edges around the box. */
+html.pt-chat #form_sheld::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--pt-bg) 72%, transparent) 55%, color-mix(in srgb, var(--pt-bg) 92%, transparent) 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 48px, black calc(100% - 48px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 48px, black calc(100% - 48px), transparent 100%);
+    pointer-events: none;
+}
+
+html.pt-chat:is(.pt-docked, .pt-editing) #form_sheld::before {
+    content: none;
+}
+
+html.pt-chat #form_sheld > * {
+    pointer-events: auto;
+}
+
+html.pt-chat #chat {
+    padding-bottom: calc(var(--pt-form-h, 84px) + 4px);
+    scroll-padding-bottom: calc(var(--pt-form-h, 84px) + 4px);
+}
+
+html.pt-chat:not(.pt-shell) #form_sheld {
+    padding-bottom: calc(8px + var(--pt-safe-bottom));
+}
+
+html.pt-chat #send_form {
+    min-height: 0;
+    padding: 4px 4px 8px;
+    box-sizing: border-box;
+    border: 1px solid var(--pt-border) !important;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface) !important;
+    /* The one shadow in Pocket Tavern: a soft, even lift so the box sits clearly
+       above the chat. Mostly around the box rather than under it, because the
+       box sits 8px from the bottom edge, which would cut a dropped shadow off. */
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: border-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-chat #send_form:focus-within {
+    border-color: color-mix(in srgb, var(--pt-accent) 38%, var(--pt-border)) !important;
+}
+
+/* The hint text starts where your text starts. */
+html.pt-chat #send_textarea::placeholder {
+    text-align: start;
+}
+
+/* SillyTavern clips the top 5px off the box to draw its script progress line on
+   the top border. Pocket Tavern does not draw that border, so the clip only cut
+   off the docked field's top edge and the top of scrolled text. */
+html.pt-chat #send_textarea {
+    clip-path: none;
+}
+
+/* The text gets the whole width on top; the tools sit in a row along the bottom. */
+html.pt-chat #nonQRFormItems {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-areas:
+        "text text text"
+        "left gap right" !important;
+    align-items: center;
+    column-gap: 4px;
+    row-gap: 0;
+}
+
+/* Pinned (!important): themes and other extensions style these too, and must not pull the text into the tool row. */
+html.pt-chat #nonQRFormItems > #send_textarea {
+    grid-area: text !important;
+    order: 0 !important;
+}
+
+html.pt-chat #nonQRFormItems > #leftSendForm {
+    grid-area: left !important;
+    order: 0 !important;
+    gap: 4px;
+}
+
+html.pt-chat #nonQRFormItems > #rightSendForm {
+    grid-area: right !important;
+    order: 0 !important;
+    gap: 4px;
+}
+
+/* Anything an extension puts straight into the box gets a row of its own
+   (Input History's buttons have a place of their own, further down). */
+html.pt-chat #nonQRFormItems > :not(#send_textarea, #leftSendForm, #rightSendForm, .stih--buttons, .stih--history) {
+    grid-column: 1 / -1;
+}
+
+html.pt-chat #send_form {
+    flex-wrap: wrap !important;
+}
+
+html.pt-chat #send_form > #nonQRFormItems {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 0;
+}
+
+html.pt-chat #leftSendForm,
+html.pt-chat #rightSendForm {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+}
+
+html.pt-chat #leftSendForm > div,
+html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    border-radius: 50%;
+    font-size: 20px;
+    opacity: 0.8;
+}
+
+html.pt-chat #send_textarea {
+    box-sizing: border-box;
+    width: 100%;
+    /* Grow from one line; SillyTavern's own script sets an inline height where CSS cannot. */
+    height: auto;
+    min-height: 40px;
+    max-height: 40dvh;
+    margin: 0;
+    padding: 8px 12px 4px;
+    border: 0;
+    background: transparent;
+    /* Follows the Chat text size: Large and Extra large make your own typing bigger too (never under 16px). */
+    font-size: max(16px, calc(15px * var(--pt-text-scale, 1)));
+    line-height: 1.4;
+    box-shadow: none;
+    outline: none;
+    /* The drag grip sat right next to the send button and caught taps. */
+    resize: none;
+}
+
+/* One clean circle, at least 44×44px for touch targets. */
+html.pt-chat #rightSendForm > #send_but {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+    font-size: 20px !important;
+    opacity: 1 !important;
+    text-shadow: none;
+    filter: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* The paper plane's visual center sits left of its box; nudge it to look centered. */
+html.pt-chat #send_but::before {
+    display: block;
+    translate: -1px 1px;
+}
+
+/* Stop: the same circle as Send, with a plain square inside (SillyTavern's icon
+   already has its own ring, which doubled up and sat off-center). */
+html.pt-chat #send_form #rightSendForm > .mes_stop {
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    color: var(--pt-on-accent);
+    opacity: 1;
+    place-self: auto;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html.pt-chat #send_form .mes_stop > i {
+    display: none;
+}
+
+html.pt-chat #send_form .mes_stop::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: currentColor;
+}
+
+/* A soft pulse while the reply is being written: a ring that grows and fades.
+   Only transform and opacity move, so it never repaints the message box. */
+html.pt-motion-full.pt-chat #send_form .mes_stop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid color-mix(in srgb, var(--pt-accent) 55%, transparent);
+    border-radius: 50%;
+    animation: pt-stop-pulse 1.6s ease-out infinite;
+    pointer-events: none;
+}
+
+html.pt-chat #send_form .mes_stop:active {
+    transform: scale(0.9);
+}
+
+@keyframes pt-stop-pulse {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.48);
+    }
+}

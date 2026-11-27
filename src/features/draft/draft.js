@@ -1,7 +1,7 @@
 // The Draft helper (DESIGN.md → The chat → Message box → Draft helper): Enhance my draft, Write for me, Continue my
 // draft and Refine, built in from the Draft Enhancer extension. Every request runs through SillyTavern's Impersonate
 // with one note added (src/features/draft/engine.js); the result lands in the message box and nothing is sent until
-// the person sends it. Started and stopped by the legacy app's sync (while Pocket Tavern is on and the switch is on);
+// the person sends it. Started and stopped by src/core/activation.js (syncExtras) (while Pocket Tavern is on and the switch is on);
 // every callback it hands out is wrapped in safe().
 import { t } from '../../core/i18n.js';
 import { safe } from '../../core/lifecycle.js';
@@ -23,7 +23,7 @@ const COMMANDS = [
     ['continue-draft', 'continuedraft', 'continue', 'Finishes the draft you started, following your preset.', 'draft (defaults to the message box)'],
 ];
 
-/** What the legacy app hands over: context(), settings() (Pocket Tavern's), save(). */
+/** What start-up hands over (src/core/wiring.js): context(), settings() (Pocket Tavern's), save(). */
 let deps = null;
 let running = false;
 let bar = null;
@@ -490,7 +490,7 @@ function unregisterCommands() {
 }
 
 /**
- * What the legacy app hands over, set once (the settings page works while the Draft helper is off).
+ * What start-up hands over, set once (the settings page works while the Draft helper is off).
  * @param {{ context: () => any, settings: () => any, save: () => void, openRefine: () => void }} supplied
  */
 export function setupDraft(supplied) {
@@ -498,7 +498,7 @@ export function setupDraft(supplied) {
     useContext(() => deps.context());
 }
 
-/** Starts the Draft helper (the legacy app calls this while Pocket Tavern and the Draft helper switch are on). */
+/** Starts the Draft helper (syncExtras calls this while Pocket Tavern and the Draft helper switch are on). */
 export function startDraft() {
     if (running || !deps || standaloneInstalled()) return;
     running = true;

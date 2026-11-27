@@ -1,0 +1,12 @@
+/* The Settings panel's row and the inline lorebook picker that stands in for a native <select>.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ---- Settings panel (visible on every device) --------------------------- */
+
+/* ---- Lorebook picker (inline control that replaces a native <select>) ---- */
+
+.pt-native-hidden,
+.pt-native-hidden + .select2-container,
+.pt-trigger-chips + .select2-container {
+    display: none !important;
+}

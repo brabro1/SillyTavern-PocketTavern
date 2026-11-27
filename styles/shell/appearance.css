@@ -1,0 +1,218 @@
+/* Appearance: the modern font, the theme backdrop, icons, and one look for buttons, fields and switches on pages.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Appearance: themes, font, icons, controls
+   ========================================================================== */
+
+/* Modern font: the phone's own UI font (Roboto / Google Sans on Android). */
+html.pt-font {
+    --mainFontFamily: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Theme backdrop replaces the chat background image with the theme's gradient. */
+html.pt-themed.pt-backdrop body {
+    background: var(--pt-backdrop) !important;
+}
+
+html.pt-themed.pt-backdrop #bg1,
+html.pt-themed.pt-backdrop #bg_custom {
+    display: none !important;
+}
+
+html.pt-themed.pt-backdrop #chat {
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Icons inside our own chrome */
+.pt-ab-btn .pt-svg {
+    width: 22px;
+    height: 22px;
+}
+
+.pt-ab-avatar .pt-svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pt-ab-avatar img {
+    box-shadow: inset 0 0 0 1px var(--pt-border);
+}
+
+.pt-menu-row .pt-menu-row-icon {
+    width: 21px;
+    height: 21px;
+    color: var(--pt-text-secondary);
+}
+
+.pt-menu-row .pt-menu-row-go {
+    width: 16px;
+    height: 16px;
+    color: var(--pt-text-muted);
+}
+
+/* -- Buttons, fields, checkboxes and sliders share one look on pages ------ */
+
+html.pt-touch :is(.drawer-content, .popup, #character_popup, #select_chat_popup) .menu_button {
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background-color: var(--pt-surface);
+    color: var(--pt-text-primary);
+    font-weight: 600;
+    filter: none;
+    opacity: 1;
+}
+
+html.pt-touch :is(.drawer-content, .popup, #character_popup) .menu_button:is(.toggleEnabled, .active, .selected) {
+    border-color: color-mix(in srgb, var(--pt-accent) 60%, transparent);
+    background-color: var(--pt-accent-soft);
+    color: var(--pt-accent);
+}
+
+html.pt-touch :is(.drawer-content, .popup, #character_popup) .menu_button:is(.redWarningBG, .red_button, .danger) {
+    border-color: color-mix(in srgb, #ef4444 45%, transparent);
+    background-color: color-mix(in srgb, #ef4444 16%, var(--pt-surface));
+    color: color-mix(in srgb, #ef4444 75%, var(--pt-text-primary));
+}
+
+html.pt-touch .popup-controls .menu_button.popup-button-ok {
+    border-color: transparent;
+    background-color: var(--pt-accent);
+    color: var(--pt-on-accent);
+}
+
+html.pt-touch :is(.drawer-content, .popup, #character_popup, #select_chat_popup) :is(.text_pole, select, .neo-range-input, input[type='number']) {
+    border: 1px solid var(--pt-border);
+    background-color: var(--pt-surface);
+    color: var(--pt-text-primary);
+    box-shadow: none;
+}
+
+html.pt-touch :is(.drawer-content, .popup, #character_popup, #select_chat_popup) :is(.text_pole, select):focus {
+    border-color: color-mix(in srgb, var(--pt-accent) 70%, transparent);
+    outline: 3px solid color-mix(in srgb, var(--pt-accent) 22%, transparent);
+    outline-offset: 0;
+}
+
+html.pt-touch input[type='checkbox']:not(.pt-switch):not(.del_checkbox) {
+    border: 2px solid color-mix(in srgb, var(--pt-text-primary) 45%, transparent);
+    border-radius: 7px;
+    background-color: transparent;
+    outline: none;
+    box-shadow: none;
+    filter: none;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-touch input[type='checkbox']:not(.pt-switch):not(.del_checkbox):checked {
+    border-color: var(--pt-accent);
+    background-color: var(--pt-accent);
+}
+
+html.pt-touch input[type='checkbox']:not(.pt-switch):not(.del_checkbox):focus-visible,
+html input[type='checkbox'].pt-switch:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: 2px;
+}
+
+/* On settings pages a checkbox with a label is a pill toggle, the same as Pocket Tavern's own switches.
+   Shape, edge and colours are pinned: Moonlit Echoes sets every checkbox round with no border and
+   its own colour, all with !important, which turned the pill into a squashed oval (Kahvana's report). */
+html.pt-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.pt-switch) {
+    position: relative;
+    flex: 0 0 auto;
+    width: 40px !important;
+    height: 24px !important;
+    min-width: 40px;
+    margin: 0;
+    border: 1px solid color-mix(in srgb, var(--pt-text-secondary) 55%, transparent) !important;
+    border-radius: 999px !important;
+    background-color: var(--pt-surface-elevated) !important;
+}
+
+/* Off: a muted knob, so the switch reads on light themes too. On: the accent's own text colour. */
+html.pt-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.pt-switch)::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--pt-text-secondary);
+    box-shadow: none;
+    clip-path: none;
+    transform: none;
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.pt-switch):checked {
+    border-color: var(--pt-accent) !important;
+    background-color: var(--pt-accent) !important;
+}
+
+html.pt-touch .drawer-content label.checkbox_label > input[type='checkbox']:not(.pt-switch):checked::before {
+    background: var(--pt-on-accent);
+    transform: translateX(16px);
+}
+
+html.pt-touch .drawer-content label.checkbox_label:has(> input[type='checkbox']) {
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+}
+
+html.pt-touch input[type='checkbox']:not(.pt-switch)::before {
+    box-shadow: inset 1em 1em var(--pt-on-accent);
+}
+
+html.pt-touch input[type='range']:not(.pt-slider) {
+    background-color: var(--pt-surface-elevated) !important;
+    background-image: linear-gradient(var(--pt-accent), var(--pt-accent)) !important;
+    background-repeat: no-repeat !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+}
+
+/* The filled part follows the value (set by index.js as --pt-fill). */
+html.pt-touch input[type='range']:not(.pt-slider)[style*='--pt-fill'] {
+    background-size: var(--pt-fill) 100% !important;
+}
+
+html.pt-touch input[type='range']:not(.pt-slider)::-webkit-slider-thumb {
+    border: 3px solid var(--pt-accent) !important;
+    background: #fff !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18) !important;
+}
+
+html.pt-touch input[type='range']:not(.pt-slider)::-moz-range-thumb {
+    border: 3px solid var(--pt-accent);
+    background: #fff;
+}
+
+html.pt-touch input[type='range']:not(.pt-slider):hover {
+    filter: none;
+}
+
+html.pt-touch .drawer-content .standoutHeader {
+    border: 1px solid var(--pt-border) !important;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface) !important;
+    box-shadow: none !important;
+}
+
+/*
+ * A preset header (Chat Completion Presets and the like): the name and its buttons
+ * share a row while they fit. When they don't (a larger font, a narrow page), the
+ * buttons move under the name as one row, instead of wrapping 3 + 1 beside it.
+ */
+html.pt-touch .drawer-content .title_restorable.standoutHeader {
+    flex-wrap: wrap;
+    gap: 8px 4px;
+}
+
+html.pt-touch .drawer-content .title_restorable.standoutHeader > .flex-container {
+    flex-wrap: nowrap;
+}

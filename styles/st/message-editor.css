@@ -1,0 +1,205 @@
+/* The full-screen message editor.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Full-screen message editor
+   ========================================================================== */
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) {
+    position: fixed !important;
+    inset: var(--topBarBlockSize, 0px) 0 var(--pt-bottom, 0px) 0;
+    z-index: var(--pt-z-editor);
+    /* The Bubbles look aligns your messages right and the AI's left; newer browsers
+       apply that to a fixed box too, which shrank the editor to its text and pushed
+       it to one edge of the screen. The editor always fills the page. */
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: auto;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12px calc(12px + var(--pt-safe-right)) 0 calc(12px + var(--pt-safe-left)) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    /* Opaque: the chat it covers must not show through (DESIGN.md, section 8). */
+    background: var(--pt-bg) !important;
+    box-shadow: none !important;
+    content-visibility: visible;
+    animation: pt-fade var(--pt-dur) var(--pt-ease);
+}
+
+/* Nothing else from the chat peeks around the editor. */
+html.pt-chat.pt-editing #form_sheld,
+html.pt-chat.pt-editing .pt-jump {
+    visibility: hidden;
+}
+
+/* Themes animate the box (Moonlit Echoes: transition: all 0.8s), visibility too,
+   which kept it over the editor's Save and Cancel while it faded. */
+html.pt-chat.pt-editing #form_sheld * {
+    transition: none !important;
+}
+
+/* Pinned (!important): chat styles from themes (Moonlit Echoes' Echo and others)
+   pad, frame and shift the message text to make room for a big picture. The
+   editor is a page of its own. */
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea)::before,
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea)::after {
+    display: none !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) > .mes_block {
+    transform: none !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) :is(.mes_block, .mes_text) {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* A mask on the chat (Moonlit Echoes fades its edges) clipped the editor, which is fixed inside the chat, and let the box paint over it. */
+html.pt-chat.pt-editing #chat {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_text {
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) :is(.mesAvatarWrapper, .swipe_left, .swipeRightBlock, .for_checkbox, .del_checkbox) {
+    display: none !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) > .mes_block {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Lay the name, the text box and the buttons out top to bottom. */
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .ch_name {
+    display: contents;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .ch_name > .flex-container {
+    flex: 0 0 auto;
+    order: 0;
+    margin-bottom: 8px;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_text {
+    display: flex;
+    flex: 1 1 auto;
+    order: 2;
+    min-height: 0;
+    padding: 0;
+}
+
+html.pt-chat.pt-editing #chat #curEditTextarea {
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    width: 100%;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    font-size: calc(var(--pt-text-chat) * var(--fontScale, 1) * var(--pt-text-scale, 1));
+    line-height: 1.6;
+    resize: none;
+    field-sizing: fixed;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_reasoning_details {
+    order: 1;
+    max-height: 30%;
+    overflow: auto;
+}
+
+/* Buttons sit at the bottom, above the keyboard: Cancel, tools, then a big Save. */
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons {
+    position: static;
+    order: 9;
+    display: flex !important;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 8px;
+    margin: 12px calc(-12px - var(--pt-safe-right)) 0 calc(-12px - var(--pt-safe-left));
+    padding: 12px calc(12px + var(--pt-safe-right)) 12px calc(12px + var(--pt-safe-left));
+    border-top: 1px solid var(--pt-border);
+    background: var(--pt-bg);
+}
+
+/* Tools share the first row; Cancel and Save share the second. */
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu_button {
+    flex: 1 1 calc(20% - 8px);
+    /* SillyTavern dims these to half strength; on the editor page they are the main controls. */
+    opacity: 1;
+    filter: none;
+    width: auto;
+    height: 44px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--pt-radius-sm);
+    font-size: 16px;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .mes_edit_cancel {
+    order: 50;
+    flex: 1 1 40%;
+    height: 48px;
+    gap: 8px;
+    /* Cancel is never filled (SillyTavern paints it red): a plain button beside the accent Save. */
+    border-color: var(--pt-border) !important;
+    background: var(--pt-surface) !important;
+    color: var(--pt-text-primary) !important;
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .mes_edit_done {
+    order: 99;
+    flex: 1 1 40%;
+    height: 48px;
+    gap: 8px;
+    border-color: transparent !important;
+    background: var(--pt-accent) !important;
+    color: var(--pt-on-accent) !important;
+}
+
+html.pt-chat.pt-editing #chat .mes_edit_buttons .mes_edit_done::after,
+html.pt-chat.pt-editing #chat .mes_edit_buttons .mes_edit_cancel::after {
+    font-family: var(--mainFontFamily, system-ui, sans-serif);
+    font-size: 16px;
+    font-weight: 650;
+}
+
+html.pt-chat.pt-editing #chat .mes_edit_buttons .mes_edit_done::after {
+    content: var(--pt-l-save, 'Save');
+}
+
+html.pt-chat.pt-editing #chat .mes_edit_buttons .mes_edit_cancel::after {
+    content: var(--pt-l-cancel, 'Cancel');
+}
+
+html.pt-chat.pt-editing #chat .mes_edit_buttons .mes_edit_delete {
+    color: var(--pt-danger);
+}

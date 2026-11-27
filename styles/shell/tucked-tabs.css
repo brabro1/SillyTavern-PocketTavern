@@ -1,0 +1,118 @@
+/* Tucked tabs (html.pt-tabs-tucked): in a chat the tab bar slides away.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Tucked tabs (html.pt-tabs-tucked): in a chat the tab bar slides away so
+   it is not right under the message box; the arrow in the box brings it back.
+   ========================================================================== */
+
+html.pt-shell.pt-tabs-tucked {
+    --pt-bottom: var(--pt-safe-bottom);
+}
+
+/* SillyTavern caps the chat at the screen minus its own message box; ours floats, so the chat fills the space. */
+html.pt-chat.pt-shell #chat {
+    max-height: none;
+}
+
+html.pt-shell .pt-tabbar {
+    transition: transform var(--pt-dur) var(--pt-ease), display var(--pt-dur) allow-discrete;
+}
+
+/* It slides down, then is taken out of the page (display: none). Left in place
+   below the screen, it made the page taller than the screen, and the browser
+   scrolled the whole layout up when the message editor opened. */
+html.pt-shell.pt-tabs-tucked .pt-tabbar {
+    display: none;
+    height: calc(var(--pt-tabbar-h) + var(--pt-safe-bottom));
+    transform: translateY(100%);
+}
+
+html.pt-shell:is(.pt-motion-light, .pt-motion-off) .pt-tabbar {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.pt-shell .pt-tabbar {
+        transition: none;
+    }
+}
+
+/* The arrow: first in the row of tools along the bottom of the message box.
+   Pinned (!important): themes show everything in that row (Moonlit Echoes: #leftSendForm > * { display: flex }). */
+.pt-tabs-btn {
+    display: none !important;
+}
+
+html.pt-chat.pt-tabs-tuckable .pt-tabs-btn {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* With the keyboard up the tabs cannot show, so the arrow steps aside and the tools get the room. */
+html.pt-chat.pt-keyboard .pt-tabs-btn {
+    display: none !important;
+}
+
+.pt-tabs-btn .pt-svg {
+    width: 22px;
+    height: 22px;
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+.pt-tabs-btn-out .pt-svg {
+    transform: rotate(180deg);
+}
+
+.pt-tabs-btn:active {
+    background: var(--pt-surface-elevated);
+}
+
+.pt-tabs-btn:focus-visible {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: -2px;
+}
+
+/* Narrow phones: with the arrow in the row, your persona shows as its picture (the name is in its label). */
+@media (max-width: 400px) {
+    html.pt-chat.pt-tabs-tuckable .pt-persona-name {
+        display: none;
+    }
+
+    html.pt-chat.pt-tabs-tuckable .pt-persona-chip {
+        padding-right: 4px;
+    }
+}
+
+/* Page buttons (characters, personas, lorebook entries): 44px to tap like everything else. */
+html.pt-touch .paginationjs-pages li > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--pt-radius-sm);
+}
+
+html.pt-touch .paginationjs-pages li.disabled > a {
+    opacity: 0.4;
+}
+
+/* On a narrow phone the character list keeps ‹ › and drops « » so the row fits. */
+@media (max-width: 400px) {
+    html.pt-touch #rm_print_characters_pagination :is(.paginationjs-first, .paginationjs-last) {
+        display: none;
+    }
+}

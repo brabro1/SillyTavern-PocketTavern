@@ -17,7 +17,7 @@ import { BULK_EDIT_BUTTON, BULK_MODE_CLASS, CHARACTER_FILTERS, CHARACTER_LIST, C
  * @property {() => any} context SillyTavern's getContext()
  * @property {(instance: any) => void} showSheet
  * @property {(immediate?: boolean) => void} closeSheet
- * @property {(options: object) => any} menuSheet makes the legacy app's sheet
+ * @property {(options: object) => any} menuSheet makes a sheet (src/shell/sheet.js)
  * @property {(chid: string) => void} openCharacterPage
  * @property {(chid: string, anchor?: HTMLElement | null) => void} cardMenu the character's menu
  * @property {() => void} closePages

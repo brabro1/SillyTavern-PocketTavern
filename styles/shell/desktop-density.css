@@ -1,0 +1,70 @@
+/* Desktop density: the desktop layout with Compact and a mouse or trackpad.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Desktop density (desktop layout + Compact + a mouse or trackpad): as much
+   fits as in SillyTavern's own layout. A mouse is precise, so controls go down
+   to 32-36px here; a tablet held sideways (a finger) keeps 44px.
+   ========================================================================== */
+@media (pointer: fine) {
+    html.pt-desktop.pt-chat.pt-compact body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+        margin: 4px 4px;
+        padding: 8px 16px 8px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar,
+    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar img {
+        width: 34px;
+        height: 34px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .ch_name {
+        min-height: 32px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) #chat .mes .mes_buttons .mes_button {
+        min-width: 32px;
+        min-height: 32px;
+        margin: 0;
+        border-radius: var(--pt-radius-sm);
+    }
+
+    html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .mes_text {
+        margin-top: 4px;
+    }
+
+    /* The message box: slim quick replies, 36px tools. */
+    html.pt-desktop.pt-chat.pt-compact #form_sheld {
+        padding: 12px 8px 8px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact #qr--bar .qr--button {
+        height: 28px;
+        min-height: 28px;
+        margin: 4px 0;
+        padding: 0 12px;
+        font-size: 12px;
+        line-height: 28px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact #qr--bar .qr--button::after {
+        content: none;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact #leftSendForm > div,
+    html.pt-desktop.pt-chat.pt-compact #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px;
+    }
+
+    html.pt-desktop.pt-chat.pt-compact #send_textarea {
+        min-height: 34px;
+        padding: 8px 8px 4px;
+    }
+
+    /* The top bar is a little lower. */
+    html.pt-desktop.pt-shell.pt-compact {
+        --pt-appbar-h: 48px;
+    }
+}

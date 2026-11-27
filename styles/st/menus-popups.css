@@ -1,0 +1,330 @@
+/* SillyTavern's ☰ and wand menus as action sheets, its chat history, popups, overflow guards and landscape phones.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* -- Menus: the ☰ options menu and the ✨ wand menu become action sheets --- */
+
+html.pt-touch #options,
+html.pt-touch #extensionsMenu {
+    position: fixed !important;
+    inset: auto calc(8px + var(--pt-safe-right)) calc(var(--pt-bottom, 0px) + var(--bottomFormBlockSize) + 22px) calc(8px + var(--pt-safe-left)) !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 8px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-bg);
+    box-shadow: none;
+}
+
+html.pt-touch #options .options-content,
+html.pt-touch #extensionsMenu {
+    max-height: min(62dvh, calc(100dvh - var(--topBarBlockSize) - var(--pt-bottom, 0px) - var(--bottomFormBlockSize) - 40px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+html.pt-touch #options .options-content {
+    padding: 0;
+    border: 0;
+    border-radius: var(--pt-radius);
+    background: transparent;
+}
+
+html.pt-touch #options .options-content > a,
+html.pt-touch #extensionsMenu .list-group-item,
+html.pt-touch #extensionsMenu > .extension_container > div,
+html.pt-touch #extensionsMenu > div:not(.extension_container) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 50px;
+    padding: 0 16px;
+    border-radius: var(--pt-radius-sm);
+    opacity: 1;
+    font-size: 16px;
+}
+
+html.pt-touch #options .options-content > a:active,
+html.pt-touch #extensionsMenu .list-group-item:active,
+html.pt-touch #extensionsMenu > .extension_container > div:active {
+    background: var(--pt-surface-elevated);
+}
+
+html.pt-touch #options .options-content > a.displayNone {
+    display: none;
+}
+
+html.pt-touch #options .options-content i,
+html.pt-touch #extensionsMenu .extensionsMenuExtensionButton {
+    width: 24px;
+    min-width: 24px;
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+}
+
+html.pt-touch #options .options-content hr {
+    margin: 4px 12px;
+    border-color: var(--pt-border);
+}
+
+/* -- Chat history: a bottom sheet with roomy rows -------------------------- */
+
+html.pt-touch #shadow_select_chat_popup {
+    height: 100%;
+}
+
+html.pt-touch #select_chat_popup {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100% - var(--topBarBlockSize) - 8px);
+    margin: 0;
+    padding: 16px 16px calc(16px + var(--pt-safe-bottom));
+    gap: 12px;
+    border: 1px solid var(--pt-border);
+    border-bottom: 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
+    background: var(--pt-bg);
+    box-shadow: none;
+    animation: pt-sheet-up var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-touch #select_chat_popup > div[name='selectChatPopupHeader'] {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+html.pt-touch #selectChatPopupHeaderText {
+    flex: 1 1 100%;
+    order: -1;
+    font-size: 1.2em;
+    text-align: left;
+}
+
+html.pt-touch #select_chat_cross {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+}
+
+html.pt-touch #select_chat_popup .select_chat_block {
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid color-mix(in srgb, var(--pt-text-primary) 16%, transparent);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+/* The chat that is open now: an accent edge and an "Open now" label, not a coloured block. */
+html.pt-touch #select_chat_popup .select_chat_block[highlight] {
+    border-color: color-mix(in srgb, var(--pt-accent) 60%, transparent);
+    background: var(--pt-surface);
+}
+
+html.pt-touch #select_chat_popup .select_chat_block:active {
+    background: var(--pt-surface-elevated);
+}
+
+/* Pocket Tavern's row (name, when, bubble, ⋯) replaces SillyTavern's line of file name,
+   size and three small icons; those stay in the page for the ⋯ menu to use. */
+html.pt-touch #select_chat_popup .select_chat_block.pt-rc > :is(#select_chat_name_wrapper, .select_chat_block_mes) {
+    display: none !important;
+}
+
+html.pt-touch #select_chat_popup .select_chat_block .menu_button,
+html.pt-touch #select_chat_popup .select_chat_block .mes_button,
+html.pt-touch #select_chat_popup .select_chat_block [class*='fa-'].opacity50p {
+    min-width: 38px;
+    min-height: 38px;
+}
+
+/* SillyTavern spins the delete skull and makes it glow while the mouse is over it; here it only turns the danger colour. */
+html.pt-on #select_chat_popup .PastChat_cross:not(.disabled):hover {
+    animation: none;
+    filter: none;
+    color: var(--pt-danger);
+    opacity: 1;
+}
+
+/* -- Popups: bottom sheets with big buttons -------------------------------- */
+
+html.pt-touch dialog.popup:not(.transparent_dialogue_popup) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: calc(100dvh - var(--pt-safe-top) - 16px) !important;
+    margin: auto 0 0 0 !important;
+    padding: 12px 16px calc(16px + var(--pt-safe-bottom));
+    box-sizing: border-box;
+    border: 1px solid var(--pt-border);
+    border-bottom: 0;
+    border-radius: var(--pt-radius) var(--pt-radius) 0 0;
+    background: var(--pt-bg);
+    box-shadow: none;
+}
+
+html.pt-touch dialog.popup:not(.transparent_dialogue_popup)::before {
+    content: '';
+    display: block;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 5px;
+    margin: 0 auto 8px;
+    border-radius: 3px;
+    background: var(--pt-text-muted);
+}
+
+html.pt-touch dialog.popup.wide_dialogue_popup,
+html.pt-touch dialog.popup.large_dialogue_popup {
+    height: calc(100dvh - var(--pt-safe-top) - 16px) !important;
+}
+
+html.pt-touch dialog.popup[opening] {
+    animation: pt-sheet-up var(--popup-animation-speed, var(--pt-dur-slow)) var(--pt-ease);
+}
+
+html.pt-touch dialog.popup[closing] {
+    animation: pt-sheet-down var(--popup-animation-speed, var(--pt-dur)) var(--pt-ease);
+}
+
+@keyframes pt-sheet-up {
+    from {
+        transform: translateY(60px);
+        opacity: 0;
+    }
+}
+
+@keyframes pt-sheet-down {
+    to {
+        transform: translateY(60px);
+        opacity: 0;
+    }
+}
+
+html.pt-on .popup-body,
+html.pt-on .popup-content {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+html.pt-touch .popup .popup-content {
+    font-size: 1.02em;
+    line-height: 1.45;
+}
+
+html.pt-touch .popup-controls {
+    align-self: stretch;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+html.pt-touch .popup-controls .menu_button {
+    flex: 1 1 0;
+    min-height: 50px;
+    margin: 0;
+    border-radius: var(--pt-radius-sm);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+html.pt-touch .popup .popup-button-close {
+    top: 8px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+}
+
+html.pt-on dialog.popup.transparent_dialogue_popup {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+}
+
+/* -- Overflow guards ------------------------------------------------------ */
+
+html.pt-on .mes_text,
+html.pt-on .mes_text * {
+    overflow-wrap: anywhere;
+}
+
+html.pt-on .mes_text pre,
+html.pt-on .mes_text table {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* A table too wide for the card scrolls sideways (a block can, a table box can't)
+   instead of cutting words in the middle ("Seraph/ina") to fit. */
+html.pt-on .mes_text table {
+    display: block;
+    width: max-content;
+}
+
+html.pt-on .mes_text :is(th, td) {
+    overflow-wrap: break-word;
+}
+
+html.pt-on .mes_text img,
+html.pt-on .mes_text video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* -- Landscape phones: reclaim vertical space ----------------------------- */
+
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-touch {
+        --bottomFormBlockSize: 44px;
+    }
+
+    html.pt-touch:not(.pt-shell) {
+        --topBarBlockSize: calc(40px + var(--pt-safe-top)) !important;
+    }
+
+    html.pt-touch:not(.pt-shell) #top-settings-holder .drawer-icon {
+        font-size: 20px;
+    }
+
+    html.pt-chat #leftSendForm > div,
+    html.pt-chat #rightSendForm > div:not(.mes_stop):not(.stscript_btn) {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Sideways phones are short: the message box goes back to one row (tools, text, ring and Send). */
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-chat #nonQRFormItems {
+        grid-template-areas: "left text right" !important;
+    }
+
+    html.pt-chat #send_textarea {
+        min-height: 38px;
+        max-height: 30dvh;
+        padding: 8px 8px;
+    }
+
+    html.pt-chat #form_sheld {
+        padding-top: 12px;
+        padding-bottom: 8px;
+    }
+
+    html.pt-chat #send_form {
+        padding: 4px 4px;
+    }
+}

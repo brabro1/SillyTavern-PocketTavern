@@ -1,6 +1,6 @@
 // Pocket Tavern's own pages (AI, Settings, …): one at a time, in the same place as SillyTavern's pages
 // (DESIGN.md → Navigation): between the bars on a phone, in the panel beside the rail on desktop.
-// The legacy shell still owns headers and Back; it treats an open page here like an open drawer.
+// The app shell (src/shell/app-shell.js) owns headers, and src/shell/history.js owns Back; they treat an open page here like an open drawer.
 // Styles in styles/components/page.css.
 import { h } from '../core/dom.js';
 import { safe } from '../core/lifecycle.js';

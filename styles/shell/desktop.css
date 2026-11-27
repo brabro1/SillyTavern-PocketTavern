@@ -1,0 +1,510 @@
+/* The desktop layout (html.pt-desktop): the rail, pages as a panel beside the chat, sheets as dialogs.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Desktop layout (html.pt-desktop): a computer or a tablet held sideways.
+   Tabs become a rail on the left, a page opens as a panel beside the chat and
+   stays open while you chat, the chat is a centred column, and sheets and
+   popups are dialogs in the middle of the screen.
+   ========================================================================== */
+
+html.pt-desktop {
+    --pt-rail-w: 88px;
+    --pt-rail-item: 64px;
+    --pt-panel-w: clamp(380px, 30vw, 460px);
+    --pt-bottom: 0px;
+    --pt-left: var(--pt-rail-w);
+    --pt-right: 0px;
+    --pt-tool-w: clamp(320px, 24vw, 420px);
+    --pt-page-h: calc(100dvh - var(--topBarBlockSize));
+    --pt-avail: calc(100vw - var(--pt-left) - var(--pt-right));
+    --pt-col: min(max(var(--sheldWidth, 50vw), 560px), calc(var(--pt-avail) - 48px));
+}
+
+html.pt-desktop.pt-page-open {
+    --pt-left: calc(var(--pt-rail-w) + var(--pt-panel-w));
+}
+
+/* A width dragged by hand (the panel's edge): never under 360px, and never so
+   wide that the chat gets less than 420px (accounting for any open right-hand tool panel)... */
+html.pt-desktop.pt-panel-sized {
+    --pt-panel-w: clamp(360px, var(--pt-panel-saved), max(360px, 100vw - var(--pt-rail-w) - var(--pt-right) - 420px));
+}
+
+/* ...unless it was dragged past that: then it takes the whole width and the chat steps aside until the panel
+   closes (issue #13). SillyTavern keeps the chat; it only leaves the layout, so the page never scrolls sideways. */
+html.pt-desktop.pt-page-open.pt-panel-full {
+    --pt-panel-w: calc(100vw - var(--pt-rail-w) - var(--pt-right));
+}
+
+html.pt-desktop.pt-page-open.pt-panel-full :is(#sheld, #pt-no-chat) {
+    display: none;
+}
+
+/* The edge stays inside the window, where it can be dragged back. */
+html.pt-desktop.pt-page-open.pt-panel-full #pt-panel-edge {
+    transform: translateX(-8px);
+}
+
+/* When both a left page panel and right tool panel are open on narrower wide screens, slim both side columns so the chat stays >= 360px. */
+html.pt-desktop.pt-page-open.pt-tools-open {
+    --pt-tool-w: clamp(240px, 23vw, 380px);
+    --pt-col: min(max(var(--sheldWidth, 50vw), 360px), calc(var(--pt-avail) - 24px));
+}
+
+html.pt-desktop.pt-page-open.pt-tools-open:not(.pt-panel-sized) {
+    --pt-panel-w: clamp(260px, 26vw, 420px);
+}
+
+/* -- The rail ------------------------------------------------------------- */
+
+/* Chat, Characters, Lorebooks and Presets, a rule, SillyTavern's other pages
+   (phones keep those in More), and More at the bottom. On a short window the
+   tabs get shorter, the pages drop their labels (they keep a tooltip), and
+   below that the rail scrolls. */
+html.pt-desktop .pt-tabbar {
+    inset: var(--topBarBlockSize) auto 0 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: var(--pt-rail-w);
+    height: auto;
+    padding: 12px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-top: 0;
+    border-right: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    box-shadow: var(--pt-shadow-bar-side);
+    scrollbar-width: none;
+}
+
+html.pt-desktop .pt-tabbar::-webkit-scrollbar {
+    display: none;
+}
+
+html.pt-desktop .pt-tab {
+    flex: 0 0 var(--pt-rail-item);
+    gap: 4px;
+    padding: 0 4px;
+}
+
+html.pt-desktop .pt-tab-icon {
+    height: 32px;
+}
+
+html.pt-desktop .pt-tab[data-tab='more'] {
+    margin-top: auto;
+}
+
+@media (max-height: 800px) {
+    html.pt-desktop {
+        --pt-rail-item: 56px;
+    }
+}
+
+/* A laptop with browser bars (about 620px tall) still shows More without scrolling. */
+@media (max-height: 660px) {
+    html.pt-desktop {
+        --pt-rail-item: 52px;
+    }
+
+    html.pt-desktop .pt-tabbar {
+        padding: 8px 0;
+    }
+
+    html.pt-desktop .pt-tab {
+        gap: 4px;
+    }
+
+}
+
+/* The pill sits on the active tab's icon (placed by script: the tabs differ in height). */
+html.pt-desktop .pt-tab-indicator {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    transform: translateY(var(--pt-tab-y, 12px));
+}
+
+html.pt-desktop .pt-tab-indicator::before {
+    width: 56px;
+    height: 32px;
+    margin-top: 0;
+}
+
+/* -- The chat: a centred column in the space beside the rail and the panel -- */
+
+html.pt-desktop #sheld {
+    left: calc(var(--pt-left) + (var(--pt-avail) - var(--pt-col)) / 2) !important;
+    right: auto !important;
+    width: var(--pt-col) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: var(--pt-page-h) !important;
+    max-height: var(--pt-page-h) !important;
+    margin: 0 !important;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Search this chat sits over the chat column. */
+html.pt-desktop .pt-chat-finder {
+    left: var(--pt-left);
+}
+
+/* -- Pages: a panel beside the rail ---------------------------------------- */
+
+html.pt-desktop #top-settings-holder .drawer-content.openDrawer {
+    position: fixed !important;
+    left: var(--pt-rail-w) !important;
+    width: var(--pt-panel-w) !important;
+    min-width: var(--pt-panel-w) !important;
+    max-width: var(--pt-panel-w) !important;
+    border-right: 1px solid var(--pt-border);
+    animation: pt-panel-in var(--pt-dur) var(--pt-ease);
+}
+
+/* Slides in from the rail, under "Smooth" animations too. */
+html.pt-desktop.pt-motion-full.pt-shell #top-settings-holder .drawer-content.openDrawer {
+    animation: pt-panel-in var(--pt-dur) var(--pt-ease);
+}
+
+/* SillyTavern lays some pages out in two or three columns on a computer; the panel is one column. */
+html.pt-desktop #user-settings-block-content,
+html.pt-desktop #rm_api_block > div,
+html.pt-desktop #rm_extensions_block .extensions_block,
+html.pt-desktop .drawer-content.openDrawer .flex-container.spaceEvenly {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+html.pt-desktop #user-settings-block-content > *,
+html.pt-desktop #rm_extensions_block :is(#extensions_settings, #extensions_settings2),
+html.pt-desktop .drawer-content.openDrawer .flex-container.spaceEvenly > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
+}
+
+@keyframes pt-panel-in {
+    from {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+}
+
+/* The panel's edge: drag it to make the panel wider (double-click resets).
+   It shows a line on hover and while dragging. On a touch screen it is wider. */
+.pt-panel-edge {
+    display: none;
+}
+
+.pt-panel-edge::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 3px;
+    width: 2px;
+    background: transparent;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-panel-edge:hover::after {
+    background: color-mix(in srgb, var(--pt-text-primary) 30%, transparent);
+}
+
+.pt-panel-edge:focus-visible {
+    outline: none;
+}
+
+.pt-panel-edge:focus-visible::after,
+html.pt-resizing .pt-panel-edge::after {
+    background: var(--pt-accent);
+}
+
+@media (pointer: coarse) {
+
+    .pt-panel-edge::after {
+        left: 11px;
+    }
+}
+
+/* While dragging: no text selection, no slide-ins, and the chat follows at once. */
+html.pt-resizing,
+html.pt-resizing * {
+    cursor: col-resize !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+html.pt-resizing #sheld,
+html.pt-resizing #top-settings-holder .drawer-content.openDrawer {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* SillyTavern's bigger panel (advanced definitions) takes the space right of the rail. */
+html.pt-desktop #character_popup {
+    left: var(--pt-rail-w) !important;
+    right: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* -- Tool panels (Author's Note, CFG, token probabilities, extension pop-outs):
+   a column on the right, and the chat moves over to make room. Two or more share
+   the column. Maximized, one covers the chat column. Not with SillyTavern's MovingUI,
+   where you place them yourself. -- */
+
+html.pt-desktop.pt-tools-open {
+    --pt-right: calc(var(--pt-tool-w) + 24px);
+}
+
+html.pt-desktop body:not(.movingUI) #movingDivs > div:not(.maximized) {
+    position: fixed !important;
+    inset: calc(var(--topBarBlockSize) + 12px + (var(--pt-page-h) - 12px) / var(--pt-tool-n, 1) * var(--pt-tool-i, 0)) 12px auto auto !important;
+    z-index: 3050 !important;
+    box-sizing: border-box;
+    width: var(--pt-tool-w) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc((var(--pt-page-h) - 12px) / var(--pt-tool-n, 1) - 12px) !important;
+    margin: 0 !important;
+    padding: 56px 16px 16px !important;
+    border: 1px solid var(--pt-border) !important;
+    border-radius: var(--pt-radius) !important;
+    background: var(--pt-bg) !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    overflow-y: auto;
+}
+
+html.pt-desktop body:not(.movingUI) #movingDivs > #logprobsViewer:not(.maximized) {
+    padding-top: 8px !important;
+}
+
+html.pt-desktop body:not(.movingUI) #movingDivs > div.maximized {
+    inset: var(--topBarBlockSize) auto 0 calc(var(--pt-left) + (var(--pt-avail) - var(--pt-col)) / 2) !important;
+    z-index: 3050 !important;
+    width: var(--pt-col) !important;
+    max-width: none !important;
+    height: var(--pt-page-h) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: var(--pt-bg) !important;
+}
+
+html.pt-desktop body:not(.movingUI) #movingDivs .drag-grabber {
+    display: none !important;
+}
+
+html.pt-desktop #movingDivs > div .panelControlBar {
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+}
+
+/* Close, maximize and fold: 44px, quiet until the mouse is over them. */
+html.pt-desktop #movingDivs > div :is(.floating_panel_close, .inline-drawer-maximize, .logprobs_panel_control_button, .dragClose) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--pt-radius-sm);
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+    opacity: 1;
+    cursor: pointer;
+}
+
+html.pt-desktop #movingDivs > div .logprobs_panel_control_button.drag-grabber {
+    display: none !important;
+}
+
+@media (hover: hover) {
+    html.pt-desktop #movingDivs > div :is(.floating_panel_close, .inline-drawer-maximize, .logprobs_panel_control_button, .dragClose):hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+/* -- Advanced definitions: a page right of the rail, its content in a readable
+   centred column instead of text boxes as wide as the screen. -- */
+
+html.pt-desktop #character_popup {
+    box-sizing: border-box;
+    padding: 16px max(24px, calc((100vw - var(--pt-rail-w) - 880px) / 2)) 32px !important;
+    overflow-y: auto;
+}
+
+html.pt-desktop #character_popup #character_popup_text {
+    padding-right: 56px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+html.pt-desktop #character_popup #character_popup_text > h3 {
+    display: inline;
+    font-size: 20px;
+}
+
+html.pt-desktop #character_popup #character_cross {
+    position: absolute;
+    top: 8px;
+    right: max(16px, calc((100vw - var(--pt-rail-w) - 880px) / 2 - 8px));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--pt-radius-sm);
+    color: var(--pt-text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+@media (hover: hover) {
+    html.pt-desktop #character_popup #character_cross:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+html.pt-desktop #character_popup textarea {
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+/* -- Chat history: as tall as its chats (up to most of the screen), with readable text -- */
+
+html.pt-desktop #select_chat_popup .select_chat_block_filename,
+html.pt-desktop #select_chat_popup .select_chat_block_filename_item {
+    font-size: 14px;
+}
+
+html.pt-desktop #select_chat_popup .select_chat_block_mes {
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+html.pt-desktop #select_chat_popup .pt-bubble {
+    --pt-clamp: 4;
+}
+
+/* -- The message editor fills the chat column ----------------------------- */
+
+html.pt-desktop.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) {
+    inset: var(--topBarBlockSize) auto 0 calc(var(--pt-left) + (var(--pt-avail) - var(--pt-col)) / 2);
+    width: var(--pt-col);
+    padding: 16px 16px 0;
+}
+
+/* -- Sheets and popups: dialogs in the middle ------------------------------ */
+
+html.pt-desktop dialog.pt-sheet {
+    align-items: center;
+}
+
+html.pt-desktop .pt-panel {
+    max-width: 560px;
+    max-height: min(84vh, 760px);
+    border-bottom: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-desktop .pt-sheet-open .pt-panel {
+    opacity: 1;
+    transform: none;
+    transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-desktop.pt-touch dialog.popup:not(.transparent_dialogue_popup) {
+    width: min(640px, calc(100vw - 48px)) !important;
+    max-width: min(640px, calc(100vw - 48px)) !important;
+    max-height: min(86vh, 900px) !important;
+    margin: auto !important;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+}
+
+html.pt-desktop.pt-touch dialog.popup:not(.transparent_dialogue_popup)::before {
+    display: none;
+}
+
+html.pt-desktop.pt-touch dialog.popup.wide_dialogue_popup,
+html.pt-desktop.pt-touch dialog.popup.large_dialogue_popup {
+    width: min(1040px, calc(100vw - 48px)) !important;
+    max-width: min(1040px, calc(100vw - 48px)) !important;
+    height: min(86vh, 900px) !important;
+}
+
+html.pt-desktop.pt-touch dialog.popup[opening] {
+    animation: pt-dialog-in var(--popup-animation-speed, var(--pt-dur)) var(--pt-ease);
+}
+
+html.pt-desktop.pt-touch dialog.popup[closing] {
+    animation: pt-dialog-out var(--popup-animation-speed, var(--pt-dur-fast)) var(--pt-ease);
+}
+
+@keyframes pt-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+}
+
+@keyframes pt-dialog-out {
+    to {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+}
+
+/* Chat history is a dialog too, as tall as its chats and centred (all four edges at 0 with auto margins). */
+html.pt-desktop.pt-touch #shadow_select_chat_popup #select_chat_popup {
+    inset: 0 !important;
+    width: min(720px, calc(100vw - 48px)) !important;
+    max-width: min(720px, calc(100vw - 48px)) !important;
+    height: fit-content !important;
+    max-height: min(86vh, 900px) !important;
+    margin: auto !important;
+    border-bottom: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+}
+
+/* -- Toasts and the server banner: top right, not across the screen -------- */
+
+html.pt-desktop.pt-on body #toast-container {
+    left: auto !important;
+    right: 16px !important;
+    width: 380px !important;
+}
+
+/* -- Hover: a mouse gets the same feedback a tap gets ---------------------- */
+
+@media (hover: hover) {
+    html.pt-desktop :is(.pt-menu-row, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-step, .pt-seg):hover {
+        background: var(--pt-surface-elevated);
+    }
+
+    html.pt-desktop .pt-tab:not(.pt-tab-on):hover {
+        color: var(--pt-text-primary);
+    }
+
+    html.pt-desktop .pt-tab:not(.pt-tab-on):hover .pt-tab-icon {
+        background: var(--pt-surface-elevated);
+    }
+}

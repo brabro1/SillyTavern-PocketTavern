@@ -2,15 +2,18 @@
 // screen, asks before it drops changes), the Presets page's Parameters and Prompts tabs and its trigger chips,
 // and what the AI page (src/views/ai.js) reads: the API, model and preset, through SillyTavern's own controls.
 // SillyTavern's nodes are marked, restyled (styles/st/ai.css) and pressed, never moved.
-// Moved here whole from the legacy app (M4); its listeners are still registered by the legacy app, so errors in
-// them are caught by the lifecycle's page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
+// Moved here from the 2.x app (M4); every callback it hands out goes through safe()
+// (src/core/lifecycle.js).
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { chatCompletionTab, chatCompletionTabsShown } from '../compat/chat-completion-tabs.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'ai';
 
 /**
- * What the legacy app hands over (set once by setupAiScreens()).
+ * What start-up hands over (src/core/wiring.js) (set once by setupAiScreens()).
  * @type {Record<string, Function> | null}
  */
 let deps = null;
@@ -34,7 +37,7 @@ const actionRow = (...args) => deps.actionRow(...args);
 const isConnected = () => deps.isConnected();
 /** SillyTavern's jQuery (its own change handlers listen through it). */
 const $j = () => globalThis.jQuery;
-/** The legacy app's sheet class, made through it. */
+/** The sheet class (src/shell/sheet.js), handed over at start-up. */
 function MenuSheet(options) {
     return new deps.MenuSheet(options);
 }
@@ -211,20 +214,20 @@ export function syncPromptNameBox() {
             autocomplete: 'off',
             spellcheck: 'false',
         });
-        box.addEventListener('keydown', event => {
+        box.addEventListener('keydown', safe(SOURCE, event => {
             if (event.key === 'Enter' && !event.isComposing) {
                 event.preventDefault();
                 box.blur();
             }
-        });
-        box.addEventListener('input', () => {
+        }));
+        box.addEventListener('input', safe(SOURCE, () => {
             const clean = box.value.replace(/[\r\n]+/g, ' ');
             if (clean !== box.value) box.value = clean;
             input.value = clean;
             input.dispatchEvent(new Event('input', { bubbles: true }));
             fitTextarea(box);
             deps.shell()?.update();
-        });
+        }));
         input.after(box);
         input.classList.add('pt-native-hidden');
     }
@@ -317,7 +320,7 @@ export function syncTriggerChips() {
     }
     if (!chips) {
         chips = h('div', { id: 'pt_trigger_chips', class: 'pt-trigger-chips', role: 'group', 'aria-label': 'Triggers' });
-        chips.addEventListener('click', event => {
+        chips.addEventListener('click', safe(SOURCE, event => {
             const chip = event.target.closest('.pt-trigger-chip');
             if (!chip) return;
             const option = Array.from(select.options).find(item => item.value === chip.dataset.value);
@@ -326,7 +329,7 @@ export function syncTriggerChips() {
             $j()(select).trigger('change');
             buzz(6);
             syncTriggerChips();
-        });
+        }));
         select.after(chips);
         select.classList.add('pt-native-hidden');
     }
@@ -407,7 +410,7 @@ export function aiQuickRows() {
 /** SillyTavern's Presets page on its Parameters or Prompts tab (Pocket Tavern's, or Chat Completion Tabs'). */
 export function openPresetsOn(tab) {
     openPage('ai-config-button');
-    setTimeout(() => {
+    setTimeout(safe(SOURCE, () => {
         const ours = document.getElementById(`pt_ptab_${tab}`);
         if (ours) {
             ours.click();
@@ -416,13 +419,13 @@ export function openPresetsOn(tab) {
         const theirs = chatCompletionTab(tab);
         if (theirs) theirs.click();
         else if (tab === 'prompts') document.getElementById('completion_prompt_manager')?.scrollIntoView({ block: 'start' });
-    }, 400);
+    }), 400);
 }
 
 /** Drawn again when what it shows changes (another API, model, preset or profile, the connection). */
 export function refreshAiPage() {
     window.clearTimeout(refreshAiPage.timer);
-    refreshAiPage.timer = window.setTimeout(() => {
+    refreshAiPage.timer = window.setTimeout(safe(SOURCE, () => {
         if (deps.active() && currentPageId() === 'pt-ai') refreshOwnPage();
-    }, 250);
+    }), 250);
 }

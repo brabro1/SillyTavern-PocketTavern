@@ -1,0 +1,72 @@
+/* Quick Replies as a row of chips.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Quick Replies as a row of chips
+   ========================================================================== */
+
+/* Slim chips that wrap onto another line instead of sliding off the screen. Each
+   chip is 32px tall but sits in a 44px row, and its tap area fills the row. */
+html.pt-chat #qr--bar {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+html.pt-chat #qr--bar .qr--buttons {
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 0 4px;
+    padding: 0;
+    overflow: visible;
+}
+
+html.pt-chat #qr--bar .qr--button {
+    position: relative;
+    flex: 0 0 auto;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 44px;
+    height: 32px;
+    min-height: 32px;
+    /* Off the 4px scale on purpose: (44px tap row - 32px chip) / 2. */
+    margin: 6px 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+    font-size: 14px;
+    line-height: 32px;
+    white-space: nowrap;
+}
+
+html.pt-chat #qr--bar .qr--button::after {
+    content: '';
+    position: absolute;
+    inset: -6px 0;
+}
+
+html.pt-chat.pt-compact #qr--bar .qr--button {
+    padding: 0 8px;
+}
+
+/* A phone held sideways is short but wide: all quick replies share one line that scrolls sideways. */
+@media (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-chat #qr--bar {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start !important;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    html.pt-chat #qr--bar .qr--buttons {
+        flex: 0 0 auto;
+        flex-wrap: nowrap !important;
+        width: auto !important;
+        min-width: 0;
+        max-width: none;
+    }
+}

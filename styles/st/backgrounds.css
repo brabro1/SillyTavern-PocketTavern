@@ -1,0 +1,106 @@
+/* The Backgrounds page: one header row, tabs and buttons.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Backgrounds page: one header row (fitting, then Auto-select, New folder and
+   Add background as 44px icons with their names as tooltips; with text they
+   overflowed their buttons). On small thumbnails (zoomed out with −) the name
+   steps aside for the hover tools instead of sitting under them.
+   ========================================================================== */
+
+/* The top bar already says "Backgrounds". */
+html.pt-shell #Backgrounds .bg-header-row-1 > h3,
+html.pt-shell #Backgrounds .bg-header-row-1 > .expander {
+    display: none;
+}
+
+html.pt-touch #Backgrounds .bg-header-row-1 {
+    align-items: center;
+    gap: 8px;
+}
+
+html.pt-touch #Backgrounds #background_fitting {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+}
+
+html.pt-touch #Backgrounds .bg-header-row-1 > .menu_button_icon {
+    display: inline-flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--pt-radius-sm);
+}
+
+html.pt-touch #Backgrounds .bg-header-row-1 > .menu_button_icon > span {
+    display: none;
+}
+
+/*
+ * Global / Chat and the select, − and + buttons. SillyTavern places the buttons over
+ * the end of the row and keeps 4em free for them; at 44px they need three times
+ * that and covered the Chat tab (a 410px desktop panel at 1366 × 768). The buttons
+ * join the row and the tabs share what is left.
+ */
+html.pt-touch #bg_tabs .bg_tabs_list {
+    align-items: center;
+    gap: 8px;
+    padding-right: 0;
+}
+
+html.pt-touch #bg_tabs .bg_tabs_list .bg_tab_button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+}
+
+/* The link inside is what switches the tab. SillyTavern gives it height: 100% of a box
+   with only a min-height, so it stayed 25px tall in the 44px tab and clicks near the top
+   or bottom edge did nothing (Kahvana's report). Stretch it over the whole tab. */
+html.pt-touch #bg_tabs .bg_tabs_list .bg_tab_button a {
+    display: flex;
+    align-self: stretch;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    min-height: 42px;
+}
+
+html.pt-touch #bg_tabs .heading-controls {
+    position: static;
+    flex: 0 0 auto;
+    transform: none;
+}
+
+html.pt-touch #bg_tabs .heading-controls > .menu_button {
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+}
+
+/* SillyTavern's "scroll backgrounds to top" button: a lone floating button over the pictures that
+   no other page has (Kahvana's feedback); the list is short enough to scroll. Hidden. */
+html.pt-touch #Backgrounds #bg-scroll-top {
+    display: none !important;
+}
+
+html.pt-touch #Backgrounds #bg_menu_content .bg_example {
+    container: pt-bg / inline-size;
+}
+
+@container pt-bg (max-width: 130px) {
+    html.pt-touch #Backgrounds .bg_example .BGSampleTitle {
+        display: none;
+    }
+
+    html.pt-touch #Backgrounds .bg_example .jg-menu {
+        inset: auto 2px 2px 2px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

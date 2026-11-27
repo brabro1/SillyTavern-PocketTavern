@@ -2,9 +2,8 @@
 // screens → Settings): long pages shown as rows of sections (Settings, Formatting, Extensions), Search settings,
 // each setting's help as a line under it, − and + beside sliders, the Extensions panel's Pocket Tavern switches,
 // the theme and SillyTavern-section actions behind Appearance, and About's updates, install and What's new.
-// SillyTavern's nodes are marked, restyled and pressed, never moved. Moved here whole from the legacy app (M5);
-// its listeners are still registered by the legacy app, so errors in them are caught by the lifecycle's
-// page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
+// SillyTavern's nodes are marked, restyled and pressed, never moved. Moved here from the 2.x app (M5);
+// every callback it hands out goes through safe() (src/core/lifecycle.js).
 import { t } from '../core/i18n.js';
 import { CHANGES, VERSION } from '../../changelog.js';
 import { h } from '../core/dom.js';
@@ -15,6 +14,9 @@ import { SWITCHES } from '../views/pocket-tavern.js';
 import { presetTabs, setPresetTab } from '../st/ai.js';
 import { addFormattingRows, refreshFormattingRows, removeFormattingRows } from './formatting.js';
 import { showChatCompletionTabOf } from '../compat/chat-completion-tabs.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'settings';
 
 /** The choices in the Extensions panel's Pocket Tavern section. */
 const SIZES = { auto: 'Automatic', comfortable: 'Comfortable', compact: 'Compact' };
@@ -23,7 +25,7 @@ const COMPOSER_STYLES = { floating: 'Floating', docked: 'Docked' };
 const TEXT_SIZES = { small: 'Small', normal: 'Normal', large: 'Large', xl: 'Extra large' };
 
 /**
- * What the legacy app hands over (set once by setupSettingsScreens()).
+ * What start-up hands over (src/core/wiring.js) (set once by setupSettingsScreens()).
  * @type {Record<string, any> | null}
  */
 let deps = null;
@@ -58,7 +60,7 @@ const showSheet = (...args) => deps.showSheet(...args);
 const stThemeColors = (...args) => deps.stThemeColors(...args);
 const ui = (...args) => deps.ui(...args);
 const writeMode = (...args) => deps.writeMode(...args);
-/** The legacy app's MenuSheet, made through it. */
+/** The sheet class (src/shell/sheet.js), handed over at start-up. */
 function MenuSheet(...args) {
     return new deps.MenuSheet(...args);
 }
@@ -100,9 +102,9 @@ export function openSillyTavernSection(section) {
     const attempt = () => {
         if (!deps.active()) return;
         if (setnav.home && setnav.has(section)) setnav.open(section);
-        else if (++tries < 20) window.setTimeout(attempt, 100);
+        else if (++tries < 20) window.setTimeout(safe(SOURCE, attempt), 100);
     };
-    window.setTimeout(attempt, 50);
+    window.setTimeout(safe(SOURCE, attempt), 50);
 }
 
 // ---------------------------------------------------------- phone extras
@@ -236,13 +238,13 @@ export function revealSetting(row) {
             node.closest('.inline-drawer')?.querySelector(':scope > .inline-drawer-toggle, :scope > .inline-drawer-header')?.click();
         }
     }
-    setTimeout(() => {
+    setTimeout(safe(SOURCE, () => {
         row.scrollIntoView({ block: 'center', behavior: motionAllowed() ? 'smooth' : 'auto' });
         row.classList.remove('pt-flash');
         void row.offsetWidth;
         row.classList.add('pt-flash');
-        setTimeout(() => row.classList.remove('pt-flash'), 2000);
-    }, 260);
+        setTimeout(safe(SOURCE, () => row.classList.remove('pt-flash')), 2000);
+    }), 260);
 }
 
 export function openSettingSearch() {
@@ -288,7 +290,7 @@ export function openSettingSearch() {
     });
     finder.head.querySelector('.pt-overlay-text')?.replaceWith(input);
     showSheet(finder);
-    setTimeout(() => input.focus(), 250);
+    setTimeout(safe(SOURCE, () => input.focus()), 250);
 }
 
 // -- long pages in sections: Settings and Formatting
@@ -605,10 +607,10 @@ export const extnav = {
         const drawer = event.target.closest?.('.inline-drawer-toggle')?.closest('.inline-drawer');
         if (!drawer || !this.rows.includes(drawer)) return;
         const wasOpen = this.shown(drawer);
-        setTimeout(() => {
+        setTimeout(safe(SOURCE, () => {
             if (!wasOpen && this.shown(drawer)) this.enter(drawer);
             else if (wasOpen && drawer === this.drawer) this.leave({ fold: false });
-        }, 0);
+        }), 0);
     },
     teardown() {
         this.leave({ fold: false, render: false });
@@ -837,7 +839,7 @@ export function maybeShowDesktopNotice() {
     deps.settings().desktopNoticeSeen = true;
     deps.settings().lastSeenVersion = VERSION;
     saveSettings();
-    setTimeout(() => {
+    setTimeout(safe(SOURCE, () => {
         if (!deps.active() || deps.sheet()) return;
         showSheet(new MenuSheet({
         title: 'Pocket Tavern is on here too',
@@ -863,7 +865,7 @@ export function maybeShowDesktopNotice() {
             body.append(h('p', { class: 'pt-menu-foot', text: 'You can change this any time in Extensions → Pocket Tavern.' }));
         },
     }));
-    }, 1200);
+    }), 1200);
     return true;
 }
 
@@ -880,9 +882,9 @@ export function maybeShowWhatsNew() {
     saveSettings();
     // Only after an update, never on a fresh install.
     if (seen && compareVersions(VERSION, seen) > 0) {
-        setTimeout(() => {
+        setTimeout(safe(SOURCE, () => {
             if (deps.active() && !deps.sheet()) openWhatsNew(seen);
-        }, 1200);
+        }), 1200);
     }
 }
 
@@ -939,7 +941,7 @@ export async function updatePocketTavern(button) {
         globalThis.toastr?.success(t('The page reloads by itself when nothing is in progress.'), t('Pocket Tavern was updated'), { timeOut: 6000 });
         deps.updateReload().pending = true;
         window.clearTimeout(deps.updateReload().timer);
-        deps.updateReload().timer = window.setTimeout(() => reloadWhenIdle(true), 1500);
+        deps.updateReload().timer = window.setTimeout(safe(SOURCE, () => reloadWhenIdle(true)), 1500);
     } catch (error) {
         console.warn(deps.LOG(), 'Update failed', error);
         globalThis.toastr?.error(String(error?.message ?? error).slice(0, 200), t('Could not update Pocket Tavern'));
@@ -1115,7 +1117,7 @@ export function buildSettings() {
     const bind = (id, key, appearance = false) => {
         const input = document.getElementById(id);
         input.checked = !!deps.settings()[key];
-        input.addEventListener('change', () => {
+        input.addEventListener('change', safe(SOURCE, () => {
             if (appearance) {
                 setAppearance(key, input.checked);
                 return;
@@ -1123,7 +1125,7 @@ export function buildSettings() {
             deps.settings()[key] = input.checked;
             saveSettings();
             applyState();
-        });
+        }));
     };
     bind('pt_enabled', 'enabled');
     bind('pt_backdrop', 'themeBackdrop', true);
@@ -1132,20 +1134,20 @@ export function buildSettings() {
     for (const item of SWITCHES) {
         const input = document.getElementById(item.id);
         input.checked = !!deps.settings()[item.key];
-        input.addEventListener('change', () => setSwitch(item, input.checked));
+        input.addEventListener('change', safe(SOURCE, () => setSwitch(item, input.checked)));
     }
     for (const [id, key] of [['pt_theme', 'theme'], ['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
         const select = document.getElementById(id);
         if (id === 'pt_theme') syncSettingsThemeOption(select);
         else select.value = deps.settings()[key];
-        select.addEventListener('change', () => setAppearance(key, select.value));
+        select.addEventListener('change', safe(SOURCE, () => setAppearance(key, select.value)));
     }
 
     modeSelect.value = readMode();
-    modeSelect.addEventListener('change', () => {
+    modeSelect.addEventListener('change', safe(SOURCE, () => {
         writeMode(modeSelect.value);
         applyState();
-    });
+    }));
     updateStatusLine();
 }
 

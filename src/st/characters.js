@@ -3,8 +3,8 @@
 // strip; a character's page before their chat; their card in the editor (tabs, Chat and Recent chats, Export)
 // without opening their chat. SillyTavern's own nodes are marked, restyled (styles/st/characters.css) and
 // pressed, never moved. The page itself is src/views/character.js.
-// Moved here whole from the legacy app (M3); its listeners are still registered by the legacy app, so errors
-// in them are caught by the lifecycle's page-wide net (src/core/lifecycle.js) like the rest of the legacy code.
+// Moved here from the 2.x app (M3); every callback it hands out goes through safe()
+// (src/core/lifecycle.js).
 import { h } from '../core/dom.js';
 import { shieldFromDrawerAutoClose } from './drawers.js';
 import { t } from '../core/i18n.js';
@@ -13,11 +13,14 @@ import { chatTitleNode, messageCount, previewBubble } from '../ui/chat-row.js';
 import { START_NEW_CHAT } from './selectors.js';
 import { openFilterSheet, removeListTop, setupCharacterList, startBulkSelect, syncFilterBar, syncListTop, unwatchCardMenu, watchCardMenu } from './character-list.js';
 import { listGroup, listRow } from '../ui/list.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'characters';
 
 const LOG = '[Pocket Tavern]';
 
 /**
- * What the legacy app hands over (set once by setupCharacters()).
+ * What start-up hands over (src/core/wiring.js) (set once by setupCharacters()).
  * @type {Record<string, Function> | null}
  */
 let deps = null;
@@ -51,7 +54,7 @@ const buzz = ms => deps.buzz(ms);
 const openChoiceSheet = (...args) => deps.openChoiceSheet(...args);
 const pickFromSelect = (...args) => deps.pickFromSelect(...args);
 const isConnected = () => deps.isConnected();
-/** The legacy app's sheet class, made through it. */
+/** The sheet class (src/shell/sheet.js), handed over at start-up. */
 function MenuSheet(options) {
     return new deps.MenuSheet(options);
 }
@@ -148,7 +151,7 @@ function afterChatChange(then) {
         if (done) return;
         done = true;
         if (eventName) context.eventSource?.removeListener?.(eventName, once);
-        setTimeout(then, 150);
+        setTimeout(safe(SOURCE, then), 150);
     };
     if (eventName) context.eventSource?.on?.(eventName, once);
     setTimeout(once, 2500);
@@ -379,7 +382,7 @@ async function exportCharacterFile(chid, format) {
         document.body.append(link);
         link.click();
         link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        setTimeout(safe(SOURCE, () => URL.revokeObjectURL(url)), 2000);
     } catch (error) {
         console.warn(LOG, 'Export failed', error);
         globalThis.toastr?.error(t('Could not export the character.'));
@@ -666,15 +669,15 @@ export function syncCharacterPage() {
     if (!chars.listObserver) {
         const list = document.getElementById('rm_print_characters_block');
         if (list) {
-            chars.listObserver = new MutationObserver(() => {
+            chars.listObserver = new MutationObserver(safe(SOURCE, () => {
                 window.clearTimeout(chars.listTimer);
-                chars.listTimer = window.setTimeout(() => {
+                chars.listTimer = window.setTimeout(safe(SOURCE, () => {
                     syncListTop();
                     watchCardMenu();
                     updateCharPaging();
                     updateCharToolbar();
-                }, 150);
-            });
+                }), 150);
+            }));
             chars.listObserver.observe(list, { childList: true });
         }
     }
@@ -742,10 +745,10 @@ function openSortSheet() {
     const select = document.getElementById('character_sort_order');
     if (!select) return;
     const grid = document.body.classList.contains('charListGrid');
-    const done = () => setTimeout(() => {
+    const done = () => setTimeout(safe(SOURCE, () => {
         updateCharToolbar();
         syncListTop();
-    }, 300);
+    }), 300);
     const choice = (title, iconName, on, run, raw = false) => {
         const node = listRow({
             ...(raw ? { rawTitle: title } : { title }), icon: on ? 'check' : iconName, end: 'none',

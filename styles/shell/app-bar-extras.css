@@ -1,0 +1,25 @@
+/* App bar extras: find a setting, the chat's ⋯, ‹ in a chat, home on a computer.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   App bar extras: find a setting, the chat's ⋯ menu, ‹ in a chat, home on a computer
+   ========================================================================== */
+
+.pt-ab-search[hidden],
+.pt-ab-menu[hidden] {
+    display: none;
+}
+
+/* In a chat on a computer, home closes the chat and goes back to the Chats home; a phone has ‹ for that. */
+.pt-ab-home {
+    display: none;
+}
+
+html.pt-desktop .pt-ab-chat .pt-ab-home {
+    display: inline-flex;
+}
+
+/* In a chat on a phone, ‹ goes back to the Chats home (DESIGN.md → The chat). */
+html.pt-phone .pt-ab-chat .pt-ab-back {
+    display: inline-flex;
+}

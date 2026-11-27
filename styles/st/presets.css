@@ -1,0 +1,16 @@
+/* Presets: bigger drag handles, trigger chips, slider steppers.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Presets: bigger drag handles, trigger chips, slider steppers
+   ========================================================================== */
+
+.pt-trigger-note {
+    flex-basis: 100%;
+    color: var(--pt-text-secondary);
+    font-size: 12px;
+}
+
+.pt-trigger-note:empty {
+    display: none;
+}

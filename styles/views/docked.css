@@ -1,0 +1,171 @@
+/* The docked message box (html.pt-docked): a bar along the bottom edge.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Docked message box (html.pt-docked): a bar along the bottom edge, like a
+   messaging app. The text field sits at the bottom between your persona and
+   Send, where the thumb is; the other tools sit in a row above it.
+   ========================================================================== */
+
+html.pt-chat.pt-docked #form_sheld {
+    padding: 0;
+    background: none !important;
+}
+
+html.pt-chat.pt-docked #send_form,
+html.pt-chat.pt-docked #send_form:focus-within {
+    position: relative;
+    padding: 4px calc(8px + var(--pt-safe-right)) 8px calc(8px + var(--pt-safe-left));
+    border: 0 !important;
+    border-top: 1px solid var(--pt-border) !important;
+    border-radius: 0;
+    /* The same surface as the tab bar, so with the tabs out they read as one bottom bar. */
+    background: var(--pt-bg) !important;
+    box-shadow: none;
+}
+
+/* The text gets its own field; it shows the focus instead of the bar. */
+html.pt-chat.pt-docked #send_textarea {
+    min-height: 44px;
+    padding: 12px 12px 8px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface) !important;
+    transition: border-color var(--pt-dur) var(--pt-ease);
+}
+
+/* A clear focus edge, so it is obvious where your typing goes. */
+html.pt-chat.pt-docked #send_textarea:focus {
+    border-color: var(--pt-accent);
+}
+
+/* SillyTavern outlines the whole box while you type; docked, the field shows that instead. */
+html.pt-chat.pt-docked #send_form:has(#send_textarea:focus-visible) {
+    outline: none;
+}
+
+/* Portrait: tools on top, then persona, field and Send in one row at the bottom.
+   (A phone held sideways keeps the single row it already has; desktop has its own, styles/views/message-box.css.) */
+@media not all and (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-chat.pt-docked:not(.pt-desktop) #nonQRFormItems {
+        position: static;
+        grid-template-areas:
+            "left gap right"
+            "text text text" !important;
+        row-gap: 4px;
+    }
+
+    html.pt-chat.pt-docked:not(.pt-desktop) :is(#leftSendForm, #rightSendForm) {
+        position: static;
+    }
+
+    /* Room on both sides of the field for the persona picture and Send. */
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_textarea {
+        width: auto;
+        margin-inline: 52px;
+    }
+
+    /* Your persona: its picture, at the start of the bottom row (the name is in its label). */
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_form .pt-persona-chip {
+        position: absolute;
+        bottom: 8px;
+        inset-inline-start: calc(8px + var(--pt-safe-left));
+        justify-content: center;
+        width: 44px;
+        max-width: none;
+        height: 44px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_form .pt-persona-chip::after {
+        inset: 0;
+    }
+
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_form .pt-persona-name {
+        display: none;
+    }
+
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_form .pt-persona-img {
+        width: 36px;
+        height: 36px;
+        box-shadow: 0 0 0 1px var(--pt-border);
+    }
+
+    /* Send (and Stop while a reply is coming) at the end of the bottom row, level with the field. */
+    html.pt-chat.pt-docked:not(.pt-desktop) #send_form #rightSendForm > :is(#send_but, .mes_stop) {
+        position: absolute;
+        bottom: 8px;
+        inset-inline-end: calc(8px + var(--pt-safe-right));
+        width: 44px;
+        height: 44px;
+        margin: 0;
+    }
+}
+
+html.pt-chat.pt-docked.pt-compact #send_form,
+html.pt-chat.pt-docked.pt-compact #send_form:focus-within {
+    padding-top: 4px;
+    padding-bottom: 8px;
+}
+
+html.pt-chat.pt-docked.pt-compact #nonQRFormItems {
+    row-gap: 4px;
+}
+
+/* Docked on desktop (DESIGN.md → Message box): one bar along the bottom of the whole chat area, not only the
+   chat column, so it reads as part of the window like a messaging app's. Its contents keep the column's width,
+   on one row: your persona, the field, the tools, Send. SillyTavern's chat column clips anything reaching out
+   of it, so the bar's surface is Pocket Tavern's own layer (#pt_dock_bar, as tall as the box; src/views/message-box.js
+   → watchFormHeight) just under the column. !important beats the box's own pinned border and surface (above),
+   and the pinned two-row grid. */
+.pt-dock-bar {
+    display: none;
+}
+
+html.pt-desktop.pt-chat.pt-docked .pt-dock-bar:not([hidden]) {
+    position: fixed;
+    bottom: 0;
+    left: var(--pt-left);
+    right: var(--pt-right, 0px);
+    z-index: calc(var(--pt-z-chat) - 1);
+    display: block;
+    border-top: 1px solid var(--pt-border);
+    background: color-mix(in srgb, var(--pt-surface) 55%, var(--pt-bg));
+    box-shadow: var(--pt-shadow-bar-up);
+    pointer-events: none;
+}
+
+html.pt-desktop.pt-chat.pt-docked #send_form,
+html.pt-desktop.pt-chat.pt-docked #send_form:focus-within {
+    padding: var(--pt-space-2) 0 var(--pt-space-3);
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+}
+
+/* Your persona as its picture only (its name is in its label), so the field keeps its room in a narrow column. */
+html.pt-desktop.pt-chat.pt-docked #send_form .pt-persona-name {
+    display: none;
+}
+
+html.pt-desktop.pt-chat.pt-docked #send_form .pt-persona-chip {
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+html.pt-desktop.pt-chat.pt-docked #nonQRFormItems {
+    grid-template-areas: "left text right" !important;
+    column-gap: var(--pt-space-2);
+    row-gap: 0;
+}
+
+html.pt-desktop.pt-chat.pt-docked #send_textarea {
+    max-height: 30dvh;
+}

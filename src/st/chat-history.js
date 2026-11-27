@@ -5,6 +5,9 @@ import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { chatTitle, chatTitleNode, messageCount, previewBubble, rowMenuButton } from '../ui/chat-row.js';
 import { listGroup, listRow } from '../ui/list.js';
+import { safe } from '../core/lifecycle.js';
+
+const SOURCE = 'chat-history';
 
 /** @type {{ active: () => boolean, settings: () => object, closeSheet: Function, highlight: Function, icon: Function, showSheet: Function, ui: Function, wireOnce: Function, MenuSheet: Function } | null} */
 let deps = null;
@@ -123,16 +126,16 @@ export function syncChatHistory() {
         return;
     }
     if (list && !chatList.observer) {
-        chatList.observer = new MutationObserver(records => {
+        chatList.observer = new MutationObserver(safe(SOURCE, records => {
             // Ignore our own headings.
             if (records.every(record => [...record.addedNodes, ...record.removedNodes].every(node => node.classList?.contains('pt-date-heading')))) return;
             window.clearTimeout(chatList.timer);
-            chatList.timer = window.setTimeout(groupChatHistory, 80);
-        });
+            chatList.timer = window.setTimeout(safe(SOURCE, groupChatHistory), 80);
+        }));
         chatList.observer.observe(list, { childList: true, subtree: false, attributes: true, attributeFilter: ['style'], attributeOldValue: false });
         deps.wireOnce(document.getElementById('select_chat_search'), 'input', () => {
             window.clearTimeout(chatList.timer);
-            chatList.timer = window.setTimeout(groupChatHistory, 350);
+            chatList.timer = window.setTimeout(safe(SOURCE, groupChatHistory), 350);
         });
     }
 }

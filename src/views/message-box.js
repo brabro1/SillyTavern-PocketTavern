@@ -85,7 +85,7 @@ function watchFormHeight(on) {
     }
     // Docked on desktop: the bar's surface along the bottom of the whole chat area. SillyTavern's chat column
     // clips anything reaching out of it, so the surface is a layer of its own behind the column, as tall as
-    // the box (styles/legacy.css → Docked on desktop; only shown there).
+    // the box (styles/views/docked.css → Docked on desktop; only shown there).
     if (!composer.dockBar || !composer.dockBar.isConnected) {
         composer.dockBar?.remove();
         composer.dockBar = h('div', { id: 'pt_dock_bar', class: 'pt-dock-bar', 'aria-hidden': 'true', hidden: true });

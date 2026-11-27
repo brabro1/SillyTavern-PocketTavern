@@ -7,7 +7,7 @@
    of coloured text (its dark red and grey could not be read on dark themes). A tap edits it (its own behaviour). */
 html.pt-chat #chat .mes div.qvink_memory_display {
     --pt-qm-edge: var(--pt-border);
-    /* Under the text, in the message grid's row for what extensions add (styles/legacy.css → the chat). */
+    /* Under the text, in the message grid's row for what extensions add (styles/st/chat-look.css). */
     grid-area: extra;
     display: block;
     margin: var(--pt-space-2) 0 0;

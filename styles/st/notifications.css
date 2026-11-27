@@ -1,0 +1,109 @@
+/* Notifications: SillyTavern's toasts as calm cards.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Notifications
+   ========================================================================== */
+
+html.pt-on body #toast-container {
+    margin-top: 0 !important;
+}
+
+/* A notification is a calm card on the page's solid surface: a small icon in its colour
+   (green done, blue info, amber warning, red error), the words, and a thin line for the time
+   left. No coloured fill, so a stack of them never shouts over the chat. */
+html.pt-toasts body #toast-container > div.toast {
+    --pt-t-color: var(--pt-accent);
+    position: relative;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 12px 44px 12px 44px !important;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface-elevated) !important;
+    background-image: none !important;
+    color: var(--pt-text-primary) !important;
+    box-shadow: 0 8px 24px color-mix(in srgb, #000 28%, transparent);
+    font-size: 14px;
+    line-height: 1.4;
+    text-shadow: none;
+    opacity: 1;
+    overflow: hidden;
+    touch-action: pan-y;
+}
+
+html.pt-toasts body #toast-container > div.toast.toast-success { --pt-t-color: var(--pt-ok); }
+html.pt-toasts body #toast-container > div.toast.toast-info { --pt-t-color: var(--pt-info); }
+html.pt-toasts body #toast-container > div.toast.toast-warning { --pt-t-color: var(--pt-warn); }
+html.pt-toasts body #toast-container > div.toast.toast-error { --pt-t-color: var(--pt-danger); }
+
+html.pt-toasts body #toast-container > .toast::before {
+    content: none;
+}
+
+html.pt-toasts body #toast-container > .toast::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 20px;
+    height: 20px;
+    background: var(--pt-t-color);
+    -webkit-mask: var(--pt-t-icon) center / contain no-repeat;
+    mask: var(--pt-t-icon) center / contain no-repeat;
+}
+
+html.pt-toasts.pt-rtl body #toast-container > .toast::after {
+    left: auto;
+    right: 14px;
+}
+
+html.pt-toasts.pt-rtl body #toast-container > div.toast {
+    text-align: start;
+}
+
+html.pt-toasts body #toast-container > .toast .toast-title {
+    margin-bottom: 4px;
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+html.pt-toasts body #toast-container > .toast .toast-message {
+    color: var(--pt-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+/* With no title, the words are the message itself: full strength. */
+html.pt-toasts body #toast-container > .toast:not(:has(.toast-title)) .toast-message {
+    color: var(--pt-text-primary);
+}
+
+html.pt-toasts body #toast-container > .toast .toast-message a {
+    color: var(--pt-t-color);
+}
+
+html.pt-toasts body #toast-container > .toast .toast-close-button {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--pt-text-secondary);
+    font-size: 20px;
+    font-weight: 400;
+    text-shadow: none;
+    opacity: 1;
+}
+
+html.pt-toasts.pt-rtl body #toast-container > .toast .toast-close-button {
+    right: auto;
+    left: 0;
+}
+
+html.pt-toasts body #toast-container > .toast .toast-progress {
+    height: 2px;
+    background: var(--pt-t-color);
+    opacity: 0.6;
+}

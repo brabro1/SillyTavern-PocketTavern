@@ -1,6 +1,6 @@
 /* Messages in the chat (DESIGN.md → Key screens → The chat → Messages; src/views/messages.js): versions,
    thinking, long messages that fold, dragging the last reply sideways, and Jump to latest. The messages are
-   SillyTavern's own (#chat .mes); the card layout itself is still in styles/legacy.css. */
+   SillyTavern's own (#chat .mes); the card layout itself is in styles/st/chat-look.css. */
 
 /* Swipe arrows and counter: bigger targets. */
 html.pt-chat #chat .swipe_left,

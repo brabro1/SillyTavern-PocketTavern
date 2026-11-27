@@ -1,0 +1,68 @@
+/* The message box's persona button and context ring.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* -- Message box: your persona and the context ring ------------------------ */
+
+.pt-persona-chip {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 128px;
+    height: 40px;
+    min-height: 40px;
+    position: relative;
+    margin: 0 4px 0 1px;
+    padding: 0 12px 0 4px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-persona-chip:active {
+    transform: scale(0.95);
+}
+
+/* The pill is 40px tall to sit in the box; the tap area is 44px. */
+.pt-persona-chip::after {
+    content: '';
+    position: absolute;
+    inset: -4px -1px;
+}
+
+.pt-persona-img {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: none;
+}
+
+.pt-persona-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-persona-name:empty {
+    display: none;
+}
+
+.pt-persona-chip:has(.pt-persona-name:empty) {
+    padding-right: 4px;
+}
+
+/* Never squeezed under its picture, and never narrower than a 44px tap target. */
+.pt-persona-chip {
+    min-width: 44px;
+}

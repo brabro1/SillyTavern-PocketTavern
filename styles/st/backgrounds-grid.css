@@ -1,0 +1,22 @@
+/* Backgrounds: thumbnails big enough to choose from.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Backgrounds: big enough to choose from. A thumbnail is never narrower than
+   150px, so the grid uses two columns on a phone and more as a desktop page
+   widens. SillyTavern's − / + column buttons could not change that, so they
+   are hidden (issue #7).
+   ========================================================================== */
+html.pt-touch #Backgrounds :is(#bg_menu_content, #bg_custom_content, .bg_folder_grid) {
+    gap: 8px !important;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+}
+
+html.pt-touch #Backgrounds :is(#bg_thumb_zoom_out, #bg_thumb_zoom_in) {
+    display: none !important;
+}
+
+html.pt-touch #Backgrounds #bg_menu_content .bg_example {
+    border-radius: var(--pt-radius-sm);
+    overflow: hidden;
+}

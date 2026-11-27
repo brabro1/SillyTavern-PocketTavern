@@ -1,0 +1,26 @@
+/* The installed app and right-to-left languages.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Installed app and right-to-left languages
+   ========================================================================== */
+
+html.pt-rtl :is(.pt-appbar, .pt-tabbar, .pt-panel, .pt-viewer-top, .pt-viewer-bar, .pt-chat-finder) {
+    direction: rtl;
+}
+
+html.pt-rtl:not(.pt-desktop) .pt-tab-indicator {
+    left: auto;
+    right: var(--pt-safe-right);
+    transform: translateX(calc(var(--pt-tab-index, 0) * -100%));
+}
+
+/* The row chevron is the svg itself (class pt-menu-row-go); the back arrow is inside its button. */
+html.pt-rtl .pt-svg.pt-menu-row-go,
+html.pt-rtl .pt-ab-back .pt-svg {
+    transform: scaleX(-1);
+}
+
+html.pt-chat.pt-editing #chat .mes:has(#curEditTextarea) .mes_edit_buttons .menu_button.disabled {
+    opacity: 0.35;
+}

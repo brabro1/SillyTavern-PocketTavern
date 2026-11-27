@@ -1,0 +1,33 @@
+/* Avatar shape (SillyTavern's Settings → Look → Avatars).
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Avatar shape (SillyTavern's Settings → Look → Avatars, also set by a
+   SillyTavern theme picked in More → Themes): Circle stays round; Square,
+   Rounded and Rectangle (a portrait card) apply to the pictures in messages,
+   recent chats and the top bar, at Pocket Tavern's sizes.
+   ========================================================================== */
+html.pt-on body.square-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #chat .mes .mesAvatarWrapper .avatar img, .pt-ab-avatar, .pt-ab-avatar img) {
+    border-radius: 4px !important;
+}
+
+html.pt-on body.rounded-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #chat .mes .mesAvatarWrapper .avatar img, .pt-ab-avatar, .pt-ab-avatar img) {
+    border-radius: var(--pt-radius-sm) !important;
+}
+
+html.pt-on body.big-avatars :is(#chat .mes .mesAvatarWrapper .avatar, #chat .mes .mesAvatarWrapper .avatar img, .pt-ab-avatar, .pt-ab-avatar img) {
+    border-radius: 8px !important;
+}
+
+/* Rectangle: as wide as the round picture would be, a third taller, top-aligned in the header. */
+html.pt-chat:not(.pt-editing) body.big-avatars #chat .mes .mesAvatarWrapper > .avatar,
+html.pt-chat:not(.pt-editing) body.big-avatars #chat .mes .mesAvatarWrapper > .avatar img {
+    height: auto !important;
+    aspect-ratio: 3 / 4;
+    align-self: start;
+}
+
+html.pt-chat:not(.pt-editing) body.big-avatars #chat .mes .mesAvatarWrapper > .avatar img {
+    width: 100% !important;
+    object-fit: cover;
+}

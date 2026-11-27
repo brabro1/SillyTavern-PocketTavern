@@ -54,7 +54,7 @@
     line-height: 1.45;
 }
 
-/* The AI tab's dot while nothing is connected (src/legacy/app.js → syncConnectionBanner). */
+/* The AI tab's dot while nothing is connected (src/core/activation.js → syncConnectionBanner). */
 .pt-tab.pt-tab-alert .pt-tab-icon {
     position: relative;
 }

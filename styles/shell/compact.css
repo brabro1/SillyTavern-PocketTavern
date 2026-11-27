@@ -1,0 +1,125 @@
+/* Compact size (html.pt-compact): slimmer bars, tighter cards and messages.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Compact size (html.pt-compact): slimmer bars, tighter cards and message
+   box, so more of the chat fits. Every tap area stays at least 44px.
+   ========================================================================== */
+
+@media not all and (orientation: landscape) and (max-height: 520px) and (min-aspect-ratio: 3/2) {
+    html.pt-shell.pt-compact {
+        --pt-appbar-h: 48px;
+        --pt-tabbar-h: 52px;
+    }
+
+    html.pt-compact:not(.pt-desktop) .pt-tab {
+        gap: 4px;
+        padding: 4px 4px;
+    }
+
+    html.pt-compact:not(.pt-desktop) .pt-tab-icon {
+        width: 48px;
+        height: 26px;
+    }
+
+    html.pt-compact:not(.pt-desktop) .pt-tab-indicator {
+        top: 4px;
+        height: 28px;
+    }
+
+    html.pt-compact:not(.pt-desktop) .pt-tab-indicator::before {
+        width: 52px;
+    }
+}
+
+html.pt-compact .pt-tab-icon .pt-svg {
+    width: 21px;
+    height: 21px;
+}
+
+html.pt-compact .pt-ab-who {
+    height: 44px;
+}
+
+html.pt-compact .pt-ab-avatar {
+    width: 32px;
+    height: 32px;
+}
+
+/* Messages: less air around and inside each card. */
+html.pt-chat.pt-compact #chat {
+    padding-top: 4px;
+}
+
+html.pt-chat.pt-compact body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+    max-width: calc(100% - 8px);
+    margin: 4px;
+    padding: 8px 12px;
+}
+
+html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar,
+html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar img {
+    width: 28px;
+    height: 28px;
+}
+
+html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mesAvatarWrapper > .avatar {
+    margin-right: 8px;
+}
+
+html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .ch_name {
+    min-height: 28px;
+}
+
+html.pt-chat.pt-compact:not(.pt-editing) #chat .mes .ch_name .name_text {
+    font-size: 14px;
+}
+
+/* The buttons keep their 44px tap area; it just overlaps the card's padding. */
+html.pt-chat.pt-compact:not(.pt-editing) #chat .mes .mes_buttons .mes_button {
+    margin: -8px 0;
+}
+
+html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_block > .mes_text {
+    margin-top: 4px;
+}
+
+html.pt-chat.pt-compact #chat .mes_text {
+    line-height: 1.5;
+}
+
+/* The message box: a little slimmer. */
+html.pt-chat.pt-compact #form_sheld {
+    padding: 12px 8px 4px;
+}
+
+html.pt-chat.pt-compact #send_form {
+    padding: 4px 4px 4px;
+}
+
+html.pt-chat.pt-compact #send_textarea {
+    min-height: 36px;
+    padding: 8px 8px 4px;
+}
+
+/* Chat rows a little tighter. */
+
+html.pt-chat.pt-compact .pt-rc-body {
+    gap: 4px;
+}
+
+/* Tablets and unfolded foldables: the chat is a centred column with lines short
+   enough to read comfortably, instead of running across the whole screen. */
+@media (min-width: 760px) {
+    html.pt-chat:not(.pt-desktop):not([data-pt-look="bubbles"]) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+        width: 100%;
+        max-width: 720px;
+        margin-inline: auto;
+    }
+
+    html.pt-chat:not(.pt-desktop):not(.pt-docked) #send_form {
+        width: 100%;
+        max-width: 720px;
+        margin-inline: auto;
+    }
+}

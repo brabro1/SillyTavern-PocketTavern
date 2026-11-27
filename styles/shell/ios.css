@@ -1,0 +1,66 @@
+/* iPhone and iPad (html.pt-ios): following Safari's keyboard.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   iPhone and iPad (html.pt-ios). Safari does not shrink the page for the
+   keyboard; it covers the bottom and pans the visible part. While the keyboard
+   is up (html.pt-ios-kb) everything is sized to the visible part, from the
+   browser's own measurement (--pt-ios-top, --pt-ios-h, set by script).
+   ========================================================================== */
+
+/* SillyTavern's transform on <html> fixes a flicker in Chrome; on Safari it made
+   the bars and the message editor fixed to the page instead of the screen. */
+html.pt-ios {
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-perspective: none !important;
+    perspective: none !important;
+}
+
+html.pt-shell.pt-ios-kb {
+    --pt-bottom: 0px;
+    --pt-page-h: calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize));
+}
+
+html.pt-shell.pt-ios-kb .pt-appbar {
+    top: var(--pt-ios-top, 0px);
+}
+
+html.pt-shell.pt-ios-kb #sheld {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize)) !important;
+    height: var(--pt-page-h) !important;
+    max-height: var(--pt-page-h) !important;
+}
+
+html.pt-shell.pt-ios-kb #top-settings-holder .drawer-content.openDrawer,
+html.pt-shell.pt-ios-kb #completion_prompt_manager_popup,
+html.pt-shell.pt-ios-kb #character_popup,
+html.pt-shell.pt-ios-kb .pt-chat-finder {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize)) !important;
+}
+
+html.pt-shell.pt-ios-kb body #toast-container {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize) + 8px) !important;
+}
+
+html.pt-chat.pt-ios-kb.pt-editing:not(.pt-desktop) #chat .mes:has(#curEditTextarea),
+html.pt-lorecards.pt-ios-kb:not(.pt-desktop) #world_popup_entries_list .world_entry.pt-entry-open {
+    inset: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize, 0px)) 0 auto 0 !important;
+    height: var(--pt-page-h, calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize, 0px)));
+}
+
+/* On iPad landscape keep the desktop rail/column horizontal offsets while shifting top/height for Safari's keyboard. */
+html.pt-desktop.pt-chat.pt-ios-kb.pt-editing #chat .mes:has(#curEditTextarea),
+html.pt-desktop.pt-lorecards.pt-ios-kb #world_popup_entries_list .world_entry.pt-entry-open {
+    top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize, 0px)) !important;
+    bottom: auto !important;
+    height: var(--pt-page-h, calc(var(--pt-ios-h, 100dvh) - var(--topBarBlockSize, 0px))) !important;
+}
+
+/* Tablets in the desktop layout (a finger, not a mouse): the chat column is at
+   least a comfortable reading width instead of half the screen. */
+@media (pointer: coarse) {
+    html.pt-on.pt-desktop {
+        --pt-col: min(max(var(--sheldWidth, 50vw), 720px), calc(var(--pt-avail) - 48px));
+    }
+}

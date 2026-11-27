@@ -1,0 +1,106 @@
+/* Token Counter: a dialog sized to what it holds.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Token Counter (wand → Token Counter): a dialog sized to what it holds, with
+   the count big, the text in a real box, the tokens as chips on a card and the
+   IDs in a quiet monospace box. SillyTavern opened it as a screen-sized popup
+   with plain labels.
+   ========================================================================== */
+
+/* Pinned to every edge like all popups, so auto would stretch it: fit-content sizes it to its content. */
+html.pt-touch dialog.popup:has(#token_counter_textarea) {
+    height: fit-content !important;
+}
+
+html.pt-desktop.pt-touch dialog.popup:has(#token_counter_textarea) {
+    min-width: 0 !important;
+    width: min(720px, calc(100vw - 48px)) !important;
+    max-width: min(720px, calc(100vw - 48px)) !important;
+}
+
+html.pt-touch .popup:has(#token_counter_textarea) h3 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    text-align: left;
+}
+
+html.pt-touch .popup:has(#token_counter_textarea) h4 {
+    margin: 0;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+html.pt-touch .popup:has(#token_counter_textarea) .flexFlowColumn {
+    gap: 8px;
+    text-align: left;
+}
+
+html.pt-touch .popup:has(#token_counter_textarea) .flexFlowColumn > p {
+    margin: 0;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+}
+
+/* Field labels: Input, Tokenized text, Token IDs. */
+html.pt-touch .popup:has(#token_counter_textarea) .flexFlowColumn > div:not([id]):not(:has(#token_counter_result)) {
+    margin-top: 8px;
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+html.pt-touch .popup:has(#token_counter_textarea) hr {
+    display: none;
+}
+
+html.pt-touch #token_counter_textarea {
+    box-sizing: border-box;
+    min-height: 120px;
+    max-height: 40dvh;
+    padding: 12px;
+    border-radius: var(--pt-radius-sm);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* The count: the one number this dialog is for. */
+html.pt-touch .popup:has(#token_counter_textarea) .flexFlowColumn > div:has(#token_counter_result) {
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+}
+
+html.pt-touch #token_counter_result {
+    margin-left: 4px;
+    color: var(--pt-text-primary);
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+html.pt-touch #tokenized_chunks_display {
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    line-height: 1.9;
+    overflow-wrap: anywhere;
+}
+
+html.pt-touch #tokenized_chunks_display > code {
+    margin: 1px;
+    padding: 1px 4px;
+    font-size: 14px;
+}
+
+html.pt-touch #token_counter_ids {
+    box-sizing: border-box;
+    padding: 12px;
+    border-radius: var(--pt-radius-sm);
+    color: var(--pt-text-secondary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+}

@@ -354,7 +354,7 @@ Every component exists once in `src/ui/` and `styles/components/` and is used ev
 | Avatars | `avatar.js` | `.pt-avatar` |
 | The "Advanced" fold | `fold.js` | `.pt-fold` |
 
-Shared behaviour is in `styles/base.css`: `.pt-focus` (the focus ring), `.pt-press` (press scale), `.pt-sr-only`. While the legacy app is still there, a new class name must not be one it uses (`.pt-switch`, `.pt-chip`, `.pt-banner`, `.pt-row`, `.pt-field`, `.pt-help` and others belong to it).
+Shared behaviour is in `styles/base.css`: `.pt-focus` (the focus ring), `.pt-press` (press scale), `.pt-sr-only`. A new class name must not be one the styles from 2.x already use (`.pt-switch`, `.pt-chip`, `.pt-banner`, `.pt-row`, `.pt-field`, `.pt-help` and others).
 
 ### Tab bar and rail
 - **Tab bar:** five equal tabs, 24px icon over a `caption` label. The active tab gets a `--pt-accent-soft` pill behind its icon, which slides between tabs, and its label in `--pt-text-primary`. Inactive tabs are `--pt-text-secondary`. A dot (6px, `--pt-danger`) marks AI when the connection has a problem.

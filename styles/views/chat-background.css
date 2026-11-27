@@ -1,0 +1,28 @@
+/* A chat background (html.pt-glass) behind the messages.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   A chat background (html.pt-glass): with Your theme, a SillyTavern theme, or
+   a Pocket Tavern theme whose Theme background is off. The chat is clear and each
+   message is a tinted card over the picture; everything else stays solid. A Pocket
+   Tavern or SillyTavern theme sets the card tints in themes.js; Your theme uses
+   SillyTavern's own message tints, kept between readable limits.
+   ========================================================================== */
+
+html.pt-on.pt-glass:not(.pt-themed) {
+    --SmartThemeChatTintColor: transparent !important;
+    --pt-card-bot: var(--SmartThemeBotMesBlurTintColor);
+    --pt-card-user: var(--SmartThemeUserMesBlurTintColor);
+}
+
+@supports (color: rgb(from red r g b)) {
+    html.pt-on.pt-glass:not(.pt-themed) {
+        --pt-card-bot: rgb(from var(--SmartThemeBotMesBlurTintColor) r g b / clamp(0.58, alpha, 0.88));
+        --pt-card-user: rgb(from var(--SmartThemeUserMesBlurTintColor) r g b / clamp(0.58, alpha, 0.88));
+    }
+}
+
+/* The first message of a chat that is not drawn as a card (system notes) gets a tinted backing too. */
+html.pt-glass.pt-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_system='true'] {
+    background-color: var(--pt-card-bot) !important;
+}

@@ -1,0 +1,114 @@
+/* Notices in SillyTavern's pages and popups (.info-block: hint, info, warning, error).
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Notices in pages and popups (SillyTavern's .info-block: hint, info, warning,
+   error), in the same style as notifications: a quiet card on the surface, a
+   hairline edge with a hint of the notice's colour, and a small icon in that
+   colour at the start, instead of a thick coloured bar on a tinted block.
+   Text keeps its normal flow (some notices hold links and bold words).
+   ========================================================================== */
+
+html.pt-on :is(.info-block, .pt-inline-note, p.hint, .pt-settings .pt-status-line) {
+    --pt-n-color: var(--pt-info);
+    --pt-n-icon: var(--pt-info-icon);
+    position: relative;
+    box-sizing: border-box;
+    margin: 12px 0;
+    padding: 12px 16px 12px 44px;
+    border: 1px solid color-mix(in srgb, var(--pt-n-color) 30%, var(--pt-border));
+    border-radius: var(--pt-radius-sm);
+    background: color-mix(in srgb, var(--pt-n-color) 6%, var(--pt-surface));
+    color: var(--pt-text-primary);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: start;
+    text-shadow: none;
+}
+
+html.pt-on .info-block.info {
+    --pt-n-color: var(--pt-gold);
+}
+
+html.pt-on .info-block.warning {
+    --pt-n-color: var(--pt-warn);
+    --pt-n-icon: var(--pt-warn-icon);
+}
+
+html.pt-on .info-block.error {
+    --pt-n-color: var(--pt-danger);
+    --pt-n-icon: var(--pt-error-icon);
+}
+
+/* SillyTavern's plain "Hint:" paragraphs (Character Expressions) read as a hint note too. */
+html.pt-on p.hint {
+    font-size: 14px;
+}
+
+html.pt-on :is(.info-block, .pt-inline-note, p.hint, .pt-settings .pt-status-line)::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    background: var(--pt-n-color);
+    -webkit-mask: var(--pt-n-icon) center / contain no-repeat;
+    mask: var(--pt-n-icon) center / contain no-repeat;
+}
+
+html.pt-on.pt-rtl :is(.info-block, .pt-inline-note, p.hint, .pt-settings .pt-status-line) {
+    padding: 12px 44px 12px 16px;
+}
+
+html.pt-on.pt-rtl :is(.info-block, .pt-inline-note, p.hint, .pt-settings .pt-status-line)::before {
+    left: auto;
+    right: 14px;
+}
+
+/* The Formatting page's "Grayed-out options…" notice: SillyTavern sizes it by its id (it shows
+   only with Chat Completion), which outweighed the rule above. */
+html.pt-on #advanced-formatting-cc-notice {
+    margin: 12px 0;
+    padding: 12px 16px 12px 44px;
+}
+
+html.pt-on.pt-rtl #advanced-formatting-cc-notice {
+    padding: 12px 44px 12px 16px;
+}
+
+/* SillyTavern's own leading icon, where a notice has one: the drawn icon replaces it. */
+html.pt-on .info-block > i:is(.fa-solid, .fa-regular):first-child {
+    display: none;
+}
+
+html.pt-on .info-block a {
+    color: var(--pt-accent);
+}
+
+html.pt-on .info-block :is(p, ul, ol):first-child {
+    margin-top: 0;
+}
+
+html.pt-on .info-block :is(p, ul, ol):last-child {
+    margin-bottom: 0;
+}
+
+/* Menu rows with a short explanation under the label. */
+.pt-menu-row .pt-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+}
+
+.pt-menu-row .pt-row-text > span {
+    font-weight: 600;
+}
+
+.pt-menu-row .pt-row-text > small {
+    color: var(--pt-text-secondary);
+    font-size: 14px;
+    line-height: 1.35;
+}

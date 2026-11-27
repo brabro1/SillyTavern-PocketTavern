@@ -1,0 +1,43 @@
+/* The chat's Bubbles and Flat looks.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Chat look: bubbles and flat
+   ========================================================================== */
+
+html.pt-chat[data-pt-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+    max-width: 92%;
+    border-radius: var(--pt-radius);
+}
+
+html.pt-chat[data-pt-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
+    align-self: flex-end;
+    max-width: 84%;
+    margin-left: auto;
+    border-color: transparent !important;
+    border-bottom-right-radius: 6px;
+    background: color-mix(in srgb, var(--pt-accent) 22%, var(--pt-bg)) !important;
+}
+
+html.pt-chat[data-pt-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes:not([is_user="true"]) {
+    align-self: flex-start;
+    border-bottom-left-radius: 6px;
+}
+
+html.pt-chat[data-pt-look="bubbles"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] .mesAvatarWrapper {
+    display: none;
+}
+
+html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+    max-width: none;
+    margin-bottom: 0;
+    border: 0 !important;
+    border-bottom: 1px solid var(--pt-border) !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
+    background: color-mix(in srgb, var(--pt-accent) 6%, transparent) !important;
+}

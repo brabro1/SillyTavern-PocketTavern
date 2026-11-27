@@ -1,0 +1,356 @@
+/* Touch sizing (html.pt-touch) on SillyTavern's screens: page padding, cards, sliders, form controls.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Touch sizing and panels (html.pt-touch)
+   ========================================================================== */
+
+html.pt-touch {
+    --bottomFormBlockSize: 50px;
+    --bottomFormIconSize: 42px;
+}
+
+/* Without the app shell, keep SillyTavern's top bar but make it finger-sized. */
+html.pt-touch:not(.pt-shell) {
+    --topBarBlockSize: calc(48px + var(--pt-safe-top)) !important;
+}
+
+html.pt-touch:not(.pt-shell) #top-bar {
+    height: var(--topBarBlockSize);
+}
+
+html.pt-touch:not(.pt-shell) #top-settings-holder {
+    box-sizing: border-box;
+    padding: var(--pt-safe-top) var(--pt-safe-right) 0 var(--pt-safe-left);
+    align-items: stretch;
+}
+
+html.pt-touch:not(.pt-shell) #top-settings-holder > .drawer {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 64px;
+    width: auto;
+    height: auto;
+}
+
+html.pt-touch:not(.pt-shell) #top-settings-holder .drawer-toggle,
+html.pt-touch:not(.pt-shell) #top-settings-holder .drawer-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+html.pt-touch:not(.pt-shell) #top-settings-holder .drawer-icon {
+    padding: 0;
+    font-size: 24px;
+    line-height: 1;
+}
+
+html.pt-touch:not(.pt-chat) #form_sheld {
+    padding-bottom: var(--pt-safe-bottom);
+    box-sizing: border-box;
+}
+
+/* -- Page content: roomy padding, readable type, cards -------------------- */
+
+html.pt-touch .drawer-content {
+    max-width: 100vw;
+    box-sizing: border-box;
+}
+
+html.pt-touch #top-settings-holder .drawer-content.openDrawer:not(.fillLeft):not(.fillRight) {
+    padding: 12px 12px 24px;
+}
+
+html.pt-touch #left-nav-panel .scrollableInner,
+html.pt-touch #user-settings-block-content,
+html.pt-touch #rm_api_block > div {
+    padding-bottom: 24px;
+}
+
+html.pt-touch .drawer-content h3,
+html.pt-touch .drawer-content h4 {
+    margin: 16px 0 8px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+html.pt-touch .drawer-content h3 {
+    font-size: 1.15em;
+}
+
+html.pt-touch .drawer-content h4 {
+    font-size: 1.02em;
+}
+
+html.pt-touch .drawer-content small,
+html.pt-touch .drawer-content .toggle-description {
+    line-height: 1.35;
+}
+
+/* Collapsible sections become cards. */
+html.pt-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer),
+html.pt-touch #character_popup .inline-drawer:not(.inline-drawer .inline-drawer) {
+    margin: 12px 0;
+    padding: 4px 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: color-mix(in srgb, var(--pt-text-primary) 4%, transparent);
+}
+
+html.pt-touch .inline-drawer-toggle,
+html.pt-touch .inline-drawer-header {
+    min-height: 52px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Inside a card the header is just a row: no extra gradient or frame. */
+html.pt-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer) > .inline-drawer-header,
+html.pt-touch .drawer-content .inline-drawer:not(.inline-drawer .inline-drawer) > .inline-drawer-toggle {
+    margin: 0;
+    padding-left: 4px;
+    padding-right: 4px;
+    border: 0 !important;
+    border-radius: 0;
+    background: none !important;
+    box-shadow: none;
+}
+
+html.pt-touch .inline-drawer-header b,
+html.pt-touch .inline-drawer-header > span {
+    font-size: 1.02em;
+}
+
+html.pt-touch .inline-drawer-icon {
+    font-size: 20px;
+    opacity: 0.6;
+}
+
+/* Page titles SillyTavern repeats at the top of its own screens. The app bar already names
+   the page (Kahvana's report), so the words go; the docs "?" link and the pin stay. */
+html.pt-shell #WorldInfo h3 > span[data-i18n='Worlds/Lorebooks'],
+html.pt-shell #AdvancedFormatting h3 > span[data-i18n='Advanced Formatting'],
+html.pt-shell #rm_extensions_block .extensions_block > .flex-container > h3[data-i18n='Extensions'] {
+    display: none;
+}
+
+/* Without its words the heading is just the "?" link: no heading accent beside it (Moonlit Echoes draws a bar). */
+html.pt-shell :is(#WorldInfo, #AdvancedFormatting) h3:has(> span:is([data-i18n='Worlds/Lorebooks'], [data-i18n='Advanced Formatting'])) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+}
+
+/* -- Sliders with a number: label and value on one line, slider below ----- */
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 12px;
+    flex-basis: 100% !important;
+    width: 100%;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > * {
+    grid-column: 1 / -1;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > :first-child {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.95em;
+    text-align: left;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > .neo-range-slider {
+    grid-row: 2;
+    width: 100%;
+}
+
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > .neo-range-input,
+html.pt-touch .drawer-content .flex-container.flexFlowColumn:has(> .neo-range-slider) > div:has(> .neo-range-input) {
+    grid-column: 2;
+    grid-row: 1;
+    width: 88px;
+}
+
+html.pt-touch .drawer-content .flexFlowColumn:has(> .neo-range-slider) .neo-range-input {
+    width: 88px;
+    text-align: center;
+}
+
+html.pt-touch #clickSlidersTips {
+    position: static;
+    padding: 4px 32px 8px 12px;
+    font-size: 12px;
+    text-align: left;
+}
+
+html.pt-touch .drawer-content .range-block {
+    width: 100%;
+    flex-basis: 100% !important;
+    padding: 8px 0;
+}
+
+html.pt-touch .drawer-content .range-block-title {
+    justify-content: flex-start;
+    font-size: 0.95em;
+    text-align: left;
+}
+
+html.pt-touch .drawer-content .range-block-range-and-counter {
+    gap: 12px;
+    align-items: center;
+}
+
+html.pt-touch .drawer-content .range-block-counter {
+    flex: 0 0 auto;
+    width: 88px;
+}
+
+/* -- Form controls -------------------------------------------------------- */
+
+html.pt-touch select,
+html.pt-touch input.text_pole:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.pt-touch input[type='text'],
+html.pt-touch input[type='search'],
+html.pt-touch input[type='number'],
+html.pt-touch input[type='password'],
+html.pt-touch input[type='url'] {
+    min-height: 44px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+html.pt-touch .drawer-content select,
+html.pt-touch .drawer-content input.text_pole:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.pt-touch .drawer-content textarea.text_pole,
+html.pt-touch .popup select,
+html.pt-touch .popup .text_pole {
+    border-radius: var(--pt-radius-sm);
+}
+
+/* A dropdown followed by a row of icon buttons: dropdown on its own line, buttons below. */
+html.pt-touch .drawer-content .flex-container:has(> select):has(> .menu_button ~ .menu_button ~ .menu_button) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+html.pt-touch .drawer-content .flex-container:has(> select):has(> .menu_button ~ .menu_button ~ .menu_button) > select {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+html.pt-touch textarea,
+html.pt-touch textarea.text_pole {
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+html.pt-touch select {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+html.pt-touch .menu_button,
+html.pt-touch .menu_button_icon {
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: var(--pt-radius-sm);
+}
+
+html.pt-touch .menu_button.fa-fw,
+html.pt-touch .menu_button.fa-solid,
+html.pt-touch .menu_button_icon {
+    min-width: 42px;
+}
+
+html.pt-touch .checkbox_label,
+html.pt-touch label.checkbox_label {
+    min-height: 40px;
+    align-items: center;
+    gap: 12px;
+}
+
+html.pt-touch input[type='checkbox'],
+html.pt-touch input[type='radio'] {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+}
+
+html.pt-touch input[type='radio'] {
+    border-radius: 50%;
+}
+
+html.pt-touch input[type='checkbox']::before {
+    width: 0.7em;
+    height: 0.7em;
+}
+
+/* Sliders: keep the visible track but give fingers a 36px-tall hit area. */
+html.pt-touch input[type='range']:not(.pt-slider) {
+    box-sizing: content-box;
+    margin-top: 0 !important;
+    padding: 16px 0 !important;
+    background-clip: content-box !important;
+    background-origin: content-box !important;
+    touch-action: pan-y;
+}
+
+html.pt-touch input[type='range']:not(.pt-slider)::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+}
+
+html.pt-touch input[type='range']:not(.pt-slider)::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+}
+
+html.pt-touch .neo-range-input {
+    min-height: 40px;
+    font-size: 16px;
+}
+
+/* -- Message actions without the chat style ------------------------------- */
+
+html.pt-touch:not(.pt-chat) .mes_buttons .mes_button,
+html.pt-touch:not(.pt-chat) .extraMesButtons .mes_button {
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+html.pt-touch:not(.pt-chat) .swipe_left,
+html.pt-touch:not(.pt-chat) .swipe_right {
+    min-width: 40px;
+    min-height: 40px;
+}
+
+html.pt-touch:not(.pt-chat) #send_form {
+    min-height: var(--bottomFormBlockSize);
+    height: auto;
+}
+
+html.pt-touch:not(.pt-chat) #leftSendForm,
+html.pt-touch:not(.pt-chat) #rightSendForm {
+    height: auto;
+    align-items: center;
+}
+
+html.pt-touch:not(.pt-chat) #send_textarea {
+    min-height: 44px;
+    padding: 12px 8px;
+    font-size: 16px;
+}

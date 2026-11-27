@@ -1,0 +1,19 @@
+/* Long chats: messages far off screen are not drawn.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Long chats: skip drawing messages that are far off screen
+   ========================================================================== */
+
+html.pt-on.pt-fast-chat #chat > .mes:not(.last_mes):not(:has(#curEditTextarea)) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 260px;
+    /* The chat is a flex column: without this, skipped messages shrank to almost nothing
+       and popped open while scrolling up, pulling the chat under your finger. */
+    flex-shrink: 0;
+}
+
+/* For one frame after a chat opens every message is drawn, so its real height is remembered. */
+html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not(:has(#curEditTextarea)) {
+    content-visibility: visible;
+}

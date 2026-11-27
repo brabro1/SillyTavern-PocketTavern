@@ -1,0 +1,47 @@
+/* The send button's short press, chat text size and the message menu's red last row.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Send button: a short press when you send (no flying plane: DESIGN.md, motion)
+   ========================================================================== */
+
+html.pt-chat #send_but.pt-launch {
+    animation: pt-send-press var(--pt-dur) var(--pt-ease);
+}
+
+@keyframes pt-send-press {
+    from {
+        transform: scale(0.9);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+/* ==========================================================================
+   Phone features
+   ========================================================================== */
+
+/* Chat text size: a multiple of the message text (15px on phones, 16px on the desktop layout). */
+html.pt-on.pt-desktop {
+    --pt-text-chat: 16px;
+}
+
+html[data-pt-text='small'] {
+    --pt-text-scale: 0.93;
+}
+
+html[data-pt-text='large'] {
+    --pt-text-scale: 1.2;
+}
+
+html[data-pt-text='xl'] {
+    --pt-text-scale: 1.36;
+}
+
+/* Message menu: a destructive action at the end, in red. */
+.pt-menu-row-danger,
+.pt-menu-row-danger .pt-menu-row-icon {
+    color: var(--pt-danger);
+}

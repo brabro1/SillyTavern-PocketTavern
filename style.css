@@ -1,6 +1,6 @@
 /* Pocket Tavern's stylesheet, named in manifest.json. It only imports; the rules live in styles/.
-   Order: tokens, shared behaviour, components, the legacy 2.x styles (carved out milestone by milestone),
-   then Pocket Tavern's views and SillyTavern's own screens, which replace parts of it, then other extensions. */
+   Order: tokens, shared behaviour, components, the styles that came from the 2.x stylesheet (in its order),
+   then Pocket Tavern's views and SillyTavern's own screens, which build on them, then other extensions. */
 @import url("styles/tokens.css");
 @import url("styles/base.css");
 @import url("styles/components/button.css");
@@ -18,7 +18,43 @@
 @import url("styles/components/overlay.css");
 @import url("styles/components/page.css");
 @import url("styles/components/back-pill.css");
-@import url("styles/legacy.css");
+@import url("styles/shell/foundation.css");
+@import url("styles/views/chat-background.css");
+@import url("styles/st/lorebook-picker.css");
+@import url("styles/shell/sheet.css");
+@import url("styles/shell/app-shell.css");
+@import url("styles/st/chat-look.css");
+@import url("styles/st/message-box-look.css");
+@import url("styles/st/touch.css");
+@import url("styles/st/menus-popups.css");
+@import url("styles/views/message-box-persona.css");
+@import url("styles/shell/appearance.css");
+@import url("styles/views/theme-picker.css");
+@import url("styles/shell/motion.css");
+@import url("styles/shell/phone-features.css");
+@import url("styles/st/notifications.css");
+@import url("styles/st/notices.css");
+@import url("styles/st/message-editor.css");
+@import url("styles/st/long-chats.css");
+@import url("styles/shell/app-bar-extras.css");
+@import url("styles/shell/choice-sheets.css");
+@import url("styles/shell/app-and-rtl.css");
+@import url("styles/views/search.css");
+@import url("styles/st/chat-looks.css");
+@import url("styles/st/quick-replies.css");
+@import url("styles/st/lorebook-entries.css");
+@import url("styles/st/presets.css");
+@import url("styles/st/settings-list.css");
+@import url("styles/shell/tucked-tabs.css");
+@import url("styles/shell/compact.css");
+@import url("styles/views/docked.css");
+@import url("styles/shell/ios.css");
+@import url("styles/st/token-counter.css");
+@import url("styles/st/backgrounds.css");
+@import url("styles/shell/desktop.css");
+@import url("styles/shell/desktop-density.css");
+@import url("styles/st/avatar-shape.css");
+@import url("styles/st/backgrounds-grid.css");
 @import url("styles/views/message-box.css");
 @import url("styles/views/chats.css");
 @import url("styles/views/messages.css");

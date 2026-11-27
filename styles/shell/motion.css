@@ -1,0 +1,226 @@
+/* Motion: Smooth, Light and Off. Only transform and opacity animate.
+   Its place in style.css matters: the files from the 2.x stylesheet keep its order. */
+
+/* ==========================================================================
+   Motion. Everything animates transform and opacity only, so it stays on the
+   GPU. "Light" keeps quick fades and drops blur; "Off" drops both.
+   ========================================================================== */
+
+@keyframes pt-pop {
+    0% { transform: scale(0.8); }
+    55% { transform: scale(1.14); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pt-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+
+@keyframes pt-fade {
+    from { opacity: 0; }
+}
+
+/* Same as pt-fade; switching between the two restarts the animation. */
+@keyframes pt-fade-b {
+    from { opacity: 0; }
+}
+
+@keyframes pt-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+}
+
+@keyframes pt-swap {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+}
+
+@keyframes pt-swap-b {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+}
+
+@keyframes pt-mes-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+    }
+}
+
+@keyframes pt-menu-in {
+    from {
+        opacity: 0;
+        translate: 0 18px;
+        scale: 0.97;
+    }
+}
+
+@keyframes pt-toast-in {
+    from {
+        opacity: 0;
+        translate: 0 -14px;
+    }
+}
+
+/* -- Smooth (default) ------------------------------------------------------ */
+
+html.pt-motion-full .pt-tab-indicator {
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-tab-on .pt-tab-icon .pt-svg {
+    animation: pt-pop var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-tab-label {
+    transition: color var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-ab-who, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, #send_but, .pt-plus-btn) {
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-motion-full :is(.pt-tab, .pt-menu-row, .pt-ab-btn, .pt-theme-card, .pt-row-btn, .pt-seg, .pt-open, .pt-single, .pt-plus-btn):active {
+    transform: scale(0.95);
+}
+
+html.pt-motion-full .pt-ab-who:not([disabled]):active {
+    transform: scale(0.98);
+}
+
+html.pt-motion-full #send_but:active {
+    transform: scale(0.9);
+}
+
+/* The stop button and the send button pop back in when they swap places. */
+html.pt-motion-full.pt-chat #rightSendForm > :is(#mes_stop, #send_but) {
+    animation: pt-pop-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+@keyframes pt-pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.55);
+    }
+}
+
+html.pt-motion-full.pt-touch :is(.drawer-content, .popup, #character_popup) .menu_button {
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-motion-full.pt-touch :is(.drawer-content, .popup, #character_popup) .menu_button:active {
+    transform: scale(0.94);
+}
+
+html.pt-motion-full.pt-shell #top-settings-holder .drawer-content.openDrawer {
+    animation: pt-slide-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-ab-swap :is(.pt-ab-text, .pt-ab-avatar) {
+    animation: pt-swap var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-ab-swap-b :is(.pt-ab-text, .pt-ab-avatar) {
+    animation: pt-swap-b var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full.pt-chat #chat .mes.last_mes {
+    animation: pt-mes-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+/* Sheets slide all the way up from the bottom edge, and quickly back down when closed. */
+html.pt-motion-full .pt-panel {
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-full .pt-sheet-open .pt-panel {
+    transition: transform var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full.pt-touch :is(#options, #extensionsMenu) {
+    animation: pt-menu-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full.pt-touch dialog.popup[opening] {
+    animation: pt-sheet-up var(--pt-dur-slow) var(--pt-ease);
+}
+
+html.pt-motion-full body #toast-container > div {
+    animation: pt-toast-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+/* -- Light ------------------------------------------------------------------- */
+
+html.pt-motion-light .pt-tab-indicator {
+    transition: transform var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-motion-light.pt-shell #top-settings-holder .drawer-content.openDrawer,
+html.pt-motion-light .pt-ab-swap-b :is(.pt-ab-text, .pt-ab-avatar) {
+    animation: pt-fade-b var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-motion-light .pt-ab-swap :is(.pt-ab-text, .pt-ab-avatar),
+html.pt-motion-light.pt-touch :is(#options, #extensionsMenu),
+html.pt-motion-light.pt-touch dialog.popup[opening] {
+    animation: pt-fade var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-motion-light .pt-panel {
+    transition: transform var(--pt-dur) var(--pt-ease), opacity var(--pt-dur-fast) var(--pt-ease);
+}
+
+/* No glass in Light and Off: blur is the most expensive effect on phones. */
+html.pt-motion-light,
+html.pt-motion-off {
+    --blurStrength: 0 !important;
+}
+
+html:is(.pt-motion-light, .pt-motion-off) :is(.pt-appbar, .pt-tabbar, #form_sheld, #chat, #send_form) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+html.pt-shell:is(.pt-motion-light, .pt-motion-off) :is(.pt-appbar, .pt-tabbar) {
+    background: var(--pt-bg);
+}
+
+/* -- Off --------------------------------------------------------------------- */
+
+html.pt-motion-off *:not(.fa-spin):not(.fa-spinner),
+html.pt-motion-off *::before,
+html.pt-motion-off *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.pt-on *:not(.fa-spin):not(.fa-spinner),
+    html.pt-on *::before,
+    html.pt-on *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0s !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+}
+
+/* Theme switch: the new look grows out of the tapped card (see revealChange). */
+html.pt-vt::view-transition-old(root),
+html.pt-vt::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
