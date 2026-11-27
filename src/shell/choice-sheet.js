@@ -248,7 +248,8 @@ function openPersonaEditor(avatar) {
                 ]),
                 h('label', { class: 'pt-pe-field' }, [h('span', { class: 'pt-pe-label' }, [h('small', { text: 'Description' }), count]), textInput]),
                 h('div', { class: 'pt-pe-actions' }, [
-                    h('button', { type: 'button', class: 'pt-pe-btn', onclick: () => deps.closeSheet() }, [h('span', { text: 'Cancel' })]),
+                    // Cancel goes back to the persona list it came from; ✕ closes the sheet.
+                    h('button', { type: 'button', class: 'pt-pe-btn', onclick: () => openPersonaChooser() }, [h('span', { text: 'Cancel' })]),
                     h('button', { type: 'button', class: 'pt-pe-btn pt-pe-save', onclick: save }, [deps.ui('check'), h('span', { text: 'Save' })]),
                 ]),
             ]));

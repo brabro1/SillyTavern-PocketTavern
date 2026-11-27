@@ -378,6 +378,17 @@ await step('message box: persona button, context ring and Context page; search t
     // Your persona: edit the description quickly, check it saved, then put it back.
     const before = await page.evaluate(() => SillyTavern.getContext().powerUserSettings.persona_description ?? '');
     try {
+    // Cancel goes back to the persona list without saving; ✕ there closes the sheet.
+    await page.locator('.pt-persona-chip').click();
+    await until(() => document.querySelector('#pt-sheet .pt-persona-card-edit'));
+    await page.locator('#pt-sheet .pt-persona-card-edit').click();
+    await until(() => document.querySelector('#pt-sheet .pt-pe-text'));
+    await page.locator('#pt-sheet .pt-pe-text').fill('Not saved: Cancel was pressed');
+    await page.locator('#pt-sheet .pt-pe-btn:not(.pt-pe-save)').click();
+    await until(() => !!document.querySelector('#pt-sheet .pt-persona-card-edit') && !document.querySelector('#pt-sheet .pt-pe-text'));
+    const kept = await page.evaluate(() => SillyTavern.getContext().powerUserSettings.persona_description ?? '');
+    if (kept !== before) throw new Error('Cancel saved the persona description');
+    await closeSheet();
     for (const text of ['Pocket Tavern test description', before]) {
         await page.locator('.pt-persona-chip').click();
         await until(() => document.querySelector('#pt-sheet .pt-persona-card-edit'));
