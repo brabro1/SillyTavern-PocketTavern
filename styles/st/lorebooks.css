@@ -482,15 +482,15 @@ dialog.pt-compact .pt-foot {
 }
 
 /* The lorebook editor sits inside the Lorebooks page (SillyTavern 1.19), so the page
-   scrolls it as one. Given a screen height of its own, it hid every entry past the
-   third or fourth. */
-html.pt-shell #WorldInfo #world_popup {
+   scrolls it as one. Scoped to html.pt-lore-ui so turning Pocket Tavern's Lorebook UI off
+   leaves SillyTavern's own World Info (and lorebook extensions) untouched (issue #16). */
+html.pt-shell.pt-lore-ui #WorldInfo #world_popup {
     height: auto !important;
     max-height: none !important;
     overflow: visible;
 }
 
-html.pt-shell #WorldInfo #world_popup_entries_list {
+html.pt-shell.pt-lore-ui #WorldInfo #world_popup_entries_list {
     flex: 0 0 auto;
     overflow: visible;
 }

@@ -962,4 +962,17 @@ export default {
     "This message is no longer in the chat.": "لم تعد هذه الرسالة في المحادثة.",
     // The tab bar's name for screen readers
     "Main": "الرئيسية",
+    // Lorebook interface toggle and Extensions button
+    "Lorebook interface": "واجهة كتب المعرفة",
+    "Pocket Tavern's lorebooks page and entry cards. Off uses SillyTavern's own.": "صفحة كتب المعرفة وبطاقات المدخلات في Pocket Tavern. إيقافها يعيد واجهة SillyTavern الأصلية.",
+    "Phone and desktop": "الهاتف وسطح المكتب",
+    "Phone only": "الهاتف فقط",
+    "Desktop only": "سطح المكتب فقط",
+    "Off (SillyTavern's own)": "متوقف (واجهة SillyTavern)",
+    "Extensions button": "زر الإضافات",
+    "A dedicated Extensions button in the navigation bar for extension menus and settings.": "زر مخصّص للإضافات في شريط التنقّل للوصول السريع إلى قوائم الإضافات وإعداداتها.",
+    "Extension menus": "قوائم الإضافات",
+    "All extensions": "جميع الإضافات",
+    "Manage extensions and their settings": "إدارة الإضافات وإعداداتها",
+    "The theme's own background is off now. Turn it back on in Settings → Appearance.": "تم إيقاف خلفية السمة الآن. يمكنك إعادة تشغيلها من الإعدادات ← المظهر.",
 };

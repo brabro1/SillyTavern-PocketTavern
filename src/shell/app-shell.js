@@ -7,7 +7,7 @@ import { t } from '../core/i18n.js';
 import { isShown, scheduleHistorySync } from '../shell/history.js';
 import { IS_IOS, isTypingField, keyboardUp } from '../shell/layout.js';
 import { closeOwnPage, currentOwnPage, isOwnPage, pageSpec, refreshOwnPage, scrollOwnPageToTop } from '../shell/page.js';
-import { backFromPage, characterCardShown, closeDrawers, closePages, currentPageId, drawerById, goHome, openPage, pageInfo, placeOf, showCharacterList, TABS } from '../shell/pages.js';
+import { activeTabs, backFromPage, characterCardShown, closeDrawers, closePages, currentPageId, drawerById, extensionDrawers, goHome, openPage, pageInfo, placeOf, showCharacterList } from '../shell/pages.js';
 import { closeSheet, currentSheet } from '../shell/sheet.js';
 import { leavePromptEditor, promptEditorMode, promptEditorOpen, promptFull, setPromptFull, syncPresetTabs } from '../st/ai.js';
 import { checkCardPeek, syncCharacterPage } from '../st/characters.js';
@@ -152,25 +152,11 @@ class Shell {
 
         // ---- bottom tab bar
         this.tabs = new Map();
-        const tabButtons = TABS.map(tab => {
-            const button = h('button', {
-                type: 'button',
-                class: 'pt-tab',
-                'data-tab': tab.id,
-                'aria-label': tab.label,
-                onclick: () => this.onTab(tab.id),
-            }, [
-                h('span', { class: 'pt-tab-icon' }, [deps.ui(tab.icon)]),
-                h('span', { class: 'pt-tab-label', text: tab.label }),
-            ]);
-            this.tabs.set(tab.id, button);
-            return button;
-        });
         // One pill slides between tabs instead of each tab fading its own background.
         this.indicator = h('span', { class: 'pt-tab-indicator', 'aria-hidden': 'true' });
-        this.tabbar = h('nav', { id: 'pt-tabbar', class: 'pt-tabbar', 'aria-label': 'Main', 'data-pt': '1' }, [
-            this.indicator, ...tabButtons,
-        ]);
+        this.tabbar = h('nav', { id: 'pt-tabbar', class: 'pt-tabbar', 'aria-label': 'Main', 'data-pt': '1' }, [this.indicator]);
+        this.tabCount = 0;
+        this.syncTabs();
 
         for (const el of [this.appbar, this.tabbar]) shieldFromDrawerAutoClose(el);
 
@@ -294,9 +280,34 @@ class Shell {
         this.appbar.remove();
         this.tabbar.remove();
         const root = document.documentElement;
-        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable');
+        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable', 'pt-tabs-6');
         syncTabsButton();
         delete root.dataset.ptPage;
+    }
+
+    /** Rebuilds the tab bar / rail when the Extensions button is turned on or off (issue #18). */
+    syncTabs() {
+        const list = activeTabs();
+        if (this.tabCount === list.length && list.every(tab => this.tabs.has(tab.id))) return;
+        this.tabCount = list.length;
+        this.tabs.clear();
+        const buttons = list.map(tab => {
+            const button = h('button', {
+                type: 'button',
+                class: 'pt-tab',
+                'data-tab': tab.id,
+                'aria-label': tab.label,
+                onclick: () => this.onTab(tab.id),
+            }, [
+                h('span', { class: 'pt-tab-icon' }, [deps.ui(tab.icon)]),
+                h('span', { class: 'pt-tab-label', text: tab.label }),
+            ]);
+            this.tabs.set(tab.id, button);
+            return button;
+        });
+        this.tabbar.replaceChildren(this.indicator, ...buttons);
+        this.tabbar.style.setProperty('--pt-tab-count', String(list.length));
+        document.documentElement.classList.toggle('pt-tabs-6', list.length > 5);
     }
 
     /**
@@ -359,8 +370,8 @@ class Shell {
             this.glide = sheld.animate([{ transform: `translate3d(0, ${-shift}px, 0)` }, { transform: 'none' }], timing);
             this.glideLand = null;
         }
-        this.glide.onfinish = () => this.endGlide();
-        this.glide.oncancel = () => this.endGlide();
+        this.glide.onfinish = safe(SOURCE, () => this.endGlide());
+        this.glide.oncancel = safe(SOURCE, () => this.endGlide());
     }
 
     /** Ends a keyboard slide: the chat back to its normal size, in place. */
@@ -403,15 +414,49 @@ class Shell {
             // Phone: the Chats page is the place's screen while no chat is open; with a chat open, the chat.
             if (open === 'pt-chats') scrollOwnPageToTop();
             else if (!open && this.tabsOut) this.tuckAgain();
-            else if (deps.context().getCurrentChatId?.() === undefined) openPage('pt-chats');
-            else closePages();
+            else {
+                // Leaving a place back to Chats or the chat resets that place to its root (issue #19).
+                if (open) delete this.lastInPlace[placeOf(open)];
+                if (deps.context().getCurrentChatId?.() === undefined) openPage('pt-chats');
+                else closePages();
+            }
             return;
         }
         const open = currentPageId();
-        // The place you are on (or one of its pages): on desktop that hides the panel, so the chat
-        // gets the room; on a phone it goes back to the place's root, or to its top.
+        // When Pocket Tavern's Lorebook UI is off for this layout, Lorebooks opens SillyTavern's own World Info (issue #16).
+        if (id === 'pt-lorebooks' && !deps.lorebookUiOn()) {
+            if (open === LOREBOOK_PAGE) {
+                if (deps.isWide()) {
+                    delete this.lastInPlace[id];
+                    closePages();
+                } else {
+                    drawerById(LOREBOOK_PAGE)?.querySelector(':scope > .drawer-content')?.scrollTo?.({ top: 0, behavior: 'smooth' });
+                }
+                return;
+            }
+            openPage(LOREBOOK_PAGE);
+            return;
+        }
+        // With the Extensions button on and no extra extension top-bar drawers, open SillyTavern's Extensions directly.
+        if (id === 'pt-extensions' && !extensionDrawers().length) {
+            if (open === 'extensions-settings-button') {
+                if (deps.isWide()) {
+                    delete this.lastInPlace[id];
+                    closePages();
+                } else if (!closePageSection()) {
+                    drawerById('extensions-settings-button')?.querySelector(':scope > .drawer-content')?.scrollTo?.({ top: 0, behavior: 'smooth' });
+                }
+                return;
+            }
+            openPage('extensions-settings-button');
+            return;
+        }
+        // The place you are on (or one of its pages): on desktop that hides the panel and resets its
+        // remembered sub-page so toggling it open again returns to its root (issue #19); on a phone
+        // it goes back to the place's root, or to its top.
         if (open && placeOf(open) === id) {
             if (deps.isWide()) {
+                delete this.lastInPlace[id];
                 closePages();
                 return;
             }
@@ -422,9 +467,15 @@ class Shell {
             }
         }
         if (isOwnPage(id)) {
-            // Each place keeps its page: coming back opens the page you left it on.
+            // Each place keeps its page consistently (both Pocket Tavern's own sub-pages and SillyTavern's
+            // drawers): switching places and coming back opens the page you left it on.
             const last = this.lastInPlace[id];
-            openPage(last && drawerById(last) ? last : id);
+            const validLast = last
+                && last !== id
+                && (isOwnPage(last) || drawerById(last))
+                && placeOf(last) === id
+                && !(last === LOREBOOK_PAGE && (!deps.lorebookUiOn() || (wiPage.mode === 'book' && !editedLorebook())));
+            openPage(validLast ? last : id);
             return;
         }
         if (open === id) {
@@ -519,8 +570,13 @@ class Shell {
         // A place's root has its title only; a page pushed in a place gets ‹ (DESIGN.md → Headers).
         // A character's card inside Characters is a level down too.
         const card = pageId === 'rightNavHolder' && characterCardShown();
-        this.appbar.classList.toggle('pt-ab-root', !!pageId && !card && (tabId === pageId || pageId === 'pt-chats'));
-        this.tabbar.style.setProperty('--pt-tab-index', String(TABS.findIndex(tab => tab.id === tabId)));
+        const isRoot = tabId === pageId
+            || pageId === 'pt-chats'
+            || (pageId === LOREBOOK_PAGE && !deps.lorebookUiOn())
+            || (pageId === 'extensions-settings-button' && deps.settings().extensionsTab && !extensionDrawers().length);
+        this.appbar.classList.toggle('pt-ab-root', !!pageId && !card && isRoot);
+        const tabs = activeTabs();
+        this.tabbar.style.setProperty('--pt-tab-index', String(Math.max(0, tabs.findIndex(tab => tab.id === tabId))));
         for (const [id, button] of this.tabs) {
             const on = id === tabId;
             button.classList.toggle('pt-tab-on', on);
@@ -545,7 +601,7 @@ class Shell {
                 if (pageId === 'ai-config-button') {
                     syncPresetTabs();
                     // Chat Completion Tabs builds its own tabs up to 2 seconds after an API switch; ours step aside then.
-                    setTimeout(syncPresetTabs, 2500);
+                    this.after(2500, syncPresetTabs);
                 }
             }
             if (pageId === 'backgrounds-button' || pageId === 'user-settings-button') deps.syncThemeNotes();
@@ -556,12 +612,12 @@ class Shell {
                 refreshOwnPage();
             }
             syncLorebookMode(pageId);
-            if (pageId === LOREBOOK_PAGE && wiPage.mode === 'settings') this.titleEl.textContent = t('Activation settings');
-            else if (pageId === LOREBOOK_PAGE && editedLorebook()) this.titleEl.textContent = editedLorebook();
+            const loreUi = deps.lorebookUiOn();
+            if (pageId === LOREBOOK_PAGE && loreUi && wiPage.mode === 'settings') this.titleEl.textContent = t('Activation settings');
+            else if (pageId === LOREBOOK_PAGE && loreUi && editedLorebook()) this.titleEl.textContent = editedLorebook();
             else if (typeof info.rawTitle === 'function') this.titleEl.textContent = info.rawTitle();
             else this.titleEl.textContent = t(info.title);
             this.subEl.textContent = t(info.long ?? '');
-            this.subEl.classList.remove('pt-ab-offline');
             // Switch back to "Presets" as soon as the editor starts sliding away.
             const editorMode = promptEditorOpen() ? promptEditorMode() : null;
             root.classList.toggle('pt-prompt-editor', !!editorMode);
@@ -623,7 +679,6 @@ class Shell {
         this.titleEl.textContent = name;
         // The header never shows connection state (DESIGN.md); problems get a banner and a dot on AI.
         this.subEl.textContent = '';
-        this.subEl.classList.remove('pt-ab-offline');
         this.avatar.classList.remove('pt-ab-avatar-icon');
         if (image) {
             const existingImg = this.avatar.firstElementChild;
@@ -661,7 +716,10 @@ export function syncTabsButton() {
 export function syncShell() {
     const want = deps.active() && deps.settings().appShell;
     if (want && !shell) shell = new Shell();
-    else if (!want && shell) {
+    else if (want && shell) {
+        shell.syncTabs();
+        shell.update();
+    } else if (!want && shell) {
         shell.destroy();
         shell = null;
     }

@@ -66,6 +66,12 @@
     }
 }
 
+/* Inside the desktop panel, size theme cards to the panel's own width so they stay readable at 400px
+   and expand smoothly as the panel is dragged wider. */
+html.pt-desktop .pt-themes {
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+}
+
 .pt-theme-card {
     display: flex;
     flex-direction: column;
@@ -75,15 +81,22 @@
     border: 1.5px solid var(--pt-border);
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
     color: var(--pt-text-primary);
     font: inherit;
     text-align: start;
     cursor: pointer;
 }
 
+@media (hover: hover) {
+    html.pt-motion-full .pt-theme-card:hover {
+        transform: translateY(-2px);
+    }
+}
+
 .pt-theme-on {
     border-color: var(--pt-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 25%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 25%, transparent), var(--pt-shadow-card);
 }
 
 .pt-theme-preview {

@@ -42,7 +42,7 @@ export function primeChatSizes(delay = 0) {
  * the chat ended up far above the newest message. For a moment after a chat
  * opens, keep it at the newest message, until you scroll yourself.
  */
-export const newest = { until: 0, started: null };
+export const newest = { until: 0, started: null, timers: new Set() };
 
 export function keepAtNewest() {
     if (!deps.active()) return;
@@ -55,9 +55,17 @@ export function keepAtNewest() {
 export function holdAtNewest(ms = 2500) {
     const chat = document.querySelector(CHAT);
     if (!deps.active() || !chat || deps.context().powerUserSettings?.auto_scroll_chat_to_bottom === false) return;
+    for (const id of newest.timers) window.clearTimeout(id);
+    newest.timers.clear();
     newest.until = Date.now() + ms;
     newest.started = userScrollSince();
-    for (const delay of [60, 250, 500, 900, 1400, 2200]) setTimeout(keepAtNewest, delay);
+    for (const delay of [60, 250, 500, 900, 1400, 2200]) {
+        const id = window.setTimeout(safe(SOURCE, () => {
+            newest.timers.delete(id);
+            keepAtNewest();
+        }), delay);
+        newest.timers.add(id);
+    }
 }
 
 /**
@@ -95,4 +103,8 @@ export function onChatWidthChange() {
 /** Pocket Tavern turned off: no drawing pass left waiting. */
 export function stopChatScroll() {
     window.clearTimeout(fastChat.timer);
+    fastChat.timer = 0;
+    for (const id of newest.timers) window.clearTimeout(id);
+    newest.timers.clear();
+    newest.until = 0;
 }

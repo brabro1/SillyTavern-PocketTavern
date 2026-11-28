@@ -83,8 +83,9 @@ html.pt-desktop.pt-no-chat .pt-no-chat-empty {
     }
 }
 
+html.pt-motion-full .pt-chats-rows > .pt-chat-row > .pt-chat-row-main,
 html.pt-motion-full .pt-chat-group-card {
-    transition: transform var(--pt-dur-fast) var(--pt-ease);
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 /* The rows inside share the card's surface. */

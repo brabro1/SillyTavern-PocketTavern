@@ -127,16 +127,17 @@
 
 .pt-list-row-end {
     display: flex;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     align-items: center;
     gap: var(--pt-space-1);
+    max-width: 45%;
     min-width: 0;
     color: var(--pt-text-secondary);
 }
 
 .pt-list-row-value {
     overflow: hidden;
-    max-width: 40vw;
+    min-width: 0;
     font-size: var(--pt-text-body);
     white-space: nowrap;
     text-overflow: ellipsis;

@@ -135,11 +135,57 @@ for (const layout of ['phone', 'desktop']) {
             await waitFor(page, 'the row gone', name => ![...document.querySelectorAll('#pt-page .pt-list-row-title')].some(node => node.textContent === name), BOOK);
         });
 
+        await step('Lorebook interface set to Off (or the other layout) uses SillyTavern\'s own World Info (issue #16)', async () => {
+            const otherLayout = phone ? 'desktop' : 'phone';
+            for (const mode of ['off', otherLayout]) {
+                // Start from another place so tapping Lorebooks opens it fresh.
+                await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-settings"]').click());
+                await waitFor(page, 'Settings before lorebook check', () => document.getElementById('pt-page')?.dataset.page === 'pt-settings');
+                await page.evaluate(value => {
+                    const select = document.getElementById('pt_lorebook_ui');
+                    select.value = value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }, mode);
+                await waitFor(page, `lorebook UI off (${mode})`, () => !document.documentElement.classList.contains('pt-lore-ui'));
+                await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-lorebooks"]').click());
+                await waitFor(page, 'vanilla World Info opened', () => document.documentElement.dataset.ptPage === 'WI-SP-button' && !document.documentElement.dataset.ptWi);
+                await page.waitForTimeout(350);
+                if (mode === 'off') await page.screenshot({ path: `${OUT}/${layout}-vanilla-lorebook.png` });
+                const vanilla = await page.evaluate(() => ({
+                    loreUi: document.documentElement.classList.contains('pt-lore-ui'),
+                    loreCards: document.documentElement.classList.contains('pt-lorecards'),
+                    dataWi: document.documentElement.dataset.ptWi ?? '',
+                    top: !!document.getElementById('wiTopBlock') && getComputedStyle(document.getElementById('wiTopBlock')).display !== 'none',
+                    select: !!document.getElementById('world_editor_select') && !document.getElementById('world_editor_select').classList.contains('pt-native-hidden'),
+                    backHidden: getComputedStyle(document.querySelector('.pt-ab-back')).display === 'none',
+                }));
+                if (vanilla.loreUi || vanilla.loreCards || vanilla.dataWi || !vanilla.top || !vanilla.select || !vanilla.backHidden) {
+                    throw new Error(`${mode}: ${JSON.stringify(vanilla)}`);
+                }
+            }
+            // Put it back to both and confirm Pocket Tavern's Lorebooks page returns.
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-settings"]').click());
+            await waitFor(page, 'Settings before restore', () => document.getElementById('pt-page')?.dataset.page === 'pt-settings');
+            await page.evaluate(() => {
+                const select = document.getElementById('pt_lorebook_ui');
+                select.value = 'both';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            await waitFor(page, 'lorebook UI back on', () => document.documentElement.classList.contains('pt-lore-ui'));
+            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="pt-lorebooks"]').click());
+            await home(page);
+        });
+
         await step('no errors from Pocket Tavern', async () => {
             if (errors.length) throw new Error(errors.join(' | '));
         });
     } finally {
         await page.evaluate(async name => {
+            const select = document.getElementById('pt_lorebook_ui');
+            if (select && select.value !== 'both') {
+                select.value = 'both';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             if (SillyTavern.getContext().getWorldInfoNames().includes(name)) await (await import('/scripts/world-info.js')).deleteWorldInfo(name);
         }, BOOK).catch(() => {});
         await page.waitForTimeout(1500);

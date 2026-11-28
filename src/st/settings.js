@@ -10,7 +10,7 @@ import { h } from '../core/dom.js';
 import { THEMES } from '../themes/themes.js';
 import { IS_IOS, resolveLayout } from '../shell/layout.js';
 import { refreshOwnPage } from '../shell/page.js';
-import { SWITCHES } from '../views/pocket-tavern.js';
+import { LOREBOOK_UI_MODES, SWITCHES } from '../views/pocket-tavern.js';
 import { presetTabs, setPresetTab } from '../st/ai.js';
 import { addFormattingRows, refreshFormattingRows, removeFormattingRows } from './formatting.js';
 import { showChatCompletionTabOf } from '../compat/chat-completion-tabs.js';
@@ -966,7 +966,7 @@ export async function updatePocketTavern(button) {
 export async function openSillyTavernUpdates() {
     const state = { local: null, latest: null, failed: false };
     const commandRow = (label, command) => h('div', { class: 'pt-command' }, [
-        h('code', { text: command }),
+        h('code', { raw: command }),
         h('button', {
             type: 'button',
             class: 'pt-command-copy',
@@ -1113,6 +1113,10 @@ export function buildSettings() {
                     h('span', { class: 'pt-field-label', text: 'Chat text size' }),
                     h('select', { id: 'pt_textsize', class: 'text_pole' }, Object.entries(TEXT_SIZES).map(([value, text]) => h('option', { value, text }))),
                 ]),
+                h('label', { class: 'pt-field', for: 'pt_lorebook_ui' }, [
+                    h('span', { class: 'pt-field-label', text: 'Lorebook interface' }),
+                    h('select', { id: 'pt_lorebook_ui', class: 'text_pole' }, Object.entries(LOREBOOK_UI_MODES).map(([value, text]) => h('option', { value, text }))),
+                ]),
                 h('hr'),
                 ...SWITCHES.map(item => check(item.id, item.label, item.hint)),
                 h('small', { class: 'pt-note', text: 'Changes apply right away. Nothing here changes your characters, chats or lorebooks.' }),
@@ -1150,6 +1154,16 @@ export function buildSettings() {
         select.addEventListener('change', safe(SOURCE, () => setAppearance(key, select.value)));
     }
 
+    const loreSelect = document.getElementById('pt_lorebook_ui');
+    if (loreSelect) {
+        loreSelect.value = deps.settings().lorebookUi ?? 'both';
+        loreSelect.addEventListener('change', safe(SOURCE, () => {
+            deps.settings().lorebookUi = loreSelect.value;
+            saveSettings();
+            applyState();
+        }));
+    }
+
     modeSelect.value = readMode();
     modeSelect.addEventListener('change', safe(SOURCE, () => {
         writeMode(modeSelect.value);
@@ -1177,7 +1191,7 @@ export function syncSettingsInputs() {
         if (input) input.checked = !!deps.settings()[key];
     }
     syncSettingsThemeOption(document.getElementById('pt_theme'));
-    for (const [id, key] of [['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout']]) {
+    for (const [id, key] of [['pt_motion', 'motion'], ['pt_textsize', 'textSize'], ['pt_size', 'uiSize'], ['pt_composer', 'composerStyle'], ['pt_layout', 'layout'], ['pt_lorebook_ui', 'lorebookUi']]) {
         const select = document.getElementById(id);
         if (select) select.value = deps.settings()[key];
     }

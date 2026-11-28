@@ -5,7 +5,7 @@ import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { currentShell } from './app-shell.js';
 import { refreshOwnPage } from './page.js';
-import { closePages, currentPageId, drawerById, openPage, pageInfo, TABS } from './pages.js';
+import { activeTabs, closePages, currentPageId, drawerById, extensionDrawers, openPage, pageInfo } from './pages.js';
 import { openChatRowMenu } from '../st/chat-history.js';
 import { CHAT, LOREBOOK_PICKER, WELCOME_RECENT_CHATS } from '../st/selectors.js';
 import { openLorebook } from '../st/lorebooks.js';
@@ -226,7 +226,16 @@ async function deleteChatFile(chat) {
 /** Everything else Search everything finds: the places, characters and groups, lorebooks, settings. */
 export async function searchIndexForHome() {
     const context = deps.context();
-    const places = TABS.map(tab => ({ kind: 'place', title: tab.label, icon: tab.icon, text: `${tab.label} ${t(tab.label)}`, run: () => currentShell()?.onTab(tab.id) }));
+    const tabs = activeTabs();
+    const places = [
+        ...tabs.map(tab => ({ kind: 'place', title: tab.label, icon: tab.icon, text: `${tab.label} ${t(tab.label)}`, run: () => currentShell()?.onTab(tab.id) })),
+        ...(!deps.settings().extensionsTab ? [{ kind: 'place', title: 'Extensions', icon: 'puzzle', text: `Extensions ${t('Extensions')}`, run: () => openPage('extensions-settings-button') }] : []),
+        { kind: 'place', title: 'API', icon: 'plug', text: `API Connection ${t('API')} ${t('Connection settings')}`, run: () => openPage('sys-settings-button') },
+        { kind: 'place', title: 'Appearance', icon: 'palette', text: `Appearance Themes ${t('Appearance')} ${t('Themes')}`, run: () => openPage('pt-appearance') },
+        { kind: 'place', title: 'Personas', icon: 'smile', text: `Personas ${t('Personas')}`, run: () => openPage('persona-management-button') },
+        { kind: 'place', title: 'Pocket Tavern', icon: 'sliders', text: 'Pocket Tavern', run: () => openPage('pt-pocket') },
+        ...extensionDrawers().map(drawer => ({ kind: 'place', rawTitle: drawer.title, subtitle: 'Extensions', icon: 'puzzle', text: `${drawer.title} Extensions ${t('Extensions')}`, run: () => openPage(drawer.id) })),
+    ];
     const characters = (context.characters ?? []).map((character, id) => ({
         kind: 'character',
         rawTitle: character.name,

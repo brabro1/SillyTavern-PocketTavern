@@ -126,7 +126,7 @@ export function watchOverlays(on) {
 
 export function scheduleHistorySync(delay = 220) {
     window.clearTimeout(nav.timer);
-    nav.timer = window.setTimeout(syncHistory, delay);
+    nav.timer = window.setTimeout(safe(SOURCE, syncHistory), delay);
 }
 
 function syncHistory() {

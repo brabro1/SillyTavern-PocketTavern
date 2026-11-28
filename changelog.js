@@ -1,6 +1,16 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '3.0.1',
+        items: [
+            "Lorebook interface option (Settings → Pocket Tavern → Characters and lorebooks): switch between Pocket Tavern's lorebooks UI and SillyTavern's own World Info on phones, computers, both, or off — so lorebook extensions like World Info Drawer and World Info Workspace work undisturbed.",
+            "Extensions button option (Settings → Pocket Tavern → Navigation): adds a dedicated Extensions button to the tab bar and rail for extension menus and settings. Extension menus also have their own group with their icons in Settings and show up in Search everything.",
+            "On a computer, dragging the edge of the panel to resize it no longer snaps back to the default width on click when a Pocket Tavern page (Chats, Settings, AI, Lorebooks) is open.",
+            "Fixed: toggling Settings (or returning to Chats) now consistently returns to the main Settings menu from every sub-menu, including Extensions, Personas and SillyTavern.",
+            "Visual and reliability polish: picker values in settings rows no longer cut off early, desktop theme cards size cleanly to the panel width with subtle elevation, and timers and chat fade-in handling are tighter.",
+        ],
+    },
+    {
         version: '3.0.0',
         items: [
             "Pocket Tavern 3.0: rebuilt from the ground up with five places, the same on a phone and a computer: Chats, Characters, Lorebooks, AI and Settings. There is no More menu any more; everything lives in exactly one place.",

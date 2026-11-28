@@ -60,15 +60,21 @@ function storePanelWidth(width) {
 
 /** The panel's current width as drawn (the stylesheet clamps the saved one). */
 function panelWidthNow() {
-    const panel = document.querySelector(OPEN_PAGE);
+    const panel = document.getElementById('pt-page') || document.querySelector(OPEN_PAGE);
     return panel ? panel.getBoundingClientRect().width : 0;
 }
+
+let onResize = null;
 
 export function syncPanelEdge() {
     const want = deps.active() && deps.settings().appShell;
     if (!want) {
         cancelAnimationFrame(panelEdgeFrame);
         panelEdgeFrame = 0;
+        if (onResize) {
+            window.removeEventListener('resize', onResize);
+            onResize = null;
+        }
         panelEdge?.remove();
         panelEdge = null;
         applyPanelWidth(0);
@@ -77,6 +83,10 @@ export function syncPanelEdge() {
     }
     applyPanelWidth(savedPanelWidth());
     if (panelEdge) return;
+    onResize = safe(SOURCE, () => {
+        if (deps.active() && panelEdge) applyPanelWidth(savedPanelWidth());
+    });
+    window.addEventListener('resize', onResize);
     panelEdge = h('div', {
         id: 'pt-panel-edge',
         class: 'pt-panel-edge',

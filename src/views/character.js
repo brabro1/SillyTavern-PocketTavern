@@ -4,6 +4,7 @@
 // comes from the shell, which runs SillyTavern's own controls and functions.
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
+import { safe } from '../core/lifecycle.js';
 import { avatar } from '../ui/avatar.js';
 import { button, iconButton } from '../ui/button.js';
 import { chatRow, chatTitle, formatPreview } from '../ui/chat-row.js';
@@ -16,7 +17,7 @@ import { svgIcon } from '../ui/icons.js';
 /** More chats than this get a filter field (DESIGN.md). */
 const FILTER_FROM = 8;
 
-const normalize = text => String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const normalize = text => String(text ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 /**
  * @typedef {object} CharacterInfo
@@ -85,7 +86,7 @@ export function characterPage(actions) {
                 });
                 body.append(h('div', { class: 'pt-character-about-box' }, [about, toggle]));
                 // "More" only when the text is really cut.
-                requestAnimationFrame(() => { toggle.hidden = about.scrollHeight <= about.clientHeight + 1; });
+                requestAnimationFrame(safe('character page', () => { toggle.hidden = about.scrollHeight <= about.clientHeight + 1; }));
             }
 
             // What to do.

@@ -962,4 +962,17 @@ export default {
     "This message is no longer in the chat.": "这条消息已不在聊天中。",
     // The tab bar's name for screen readers
     "Main": "主导航",
+    // Lorebook interface toggle and Extensions button
+    "Lorebook interface": "世界书界面",
+    "Pocket Tavern's lorebooks page and entry cards. Off uses SillyTavern's own.": "Pocket Tavern 的世界书页面和条目卡片。关闭后使用 SillyTavern 原生界面。",
+    "Phone and desktop": "手机和电脑",
+    "Phone only": "仅手机",
+    "Desktop only": "仅电脑",
+    "Off (SillyTavern's own)": "关闭（使用 SillyTavern 原生）",
+    "Extensions button": "扩展按钮",
+    "A dedicated Extensions button in the navigation bar for extension menus and settings.": "在导航栏中显示专门的“扩展”按钮，方便访问扩展菜单和设置。",
+    "Extension menus": "扩展菜单",
+    "All extensions": "所有扩展",
+    "Manage extensions and their settings": "管理扩展及其设置",
+    "The theme's own background is off now. Turn it back on in Settings → Appearance.": "主题自带的背景现已关闭。你可以在“设置 → 外观”中重新开启。",
 };

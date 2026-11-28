@@ -81,6 +81,10 @@ const DEFAULTS = Object.freeze({
     ggButton: true,
     /** The last Guided Generations action run from the sheet; holding the button runs it again. */
     ggLast: '',
+    /** Pocket Tavern's Lorebook interface: 'both' | 'phone' | 'desktop' | 'off' (issue #16). */
+    lorebookUi: 'both',
+    /** Dedicated Extensions button in the navigation bar / rail (issue #18). */
+    extensionsTab: false,
 });
 
 /** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */
@@ -94,6 +98,15 @@ export const MOTION_LABELS = {
 
 export function isWide() {
     return document.documentElement.classList.contains('pt-desktop');
+}
+
+/** Whether Pocket Tavern's Lorebook interface is on for the current layout (issue #16). */
+export function lorebookUiOn() {
+    const mode = settings?.lorebookUi ?? 'both';
+    if (mode === 'off') return false;
+    if (mode === 'phone') return !isWide();
+    if (mode === 'desktop') return isWide();
+    return true;
 }
 
 /** Visible height (px) below which the sheet drops secondary chrome: landscape or keyboard open. */

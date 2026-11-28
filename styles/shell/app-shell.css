@@ -276,17 +276,6 @@ html.pt-shell .pt-appbar {
     display: none;
 }
 
-.pt-ab-sub.pt-ab-offline::before {
-    content: '';
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin-inline-end: 8px;
-    border-radius: 50%;
-    background: var(--pt-danger);
-    vertical-align: 1px;
-}
-
 /* Small phones: the buttons sit closer, but their tap area stays 44px. */
 @media (max-width: 400px) {
     .pt-ab-btn {
@@ -378,7 +367,7 @@ html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
     position: absolute;
     top: 7px;
     left: var(--pt-safe-left);
-    width: calc((100% - var(--pt-safe-left) - var(--pt-safe-right)) / 5);
+    width: calc((100% - var(--pt-safe-left) - var(--pt-safe-right)) / var(--pt-tab-count, 5));
     height: 32px;
     pointer-events: none;
     transform: translateX(calc(var(--pt-tab-index, 0) * 100%));
@@ -393,6 +382,17 @@ html.pt-shell.pt-keyboard.pt-tabs-tucked .pt-tabbar {
     border-radius: 999px;
     background: color-mix(in srgb, var(--pt-accent) 22%, var(--pt-surface));
     box-shadow: var(--pt-highlight), var(--pt-shadow-raise);
+}
+
+/* Six tabs (when the Extensions button is on): keep pills slim on narrow phones so they never touch. */
+@media (max-width: 400px) {
+    html.pt-tabs-6:not(.pt-desktop) .pt-tab-icon {
+        width: 44px;
+    }
+
+    html.pt-tabs-6:not(.pt-desktop) .pt-tab-indicator::before {
+        width: 46px;
+    }
 }
 
 .pt-tab-icon .pt-svg,

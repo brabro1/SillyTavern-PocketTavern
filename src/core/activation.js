@@ -16,7 +16,8 @@ import { syncChatsHome } from '../shell/chats-home.js';
 import { applyAppearance, applyLayoutPrefs, applyTextSize, applyChatLook, onBackgroundPick, syncThemeNotes } from '../themes/appearance.js';
 import { loadSillyTavernThemes } from '../themes/st-themes.js';
 import { currentShell, syncShell } from '../shell/app-shell.js';
-import { openPage } from '../shell/pages.js';
+import { currentPageId, openPage } from '../shell/pages.js';
+import { LOREBOOK_PAGE } from '../views/lorebooks.js';
 import { resetHistoryTracking, scheduleHistorySync, syncEditorState, watchOverlays } from '../shell/history.js';
 import { closeSheet, currentSheet } from '../shell/sheet.js';
 import { watchRanges } from '../st/slider-fill.js';
@@ -39,7 +40,7 @@ import { onFocusGuardFocus, onFocusGuardPointer } from '../shell/focus-guard.js'
 import { clearBanners, hideBanner, showBanner } from '../shell/banners.js';
 import { scan, startObserver, stopObserver, syncLoreEntries, syncLorebookMode, syncWandShortcut, watchLorebooks } from '../st/lorebooks.js';
 import { addSliderSteppers, install, removeSettingDescriptions, removeSliderSteppers, syncManifest, syncPageSections, updateStatusLine } from '../st/settings.js';
-import { active, buzz, COMPACT_BELOW, ctx, LOG, motionAllowed, setActive, settings, shouldBeActive } from './state.js';
+import { active, buzz, COMPACT_BELOW, ctx, LOG, lorebookUiOn, motionAllowed, setActive, settings, shouldBeActive } from './state.js';
 import { safe } from './lifecycle.js';
 import { CHAT, KEYBOARD_FOLLOWERS, SEND_BUTTON } from '../st/selectors.js';
 import { h } from './dom.js';
@@ -182,6 +183,11 @@ export function syncExtras() {
     watchLayout(() => {
         setFeatureClasses();
         applyLayoutPrefs();
+        // Lorebook UI can be scoped to Phone only or Desktop only (issue #16): re-sync on layout change.
+        scan();
+        syncLoreEntries();
+        if (active && currentPageId() === 'pt-lorebooks' && !lorebookUiOn()) openPage(LOREBOOK_PAGE);
+        else syncLorebookMode(currentPageId());
         currentShell()?.update();
         updateStatusLine();
         scheduleHistorySync();
@@ -237,6 +243,7 @@ export function setFeatureClasses() {
     root.classList.toggle('pt-shell', active && settings.appShell);
     root.classList.toggle('pt-chat', active && settings.chatStyle);
     applyLayout(active && settings.appShell, settings.layout);
+    root.classList.toggle('pt-lore-ui', active && lorebookUiOn());
 }
 
 /*
@@ -380,6 +387,8 @@ export function applyState() {
         stopViewportFollow = null;
     }
     syncShell();
+    if (active && currentPageId() === 'pt-lorebooks' && !lorebookUiOn()) openPage(LOREBOOK_PAGE);
+    else if (active && currentPageId() === LOREBOOK_PAGE) syncLorebookMode(LOREBOOK_PAGE);
     syncIosViewport();
     const backGesture = active && settings.backGesture;
     watchOverlays(backGesture);

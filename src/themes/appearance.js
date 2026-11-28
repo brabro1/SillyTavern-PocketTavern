@@ -411,7 +411,7 @@ export function onBackgroundPick(event) {
     const thumb = event.target.closest?.(BACKGROUND_THUMB);
     if (!thumb || event.target.closest('.jg-menu, .mobile-only-menu-toggle') || thumb.closest('.bg-selection-mode')) return;
     setAppearance('themeBackdrop', false);
-    globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in Settings → Themes."), t('Showing your background'), { timeOut: 4000 });
+    globalThis.toastr?.info(t("The theme's own background is off now. Turn it back on in Settings → Appearance."), t('Showing your background'), { timeOut: 4000 });
 }
 
 export function applyTextSize() {

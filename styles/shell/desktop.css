@@ -89,10 +89,6 @@ html.pt-desktop .pt-tab-icon {
     height: 32px;
 }
 
-html.pt-desktop .pt-tab[data-tab='more'] {
-    margin-top: auto;
-}
-
 @media (max-height: 800px) {
     html.pt-desktop {
         --pt-rail-item: 56px;
@@ -238,6 +234,7 @@ html.pt-resizing * {
 }
 
 html.pt-resizing #sheld,
+html.pt-resizing #pt-page,
 html.pt-resizing #top-settings-holder .drawer-content.openDrawer {
     animation: none !important;
     transition: none !important;

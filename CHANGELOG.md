@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.0.1
+
+Fixes and improvements answering GitHub issues #15, #16, #18 and #19.
+
+### Both
+
+- **Lorebook interface option** (#16). **Settings → Pocket Tavern → Characters and lorebooks → Lorebook interface** lets you choose where Pocket Tavern's lorebooks page and entry cards are used: **Phone and desktop**, **Phone only**, **Desktop only**, or **Off** (SillyTavern's own World Info). Turning it off leaves World Info, its pickers and its entries untouched so lorebook extensions like World Info Drawer and World Info Workspace work cleanly.
+- **Extensions button and easier extension access** (#18). **Settings → Pocket Tavern → Navigation → Extensions button** adds a dedicated **Extensions** button to the tab bar and rail that groups third-party extension menus above **All extensions**. Even with the button off, third-party extension menus now appear in their own **Extension menus** group in Settings with their own icons and are indexed in **Search everything** (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd>) alongside key places (`API`, `Appearance`, `Personas`, `Extensions`, `Pocket Tavern`).
+- **Consistent Settings navigation** (#19). Leaving Settings back to Chats/the chat (on a phone) or toggling the Settings button off (on a computer) now resets Settings to its main menu consistently for every sub-menu — both Pocket Tavern's own pages (`Appearance`, `Chat and layout`, `Pocket Tavern`, `About`) and SillyTavern's (`Extensions`, `Personas`, `SillyTavern`). Switching directly between places now remembers both kinds of sub-pages consistently.
+- **Visual and reliability polish.** Short picker values in list rows (like "Automatic") no longer truncate prematurely on phones; chat fade-in ignores duplicate `CHAT_CHANGED` events for the same chat; timer and animation callbacks are wrapped in `safe()` and cleaned up on teardown; and a stale "Settings → Themes" toast now points to "Settings → Appearance".
+
+### Desktop
+
+- **Panel edge resizing** (#15). Dragging the desktop panel edge no longer snaps back to the default width on click when a Pocket Tavern page (Chats, Settings, AI, Lorebooks, Appearance, Character page) is open. Resizing the browser window also keeps the full-width panel state in sync.
+- **Theme cards in Appearance.** Theme cards now adapt to the desktop panel's width (`repeat(auto-fill, minmax(156px, 1fr))`) instead of squeezing three narrow columns into the default 400px panel, with card elevation and subtle hover lift matching `DESIGN.md`.
+
 ## 3.0.0
 
 Pocket Tavern 3.0: a rebuild with one map of five places, one set of components, and a safer start. It answers GitHub issues #9 (one design language), #10 (panel locks), #11 (repeated navigation buttons), #12 (− and + beside sliders), #13 (a wider panel on a computer) and #14 (swipe buttons with Moonlit Echoes). It follows 3.0.0-beta.1, which was published on the `3.0` branch the same day; everything below is in this release.

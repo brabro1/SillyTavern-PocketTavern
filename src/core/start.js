@@ -119,10 +119,17 @@ function init() {
         if (event_types[name]) eventSource?.on?.(event_types[name], safe(SOURCE, refreshAiPage));
     }
     // After SillyTavern has finished switching (or closing) the chat.
+    // CHAT_CHANGED can fire more than once for the same chat (AGENTS.md → Known traps): only fade on a real switch.
+    let lastChatKey = null;
     if (event_types.CHAT_CHANGED) eventSource?.on?.(event_types.CHAT_CHANGED, safe(SOURCE, () => {
         setTimeout(safe(SOURCE, syncChatsHome), 0);
         chatLoading?.done();
-        fadeInChat();
+        const context = ctx();
+        const key = `${context.groupId ?? ''}|${context.characterId ?? ''}|${context.getCurrentChatId?.() ?? ''}`;
+        if (key !== lastChatKey) {
+            lastChatKey = key;
+            fadeInChat();
+        }
     }));
     if (event_types.CHAT_LOADED) eventSource?.on?.(event_types.CHAT_LOADED, safe(SOURCE, () => chatLoading?.loaded()));
     for (const name of ['CHARACTER_EDITED', 'CHARACTER_DELETED', 'CHARACTER_RENAMED', 'CHAT_CHANGED']) {

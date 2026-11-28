@@ -3,7 +3,6 @@
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { button as uiButton } from '../ui/button.js';
-import { lore } from '../st/lorebooks.js';
 
 const LOG = '[Pocket Tavern]';
 

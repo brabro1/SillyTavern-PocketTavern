@@ -2,14 +2,14 @@
 // a time; which place (tab) each belongs to; Back from a page to its place; Characters' list, page and card.
 import { characterTarget, openCharacterPage, targetCharacter } from '../st/characters.js';
 import { closePromptEditor } from '../st/ai.js';
-import { CHARACTER_LIST, OPEN_PAGE } from '../st/selectors.js';
+import { CHARACTER_LIST, OPEN_PAGE, TOP_DRAWERS } from '../st/selectors.js';
 import { closeOwnPage, currentOwnPage, isOwnPage, openOwnPage } from './page.js';
 import { isShown } from './history.js';
 import { AI_PAGES } from '../views/ai.js';
-import { SETTINGS_OWN_PAGES } from '../views/settings.js';
+import { SETTINGS_OWN_PAGES, SETTINGS_PAGES } from '../views/settings.js';
 import { LOREBOOK_PAGE } from '../views/lorebooks.js';
 
-/** @type {{ settings: () => object, icon: Function, characterFromChats: () => { chid: string | null } } | null} */
+/** @type {{ settings: () => object, icon: Function, lorebookUiOn: () => boolean, characterFromChats: () => { chid: string | null } } | null} */
 let deps = null;
 
 export function setupPages(supplied) {
@@ -37,14 +37,38 @@ export const TABS = [
     { id: 'pt-settings', label: 'Settings', icon: 'settings' },
 ];
 
+/** Optional sixth place for Extensions and third-party extension menus (issue #18). */
+export const EXTENSIONS_TAB = { id: 'pt-extensions', label: 'Extensions', icon: 'puzzle' };
+
+/** The navigation places shown right now (five by default, six with the Extensions button on). */
+export function activeTabs() {
+    return deps?.settings().extensionsTab
+        ? [TABS[0], TABS[1], TABS[2], TABS[3], EXTENSIONS_TAB, TABS[4]]
+        : TABS;
+}
+
+/** Top-bar drawers added by other extensions (e.g. Character Library, 3D Dice Roller). */
+export function extensionDrawers() {
+    return Array.from(document.querySelectorAll(TOP_DRAWERS))
+        .filter(drawer => drawer.id && !TABS.some(tab => tab.id === drawer.id) && !AI_PAGES.includes(drawer.id) && drawer.id !== LOREBOOK_PAGE && !SETTINGS_PAGES.includes(drawer.id))
+        .map(drawer => {
+            const info = pageInfo(drawer);
+            return { id: drawer.id, title: info.title, icon: info.icon };
+        });
+}
+
 /** The place a SillyTavern page belongs to: its tab stays lit, and Back from it returns to that place. */
 export function placeOf(pageId) {
     if (!pageId || pageId === 'pt-chats') return 'chat';
     if (pageId === 'pt-character') return 'rightNavHolder';
     if (SETTINGS_OWN_PAGES.includes(pageId)) return 'pt-settings';
     if (pageId === LOREBOOK_PAGE) return 'pt-lorebooks';
+    if (pageId === 'pt-extensions') return deps?.settings().extensionsTab ? 'pt-extensions' : 'pt-settings';
     if (isOwnPage(pageId) || TABS.some(tab => tab.id === pageId)) return pageId;
     if (AI_PAGES.includes(pageId)) return 'pt-ai';
+    if (deps?.settings().extensionsTab && (pageId === 'extensions-settings-button' || !SETTINGS_PAGES.includes(pageId))) {
+        return 'pt-extensions';
+    }
     return 'pt-settings';
 }
 
@@ -124,6 +148,16 @@ export function backFromPage() {
         const fromPage = !!target && document.getElementById('avatar_url_pole')?.value === target.avatar;
         document.getElementById('rm_button_characters')?.click();
         if (fromPage) openCharacterPage(characterTarget.chid);
+        return;
+    }
+    // When Pocket Tavern's Lorebook UI is off, SillyTavern's World Info is the place's root (issue #16).
+    if (id === LOREBOOK_PAGE && deps && !deps.lorebookUiOn()) {
+        closePages();
+        return;
+    }
+    // With the Extensions button on and no extra extension drawers, Extensions itself is the place's root.
+    if (id === 'extensions-settings-button' && deps?.settings().extensionsTab && !extensionDrawers().length) {
+        closePages();
         return;
     }
     const place = id ? placeOf(id) : null;

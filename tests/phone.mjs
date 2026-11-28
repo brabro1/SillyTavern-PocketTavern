@@ -48,9 +48,10 @@ const closeSheet = async () => {
 const REAL_PAGE = () => document.getElementById('pt-page')?.dataset.page
     ?? document.querySelector('#top-settings-holder > .drawer > .drawer-content.openDrawer')?.closest('.drawer')?.id ?? null;
 /** The place a page belongs to (the same rule as the shell's placeOf). */
-const PLACE_OF = `page => (!page || page === 'pt-chats' ? 'chat' : (page.startsWith('pt-') || ['rightNavHolder'].includes(page) ? page
+const PLACE_OF = `page => (!page || page === 'pt-chats' ? 'chat' : (['pt-appearance', 'pt-display', 'pt-pocket', 'pt-about', 'pt-draft'].includes(page) ? 'pt-settings'
+    : (page.startsWith('pt-') || ['rightNavHolder'].includes(page) ? page
     : page === 'WI-SP-button' ? 'pt-lorebooks'
-    : (['sys-settings-button', 'ai-config-button', 'advanced-formatting-button'].includes(page) ? 'pt-ai' : 'pt-settings')))`;
+    : (['sys-settings-button', 'ai-config-button', 'advanced-formatting-button'].includes(page) ? 'pt-ai' : 'pt-settings'))))`;
 const realPage = tab => tab.evaluate(`(${REAL_PAGE})()`);
 const openPlace = async (tab, id) => {
     let page = await realPage(tab);

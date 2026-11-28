@@ -571,8 +571,10 @@ function matchTarget(select) {
 
 export function scan() {
     scanTimer = 0;
+    const loreUi = deps.lorebookUiOn();
     for (const [select, picker] of pickers) {
-        const wanted = picker.isLong ? deps.settings().longSelects : deps.settings().lorebookPicker;
+        const inWorldInfo = !picker.isLong && !!select.closest('#WorldInfo');
+        const wanted = picker.isLong ? deps.settings().longSelects : (deps.settings().lorebookPicker && (!inWorldInfo || loreUi));
         if (!select.isConnected || !deps.active() || !wanted) {
             picker.destroy();
             pickers.delete(select);
@@ -584,6 +586,7 @@ export function scan() {
         const selector = LOREBOOK_TARGETS.map(target => target.selector).join(',');
         for (const select of document.querySelectorAll(selector)) {
             if (pickers.has(select) || !(select instanceof HTMLSelectElement)) continue;
+            if (!loreUi && select.closest('#WorldInfo')) continue;
             const target = matchTarget(select);
             if (target) pickers.set(select, new Picker(select, target));
         }
@@ -733,10 +736,10 @@ export function lorebookList() {
         .map(option => ({ name: option.textContent.trim(), active: on.has(option.textContent.trim()) }));
 }
 
-/** html[data-pt-wi] says which part of World Info shows (styles/st/lorebooks.css); off on every other page. */
+/** html[data-pt-wi] says which part of World Info shows (styles/st/lorebooks.css); off on every other page or when Pocket Tavern's Lorebook UI is off. */
 export function syncLorebookMode(pageId) {
     const root = document.documentElement;
-    if (pageId !== LOREBOOK_PAGE) {
+    if (pageId !== LOREBOOK_PAGE || !deps.lorebookUiOn()) {
         wiPage.mode = 'book';
         delete root.dataset.ptWi;
         root.classList.remove('pt-wi-book');
@@ -773,7 +776,7 @@ function onLorebooksChanged() {
         if (!deps.active()) return;
         const page = currentPageId();
         if (page === 'pt-lorebooks') refreshOwnPage();
-        else if (page === LOREBOOK_PAGE) {
+        else if (page === LOREBOOK_PAGE && deps.lorebookUiOn()) {
             if (wiPage.mode === 'book' && !editedLorebook()) openPage('pt-lorebooks');
             else deps.shell()?.render(page);
         }
@@ -827,7 +830,7 @@ function entryKeys(entry) {
 }
 
 async function decorateEntries(forceRefresh = false) {
-    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().loreCards) return;
+    if (!deps.active() || !deps.settings().touchSizing || !deps.settings().loreCards || !deps.lorebookUiOn()) return;
     const list = document.getElementById('world_popup_entries_list');
     if (!list) return;
     const currentBook = document.getElementById('world_editor_select')?.selectedOptions[0]?.textContent?.trim() ?? '';
@@ -837,7 +840,7 @@ async function decorateEntries(forceRefresh = false) {
     if (forceRefresh || closedSinceEdit || (currentBook && loreKeys.name !== currentBook)) {
         lore.edited = false;
         await refreshLoreKeys();
-        if (!deps.active() || !deps.settings().touchSizing || !deps.settings().loreCards) return;
+        if (!deps.active() || !deps.settings().touchSizing || !deps.settings().loreCards || !deps.lorebookUiOn()) return;
     }
     for (const entry of list.querySelectorAll('.world_entry')) {
         // The content block uses the same class, so ask for the one in the header.
@@ -881,7 +884,7 @@ export function closeLoreEntry() {
 
 export function syncLoreEntries() {
     const list = document.getElementById('world_popup_entries_list');
-    const want = deps.active() && deps.settings().touchSizing && deps.settings().loreCards;
+    const want = deps.active() && deps.settings().touchSizing && deps.settings().loreCards && deps.lorebookUiOn();
     document.documentElement.classList.toggle('pt-lorecards', !!want);
     if (!want) {
         window.clearTimeout(lore.timer);

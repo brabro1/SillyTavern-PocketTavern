@@ -962,4 +962,17 @@ export default {
     "This message is no longer in the chat.": "このメッセージはもうチャットにありません。",
     // The tab bar's name for screen readers
     "Main": "メイン",
+    // Lorebook interface toggle and Extensions button
+    "Lorebook interface": "ロアブック画面",
+    "Pocket Tavern's lorebooks page and entry cards. Off uses SillyTavern's own.": "Pocket Tavern のロアブック画面と項目カード。オフにすると SillyTavern 標準の画面になります。",
+    "Phone and desktop": "スマホとパソコン",
+    "Phone only": "スマホのみ",
+    "Desktop only": "パソコンのみ",
+    "Off (SillyTavern's own)": "オフ（SillyTavern 標準）",
+    "Extensions button": "拡張機能ボタン",
+    "A dedicated Extensions button in the navigation bar for extension menus and settings.": "ナビゲーションバーに拡張機能のメニューと設定を開く専用ボタンを表示します。",
+    "Extension menus": "拡張機能メニュー",
+    "All extensions": "すべての拡張機能",
+    "Manage extensions and their settings": "拡張機能とその設定を管理します",
+    "The theme's own background is off now. Turn it back on in Settings → Appearance.": "テーマ独自の背景はオフになりました。「設定 → 外観」で再びオンにできます。",
 };

@@ -36,7 +36,7 @@ import { setupGuidedGenerations } from '../compat/guided-generations.js';
 import { setupInputHistory } from '../compat/input-history.js';
 import { setupLorebookScreens } from '../st/lorebooks.js';
 import { setupSettingsScreens } from '../st/settings.js';
-import { $j, active, buzz, COMPACT_BELOW, ctx, detectPhone, EASE, EXTENSION_ROOT, highlight, icon, isWide, LOG, MOTION_LABELS, motionAllowed, normalizeText, readMode, saveSettings, settings, ui, wireOnce, writeMode } from './state.js';
+import { $j, active, buzz, COMPACT_BELOW, ctx, detectPhone, EASE, EXTENSION_ROOT, highlight, icon, isWide, LOG, lorebookUiOn, MOTION_LABELS, motionAllowed, normalizeText, readMode, saveSettings, settings, ui, wireOnce, writeMode } from './state.js';
 import { applyState, connection, extras, isConnected, syncExtras } from './activation.js';
 import { characterFromChats } from './own-pages.js';
 
@@ -47,8 +47,8 @@ export function setupFeatures() {
     setupChatsHome({ active: () => active, settings: () => settings, context: ctx, icon, isWide, motionAllowed, renameCurrentChat });
     setupAppearance({ active: () => active, settings: () => settings, EASE: () => EASE, MOTION_LABELS: () => MOTION_LABELS, applyState, syncExtras, saveSettings, $j, isWide });
     setupStThemes({ active: () => active, settings: () => settings, context: ctx, applyAppearance, saveSettings });
-    setupAppShell({ active: () => active, settings: () => settings, context: ctx, chatsHome: () => chatsHome, connection: () => connection, EASE: () => EASE, buzz, endStartWindow, ensurePhoneHome, icon, isConnected, isWide, motionAllowed, openChatMenu, syncChatsHome, syncThemeNotes, ui });
-    setupPages({ settings: () => settings, icon, characterFromChats: () => characterFromChats });
+    setupAppShell({ active: () => active, settings: () => settings, context: ctx, chatsHome: () => chatsHome, connection: () => connection, EASE: () => EASE, buzz, endStartWindow, ensurePhoneHome, icon, isConnected, isWide, lorebookUiOn, motionAllowed, openChatMenu, syncChatsHome, syncThemeNotes, ui });
+    setupPages({ settings: () => settings, icon, lorebookUiOn, characterFromChats: () => characterFromChats });
     setupHistory({ active: () => active, settings: () => settings, $j, backFromPage, currentPageId });
     setupSheet({ isWide, scheduleHistorySync, compactBelow: COMPACT_BELOW });
     setupChoiceSheet({ settings: () => settings, context: ctx, sheet: currentSheet, $j, buzz, closeSheet, icon, normalizeText, openPage, showSheet, ui, loadPersonasModule, personaName, personaPicture, updatePersonaButton, MenuSheet });
@@ -171,6 +171,7 @@ export function setupLorebookHelpers() {
         currentPageId,
         highlight,
         icon,
+        lorebookUiOn,
         normalizeText,
         openPage,
         scheduleHistorySync,

@@ -5,9 +5,9 @@ import { t } from './i18n.js';
 import { VERSION } from '../../changelog.js';
 import { definePage, onPageChange, refreshOwnPage } from '../shell/page.js';
 import { AI_PAGES, aiPage } from '../views/ai.js';
-import { SETTINGS_PAGES, settingsPage } from '../views/settings.js';
+import { extensionsPage, settingsPage } from '../views/settings.js';
 import { appearancePage, displayPage } from '../views/appearance.js';
-import { DEVICE_MODES, pocketTavernPage } from '../views/pocket-tavern.js';
+import { DEVICE_MODES, LOREBOOK_UI_MODES, pocketTavernPage } from '../views/pocket-tavern.js';
 import { aboutPage } from '../views/about.js';
 import { LOREBOOK_PAGE, lorebooksPage } from '../views/lorebooks.js';
 import { draftSettingsPage } from '../views/draft-settings.js';
@@ -24,16 +24,16 @@ import { afterOpening, assistantEntry, chatOwner, ensurePhoneHome, isOpenChat, i
 import { pickChatLook, setAppearance, stChatStyleName } from '../themes/appearance.js';
 import { currentTheme, importSillyTavernTheme, loadSillyTavernThemes, stThemes } from '../themes/st-themes.js';
 import { currentShell } from '../shell/app-shell.js';
-import { TABS, openPage, pageInfo, showCharacterList } from '../shell/pages.js';
+import { extensionDrawers, openPage, showCharacterList } from '../shell/pages.js';
 import { scheduleHistorySync } from '../shell/history.js';
 import { openChoiceSheet } from '../shell/choice-sheet.js';
 import { ggPresent } from '../compat/guided-generations.js';
 import { lorebookList, openLorebook, openLorebookSettings, pickActiveLorebooks } from '../st/lorebooks.js';
-import { installApp, isStandalone, openSillyTavernSection, openSillyTavernUpdates, openWhatsNew, pickTheme, setSwitch, statusText, updatePocketTavern, updateStatusLine, yourThemeColors } from '../st/settings.js';
-import { $j, ctx, isWide, readMode, saveSettings, settings, writeMode } from './state.js';
+import { installApp, isStandalone, openSillyTavernSection, openSillyTavernUpdates, openWhatsNew, pickTheme, setSwitch, statusText, syncSettingsInputs, updatePocketTavern, updateStatusLine, yourThemeColors } from '../st/settings.js';
+import { $j, ctx, isWide, lorebookUiOn, readMode, saveSettings, settings, ui, writeMode } from './state.js';
 import { applyState } from './activation.js';
 import { safe } from './lifecycle.js';
-import { TOP_DRAWERS } from '../st/selectors.js';
+import { FA_MAP, svgIcon } from '../ui/icons.js';
 
 const SOURCE = 'own-pages';
 
@@ -119,13 +119,23 @@ export function registerOwnPages({ useSillyTavernForNow }) {
         openSamplers: () => openPresetsOn('params'),
         openPrompts: () => openPresetsOn('prompts'),
     }));
+    const drawerIcon = name => {
+        if (!name) return undefined;
+        const mapped = name.startsWith('fa-') ? FA_MAP[name] : name;
+        return mapped ? svgIcon(mapped, 'pt-list-row-icon') : ui(name, 'pt-list-row-icon pt-fa-icon');
+    };
     definePage('pt-settings', settingsPage({
         openPage,
-        extensionPages: () => Array.from(document.querySelectorAll(TOP_DRAWERS))
-            .filter(drawer => drawer.id && !TABS.some(tab => tab.id === drawer.id) && !AI_PAGES.includes(drawer.id) && drawer.id !== LOREBOOK_PAGE && !SETTINGS_PAGES.includes(drawer.id))
-            .map(drawer => ({ id: drawer.id, title: pageInfo(drawer).title })),
+        extensionPages: extensionDrawers,
+        iconFor: drawerIcon,
+        separateExtensions: () => !!settings.extensionsTab,
         themeName: () => { const theme = currentTheme(); return theme ? (findTheme(theme.id) ? t(theme.name) : theme.name) : t('Your theme'); },
         version: VERSION,
+    }));
+    definePage('pt-extensions', extensionsPage({
+        openPage,
+        extensionPages: extensionDrawers,
+        iconFor: drawerIcon,
     }));
     definePage('pt-lorebooks', lorebooksPage({
         books: lorebookList,
@@ -165,7 +175,8 @@ export function registerOwnPages({ useSillyTavernForNow }) {
         applies: only => only === 'phone' ? !isWide()
             : only === 'vibrate' ? !isWide() && typeof navigator.vibrate === 'function'
                 : only === 'gg' ? ggPresent()
-                    : only === 'charPage' ? !!settings.charPage : true,
+                    : only === 'charPage' ? !!settings.charPage
+                        : only === 'loreUi' ? lorebookUiOn() : true,
         mode: readMode,
         pickMode: () => openChoiceSheet({
             title: t('Use it on this device'),
@@ -175,6 +186,19 @@ export function registerOwnPages({ useSillyTavernForNow }) {
                 writeMode(value);
                 applyState();
                 updateStatusLine();
+                refreshOwnPage();
+            },
+        }),
+        lorebookUi: () => settings.lorebookUi ?? 'both',
+        pickLorebookUi: () => openChoiceSheet({
+            title: t('Lorebook interface'),
+            options: Object.entries(LOREBOOK_UI_MODES).map(([value, label]) => ({ value, label: t(label) })),
+            current: settings.lorebookUi ?? 'both',
+            onPick: value => {
+                settings.lorebookUi = value;
+                saveSettings();
+                applyState();
+                syncSettingsInputs();
                 refreshOwnPage();
             },
         }),

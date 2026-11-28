@@ -29,7 +29,7 @@ export const SWITCH_GROUPS = [
         { key: 'charPage', id: 'pt_charpage', label: 'New character pages', hint: 'Big avatar, labeled tools and tabs on character cards and personas; a Filter sheet, favourites and a card menu on the list.' },
         { key: 'charPreview', id: 'pt_charpreview', label: 'Character preview', hint: 'Choosing a character shows its sheet first: Chat, New chat, Edit and its recent chats. Off opens the chat at once.', only: 'charPage' },
         { key: 'recentTools', id: 'pt_recenttools', label: 'Chat list helpers', hint: 'Chat history grouped by date.' },
-        { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.' },
+        { key: 'loreCards', id: 'pt_lorecards', label: 'Lorebook entry cards', hint: 'Entries as cards with keyword chips; an opened entry fills the page.', only: 'loreUi' },
         { key: 'lorebookPicker', id: 'pt_lorebook', label: 'Easy lorebook picker', hint: 'Searchable list for global, character, chat and persona lorebooks.', core: true },
         { key: 'wandShortcut', id: 'pt_wand', label: 'Lorebooks shortcut', hint: 'A Lorebooks item among the tools under +.', core: true },
     ] },
@@ -40,6 +40,7 @@ export const SWITCH_GROUPS = [
     ] },
     { title: 'Navigation', switches: [
         { key: 'appShell', id: 'pt_shell', label: 'App navigation', hint: 'Top bar with the current character, and tabs at the bottom.', core: true },
+        { key: 'extensionsTab', id: 'pt_exttab', label: 'Extensions button', hint: 'A dedicated Extensions button in the navigation bar for extension menus and settings.', core: true },
         { key: 'hideTabsInChat', id: 'pt_tucktabs', label: 'Hide tabs in a chat', hint: 'More room for the chat, and no tabs right under the message box. Tap the arrow in the message box to show them.', only: 'phone' },
         { key: 'backGesture', id: 'pt_back', label: 'Back gesture closes panels', hint: 'Android back closes the open page, popup or sheet first.', core: true },
         { key: 'touchSizing', id: 'pt_touch', label: 'Touch-friendly panels', hint: 'Bigger buttons and sliders, roomier settings, bottom-sheet menus.', core: true },
@@ -65,6 +66,20 @@ const MODES = { auto: 'Automatic: phones and computers', phone: 'Phones only', n
 /** The short name shown in the row. */
 const MODE_NAMES = { auto: 'Automatic', phone: 'Phones only', never: 'Off' };
 
+/** Where Pocket Tavern's Lorebook interface is used (issue #16). */
+export const LOREBOOK_UI_MODES = {
+    both: 'Phone and desktop',
+    phone: 'Phone only',
+    desktop: 'Desktop only',
+    off: "Off (SillyTavern's own)",
+};
+const LOREBOOK_UI_NAMES = {
+    both: 'Phone and desktop',
+    phone: 'Phone only',
+    desktop: 'Desktop only',
+    off: 'Off',
+};
+
 /**
  * @param {object} actions supplied by the shell
  * @param {(key: string) => boolean} actions.get a switch's value
@@ -72,6 +87,8 @@ const MODE_NAMES = { auto: 'Automatic', phone: 'Phones only', never: 'Off' };
  * @param {(only: string) => boolean} actions.applies whether an `only` condition holds here
  * @param {() => string} actions.mode 'auto' | 'phone' | 'never'
  * @param {() => void} actions.pickMode opens the choices for "Use it on this device"
+ * @param {() => string} [actions.lorebookUi] 'both' | 'phone' | 'desktop' | 'off'
+ * @param {() => void} [actions.pickLorebookUi] opens the choices for "Lorebook interface"
  * @param {() => string} actions.status one line: is Pocket Tavern on here, and with which layout
  * @param {() => void} actions.useSillyTavernForNow
  * @param {() => void} actions.openDraft the Draft helper's own settings page
@@ -95,6 +112,16 @@ export function pocketTavernPage(actions) {
                 const rows = group.switches
                     .filter(item => !item.only || actions.applies(item.only))
                     .map(item => listRow({ title: item.label, subtitle: item.hint, end: 'toggle', checked: actions.get(item.key), onToggle: on => actions.set(item, on) }));
+                if (group.title === 'Characters and lorebooks' && actions.pickLorebookUi) {
+                    rows.unshift(listRow({
+                        title: 'Lorebook interface',
+                        subtitle: "Pocket Tavern's lorebooks page and entry cards. Off uses SillyTavern's own.",
+                        icon: 'book',
+                        end: 'picker',
+                        value: t(LOREBOOK_UI_NAMES[actions.lorebookUi?.()] ?? LOREBOOK_UI_NAMES.both),
+                        onClick: actions.pickLorebookUi,
+                    }));
+                }
                 if (rows.length) body.append(listGroup({ header: group.title, rows }));
             }
         },

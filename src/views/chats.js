@@ -20,7 +20,7 @@ const QUICK_PICKS = 10;
 const LIMITS = { place: 5, character: 12, chat: 12, lorebook: 8, setting: 12 };
 const KIND_TITLES = { place: 'Places', character: 'Characters', chat: 'Chats', lorebook: 'Lorebooks', setting: 'Settings' };
 
-const normalize = text => String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const normalize = text => String(text ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 
 /**

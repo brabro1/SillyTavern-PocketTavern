@@ -133,14 +133,15 @@ html.pt-touch .inline-drawer-icon {
 
 /* Page titles SillyTavern repeats at the top of its own screens. The app bar already names
    the page (Kahvana's report), so the words go; the docs "?" link and the pin stay. */
-html.pt-shell #WorldInfo h3 > span[data-i18n='Worlds/Lorebooks'],
+html.pt-shell.pt-lore-ui #WorldInfo h3 > span[data-i18n='Worlds/Lorebooks'],
 html.pt-shell #AdvancedFormatting h3 > span[data-i18n='Advanced Formatting'],
 html.pt-shell #rm_extensions_block .extensions_block > .flex-container > h3[data-i18n='Extensions'] {
     display: none;
 }
 
 /* Without its words the heading is just the "?" link: no heading accent beside it (Moonlit Echoes draws a bar). */
-html.pt-shell :is(#WorldInfo, #AdvancedFormatting) h3:has(> span:is([data-i18n='Worlds/Lorebooks'], [data-i18n='Advanced Formatting'])) {
+html.pt-shell.pt-lore-ui #WorldInfo h3:has(> span[data-i18n='Worlds/Lorebooks']),
+html.pt-shell #AdvancedFormatting h3:has(> span[data-i18n='Advanced Formatting']) {
     padding-inline-start: 0;
     border-inline-start: 0;
 }

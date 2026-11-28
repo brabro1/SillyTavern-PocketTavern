@@ -962,4 +962,17 @@ export default {
     "This message is no longer in the chat.": "Esta mensagem não está mais no chat.",
     // The tab bar's name for screen readers
     "Main": "Principal",
+    // Lorebook interface toggle and Extensions button
+    "Lorebook interface": "Interface de lorebooks",
+    "Pocket Tavern's lorebooks page and entry cards. Off uses SillyTavern's own.": "A página de lorebooks e cartões de entradas do Pocket Tavern. Desativado usa a do SillyTavern.",
+    "Phone and desktop": "Celular e computador",
+    "Phone only": "Só no celular",
+    "Desktop only": "Só no computador",
+    "Off (SillyTavern's own)": "Desativado (a do SillyTavern)",
+    "Extensions button": "Botão de Extensões",
+    "A dedicated Extensions button in the navigation bar for extension menus and settings.": "Um botão dedicado de Extensões na barra de navegação para menus e configurações de extensões.",
+    "Extension menus": "Menus de extensões",
+    "All extensions": "Todas as extensões",
+    "Manage extensions and their settings": "Gerenciar extensões e suas configurações",
+    "The theme's own background is off now. Turn it back on in Settings → Appearance.": "O fundo próprio do tema foi desativado. Ative-o novamente em Configurações → Aparência.",
 };

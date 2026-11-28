@@ -70,7 +70,7 @@ for (const layout of ['phone', 'desktop']) {
         await page.waitForFunction(() => document.documentElement.classList.contains('pt-on') && SillyTavern.getContext().characters.length, null, { timeout: 60000 });
         await page.waitForTimeout(5000);
         await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
-        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, textSize: s.textSize ?? 'normal', jumpButton: s.jumpButton }; });
+        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, textSize: s.textSize ?? 'normal', jumpButton: s.jumpButton, extensionsTab: !!s.extensionsTab, lorebookUi: s.lorebookUi ?? 'both' }; });
         await openSettings(page);
         await page.screenshot({ path: `${OUT}/${layout}-hub.png` });
 
@@ -226,6 +226,92 @@ for (const layout of ['phone', 'desktop']) {
                     jQuery(box).trigger('input');
                 }, start);
                 await page.waitForTimeout(1500);
+            }
+        });
+
+        await step('Settings button behaves consistently for both Pocket Tavern and SillyTavern sub-menus (issue #19)', async () => {
+            if (!phone) {
+                // Desktop: toggling Settings off and back on returns to the main Settings menu from every sub-menu.
+                await openOwn(page, 'Appearance', 'pt-appearance');
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Settings closed', () => !document.documentElement.dataset.ptPage);
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Settings root after Appearance', () => document.getElementById('pt-page')?.dataset.page === 'pt-settings');
+
+                await page.evaluate(tapRow, 'Extensions');
+                await waitFor(page, 'Extensions', () => document.documentElement.dataset.ptPage === 'extensions-settings-button');
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Settings closed after Extensions', () => !document.documentElement.dataset.ptPage);
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Settings root after Extensions', () => document.getElementById('pt-page')?.dataset.page === 'pt-settings');
+            } else {
+                // Phone: switching places remembers Pocket Tavern sub-pages just like SillyTavern sub-pages, and tapping Settings again returns to root.
+                await openOwn(page, 'Appearance', 'pt-appearance');
+                await page.locator('.pt-tab[data-tab="rightNavHolder"]').click();
+                await waitFor(page, 'Characters', () => document.documentElement.dataset.ptPage === 'rightNavHolder');
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'reopened Appearance', () => document.getElementById('pt-page')?.dataset.page === 'pt-appearance');
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Settings root on second tap', () => document.getElementById('pt-page')?.dataset.page === 'pt-settings');
+            }
+        });
+
+        if (!phone) {
+            await step('dragging the desktop panel edge on a Pocket Tavern page never snaps back on click (issue #15)', async () => {
+                try {
+                    const panelBox = () => page.evaluate(() => Math.round(document.getElementById('pt-page')?.getBoundingClientRect().width ?? 0));
+                    const edgeCenter = () => page.evaluate(() => {
+                        const r = document.getElementById('pt-panel-edge').getBoundingClientRect();
+                        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+                    });
+                    const before = await panelBox();
+                    const p1 = await edgeCenter();
+                    await page.mouse.move(p1.x, p1.y);
+                    await page.mouse.down();
+                    await page.mouse.move(p1.x + 120, p1.y, { steps: 6 });
+                    await page.mouse.up();
+                    await page.waitForTimeout(100);
+                    const widened = await panelBox();
+                    if (widened < before + 90) throw new Error(`did not widen: ${before} -> ${widened}`);
+                    // Click and drag a second time: must start from `widened`, not snap back to 360px.
+                    const p2 = await edgeCenter();
+                    await page.mouse.move(p2.x, p2.y);
+                    await page.mouse.down();
+                    await page.mouse.move(p2.x + 40, p2.y, { steps: 4 });
+                    await page.waitForTimeout(50);
+                    const during = await panelBox();
+                    await page.mouse.up();
+                    if (during < widened + 20) throw new Error(`snapped back on second drag: widened=${widened}, during=${during}`);
+                } finally {
+                    await page.locator('#pt-panel-edge').dblclick().catch(() => {});
+                    await page.evaluate(() => localStorage.removeItem('pt_panel_w')).catch(() => {});
+                }
+            });
+        }
+
+        await step('Extensions button switch adds a dedicated Extensions button to the navigation bar (issue #18)', async () => {
+            try {
+                await openOwn(page, 'Pocket Tavern', 'pt-pocket');
+                await filter(page, 'extensions button');
+                await page.locator('#pt-page .pt-list-row--toggle:not([hidden]) .pt-toggle').click();
+                await waitFor(page, 'Extensions tab added', () => !!document.querySelector('.pt-tab[data-tab="pt-extensions"]') && document.querySelectorAll('.pt-tab').length === 6);
+                await page.locator('.pt-tab[data-tab="pt-extensions"]').click();
+                await waitFor(page, 'Extensions opened from tab', () => document.documentElement.dataset.ptPage === 'extensions-settings-button' || document.getElementById('pt-page')?.dataset.page === 'pt-extensions');
+                await page.waitForTimeout(300);
+                await page.screenshot({ path: `${OUT}/${layout}-extensions-tab.png` });
+                const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+                if (overflow) throw new Error('horizontal overflow with 6 tabs');
+            } finally {
+                // Switching back to Settings reopens Pocket Tavern where we left it.
+                await page.locator('.pt-tab[data-tab="pt-settings"]').click();
+                await waitFor(page, 'Pocket Tavern reopened', () => document.getElementById('pt-page')?.dataset.page === 'pt-pocket');
+                await filter(page, 'extensions button');
+                const checked = await page.locator('#pt-page .pt-list-row--toggle:not([hidden]) .pt-toggle').getAttribute('aria-checked');
+                if (checked === 'true') {
+                    await page.locator('#pt-page .pt-list-row--toggle:not([hidden]) .pt-toggle').click();
+                    await waitFor(page, '5 tabs restored', () => document.querySelectorAll('.pt-tab').length === 5);
+                }
+                await back(page, phone);
             }
         });
 

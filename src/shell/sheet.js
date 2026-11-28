@@ -100,7 +100,7 @@ export function closeSheet(immediate = false) {
         current.dialog.setAttribute('closing', '');
         syncToasts();
         current.dialog.classList.remove('pt-sheet-open');
-        setTimeout(finish, 230);
+        setTimeout(safe(SOURCE, finish), 230);
     }
     deps.scheduleHistorySync();
 }

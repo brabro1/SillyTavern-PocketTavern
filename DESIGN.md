@@ -253,7 +253,7 @@ Every long settings page (Chat and layout, Pocket Tavern, About) starts with a f
   - Use it on this device (Automatic, Phones only, Off), with a line saying whether it is on here
   - Use SillyTavern for now
   - **Draft helper** (a row to its own page; DESIGN.md → The chat → Message box)
-  - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Characters and lorebooks, Pictures, Navigation, Notifications and device, Updates), each with one line saying what it does. A switch that only applies to one layout or to an installed extension shows only there
+  - Behaviour: every switch Pocket Tavern has, grouped under short headers (Chat, Characters and lorebooks, Pictures, Navigation, Notifications and device, Updates), each with one line saying what it does. **Lorebook interface** (under Characters and lorebooks: Phone and desktop, Phone only, Desktop only, Off) switches between Pocket Tavern's lorebooks interface and SillyTavern's own World Info screen (for lorebook extensions). **Extensions button** (under Navigation) gives Extensions and third-party extension menus their own button in the tab bar and rail. A switch that only applies to one layout or to an installed extension shows only there
 - **About:** the version, What's new, Update Pocket Tavern, SillyTavern updates, Install as an app (until installed), Guide, GitHub, Report a problem
 - **Switches are kept.** Pocket Tavern is meant to be customizable: a 2.x switch is never removed, only made clearer, grouped or given a better default. A new feature gets a switch when someone could reasonably want it off. When the remake changes how a feature works, its switch keeps meaning "this feature on or off".
 
@@ -268,7 +268,7 @@ Every long settings page (Chat and layout, Pocket Tavern, About) starts with a f
 ### Desktop navigation
 
 - **Rail | Panel | Chat | (Tool column).** There is no full-width top bar. The panel and the chat each have their own header.
-- The **rail** lists the five places, icon over label. Clicking a place opens it in the panel. Clicking the active place hides the panel, so the chat gets the room.
+- The **rail** lists the five places, icon over label (plus **Extensions** when Settings → Pocket Tavern → **Extensions button** is on). Clicking a place opens it in the panel. Clicking the active place hides the panel and resets its place to its root, so opening it again returns to its main menu; switching to another place keeps each place's page consistently.
 - The **panel** is a stack, like the phone (‹ in its header). Drag its edge to resize, until the chat keeps 420px; dragging further snaps it to the full width and hides the chat until the panel closes or is dragged back (issue #13). Double-click the edge to reset. Its width is remembered.
 - The **chat column** always shows the open chat. With none open, it shows a calm empty state, and Chats is open in the panel.
 - The **tool column** (Author's Note, CFG, token probabilities) docks at the end. When room runs out the panel narrows first. The chat column never drops below 480px.
@@ -595,7 +595,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 - **The AI tab** shows a small warning dot while nothing is connected.
 
 ### Settings
-- Rows: **Appearance**, **Chat and layout**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions**, **Pocket Tavern**, **About**.
+- Rows: **Appearance**, **Chat and layout**, **Personas**, **SillyTavern** (its sections as rows: Display, Chat, Characters, Sounds and more, Custom CSS, STscript), **Extensions** (plus an **Extension menus** group for top-bar pages added by other extensions, unless **Extensions button** moves them to their own tab), **Pocket Tavern**, **About**.
 - SillyTavern's own look section is part of Appearance, with the controls Pocket Tavern overrides hidden (UI theme colours, blur, Chat Style).
 - Each settings page has its own filter field.
 
