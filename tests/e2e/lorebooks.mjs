@@ -100,6 +100,65 @@ for (const layout of ['phone', 'desktop']) {
             if (parts.top || parts.create || parts.select || !parts.search || parts.tab !== 'pt-lorebooks') throw new Error(JSON.stringify(parts));
         });
 
+        await step('redesigned entry cards show strategy pills, compact metadata, and quick filters without raw 4-column inputs', async () => {
+            const cardInfo = await page.evaluate(() => {
+                const entry = document.querySelector('#world_popup_entries_list .world_entry');
+                const rawMeta = entry?.querySelector('.WIEnteryHeaderControls');
+                const pill = entry?.querySelector('.pt-entry-state');
+                const compactMeta = entry?.querySelector('.pt-entry-meta');
+                const filterBar = document.getElementById('pt-lore-filter');
+                return {
+                    filterCount: filterBar?.querySelectorAll('.pt-lore-chip').length ?? 0,
+                    rawHidden: !rawMeta || getComputedStyle(rawMeta).display === 'none',
+                    stateText: pill?.textContent?.trim() ?? '',
+                    metaText: compactMeta?.textContent?.trim() ?? '',
+                };
+            });
+            if (cardInfo.filterCount !== 4 || !cardInfo.rawHidden || !cardInfo.stateText || !cardInfo.metaText) {
+                throw new Error(JSON.stringify(cardInfo));
+            }
+            // Cycling the strategy pill switches the first entry to Constant and the Constant filter isolates it.
+            await page.locator('#world_popup_entries_list .world_entry .pt-entry-state').first().click();
+            await waitFor(page, 'first entry Constant', () => document.querySelector('#world_popup_entries_list .world_entry')?.dataset.ptState === 'constant');
+            await page.locator('#pt-lore-filter .pt-lore-chip[data-filter="constant"]').click();
+            await waitFor(page, 'Constant filter applied', () => {
+                const visibleCards = [...document.querySelectorAll('#world_popup_entries_list .world_entry')].filter(el => getComputedStyle(el).display !== 'none');
+                return visibleCards.length === 1;
+            });
+            await page.locator('#pt-lore-filter .pt-lore-chip[data-filter="all"]').click();
+        });
+
+        await step('opening an entry shows the structured 4-tab editor (Content, Triggers, Placement, Advanced)', async () => {
+            await page.locator('#world_popup_entries_list .world_entry .pt-entry-meta').first().click();
+            await waitFor(page, 'entry editor opened', () => !!document.querySelector('#world_popup_entries_list .world_entry.pt-entry-open .pt-entry-tabs'));
+            await page.waitForTimeout(350);
+            const tabs = await page.evaluate(() => [...document.querySelectorAll('.world_entry.pt-entry-open .pt-etab')].map(el => el.dataset.etab));
+            if (tabs.join(',') !== 'content,triggers,placement,advanced') throw new Error(JSON.stringify(tabs));
+            // Content tab shows textarea[name="content"] and hides raw Placement controls.
+            const onContent = await page.evaluate(() => {
+                const open = document.querySelector('.world_entry.pt-entry-open');
+                return {
+                    contentShown: getComputedStyle(open.querySelector('textarea[name="content"]')).display !== 'none',
+                    placementHidden: getComputedStyle(open.querySelector('.WIEnteryHeaderControls')).display === 'none',
+                };
+            });
+            if (!onContent.contentShown || !onContent.placementHidden) throw new Error(JSON.stringify(onContent));
+            await page.screenshot({ path: `${OUT}/${layout}-entry-editor.png` });
+            // Switch to Placement tab and verify Position/Order controls appear.
+            await page.locator('.world_entry.pt-entry-open .pt-etab[data-etab="placement"]').click();
+            await waitFor(page, 'Placement tab active', () => document.querySelector('.world_entry.pt-entry-open')?.dataset.ptEtab === 'placement');
+            await page.waitForTimeout(250);
+            const onPlacement = await page.evaluate(() => {
+                const open = document.querySelector('.world_entry.pt-entry-open');
+                return getComputedStyle(open.querySelector('.WIEnteryHeaderControls')).display !== 'none';
+            });
+            if (!onPlacement) throw new Error('Placement controls did not appear');
+            await page.screenshot({ path: `${OUT}/${layout}-entry-placement.png` });
+            // Close the entry back to the lorebook list.
+            await page.locator('.world_entry.pt-entry-open .inline-drawer-toggle').first().click();
+            await waitFor(page, 'entry closed', () => !document.querySelector('#world_popup_entries_list .world_entry.pt-entry-open'));
+        });
+
         await step(phone ? '‹ goes back to the Lorebooks page' : 'Escape goes back to the Lorebooks page', async () => {
             await back(page, phone);
         });

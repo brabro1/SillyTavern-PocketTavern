@@ -15,10 +15,18 @@
     font: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur-fast) var(--pt-ease);
 }
 
 .pt-ctx-ring:active {
     transform: scale(0.92);
+    background: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-ctx-ring:hover {
+        background: var(--pt-surface-elevated);
+    }
 }
 
 .pt-ctx-ring svg,
@@ -34,22 +42,22 @@
 .pt-ctx-track {
     fill: none;
     stroke: var(--pt-border);
-    stroke-width: 3.4;
+    stroke-width: 3;
 }
 
 .pt-ctx-fill {
     fill: none;
     stroke: var(--pt-accent);
-    stroke-width: 3.4;
+    stroke-width: 3;
     stroke-linecap: round;
     stroke-dasharray: 0 100;
     transition: stroke-dasharray var(--pt-dur-slow) var(--pt-ease), stroke var(--pt-dur-slow) var(--pt-ease);
 }
 
 .pt-ctx-ring svg {
-    inset: 3px;
-    width: 38px;
-    height: 38px;
+    inset: 5px;
+    width: 34px;
+    height: 34px;
 }
 
 .pt-ctx-warn .pt-ctx-fill {
@@ -60,13 +68,32 @@
     stroke: var(--pt-danger);
 }
 
-/* Before the first reply: a dotted ring. */
+/* Before the first reply: a quiet, low-contrast solid ring instead of a noisy dashed circle. */
+.pt-ctx-ring.pt-ctx-empty {
+    opacity: 0.48;
+}
+
+@media (hover: hover) {
+    .pt-ctx-ring.pt-ctx-empty:hover {
+        opacity: 0.9;
+    }
+}
+
 .pt-ctx-empty .pt-ctx-track {
-    stroke-dasharray: 2.2 3.6;
+    stroke-width: 2.4;
 }
 
 .pt-ctx-empty .pt-ctx-fill {
     opacity: 0;
+}
+
+.pt-ctx-ring.pt-ctx-empty .pt-ctx-num::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--pt-text-muted);
 }
 
 .pt-ctx-num {
@@ -191,6 +218,7 @@ html.pt-motion-full .pt-sheet-open .pt-ctx-bar > span {
     border: 1px solid var(--pt-border);
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
 }
 
 .pt-ctx-row {

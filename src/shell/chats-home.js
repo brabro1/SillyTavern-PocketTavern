@@ -60,7 +60,7 @@ export async function openChatFile(chat) {
     if (context.getCurrentChatId?.() !== file) await deps.context().openCharacterChat?.(file);
 }
 
-export const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, noChat: null, homeTimer: 0, startUntil: Date.now() + 20000, welcome: null, version: '' };
+export const chatsHome = { observer: null, timer: 0, empty: null, pinned: null, recent: [], noChat: null, homeTimer: 0, startUntil: Date.now() + 20000, welcome: null, version: '' };
 
 /**
  * The first seconds after SillyTavern is ready: it may reopen its locked Characters panel, which Pocket
@@ -145,9 +145,12 @@ export async function recentChatsForHome() {
         const list = response.ok ? await response.json() : [];
         const context = deps.context();
         // Like the start screen: only chats whose character or group still exists.
-        return (Array.isArray(list) ? list : []).filter(chat => (chat.group
+        const filtered = (Array.isArray(list) ? list : []).filter(chat => (chat.group
             ? context.groups?.some(group => String(group.id) === String(chat.group))
             : context.characters?.some(character => character.avatar === chat.avatar)));
+        chatsHome.recent = filtered;
+        if (deps.isWide() && context.getCurrentChatId?.() === undefined) syncChatsWelcome();
+        return filtered;
     } catch {
         return [];
     }
@@ -291,13 +294,32 @@ export function syncChatsWelcome() {
     }
     const assistant = assistantEntry();
     const listOpen = currentPageId() === 'pt-chats';
-    const key = `${!!assistant}|${listOpen}|${chatsHome.version}`;
+    // Deduplicate recent chats by character/group so each quick-continue card is a distinct person.
+    const seen = new Set();
+    const picks = [];
+    for (const chat of chatsHome.recent ?? []) {
+        const ownerKey = chat.group ? `g:${chat.group}` : `c:${chat.avatar}`;
+        if (seen.has(ownerKey)) continue;
+        seen.add(ownerKey);
+        const who = chatOwner(chat);
+        picks.push({
+            id: `${ownerKey}:${chat.file_name}`,
+            name: who.name,
+            picture: who.picture,
+            preview: chat.mes ?? '',
+            time: chat.last_mes ?? '',
+            open: () => openChatFile(chat),
+        });
+        if (picks.length >= 3) break;
+    }
+    const key = `${!!assistant}|${listOpen}|${chatsHome.version}|${picks.map(p => p.id).join(',')}`;
     if (chatsHome.empty?.isConnected && chatsHome.empty.dataset.key === key) return;
     const next = h('div', { id: 'pt-no-chat', class: 'pt-no-chat-empty', 'data-key': key }, [chatsWelcome({
         version: chatsHome.version,
         assistant: assistant?.open ?? null,
         showChats: listOpen ? null : () => openPage('pt-chats'),
         chooseCharacter: () => currentShell()?.onTab('rightNavHolder'),
+        recent: picks,
     })]);
     if (chatsHome.empty?.isConnected) chatsHome.empty.replaceWith(next);
     else document.body.append(next);

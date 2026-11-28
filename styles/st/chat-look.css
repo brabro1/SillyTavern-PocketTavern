@@ -110,8 +110,9 @@ html.pt-chat #chat .ch_name .timestamp-icon {
 
 html.pt-chat #chat .ch_name .timestamp {
     margin-left: 8px;
-    color: var(--pt-text-secondary);
+    color: var(--pt-text-muted);
     font-size: 0.74em;
+    font-variant-numeric: tabular-nums;
 }
 
 html.pt-chat #chat .mes_text {
@@ -140,19 +141,73 @@ html.pt-chat #chat .mes_text p:last-child {
     margin-bottom: 0;
 }
 
-/* Quote blocks and code blocks get room above and below, so the text around them reads
-   apart; SillyTavern gives quotes no margin at all (Kahvana's feedback, as Moonlit Echoes does). */
+/* Quote blocks, code blocks, tables and rules get calm editorial polish and breathing room;
+   SillyTavern gives quotes no margin and tables raw browser borders. */
 html.pt-chat #chat :is(.mes_text, .mes_reasoning) :is(blockquote, pre) {
     margin: 0.75em 0;
 }
 
 html.pt-chat #chat :is(.mes_text, .mes_reasoning) blockquote {
-    padding: 0.35em 0.85em;
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border-inline-start: 3px solid color-mix(in srgb, var(--pt-accent) 60%, transparent);
     border-radius: 0 var(--pt-radius-sm) var(--pt-radius-sm) 0;
+    background: color-mix(in srgb, var(--pt-text-primary) 4%, transparent);
+    color: var(--pt-text-secondary);
 }
 
 html.pt-chat.pt-rtl #chat :is(.mes_text, .mes_reasoning) blockquote {
     border-radius: var(--pt-radius-sm) 0 0 var(--pt-radius-sm);
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) pre {
+    padding: var(--pt-space-3) var(--pt-space-4);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: color-mix(in srgb, var(--pt-bg) 68%, var(--pt-surface));
+    overflow-x: auto;
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) :not(pre) > code {
+    padding: 1px var(--pt-space-1);
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--pt-text-primary) 6%, transparent);
+    font-size: 0.9em;
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) table {
+    display: block;
+    max-width: 100%;
+    margin: 0.75em 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-radius: var(--pt-radius-sm);
+    font-size: 0.92em;
+    font-variant-numeric: tabular-nums;
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) :is(th, td) {
+    padding: var(--pt-space-2) var(--pt-space-3);
+    border: 1px solid var(--pt-border) !important;
+    text-align: start;
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) th {
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+    font-weight: 600;
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--pt-text-primary) 3%, transparent);
+}
+
+html.pt-chat #chat :is(.mes_text, .mes_reasoning) hr {
+    height: 1px;
+    margin: var(--pt-space-4) 0;
+    border: 0;
+    background: var(--pt-border);
 }
 
 html.pt-chat.pt-compact #chat :is(.mes_text, .mes_reasoning) :is(blockquote, pre) {
@@ -372,8 +427,9 @@ html.pt-chat:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echosty
 html.pt-chat:not(.pt-editing) #chat .mes .mesAvatarWrapper > :is(.mesIDDisplay, .mes_timer, .tokenCounterDisplay) {
     margin: 8px 8px 0 0;
     padding: 0;
-    color: var(--pt-text-secondary);
+    color: var(--pt-text-muted);
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
     line-height: 1.2;
     white-space: nowrap;
 }

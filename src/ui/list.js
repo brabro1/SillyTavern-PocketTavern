@@ -44,6 +44,14 @@ export function listRow({ title, rawTitle, subtitle, icon, start, end = 'nav', v
         ]);
     }
 
+    if (end === 'value') {
+        return h('div', { class: 'pt-list-row pt-list-row--none' }, [
+            lead,
+            text,
+            h('span', { class: 'pt-list-row-end' }, [h('span', { class: 'pt-list-row-value', raw: value ?? '' })]),
+        ]);
+    }
+
     const trail = end === 'picker'
         ? h('span', { class: 'pt-list-row-end' }, [h('span', { class: 'pt-list-row-value', raw: value ?? '' }), svgIcon('chevron-right', 'pt-list-row-chevron')])
         : end === 'nav' ? h('span', { class: 'pt-list-row-end' }, [svgIcon('chevron-right', 'pt-list-row-chevron')]) : null;

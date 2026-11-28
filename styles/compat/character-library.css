@@ -22,3 +22,9 @@ html.pt-shell.pt-desktop #charlib-embedded-container {
 html.pt-shell.pt-ios-kb #charlib-embedded-container {
     top: calc(var(--pt-ios-top, 0px) + var(--topBarBlockSize)) !important;
 }
+
+/* Character Library's closed launcher dropdown sits below the viewport (opacity: 0, no display: none),
+   making the root page taller than the screen on phones. Keep it out of layout until .visible. */
+html.pt-shell #charlib-launcher-dropdown:not(.visible) {
+    display: none !important;
+}

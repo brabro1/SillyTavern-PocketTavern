@@ -41,3 +41,30 @@ html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .ech
 html.pt-chat[data-pt-look="flat"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
     background: color-mix(in srgb, var(--pt-accent) 6%, transparent) !important;
 }
+
+/* Editorial (Novel) look: book-column reading measure, quiet hairlines, accent bar on your turns. */
+html.pt-chat[data-pt-look="editorial"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 16px 16px;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent) !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+html.pt-chat[data-pt-look="editorial"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .mes_text {
+    line-height: 1.72;
+}
+
+html.pt-chat[data-pt-look="editorial"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes .name_text {
+    letter-spacing: 0.02em;
+    color: var(--pt-text-secondary);
+}
+
+html.pt-chat[data-pt-look="editorial"] body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_user="true"] {
+    border-inline-start: 2px solid color-mix(in srgb, var(--pt-accent) 65%, transparent) !important;
+    background: color-mix(in srgb, var(--pt-accent) 5%, transparent) !important;
+}

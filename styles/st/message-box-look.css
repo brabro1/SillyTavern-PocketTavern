@@ -3,6 +3,12 @@
 
 /* -- Message box ---------------------------------------------------------- */
 
+/* The box's height (--pt-form-h) changes while typing: non-inheriting so updating it never restyles #chat's messages. */
+@property --pt-form-h {
+    syntax: '*';
+    inherits: false;
+}
+
 /* The box floats over the chat: messages scroll on behind it, fading out
    softly near the bottom so the box stays easy to read. The chat leaves room
    at its end (the box's height, kept in --pt-form-h) for the last message. */
@@ -59,15 +65,13 @@ html.pt-chat #send_form {
     border: 1px solid var(--pt-border) !important;
     border-radius: var(--pt-radius);
     background: var(--pt-surface) !important;
-    /* The one shadow in Pocket Tavern: a soft, even lift so the box sits clearly
-       above the chat. Mostly around the box rather than under it, because the
-       box sits 8px from the bottom edge, which would cut a dropped shadow off. */
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.12);
+    /* Theme-aware floating elevation: crisp in both dark and light themes. */
+    box-shadow: var(--pt-highlight), var(--pt-shadow-float);
     transition: border-color var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.pt-chat #send_form:focus-within {
-    border-color: color-mix(in srgb, var(--pt-accent) 38%, var(--pt-border)) !important;
+    border-color: color-mix(in srgb, var(--pt-accent) 48%, var(--pt-border)) !important;
 }
 
 /* The hint text starts where your text starts. */
@@ -183,9 +187,20 @@ html.pt-chat #rightSendForm > #send_but {
     opacity: 1 !important;
     text-shadow: none;
     filter: none;
-    box-shadow: none;
+    box-shadow: var(--pt-highlight), var(--pt-shadow-raise);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), filter var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    html.pt-chat #rightSendForm > #send_but:hover {
+        filter: brightness(1.06);
+    }
+}
+
+html.pt-chat #rightSendForm > #send_but:active {
+    transform: scale(0.94);
 }
 
 /* The paper plane's visual center sits left of its box; nudge it to look centered. */

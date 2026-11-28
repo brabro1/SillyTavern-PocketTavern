@@ -38,6 +38,24 @@ export function currentShell() {
     return shell;
 }
 
+/** Immersive Focus mode: hides the rail/panel on desktop and top chrome on phone while reading a chat. */
+export function isFocusMode() {
+    return document.documentElement.classList.contains('pt-focus-mode');
+}
+
+export function setFocusMode(on) {
+    const root = document.documentElement;
+    const want = !!on && !!shell?.inChat;
+    if (root.classList.contains('pt-focus-mode') === want) return;
+    if (want && deps?.isWide()) closePages();
+    root.classList.toggle('pt-focus-mode', want);
+    shell?.syncFocusControls();
+}
+
+export function toggleFocusMode() {
+    setFocusMode(!isFocusMode());
+}
+
 class Shell {
     constructor() {
         this.drawerObserver = null;
@@ -140,6 +158,18 @@ class Shell {
             title: 'Close the chat',
             onclick: () => goHome(),
         }, [deps.ui('home')]);
+        // Focus mode toggle (desktop chat header; phone uses the chat ⋯ menu and a floating exit pill).
+        this.focusBtn = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-focus',
+            'aria-label': t('Focus mode'),
+            title: t('Focus mode'),
+            'aria-pressed': 'false',
+            onclick: () => {
+                deps.buzz(6);
+                toggleFocusMode();
+            },
+        }, [deps.ui('maximize')]);
         // The chat's ⋯ menu: everything about the open chat (DESIGN.md → The chat).
         this.menu = h('button', {
             type: 'button',
@@ -148,7 +178,64 @@ class Shell {
             title: 'Chat menu',
             onclick: () => deps.openChatMenu(),
         }, [deps.ui('ellipsis')]);
-        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.back, this.home, this.who, this.search, this.menu]);
+        // Desktop split-view column headers (DESIGN.md → Desktop navigation):
+        // - panelSlot labels the Chats sidebar when it sits open beside a chat or welcome;
+        // - mainSlot holds the primary bar controls (panel header for other pages, chat header otherwise);
+        // - deskChat keeps the open chat's own header visible over the chat while another panel is open.
+        this.panelSlotTitle = h('span', { class: 'pt-ab-panel-title', text: 'Chats' });
+        this.panelSlot = h('div', { class: 'pt-ab-panel-slot' }, [this.panelSlotTitle]);
+        this.mainSlot = h('div', { class: 'pt-ab-main' }, [this.back, this.home, this.who, this.search, this.focusBtn, this.menu]);
+
+        this.deskHome = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-desk-home',
+            'aria-label': 'Close the chat',
+            title: 'Close the chat',
+            hidden: true,
+            onclick: () => goHome(),
+        }, [deps.ui('home')]);
+        this.deskAvatar = h('span', { class: 'pt-ab-avatar', 'aria-hidden': 'true' });
+        this.deskTitle = h('span', { class: 'pt-ab-desk-title' });
+        this.deskWho = h('button', { type: 'button', class: 'pt-ab-desk-who', hidden: true, onclick: () => this.onDeskWhoClick() }, [
+            this.deskAvatar,
+            h('span', { class: 'pt-ab-text' }, [this.deskTitle]),
+        ]);
+        this.deskFocus = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-desk-focus',
+            'aria-label': t('Focus mode'),
+            title: t('Focus mode'),
+            'aria-pressed': 'false',
+            hidden: true,
+            onclick: () => {
+                deps.buzz(6);
+                toggleFocusMode();
+            },
+        }, [deps.ui('maximize')]);
+        this.deskMenu = h('button', {
+            type: 'button',
+            class: 'pt-ab-btn pt-ab-desk-menu',
+            'aria-label': 'Chat menu',
+            title: 'Chat menu',
+            hidden: true,
+            onclick: () => deps.openChatMenu(),
+        }, [deps.ui('ellipsis')]);
+        this.deskChat = h('div', { class: 'pt-ab-desk-chat', hidden: true }, [this.deskHome, this.deskWho, this.deskFocus, this.deskMenu]);
+        this.appbar = h('header', { id: 'pt-appbar', class: 'pt-appbar', 'data-pt': '1' }, [this.panelSlot, this.mainSlot, this.deskChat]);
+
+        // Phone floating exit pill while Focus mode hides the top bar.
+        this.focusExit = h('button', {
+            type: 'button',
+            id: 'pt-focus-exit',
+            class: 'pt-focus-exit pt-focus pt-press',
+            'aria-label': t('Exit focus mode'),
+            title: t('Exit focus mode'),
+            'data-pt': '1',
+            onclick: () => {
+                deps.buzz(6);
+                setFocusMode(false);
+            },
+        }, [deps.ui('minimize')]);
 
         // ---- bottom tab bar
         this.tabs = new Map();
@@ -158,9 +245,9 @@ class Shell {
         this.tabCount = 0;
         this.syncTabs();
 
-        for (const el of [this.appbar, this.tabbar]) shieldFromDrawerAutoClose(el);
+        for (const el of [this.appbar, this.tabbar, this.focusExit]) shieldFromDrawerAutoClose(el);
 
-        document.body.append(this.appbar, this.tabbar);
+        document.body.append(this.appbar, this.tabbar, this.focusExit);
 
         // The Characters page switches between list, editor and group views without events.
         // On a phone, picking someone from the list lands in their chat, like a messaging app.
@@ -229,14 +316,27 @@ class Shell {
     setTucked(on, animate) {
         const root = document.documentElement;
         if (root.classList.contains('pt-tabs-tucked') === on) return;
+        // Leaving a chat for a full-screen page covers #chat: toggle the class without forcing two
+        // synchronous full-chat layouts (scrollHeight read + scrollTop write) on every tab switch.
+        if (!animate && !this.inChat) {
+            root.classList.toggle('pt-tabs-tucked', on);
+            return;
+        }
         const form = document.getElementById('form_sheld');
         const chat = document.getElementById('chat');
-        const atBottom = !!chat && chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
         const glide = animate && deps.motionAllowed() && form && !root.classList.contains('pt-keyboard');
+        const wasAtBottom = !!chat && (glide ? (chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40) : atBottom());
         const before = glide ? form.getBoundingClientRect().top : 0;
         root.classList.toggle('pt-tabs-tucked', on);
-        if (atBottom) chat.scrollTop = chat.scrollHeight;
-        if (!glide) return;
+        if (!glide) {
+            if (wasAtBottom && chat) {
+                requestAnimationFrame(safe(SOURCE, () => {
+                    if (!this.destroyed && this.inChat) chat.scrollTop = chat.scrollHeight;
+                }));
+            }
+            return;
+        }
+        if (wasAtBottom) chat.scrollTop = chat.scrollHeight;
         // Coming back it slides up from the bottom edge (going away, CSS slides it down).
         if (!on) this.tabbar.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 220, easing: deps.EASE() });
         // The message box (and the newest message above it) glide to their new place with the tabs.
@@ -245,7 +345,7 @@ class Shell {
         const frames = [{ transform: `translate3d(0, ${-shift}px, 0)` }, { transform: 'none' }];
         const timing = { duration: 220, easing: deps.EASE() };
         form.animate(frames, timing);
-        if (atBottom) chat.animate(frames, timing);
+        if (wasAtBottom) chat.animate(frames, timing);
     }
 
     /** The arrow in the message box: show the tabs, or put them away again. */
@@ -279,10 +379,71 @@ class Shell {
         closeOwnPage(true);
         this.appbar.remove();
         this.tabbar.remove();
+        this.focusExit.remove();
         const root = document.documentElement;
-        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable', 'pt-tabs-6');
+        root.classList.remove('pt-page-open', 'pt-keyboard', 'pt-prompt-editor', 'pt-prompt-full', 'pt-tabs-tucked', 'pt-tabs-tuckable', 'pt-tabs-6', 'pt-focus-mode');
         syncTabsButton();
         delete root.dataset.ptPage;
+    }
+
+    syncFocusControls() {
+        const on = isFocusMode();
+        if (this.lastFocusOn === on) return;
+        this.lastFocusOn = on;
+        const label = t(on ? 'Exit focus mode' : 'Focus mode');
+        for (const btn of [this.focusBtn, this.deskFocus]) {
+            if (!btn) continue;
+            btn.replaceChildren(deps.ui(on ? 'minimize' : 'maximize'));
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('aria-pressed', String(on));
+            btn.title = label;
+        }
+    }
+
+    onDeskWhoClick() {
+        const context = deps.context();
+        if (context.groupId || context.characterId !== undefined) openPage('rightNavHolder');
+        else {
+            showCharacterList();
+            openPage('rightNavHolder');
+        }
+    }
+
+    /** Reads the currently open chat's display name and portrait for the chat header. */
+    chatHeaderInfo() {
+        const context = deps.context();
+        let name = t('Chats');
+        let image = null;
+        let hasChat = false;
+        if (context.groupId) {
+            const group = context.groups?.find(g => String(g.id) === String(context.groupId));
+            name = group?.name ?? t('Group chat');
+            hasChat = true;
+        } else if (context.characterId !== undefined && context.characters?.[context.characterId]) {
+            const character = context.characters[context.characterId];
+            name = character.name;
+            image = character.avatar && character.avatar !== 'none'
+                ? (context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`)
+                : null;
+            hasChat = true;
+        }
+        return { name, image, hasChat, isGroup: !!context.groupId };
+    }
+
+    paintAvatar(target, { image, hasChat, isGroup }) {
+        if (image) {
+            delete target.dataset.ptIcon;
+            const existingImg = target.firstElementChild;
+            if (!(existingImg instanceof HTMLImageElement) || existingImg.getAttribute('src') !== image) {
+                target.replaceChildren(h('img', { src: image, alt: '' }));
+            }
+        } else {
+            const iconKey = isGroup ? 'users' : (hasChat ? 'user' : 'chats');
+            if (target.dataset.ptIcon !== iconKey) {
+                target.dataset.ptIcon = iconKey;
+                target.replaceChildren(deps.ui(iconKey));
+            }
+        }
     }
 
     /** Rebuilds the tab bar / rail when the Extensions button is turned on or off (issue #18). */
@@ -529,14 +690,15 @@ class Shell {
     update() {
         checkCardPeek();
         const pageId = currentPageId();
-        // When SillyTavern swaps one drawer for another, none is open for a moment.
-        // Wait that out instead of flashing the chat header in between.
-        if (!pageId && this.lastPage) {
+        // When SillyTavern swaps one drawer for another, none is open for a moment
+        // (SillyTavern delays drawer swaps by --animation-duration = 125ms).
+        // Closing Pocket Tavern's own pages updates immediately with zero lag.
+        if (!pageId && this.lastPage && !isOwnPage(this.lastPage)) {
             window.clearTimeout(this.settleTimer);
             this.settleTimer = window.setTimeout(safe(SOURCE, () => {
                 this.lastPage = currentPageId();
                 this.render(this.lastPage);
-            }), 200);
+            }), 160);
             return;
         }
         window.clearTimeout(this.settleTimer);
@@ -589,20 +751,25 @@ class Shell {
         if (pageId && !(wide && pageId === 'pt-chats')) {
             const drawer = drawerById(pageId);
             if (drawer && deps.settings().touchSizing) {
-                requestAnimationFrame(safe(SOURCE, () => fillRanges(drawer)));
-                addSliderSteppers(drawer);
                 pageSections(pageId)?.sync();
-                if (SEARCH_PAGES.includes(pageId)) {
-                    describeSettings(drawer);
-                    // Presets and API fill parts of their page a moment later.
-                    setTimeout(safe(SOURCE, () => describeSettings(drawer)), 600);
+                if (this.lastDecoratedPage !== pageId) {
+                    this.lastDecoratedPage = pageId;
+                    requestAnimationFrame(safe(SOURCE, () => fillRanges(drawer)));
+                    addSliderSteppers(drawer);
+                    if (SEARCH_PAGES.includes(pageId)) {
+                        describeSettings(drawer);
+                        // Presets and API fill parts of their page a moment later.
+                        this.after(600, () => describeSettings(drawer));
+                    }
+                    if (pageId === 'extensions-settings-button') describeExtensions();
+                    if (pageId === 'ai-config-button') {
+                        syncPresetTabs();
+                        // Chat Completion Tabs builds its own tabs up to 2 seconds after an API switch; ours step aside then.
+                        this.after(2500, syncPresetTabs);
+                    }
                 }
-                if (pageId === 'extensions-settings-button') describeExtensions();
-                if (pageId === 'ai-config-button') {
-                    syncPresetTabs();
-                    // Chat Completion Tabs builds its own tabs up to 2 seconds after an API switch; ours step aside then.
-                    this.after(2500, syncPresetTabs);
-                }
+            } else {
+                this.lastDecoratedPage = null;
             }
             if (pageId === 'backgrounds-button' || pageId === 'user-settings-button') deps.syncThemeNotes();
             const info = drawer ? pageInfo(drawer) : (pageSpec(pageId) ?? { title: '', icon: 'fa-gear' });
@@ -647,52 +814,55 @@ class Shell {
             this.search.hidden = !SEARCH_PAGES.includes(pageId) || !!editorMode;
             this.setSearchLabel(t('Find a setting'));
             this.menu.hidden = true;
+            this.focusBtn.hidden = true;
             this.appbar.classList.remove('pt-ab-chat');
-            this.avatar.replaceChildren(deps.ui(headIcon));
+            if (this.lastHeadIcon !== headIcon) {
+                this.lastHeadIcon = headIcon;
+                delete this.avatar.dataset.ptIcon;
+                this.avatar.replaceChildren(deps.ui(headIcon));
+            }
             this.avatar.classList.add('pt-ab-avatar-icon');
             this.who.disabled = true;
             this.appbar.classList.add('pt-ab-page');
-            this.inChat = false;
+            this.appbar.classList.remove('pt-ab-chats-panel');
+            // Desktop: keep the open chat's own column header beside the panel (DESIGN.md → Desktop navigation).
+            const chat = this.chatHeaderInfo();
+            const hideDesk = !(wide && chat.hasChat);
+            this.deskChat.hidden = hideDesk;
+            for (const child of this.deskChat.children) child.hidden = hideDesk;
+            if (!hideDesk) {
+                this.deskTitle.textContent = chat.name;
+                this.paintAvatar(this.deskAvatar, chat);
+            }
+            this.inChat = !hideDesk;
+            if (!this.inChat && isFocusMode()) root.classList.remove('pt-focus-mode');
+            this.syncFocusControls();
             this.syncTuck();
             return;
         }
 
+        this.lastDecoratedPage = null;
+        this.lastHeadIcon = null;
         this.appbar.classList.remove('pt-ab-page');
+        this.appbar.classList.toggle('pt-ab-chats-panel', wide && pageId === 'pt-chats');
+        this.deskChat.hidden = true;
+        for (const child of this.deskChat.children) child.hidden = true;
         root.classList.remove('pt-prompt-editor');
         this.who.disabled = false;
-        const context = deps.context();
-        let name = t('Chats');
-        let image = null;
-        let hasChat = false;
-        if (context.groupId) {
-            const group = context.groups?.find(g => String(g.id) === String(context.groupId));
-            name = group?.name ?? t('Group chat');
-            hasChat = true;
-        } else if (context.characterId !== undefined && context.characters?.[context.characterId]) {
-            const character = context.characters[context.characterId];
-            name = character.name;
-            image = character.avatar && character.avatar !== 'none'
-                ? (context.getThumbnailUrl?.('avatar', character.avatar) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(character.avatar)}`)
-                : null;
-            hasChat = true;
-        }
-        this.titleEl.textContent = name;
+        const chat = this.chatHeaderInfo();
+        this.titleEl.textContent = chat.name;
         // The header never shows connection state (DESIGN.md); problems get a banner and a dot on AI.
         this.subEl.textContent = '';
         this.avatar.classList.remove('pt-ab-avatar-icon');
-        if (image) {
-            const existingImg = this.avatar.firstElementChild;
-            if (!(existingImg instanceof HTMLImageElement) || existingImg.getAttribute('src') !== image) {
-                this.avatar.replaceChildren(h('img', { src: image, alt: '' }));
-            }
-        } else {
-            this.avatar.replaceChildren(deps.ui(context.groupId ? 'users' : (hasChat ? 'user' : 'chats')));
-        }
-        // In a chat: ⋯. Search everything is the field on the Chats page.
-        this.menu.hidden = !hasChat;
+        this.paintAvatar(this.avatar, chat);
+        // In a chat: ⋯ (and Focus mode on desktop). Search everything is the field on the Chats page.
+        this.menu.hidden = !chat.hasChat;
+        this.focusBtn.hidden = !chat.hasChat;
         this.search.hidden = true;
-        this.appbar.classList.toggle('pt-ab-chat', hasChat);
-        this.inChat = hasChat;
+        this.appbar.classList.toggle('pt-ab-chat', chat.hasChat);
+        this.inChat = chat.hasChat;
+        if (!chat.hasChat && isFocusMode()) root.classList.remove('pt-focus-mode');
+        this.syncFocusControls();
         this.syncTuck();
     }
 }

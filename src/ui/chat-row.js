@@ -4,6 +4,7 @@
 // Styles in styles/components/chat-row.css.
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
+import { safe } from '../core/lifecycle.js';
 import { svgIcon } from './icons.js';
 
 /**
@@ -103,21 +104,49 @@ export function rowMenuButton(onOpen, label = 'Chat options') {
 }
 
 /**
+ * Parses a timestamp from SillyTavern (ms number, numeric string, ISO string, human date string,
+ * or SillyTavern's "YYYY-M-D @HHh MMm SSs" format). Returns ms since 1970, or 0 when unreadable.
+ * @param {number | string | null | undefined} value
+ * @returns {number}
+ */
+export function parseChatTime(value) {
+    if (value == null || value === '') return 0;
+    if (typeof value === 'number') {
+        if (!Number.isFinite(value) || value <= 0) return 0;
+        return value < 1e11 ? value * 1000 : value;
+    }
+    const str = String(value).trim();
+    if (!str) return 0;
+    if (/^\d+$/.test(str)) {
+        const num = Number(str);
+        return num < 1e11 ? num * 1000 : num;
+    }
+    const st = str.match(/(\d{4})-(\d{1,2})-(\d{1,2})\s?@\s?(\d{1,2})h\s?(\d{1,2})m(?:\s?(\d{1,2})s)?/);
+    if (st) {
+        const ms = new Date(Number(st[1]), Number(st[2]) - 1, Number(st[3]), Number(st[4]), Number(st[5]), Number(st[6] || 0)).getTime();
+        return Number.isNaN(ms) ? 0 : ms;
+    }
+    const parsed = Date.parse(str);
+    return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+/**
  * When a chat was last written to: the time today, the weekday this week, the date before that.
- * @param {number} time ms since 1970
+ * @param {number | string} time ms since 1970 or a date string
  */
 export function chatWhen(time) {
-    const date = new Date(Number(time));
-    if (Number.isNaN(date.getTime())) return '';
+    const ms = parseChatTime(time);
+    if (!ms) return '';
+    const date = new Date(ms);
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    if (date.getTime() >= startOfDay) return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-    if (date.getTime() >= startOfDay - 6 * 86400000) return date.toLocaleDateString(undefined, { weekday: 'short' });
+    if (ms >= startOfDay) return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    if (ms >= startOfDay - 6 * 86400000) return date.toLocaleDateString(undefined, { weekday: 'short' });
     return date.toLocaleDateString(undefined, date.getFullYear() === now.getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 /**
- * One chat on the Chats home: avatar, who, when, ⋯; the last message as a bubble; the chat's own
+ * One chat on the Chats home: avatar, who, when, ⋯; the last message preview; the chat's own
  * name and how many messages. The open chat gets an accent edge and "Open now".
  * @param {object} options
  * @param {string} options.who the character's or group's name (user data)
@@ -125,7 +154,7 @@ export function chatWhen(time) {
  * @param {string} options.fileName the chat file's name
  * @param {string} options.preview the last message (user data)
  * @param {number} [options.count] how many messages
- * @param {number} [options.time] when it was last written to
+ * @param {number | string} [options.time] when it was last written to
  * @param {boolean} [options.open] it is the chat open right now
  * @param {boolean} [options.pinned]
  * @param {() => void} options.onOpen
@@ -135,16 +164,79 @@ export function chatWhen(time) {
 export function chatRow({ who, picture, fileName, preview, count, time, open = false, pinned = false, onOpen, onMenu, onPicture = null }) {
     const name = h('b', { class: 'pt-rc-title', raw: who, dir: 'auto' });
     const line = h('span', { class: 'pt-rc-line' }, [name]);
+    const when = chatWhen(time);
     if (open) line.append(h('span', { class: 'pt-rc-now', text: 'Open now' }));
-    else if (time) line.append(h('small', { class: 'pt-rc-when', raw: chatWhen(time) }));
-    const meta = h('small', { class: 'pt-rc-meta' }, [chatTitleNode('span', 'pt-rc-chat', fileName)]);
+    else if (when) line.append(h('small', { class: 'pt-rc-when', raw: when }));
+    const meta = h('small', { class: 'pt-rc-meta' });
+    if (fileName) {
+        const title = chatTitle(fileName);
+        // Only repeat the chat's name in meta when it was renamed or when no timestamp sits on the title line.
+        if (title.raw || !when) meta.append(chatTitleNode('span', 'pt-rc-chat', fileName));
+    }
     if (Number.isFinite(count)) meta.append(h('span', { text: messageCount(count) }));
     const main = h('button', { type: 'button', class: 'pt-chat-row-main pt-focus pt-press', onclick: event => {
         if (onPicture && event.target instanceof Element && event.target.closest('.pt-chat-row-picture')) onPicture();
         else onOpen();
     } }, [
         h('span', { class: `pt-chat-row-picture${onPicture ? ' pt-chat-row-picture--link' : ''}`, title: onPicture ? 'Character page' : undefined }, [picture, pinned ? h('span', { class: 'pt-chat-row-pin', title: 'Pinned' }, [svgIcon('bookmark')]) : null]),
-        h('span', { class: 'pt-rc-body' }, [line, previewBubble(preview), meta]),
+        h('span', { class: 'pt-rc-body' }, [line, previewBubble(preview), meta.childNodes.length ? meta : null]),
     ]);
-    return h('div', { class: `pt-chat-row${open ? ' pt-chat-row--open' : ''}` }, [main, onMenu ? rowMenuButton(onMenu) : null]);
+    const moreBtn = onMenu ? rowMenuButton(onMenu) : null;
+    const wrap = h('div', { class: `pt-chat-row${open ? ' pt-chat-row--open' : ''}` }, [main, moreBtn]);
+    // Touch swipe toward the start (left in LTR) opens the row's ⋯ menu without reaching for the corner.
+    if (onMenu) {
+        let sx = 0;
+        let sy = 0;
+        let dx = 0;
+        let swiping = false;
+        let armed = false;
+        main.addEventListener('touchstart', safe('chat row swipe', event => {
+            if (event.touches.length !== 1) return;
+            const touch = event.touches[0];
+            // Stay clear of the screen edges so system back gestures are never intercepted.
+            if (touch.clientX < 32 || touch.clientX > window.innerWidth - 32) return;
+            sx = touch.clientX;
+            sy = touch.clientY;
+            dx = 0;
+            swiping = false;
+            armed = true;
+        }), { passive: true });
+        main.addEventListener('touchmove', safe('chat row swipe', event => {
+            if (!armed) return;
+            const touch = event.touches[0];
+            const mx = touch.clientX - sx;
+            const my = touch.clientY - sy;
+            const rtl = document.documentElement.classList.contains('pt-rtl');
+            const inward = rtl ? mx : -mx;
+            if (!swiping) {
+                if (Math.abs(my) > 12 && Math.abs(my) > Math.abs(mx)) {
+                    armed = false;
+                    return;
+                }
+                if (inward < 14) return;
+                swiping = true;
+                main.style.transition = 'none';
+            }
+            dx = Math.max(0, Math.min(84, inward));
+            main.style.transform = `translate3d(${rtl ? dx : -dx}px, 0, 0)`;
+        }), { passive: true });
+        const finish = safe('chat row swipe', () => {
+            if (!armed) return;
+            armed = false;
+            if (!swiping) return;
+            const fire = dx >= 56;
+            swiping = false;
+            dx = 0;
+            main.style.transition = 'transform 180ms var(--pt-ease)';
+            main.style.transform = '';
+            window.setTimeout(safe('chat row swipe', () => { main.style.transition = ''; }), 190);
+            if (fire) {
+                navigator.vibrate?.(8);
+                onMenu(moreBtn ?? main);
+            }
+        });
+        main.addEventListener('touchend', finish, { passive: true });
+        main.addEventListener('touchcancel', finish, { passive: true });
+    }
+    return wrap;
 }

@@ -24,7 +24,27 @@ export function setupMessageBox(supplied) {
  * persona (picture and name, tap to switch) and a ring that fills as the
  * context fills (tap it for what is in there).
  */
-export const composer = { persona: null, ring: null, plus: null, tabs: null, personas: null, formObserver: null, dockBar: null };
+export const composer = { persona: null, ring: null, plus: null, tabs: null, personas: null, formObserver: null, dockBar: null, formStyle: null };
+
+/** Elements that read --pt-form-h (non-inheriting @property so typing never restyles #chat's messages). */
+const FORM_HEIGHT_TARGETS = `${CHAT}, .pt-jump, .pt-typing-pill, #pt-format-bar`;
+
+function setFormHeightVar(height) {
+    if (height === null) {
+        composer.formStyle?.remove();
+        composer.formStyle = null;
+        return;
+    }
+    if (!composer.formStyle || !composer.formStyle.isConnected) {
+        composer.formStyle?.remove();
+        composer.formStyle = h('style', { id: 'pt-form-h-var' });
+        composer.formStyle.textContent = `html.pt-chat :is(${FORM_HEIGHT_TARGETS}) { --pt-form-h: 84px; }`;
+        document.head.append(composer.formStyle);
+    }
+    const rule = composer.formStyle.sheet?.cssRules[0];
+    const next = `${height}px`;
+    if (rule && rule.style.getPropertyValue('--pt-form-h') !== next) rule.style.setProperty('--pt-form-h', next);
+}
 
 /** SillyTavern's personas module, loaded once; it knows the current persona. */
 export function loadPersonasModule() {
@@ -79,6 +99,7 @@ function watchFormHeight(on) {
         composer.formObserver?.disconnect();
         composer.formObserver = null;
         sheld?.style.removeProperty('--pt-form-h');
+        setFormHeightVar(null);
         composer.dockBar?.remove();
         composer.dockBar = null;
         return;
@@ -102,7 +123,7 @@ function watchFormHeight(on) {
         last = height;
         // Written on the next frame, outside the size notification (Safari warned about a loop otherwise).
         requestAnimationFrame(safe(SOURCE, () => {
-            sheld.style.setProperty('--pt-form-h', `${height}px`);
+            setFormHeightVar(height);
             if (composer.dockBar) {
                 composer.dockBar.style.setProperty('height', `${height}px`);
                 // No box (no chat open, or a page over it): no bar.

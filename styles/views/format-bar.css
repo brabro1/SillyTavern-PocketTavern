@@ -1,0 +1,96 @@
+/* One-tap RP formatting bar floating cleanly above the message box (src/features/format-bar.js).
+   Positioned inside #sheld above --pt-form-h so focusing the input never changes #form_sheld height. */
+
+.pt-fmt-bar {
+    display: none;
+}
+
+html.pt-chat .pt-fmt-bar {
+    position: absolute;
+    inset-inline: calc(12px + var(--pt-safe-left, 0px)) calc(12px + var(--pt-safe-right, 0px));
+    bottom: calc(var(--pt-form-h, 64px) + 8px);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    overflow-x: auto;
+    scrollbar-width: none;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-chat .pt-fmt-bar::-webkit-scrollbar {
+    display: none;
+}
+
+html.pt-chat .pt-fmt-bar[hidden],
+html.pt-page-open .pt-fmt-bar {
+    display: none;
+}
+
+html.pt-chat .pt-fmt-bar--in {
+    opacity: 1;
+    transform: none;
+}
+
+html.pt-motion-off .pt-fmt-bar {
+    transition: none;
+}
+
+.pt-fmt-btn {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    background: var(--pt-surface);
+    box-shadow: var(--pt-shadow-float);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease), border-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+/* Full 44px vertical touch target around each compact pill. */
+.pt-fmt-btn::after {
+    content: '';
+    position: absolute;
+    inset: -6px 0;
+}
+
+.pt-fmt-italic {
+    font-style: italic;
+}
+
+.pt-fmt-bold {
+    font-weight: 700;
+}
+
+.pt-fmt-quote {
+    color: var(--pt-accent);
+}
+
+@media (hover: hover) {
+    .pt-fmt-btn:hover {
+        border-color: color-mix(in srgb, var(--pt-accent) 45%, var(--pt-border));
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+.pt-fmt-btn:active {
+    background: var(--pt-accent-soft);
+    color: var(--pt-accent);
+}

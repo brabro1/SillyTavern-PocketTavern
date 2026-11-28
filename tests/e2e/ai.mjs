@@ -93,6 +93,11 @@ for (const layout of ['phone', 'desktop']) {
             await waitFor(page, 'choices closed', () => !document.getElementById('pt-sheet'));
         });
 
+        await step('Quick samplers show live sliders bound to SillyTavern controls', async () => {
+            const count = await page.evaluate(() => document.querySelectorAll('#pt-page .pt-ai-samplers .pt-number-row').length);
+            if (count < 1) throw new Error(`expected quick sampler rows on AI page, got ${count}`);
+        });
+
         await step('Connection settings, Samplers and Formatting open SillyTavern\'s pages, and Back returns to AI', async () => {
             for (const [title, id] of [['Connection settings', 'sys-settings-button'], ['Samplers', 'ai-config-button'], ['Formatting', 'advanced-formatting-button']]) {
                 await page.evaluate(row, title);

@@ -1,6 +1,16 @@
 /** Shown in More → What's new, and once after each update. Newest first. */
 export const CHANGES = [
     {
+        version: '3.1.0',
+        items: [
+            "Redesigned Lorebooks: entries are now scannable cards with status strips, clickable Triggered/Constant/Vectorized pills, content previews, keyword chips and quick filters (All, Enabled, Constant, Disabled). Opening an entry shows a structured 4-tab editor (Content, Triggers, Placement, Advanced).",
+            "Themes, accents and reading comfort: three new themes (Obsidian Gold, Velvet and Sepia Book — 17 total), custom Accent colour swatches, optional Match character colour tinting, a Background dim slider, curated Reading fonts (System, Serif, Mono) and a new Editorial chat look.",
+            "Richer chatting: Focus mode hides the bars while reading, a floating RP formatting bar (*Italic*, \"Quote\", **Bold**, (OOC)) sits above the message box when typing, live writing indicator and quiet calendar day dividers appear in chats, plus Story Moments (pin important messages) and Chat insights under the chat ⋯ menu.",
+            "Faster controls everywhere: live Quick samplers on the AI page, quick-switch chips (Model, Preset, Persona) inside +, one-tap Character filter chips, compact message timestamps with a Copy button on code blocks, a single-row scrollable Quick Replies bar and a refreshed Welcome screen.",
+            "Noticeably faster and steadier: smoother streaming with fewer dropped frames, responsive typing without restyling long chats, steady tab switching without transparent flashes or background-refresh flickers, and instant header updates when closing pages.",
+        ],
+    },
+    {
         version: '3.0.1',
         items: [
             "Lorebook interface option (Settings → Pocket Tavern → Characters and lorebooks): switch between Pocket Tavern's lorebooks UI and SillyTavern's own World Info on phones, computers, both, or off — so lorebook extensions like World Info Drawer and World Info Workspace work undisturbed.",

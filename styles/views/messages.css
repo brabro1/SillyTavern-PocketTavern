@@ -141,13 +141,20 @@ html.pt-chat #chat .mes .mes_reasoning_details {
     margin: 12px 0 0;
     overflow: hidden;
     border: 1px solid var(--pt-border);
-    border-radius: var(--pt-radius);
+    border-radius: var(--pt-radius-sm);
     background: color-mix(in srgb, var(--pt-text-primary) 4%, transparent);
 }
 
 html.pt-chat #chat .mes .mes_reasoning_details .mes_reasoning_summary {
     margin-right: 0;
     align-items: center;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    html.pt-chat #chat .mes .mes_reasoning_details .mes_reasoning_summary:hover {
+        background: color-mix(in srgb, var(--pt-text-primary) 4%, transparent);
+    }
 }
 
 html.pt-chat #chat .mes .mes_reasoning_header {
@@ -356,4 +363,177 @@ html.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyl
     html.pt-desktop.pt-chat.pt-compact:not(.pt-editing) body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes > :is(.swipe_left, .swipeRightBlock) {
         margin-top: 4px;
     }
+}
+
+/* One-tap Copy button inside fenced code blocks. */
+html.pt-chat #chat .mes .mes_text pre {
+    position: relative;
+}
+
+html.pt-chat #chat .mes .mes_text pre > .pt-code-copy {
+    position: sticky;
+    float: inline-end;
+    top: 0;
+    inset-inline-end: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: calc(-1 * var(--pt-space-1)) calc(-1 * var(--pt-space-1)) 0 var(--pt-space-2);
+    padding: 0;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-sm);
+    background: var(--pt-surface);
+    color: var(--pt-text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-chat #chat .mes .mes_text pre > .pt-code-copy .pt-svg {
+    width: 16px;
+    height: 16px;
+}
+
+html.pt-chat #chat .mes .mes_text pre > .pt-code-copy.pt-code-copy--done {
+    border-color: var(--pt-ok);
+    color: var(--pt-ok);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    html.pt-chat #chat .mes .mes_text pre > .pt-code-copy {
+        opacity: 0.45;
+    }
+
+    html.pt-chat #chat .mes .mes_text pre:is(:hover, :focus-within) > .pt-code-copy {
+        opacity: 1;
+    }
+
+    html.pt-chat #chat .mes .mes_text pre > .pt-code-copy:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+/* ==========================================================================
+   Day dividers (zero extra DOM nodes inside #chat) & live typing pill
+   ========================================================================== */
+
+html.pt-chat #chat > .mes[data-pt-day] {
+    position: relative;
+    margin-top: 40px;
+}
+
+html.pt-chat #chat > .mes[data-pt-day]::before {
+    content: attr(data-pt-day);
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    background: var(--pt-surface);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Live "Character is writing…" pill floating gently above the composer. */
+.pt-typing-pill {
+    display: none;
+}
+
+html.pt-chat .pt-typing-pill {
+    position: absolute;
+    inset-inline-start: calc(16px + var(--pt-safe-left, 0px));
+    bottom: calc(var(--pt-form-h, 64px) + 12px);
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 88px);
+    padding: 8px 12px;
+    border: 1px solid var(--pt-border);
+    border-radius: 999px;
+    background: var(--pt-surface);
+    box-shadow: var(--pt-shadow-float);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    animation: pt-fade var(--pt-dur) var(--pt-ease);
+}
+
+html.pt-page-open .pt-typing-pill {
+    visibility: hidden;
+}
+
+.pt-typing-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pt-typing-dots {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 4px;
+}
+
+.pt-typing-dots > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pt-accent);
+    will-change: transform, opacity;
+    animation: pt-typing-dot 1.2s var(--pt-ease) infinite;
+}
+
+.pt-typing-dots > span:nth-child(2) {
+    animation-delay: 0.16s;
+}
+
+.pt-typing-dots > span:nth-child(3) {
+    animation-delay: 0.32s;
+}
+
+@keyframes pt-typing-dot {
+    0%,
+    80%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+
+    40% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+html.pt-motion-off .pt-typing-dots > span {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-typing-dots > span {
+        animation: none;
+    }
+}
+
+/* Pinned message subtle accent bar + highlight flash when jumping from Story Moments. */
+html.pt-chat #chat > .mes.pt-mes-pinned {
+    box-shadow: inset 3px 0 0 var(--pt-accent), var(--pt-shadow-card);
+}
+
+html.pt-chat #chat > .mes.pt-mes-flash {
+    outline: 2px solid var(--pt-accent);
+    outline-offset: 2px;
 }

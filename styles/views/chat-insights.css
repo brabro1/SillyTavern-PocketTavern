@@ -1,0 +1,129 @@
+/* Chat insights sheet and Story Moments pinned messages (src/features/chat-insights.js, message-pins.js). */
+
+.pt-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.pt-insight-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    text-align: center;
+}
+
+.pt-insight-value {
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-lg);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.pt-insight-label {
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-xs);
+    font-weight: 600;
+}
+
+.pt-insight-share {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+}
+
+.pt-insight-bar {
+    display: flex;
+    overflow: hidden;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--pt-surface-elevated);
+}
+
+.pt-insight-bar-you {
+    background: var(--pt-accent);
+}
+
+.pt-insight-bar-bot {
+    background: color-mix(in srgb, var(--pt-text-secondary) 45%, transparent);
+}
+
+.pt-insight-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 16px;
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-insight-leg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pt-insight-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.pt-insight-dot--you {
+    background: var(--pt-accent);
+}
+
+.pt-insight-dot--bot {
+    background: color-mix(in srgb, var(--pt-text-secondary) 55%, transparent);
+}
+
+/* Story Moments (Pinned messages sheet). */
+.pt-pin-icon {
+    color: var(--pt-accent);
+}
+
+.pt-pins-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 16px;
+    text-align: center;
+}
+
+.pt-pins-empty-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--pt-text-muted);
+}
+
+.pt-pins-empty-title {
+    margin: 0;
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-md);
+    font-weight: 700;
+}
+
+.pt-pins-empty-note {
+    margin: 0;
+    max-width: 320px;
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.45;
+}

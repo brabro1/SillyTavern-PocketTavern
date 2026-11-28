@@ -242,12 +242,20 @@ export const FA_MAP = {
 const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
 const SVG_MASK_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
 
-/** Inline SVG element for our own chrome. */
+const svgCache = new Map();
+
+/** Inline SVG element for our own chrome (parsed once per icon, cloned on reuse). */
 export function svgIcon(name, className = '') {
-    const holder = document.createElement('span');
-    holder.innerHTML = `${SVG_OPEN}${ICONS[name] ?? ICONS.grid}</svg>`;
-    const svg = holder.firstElementChild;
-    svg.setAttribute('class', `pt-svg ${className}`.trim());
+    const key = ICONS[name] ? name : 'grid';
+    let template = svgCache.get(key);
+    if (!template) {
+        const holder = document.createElement('span');
+        holder.innerHTML = `${SVG_OPEN}${ICONS[key]}</svg>`;
+        template = holder.firstElementChild;
+        svgCache.set(key, template);
+    }
+    const svg = template.cloneNode(true);
+    svg.setAttribute('class', className ? `pt-svg ${className}` : 'pt-svg');
     return svg;
 }
 

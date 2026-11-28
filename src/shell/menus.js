@@ -6,9 +6,14 @@ import { h } from '../core/dom.js';
 import { PICTURE_MENU_ITEMS } from '../st/selectors.js';
 import { t } from '../core/i18n.js';
 import { openChatFinder } from '../features/chat-finder.js';
+import { openChatInsights } from '../features/chat-insights.js';
+import { currentPins, openPinnedSheet } from '../features/message-pins.js';
 import { cancelDraft, canUndo, cycleWritingAs, draftRunning, isDrafting, previewNote, refineChoices, refineDraft, runDraft, startDraft, stopDraft, undoDraft, writingAsName } from '../features/draft/draft.js';
 import { openTranslateSheet } from '../features/translate.js';
+import { isFocusMode, toggleFocusMode } from './app-shell.js';
 import { closeSheet, currentSheet, MenuSheet, showSheet } from './sheet.js';
+import { aiQuickRows } from '../st/ai.js';
+import { lorebookList, pickActiveLorebooks } from '../st/lorebooks.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { chatMenu } from '../views/chat-menu.js';
 import { plusMenu } from '../views/plus-menu.js';
@@ -143,12 +148,38 @@ function openPlusMenu(anchor) {
         ...extraOptions,
         ...[scenePulseRow({ ui: deps.ui, press: pressMenuItem })].filter(Boolean),
     ];
+    const quickIcons = { 'Connection profile': 'plug', Model: 'sparkles', Preset: 'sliders' };
+    const quick = inChat ? [
+        ...aiQuickRows().map(row => ({
+            icon: quickIcons[row.title] ?? 'sliders',
+            label: row.title,
+            value: row.value,
+            run: () => {
+                closeSheet(true);
+                requestAnimationFrame(safe(SOURCE, () => row.pick()));
+            },
+        })),
+        (() => {
+            const books = lorebookList();
+            if (!books.length) return null;
+            const activeCount = books.filter(book => book.active).length;
+            return {
+                icon: 'book',
+                label: 'Lorebooks',
+                value: activeCount ? `${activeCount}/${books.length}` : t('None'),
+                run: () => {
+                    closeSheet(true);
+                    requestAnimationFrame(safe(SOURCE, () => pickActiveLorebooks()));
+                },
+            };
+        })(),
+    ].filter(Boolean) : [];
     showSheet(new MenuSheet({
         title: t('Reply and tools'),
         subtitle: '',
         anchor,
         fill: body => {
-            const groups = plusMenu({ write: inChat ? draftMenuItems() : [], reply, tools });
+            const groups = plusMenu({ quick, write: inChat ? draftMenuItems() : [], reply, tools });
             body.append(...(groups.length ? groups : [h('p', { class: 'pt-menu-foot', text: 'Open a chat first.' })]));
         },
     }));
@@ -185,12 +216,20 @@ export function openChatMenu() {
     showSheet(new MenuSheet({
         title: deps.context().groupId ? t('Group chat') : (deps.context().characters?.[deps.context().characterId]?.name ?? t('Chat')),
         subtitle: '',
-        anchor: document.querySelector('#pt-appbar .pt-ab-menu'),
+        anchor: document.querySelector('#pt-appbar .pt-ab-desk-chat:not([hidden]) .pt-ab-desk-menu') ?? document.querySelector('#pt-appbar .pt-ab-menu'),
         fill: body => body.append(...chatMenu({
             search: () => {
                 closeSheet(true);
                 openChatFinder();
             },
+            pins: () => openPinnedSheet(),
+            pinCount: currentPins().length,
+            insights: () => openChatInsights(),
+            focus: () => {
+                closeSheet(true);
+                toggleFocusMode();
+            },
+            focused: isFocusMode(),
             translate: () => openTranslateSheet(),
             rename: () => {
                 closeSheet(true);

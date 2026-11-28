@@ -47,7 +47,8 @@ export const OVERLAYS = [
 ];
 
 export function isShown(element) {
-    return !!element && getComputedStyle(element).display !== 'none';
+    if (!element || !element.isConnected || element.hidden || element.style.display === 'none') return false;
+    return getComputedStyle(element).display !== 'none';
 }
 
 // -- the message editor: SillyTavern edits a message in place; on a phone that edit gets its own full page

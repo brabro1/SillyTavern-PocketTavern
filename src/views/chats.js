@@ -5,7 +5,7 @@
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { avatar } from '../ui/avatar.js';
-import { chatRow } from '../ui/chat-row.js';
+import { chatRow, chatWhen, formatPreview, parseChatTime } from '../ui/chat-row.js';
 import { button } from '../ui/button.js';
 import { emptyState } from '../ui/feedback.js';
 import { svgIcon } from '../ui/icons.js';
@@ -68,6 +68,9 @@ export function chatsPage(actions) {
     // The last list, shown at once while a fresh one loads (no flash of "Loading" when it is drawn again).
     /** @type {RecentChat[] | null} */
     let cached = null;
+    /** Cached search index (10 s TTL so typing or reopening search stays instant). */
+    let cachedIndex = null;
+    let cachedIndexAt = 0;
 
     return {
         title: 'Chats',
@@ -76,8 +79,9 @@ export function chatsPage(actions) {
         render: body => {
             let chats = cached;
             /** @type {SearchItem[] | null} */
-            let index = null;
+            let index = Date.now() - cachedIndexAt < 10000 ? cachedIndex : null;
             let indexLoading = false;
+            let drawnSig = '';
             const results = h('div', { class: 'pt-chats-results' });
             const search = searchBox({
                 placeholder: 'Search everything',
@@ -105,7 +109,7 @@ export function chatsPage(actions) {
                     fileName: chat.file_name,
                     preview: chat.mes ?? '',
                     count: Number(chat.chat_items),
-                    time: Number(chat.last_mes),
+                    time: parseChatTime(chat.last_mes),
                     open: actions.isOpen(chat),
                     pinned: actions.isPinned(chat),
                     onOpen: () => actions.openChat(chat),
@@ -181,7 +185,7 @@ export function chatsPage(actions) {
             const dayBucket = time => {
                 const now = new Date();
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                const at = Number(time) || 0;
+                const at = parseChatTime(time);
                 if (at >= today) return 'Today';
                 if (at >= today - 86400000) return 'Yesterday';
                 if (at >= today - 6 * 86400000) return 'Earlier this week';
@@ -234,6 +238,8 @@ export function chatsPage(actions) {
                     indexLoading = true;
                     actions.searchIndex().then(items => {
                         index = items;
+                        cachedIndex = items;
+                        cachedIndexAt = Date.now();
                         if (results.isConnected && query) draw();
                     });
                 }
@@ -260,11 +266,19 @@ export function chatsPage(actions) {
                 return [emptyState({ icon: 'search', text: 'Nothing matches that.' })];
             };
 
-            const draw = () => results.replaceChildren(...(query ? searchResults() : chatList()));
+            const listSig = list => {
+                if (!Array.isArray(list)) return 'null';
+                return `${showAll ? 1 : 0}|${list.length}|${list.map(c => `${c.group ?? c.avatar ?? ''}:${c.file_name}:${c.last_mes ?? ''}:${c.chat_items ?? ''}:${actions.isOpen(c) ? 1 : 0}:${actions.isPinned(c) ? 1 : 0}:${String(c.mes ?? '').slice(0, 40)}`).join('\u0001')}`;
+            };
+            const draw = () => {
+                if (!query) drawnSig = listSig(chats);
+                results.replaceChildren(...(query ? searchResults() : chatList()));
+            };
             actions.recentChats().then(list => {
                 chats = list;
                 cached = list;
-                if (results.isConnected) draw();
+                // Skip full DOM rebuild when the fresh server response matches what is already on screen (no avatar flash).
+                if (results.isConnected && (query || listSig(list) !== drawnSig)) draw();
             });
             draw();
         },
@@ -272,17 +286,20 @@ export function chatsPage(actions) {
 }
 
 /**
- * Desktop's chat column while no chat is open: SillyTavern's logo, its version, and the ways in:
- * ask the Assistant, show the chats, choose a character.
+ * Desktop's chat column while no chat is open: SillyTavern's logo, its version, the ways in, and
+ * up to three recent chats to pick right back up.
  * @param {object} actions
  * @param {string} actions.version e.g. "SillyTavern 1.13.2" (SillyTavern's own text, shown as it is)
  * @param {(() => void) | null} actions.assistant
  * @param {(() => void) | null} actions.showChats when the list is not already in the panel
  * @param {() => void} actions.chooseCharacter
+ * @param {{ name: string, picture?: string, preview: string, time: number | string, open: () => void }[]} [actions.recent]
  */
-export function chatsWelcome({ version, assistant, showChats, chooseCharacter }) {
-    return h('div', { class: 'pt-welcome' }, [
-        h('img', { class: 'pt-welcome-logo', src: 'img/logo.png', alt: '' }),
+export function chatsWelcome({ version, assistant, showChats, chooseCharacter, recent = [] }) {
+    const hero = h('div', { class: 'pt-welcome' }, [
+        h('div', { class: 'pt-welcome-logo-wrap', 'aria-hidden': 'true' }, [
+            h('img', { class: 'pt-welcome-logo', src: 'img/logo.png', alt: '' }),
+        ]),
         h('div', { class: 'pt-welcome-title', role: 'heading', 'aria-level': '2', text: 'Welcome back' }),
         h('div', { class: 'pt-welcome-version', raw: version }),
         h('p', { class: 'pt-welcome-text', text: assistant ? 'Pick up a chat, start one with a character, or ask the Assistant.' : 'Pick up a chat, or start one with a character.' }),
@@ -290,6 +307,29 @@ export function chatsWelcome({ version, assistant, showChats, chooseCharacter })
             assistant ? button({ label: 'Ask the Assistant', kind: 'primary', icon: 'sparkles', onClick: assistant }) : null,
             showChats ? button({ label: 'Show chats', icon: 'chats', onClick: showChats }) : null,
             button({ label: 'Choose a character', icon: 'users', onClick: chooseCharacter }),
+        ]),
+    ]);
+    if (!recent.length) return h('div', { class: 'pt-welcome-stack' }, [hero]);
+    const cards = recent.slice(0, 3).map(item => {
+        const preview = h('span', { class: 'pt-welcome-recent-preview', dir: 'auto' });
+        preview.append(formatPreview(item.preview));
+        const when = chatWhen(item.time);
+        return h('button', { type: 'button', class: 'pt-welcome-recent-card pt-focus pt-press', onclick: item.open }, [
+            avatar({ name: item.name, src: item.picture, size: 40 }),
+            h('span', { class: 'pt-welcome-recent-body' }, [
+                h('span', { class: 'pt-welcome-recent-line' }, [
+                    h('b', { class: 'pt-welcome-recent-name', raw: item.name, dir: 'auto' }),
+                    when ? h('small', { class: 'pt-welcome-recent-when', raw: when }) : null,
+                ]),
+                preview,
+            ]),
+        ]);
+    });
+    return h('div', { class: 'pt-welcome-stack' }, [
+        hero,
+        h('div', { class: 'pt-welcome-recent' }, [
+            h('div', { class: 'pt-welcome-recent-head', text: 'Pick up where you left off' }),
+            h('div', { class: 'pt-welcome-recent-grid' }, cards),
         ]),
     ]);
 }

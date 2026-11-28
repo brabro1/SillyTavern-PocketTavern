@@ -146,17 +146,67 @@ html.pt-shell .pt-appbar {
     inset: 0 0 auto 0;
     z-index: 4010;
     display: flex;
-    align-items: center;
-    gap: 4px;
+    align-items: stretch;
     height: var(--topBarBlockSize);
+    background-color: var(--pt-bg);
+    background-image: radial-gradient(ellipse 60% 100% at 24% 0%, color-mix(in srgb, var(--pt-char-tint, transparent) 12%, transparent), transparent 72%);
     padding: var(--pt-safe-top) calc(8px + var(--pt-safe-right)) 0 calc(8px + var(--pt-safe-left));
     box-sizing: border-box;
     border-bottom: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
-    /* Nearly solid instead of live blur: blurring the chat behind on every scroll frame is heavy for phones. */
-    background: var(--pt-bg);
     box-shadow: var(--pt-shadow-bar);
     color: var(--pt-text-primary);
     text-shadow: none;
+}
+
+.pt-ab-main {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.pt-ab-panel-slot,
+.pt-ab-desk-chat,
+.pt-ab-focus,
+.pt-focus-exit {
+    display: none;
+}
+
+/* Phone Focus mode: hide the top bar and float a quiet exit pill in the top-end corner. */
+html.pt-phone.pt-focus-mode .pt-appbar {
+    display: none;
+}
+
+html.pt-phone.pt-focus-mode #sheld {
+    top: var(--pt-safe-top) !important;
+    height: calc(100dvh - var(--pt-safe-top) - var(--pt-bottom)) !important;
+    max-height: calc(100dvh - var(--pt-safe-top) - var(--pt-bottom)) !important;
+}
+
+html.pt-phone.pt-focus-mode .pt-focus-exit {
+    position: fixed;
+    top: calc(var(--pt-space-2) + var(--pt-safe-top));
+    inset-inline-end: calc(var(--pt-space-2) + var(--pt-safe-right));
+    z-index: var(--pt-z-bars);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--pt-border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pt-surface) 92%, var(--pt-bg));
+    color: var(--pt-text-primary);
+    box-shadow: var(--pt-shadow-float);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pt-focus-exit .pt-svg {
+    width: 20px;
+    height: 20px;
 }
 
 .pt-appbar * {
@@ -195,7 +245,8 @@ html.pt-shell .pt-appbar {
     display: none;
 }
 
-.pt-ab-who {
+.pt-ab-who,
+.pt-ab-desk-who {
     display: flex;
     flex: 1 1 auto;
     align-items: center;
@@ -213,7 +264,8 @@ html.pt-shell .pt-appbar {
     cursor: pointer;
 }
 
-.pt-ab-who:not([disabled]):active {
+.pt-ab-who:not([disabled]):active,
+.pt-ab-desk-who:active {
     background: var(--pt-surface);
 }
 
@@ -248,17 +300,39 @@ html.pt-shell .pt-appbar {
     color: var(--pt-text-primary);
 }
 
+/* Pages (DESIGN.md → Headers): place roots show a confident 20px title without a boxed icon or
+   redundant subtitle; pushed pages sit cleanly next to ‹ without a boxed icon tile. */
+.pt-ab-page .pt-ab-avatar-icon {
+    display: none;
+}
+
+.pt-ab-page.pt-ab-root .pt-ab-who {
+    padding-inline-start: var(--pt-space-2);
+}
+
+.pt-ab-page.pt-ab-root .pt-ab-title {
+    font-size: var(--pt-text-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.pt-ab-page.pt-ab-root .pt-ab-sub {
+    display: none;
+}
+
 .pt-ab-text {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    gap: 1px;
     min-width: 0;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
-.pt-ab-title {
+.pt-ab-title,
+.pt-ab-desk-title {
     overflow: hidden;
-    font-size: 16px;
+    font-size: var(--pt-text-md);
     font-weight: 700;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -267,7 +341,7 @@ html.pt-shell .pt-appbar {
 .pt-ab-sub {
     overflow: hidden;
     color: var(--pt-text-secondary);
-    font-size: 14px;
+    font-size: var(--pt-text-xs);
     white-space: nowrap;
     text-overflow: ellipsis;
 }
@@ -475,13 +549,12 @@ html.pt-shell #top-settings-holder .drawer-content.openDrawer {
     background-color: var(--pt-bg);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    animation: pt-page-in var(--pt-dur) var(--pt-ease);
+    animation: pt-page-in var(--pt-dur-fast) var(--pt-ease);
 }
 
 @keyframes pt-page-in {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+        transform: translate3d(0, 6px, 0);
     }
 }
 

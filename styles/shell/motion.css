@@ -28,13 +28,6 @@
     from { opacity: 0; }
 }
 
-@keyframes pt-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(28px);
-    }
-}
-
 @keyframes pt-swap {
     from {
         opacity: 0;
@@ -117,10 +110,8 @@ html.pt-motion-full.pt-touch :is(.drawer-content, .popup, #character_popup) .men
     transform: scale(0.94);
 }
 
-html.pt-motion-full.pt-shell #top-settings-holder .drawer-content.openDrawer {
-    animation: pt-slide-in var(--pt-dur-slow) var(--pt-ease);
-}
-
+/* Drawers stay fully opaque while opening (pt-page-in in app-shell.css): fading from opacity 0
+   let the chat flash through on every tab switch. */
 html.pt-motion-full .pt-ab-swap :is(.pt-ab-text, .pt-ab-avatar) {
     animation: pt-swap var(--pt-dur-slow) var(--pt-ease);
 }
@@ -160,7 +151,10 @@ html.pt-motion-light .pt-tab-indicator {
     transition: transform var(--pt-dur) var(--pt-ease);
 }
 
-html.pt-motion-light.pt-shell #top-settings-holder .drawer-content.openDrawer,
+html.pt-motion-light.pt-shell #top-settings-holder .drawer-content.openDrawer {
+    animation: none;
+}
+
 html.pt-motion-light .pt-ab-swap-b :is(.pt-ab-text, .pt-ab-avatar) {
     animation: pt-fade-b var(--pt-dur-fast) var(--pt-ease);
 }

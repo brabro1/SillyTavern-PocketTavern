@@ -10,9 +10,9 @@
     flex-direction: column;
     width: 100%;
     height: var(--pt-page-h);
+    /* Always immediately opaque so the chat behind never bleeds through during open transitions. */
     background: var(--pt-bg);
     color: var(--pt-text-primary);
-    animation: pt-page-fade var(--pt-dur) var(--pt-ease);
 }
 
 .pt-page-body {
@@ -24,6 +24,11 @@
     padding: var(--pt-space-4);
     padding-bottom: calc(var(--pt-space-6) + var(--pt-safe-bottom));
     overscroll-behavior: contain;
+}
+
+/* Crisp single-layer fade only when opening fresh from the chat; switching between pages stays rock-steady. */
+.pt-page--fresh .pt-page-body {
+    animation: pt-page-fade var(--pt-dur-fast) var(--pt-ease);
 }
 
 html.pt-ios-kb .pt-page {
@@ -46,37 +51,12 @@ html.pt-desktop .pt-page-body {
     }
 }
 
-html.pt-motion-off .pt-page {
-    animation: none;
-}
-
-/* A page as it opens: its first eight groups or cards fade in with a 6px rise, 20ms apart (DESIGN.md → Motion).
-   Only while it opens (.pt-page--enter), so drawing it again does not replay it. */
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(-n + 8) {
-    animation: pt-page-rise var(--pt-dur-slow) var(--pt-ease) both;
-}
-
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(2) { animation-delay: 20ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(3) { animation-delay: 40ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(4) { animation-delay: 60ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(5) { animation-delay: 80ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(6) { animation-delay: 100ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(7) { animation-delay: 120ms; }
-.pt-page--enter :is(.pt-page-body, .pt-chats-results) > :nth-child(8) { animation-delay: 140ms; }
-
-@keyframes pt-page-rise {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-}
-
-html:is(.pt-motion-off, .pt-motion-light) .pt-page--enter :is(.pt-page-body, .pt-chats-results) > * {
+html.pt-motion-off .pt-page--fresh .pt-page-body {
     animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .pt-page--enter :is(.pt-page-body, .pt-chats-results) > * {
+    .pt-page--fresh .pt-page-body {
         animation: none;
     }
 }

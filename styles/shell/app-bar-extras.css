@@ -6,7 +6,13 @@
    ========================================================================== */
 
 .pt-ab-search[hidden],
-.pt-ab-menu[hidden] {
+.pt-ab-menu[hidden],
+.pt-ab-focus[hidden] {
+    display: none;
+}
+
+/* Focus mode button sits only in desktop chat headers (phone uses the chat ⋯ menu). */
+.pt-ab-focus {
     display: none;
 }
 

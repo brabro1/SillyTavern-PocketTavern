@@ -124,7 +124,7 @@ export function openFilterSheet() {
     }));
 }
 
-/** The chips under the toolbar while something is filtered, and the count on the Filter button. */
+/** The chips under the toolbar while something is filtered, quick-tap tags otherwise, and the count on Filter. */
 export function syncFilterBar() {
     const top = document.querySelector(CHARACTER_LIST_TOP);
     const toolbar = document.getElementById('pt_char_toolbar');
@@ -139,8 +139,10 @@ export function syncFilterBar() {
     let bar = document.getElementById('pt_char_filters');
     if (!active.length) {
         bar?.remove();
+        syncQuickTags(toolbar);
         return;
     }
+    document.getElementById('pt_char_quick_tags')?.remove();
     if (!bar) {
         bar = h('div', { id: 'pt_char_filters', class: 'pt-char-filters', role: 'list', 'aria-label': t('Filters') });
         toolbar.after(bar);
@@ -169,6 +171,45 @@ export function syncFilterBar() {
             setTimeout(safe('character filters', syncFilterBar), 80);
         },
     }) : null);
+}
+
+/** One-tap quick filter pills under the Characters toolbar when no filters are active yet. */
+function syncQuickTags(toolbar) {
+    const items = [];
+    for (const [name, label, icon] of BUILT_IN.slice(0, 2)) {
+        const chip = builtIn(name);
+        if (chip) items.push({ id: chip.id, title: label, icon });
+    }
+    for (const chip of tagChips().slice(0, 12)) {
+        const name = tagName(chip);
+        if (name) items.push({ id: chip.id, raw: name, color: chip.style.backgroundColor || '' });
+    }
+    let strip = document.getElementById('pt_char_quick_tags');
+    if (!items.length) {
+        strip?.remove();
+        return;
+    }
+    const key = items.map(item => `${item.id}:${item.raw ?? item.title}`).join('|');
+    if (!strip) {
+        strip = h('div', { id: 'pt_char_quick_tags', class: 'pt-char-quick-tags', role: 'list', 'aria-label': t('Quick filters'), 'data-pt': '1' });
+        toolbar.after(strip);
+    }
+    if (strip.dataset.key === key) return;
+    strip.dataset.key = key;
+    strip.replaceChildren(...items.map(item => h('button', {
+        type: 'button',
+        role: 'listitem',
+        class: 'pt-quick-tag pt-focus pt-press',
+        onclick: () => {
+            setFilter(item.id, 'SELECTED');
+            setTimeout(safe('character filters', () => { syncFilterBar(); syncListTop(); }), 80);
+        },
+    }, [
+        item.color
+            ? h('span', { class: 'pt-quick-tag-dot', style: `background:${item.color}`, 'aria-hidden': 'true' })
+            : (item.icon ? svgIcon(item.icon, 'pt-quick-tag-icon') : null),
+        h('span', item.raw !== undefined ? { raw: item.raw, dir: 'auto' } : { text: item.title }),
+    ])));
 }
 
 /** The list showing only this tag (a tag tapped on a character's page). */
@@ -247,6 +288,7 @@ export function syncListTop() {
 export function removeListTop() {
     document.getElementById('pt_char_top')?.remove();
     document.getElementById('pt_char_filters')?.remove();
+    document.getElementById('pt_char_quick_tags')?.remove();
 }
 
 // -- a card's menu: long press or right click

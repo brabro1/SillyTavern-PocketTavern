@@ -55,6 +55,11 @@ export function wireOverlay({ dialog, panel, dragAreas, onClose }) {
         event.preventDefault();
         onClose();
     }));
+    // Keep Escape inside this dialog so SillyTavern's document-level Escape hotkey
+    // (RossAscends-mods.js) never also fires and toggles drawers underneath while a sheet closes.
+    dialog.addEventListener('keydown', safe('a sheet', event => {
+        if (event.key === 'Escape') event.stopPropagation();
+    }));
 
     // The sheet is its own layer while dragging and moves once per frame; nothing else changes
     // meanwhile. The listeners never block the browser's own scrolling.

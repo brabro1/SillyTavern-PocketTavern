@@ -54,6 +54,109 @@ html.pt-desktop.pt-page-open.pt-tools-open:not(.pt-panel-sized) {
     --pt-panel-w: clamp(260px, 26vw, 420px);
 }
 
+/* Focus mode on desktop: the rail and panel step aside so the chat fills the window calmly. */
+html.pt-desktop.pt-focus-mode {
+    --pt-left: 0px;
+}
+
+html.pt-desktop.pt-focus-mode .pt-tabbar {
+    display: none;
+}
+
+html.pt-desktop.pt-focus-mode .pt-appbar {
+    left: 0;
+}
+
+/* -- Desktop per-column headers (DESIGN.md → Desktop navigation) ----------- */
+
+/* The rail rises all the way to the top; headers sit beside it, aligned to their own columns. */
+html.pt-desktop.pt-shell .pt-appbar {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: var(--pt-rail-w);
+    padding: 0;
+    border-bottom: 0;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+html.pt-desktop.pt-shell .pt-ab-main,
+html.pt-desktop.pt-shell .pt-ab-panel-slot,
+html.pt-desktop.pt-shell .pt-ab-desk-chat {
+    box-sizing: border-box;
+    height: 100%;
+    padding: 0 var(--pt-space-2);
+    border-bottom: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    background: var(--pt-bg);
+    box-shadow: var(--pt-shadow-bar);
+    pointer-events: auto;
+}
+
+/* Chats panel open beside chat or welcome: left column gets its own "Chats" header. */
+html.pt-desktop.pt-shell .pt-appbar.pt-ab-chats-panel .pt-ab-panel-slot {
+    display: flex;
+    flex: 0 0 var(--pt-panel-w);
+    align-items: center;
+    width: var(--pt-panel-w);
+    padding-inline: var(--pt-space-4);
+    border-inline-end: 1px solid var(--pt-border);
+}
+
+.pt-ab-panel-title {
+    overflow: hidden;
+    color: var(--pt-text-primary);
+    font-size: var(--pt-text-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Any other panel open (Characters, Lorebooks, AI, Settings, …): mainSlot owns the panel column. */
+html.pt-desktop.pt-shell .pt-appbar.pt-ab-page .pt-ab-main {
+    flex: 0 0 var(--pt-panel-w);
+    width: var(--pt-panel-w);
+    border-inline-end: 1px solid var(--pt-border);
+}
+
+html.pt-desktop.pt-shell .pt-appbar.pt-ab-page .pt-ab-desk-chat:not([hidden]) {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* Full-width dragged panel: chat header steps aside so the panel header spans the whole width. */
+html.pt-desktop.pt-panel-full .pt-appbar.pt-ab-page .pt-ab-main,
+html.pt-desktop.pt-panel-full .pt-appbar.pt-ab-chats-panel .pt-ab-panel-slot {
+    flex: 1 1 auto;
+    width: auto;
+    border-inline-end: 0;
+}
+
+html.pt-desktop.pt-panel-full .pt-appbar .pt-ab-desk-chat,
+html.pt-desktop.pt-panel-full .pt-appbar.pt-ab-chats-panel .pt-ab-main {
+    display: none;
+}
+
+/* No chat open (Welcome screen): right pane stays open canvas without an empty top bar over it. */
+html.pt-desktop.pt-no-chat .pt-appbar:not(.pt-ab-page) .pt-ab-main {
+    display: none;
+}
+
+html.pt-desktop.pt-no-chat .pt-no-chat-empty {
+    top: 0;
+}
+
+/* Focus mode button shows only on desktop chat headers. */
+html.pt-desktop .pt-ab-chat .pt-ab-focus:not([hidden]),
+html.pt-desktop .pt-ab-desk-chat:not([hidden]) .pt-ab-desk-focus {
+    display: inline-flex;
+}
+
 /* -- The rail ------------------------------------------------------------- */
 
 /* Chat, Characters, Lorebooks and Presets, a rule, SillyTavern's other pages
@@ -61,7 +164,7 @@ html.pt-desktop.pt-page-open.pt-tools-open:not(.pt-panel-sized) {
    tabs get shorter, the pages drop their labels (they keep a tooltip), and
    below that the rail scrolls. */
 html.pt-desktop .pt-tabbar {
-    inset: var(--topBarBlockSize) auto 0 0;
+    inset: 0 auto 0 0;
     flex-direction: column;
     justify-content: flex-start;
     width: var(--pt-rail-w);
@@ -70,7 +173,7 @@ html.pt-desktop .pt-tabbar {
     overflow-x: hidden;
     overflow-y: auto;
     border-top: 0;
-    border-right: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
+    border-inline-end: 1px solid color-mix(in srgb, var(--pt-border) 70%, transparent);
     box-shadow: var(--pt-shadow-bar-side);
     scrollbar-width: none;
 }
@@ -183,8 +286,7 @@ html.pt-desktop .drawer-content.openDrawer .flex-container.spaceEvenly > * {
 
 @keyframes pt-panel-in {
     from {
-        opacity: 0;
-        transform: translateX(-12px);
+        transform: translateX(-8px);
     }
 }
 
@@ -491,7 +593,7 @@ html.pt-desktop.pt-on body #toast-container {
 /* -- Hover: a mouse gets the same feedback a tap gets ---------------------- */
 
 @media (hover: hover) {
-    html.pt-desktop :is(.pt-menu-row, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-step, .pt-seg):hover {
+    html.pt-desktop :is(.pt-menu-row, .pt-theme-card, .pt-search-field, .pt-ab-btn, .pt-ab-who:not([disabled]), .pt-ab-desk-who, .pt-step, .pt-seg):hover {
         background: var(--pt-surface-elevated);
     }
 

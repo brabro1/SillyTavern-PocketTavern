@@ -3,15 +3,26 @@
 // width, backgrounds, its Look section) are used through them too.
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
-import { THEMES } from '../themes/themes.js';
+import { ACCENT_PRESETS, THEMES } from '../themes/themes.js';
 import { filterField } from '../ui/filter.js';
 import { svgIcon } from '../ui/icons.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { choiceSetting } from '../ui/segments.js';
 
-const LOOKS = [{ value: 'cards', label: 'Cards' }, { value: 'bubbles', label: 'Bubbles' }, { value: 'flat', label: 'Flat' }];
+const LOOKS = [{ value: 'cards', label: 'Cards' }, { value: 'bubbles', label: 'Bubbles' }, { value: 'flat', label: 'Flat' }, { value: 'editorial', label: 'Editorial' }];
 const TEXT_SIZES = [{ value: 'small', label: 'Small' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Large' }, { value: 'xl', label: 'Extra large' }];
-const FONTS = [{ value: 'system', label: 'System' }, { value: 'st', label: "SillyTavern's" }];
+const FONTS = [
+    { value: 'system', label: 'System' },
+    { value: 'serif', label: 'Serif' },
+    { value: 'mono', label: 'Mono' },
+    { value: 'st', label: "SillyTavern's" },
+];
+const FONT_NOTES = {
+    system: "Your device's own system font, crisp at every size.",
+    serif: 'Book-style serif for long-form roleplay and reading.',
+    mono: 'Clean monospace for technical or terminal-style chats.',
+    st: "SillyTavern's font, as set in its settings.",
+};
 /** SillyTavern's own avatar styles, by their value in its setting. */
 const SHAPES = [{ value: '0', label: 'Circle' }, { value: '2', label: 'Square' }, { value: '3', label: 'Rounded' }, { value: '1', label: 'Rectangle' }];
 const LAYOUTS = [{ value: 'auto', label: 'Automatic' }, { value: 'phone', label: 'Phone' }, { value: 'desktop', label: 'Desktop' }];
@@ -117,6 +128,43 @@ export function appearancePage(actions) {
                 listRow({ title: 'Chat background', subtitle: 'Pictures behind the chat', icon: 'image', onClick: actions.openBackgrounds }),
                 listRow({ title: 'Theme background', subtitle: "Use the theme's backdrop instead of your chat background.", end: 'toggle', checked: !!actions.get('themeBackdrop'), onToggle: on => actions.set('themeBackdrop', on) }),
             ] }));
+            body.append(bgDimSetting(Number(actions.get('bgDim')) || 0, value => actions.set('bgDim', value)));
+
+            // Accent colour override + adaptive character accent.
+            const chosenAccent = actions.get('accentColor') || '';
+            const swatches = h('div', { class: 'pt-accent-swatches', role: 'radiogroup', 'aria-label': t('Accent colour') }, [
+                h('button', {
+                    type: 'button',
+                    class: `pt-swatch pt-swatch--default pt-focus pt-press ${!chosenAccent ? 'pt-swatch--on' : ''}`,
+                    role: 'radio',
+                    'aria-checked': String(!chosenAccent),
+                    'aria-label': 'Theme default',
+                    title: 'Theme default',
+                    onclick: () => actions.set('accentColor', ''),
+                }, [!chosenAccent ? svgIcon('check', 'pt-swatch-check') : null]),
+                ...ACCENT_PRESETS.map(preset => {
+                    const on = chosenAccent === preset.id;
+                    const btn = h('button', {
+                        type: 'button',
+                        class: `pt-swatch pt-focus pt-press ${on ? 'pt-swatch--on' : ''}`,
+                        role: 'radio',
+                        'aria-checked': String(on),
+                        'aria-label': preset.name,
+                        title: preset.name,
+                        'data-accent': preset.id,
+                        onclick: () => actions.set('accentColor', preset.id),
+                    }, [on ? svgIcon('check', 'pt-swatch-check') : null]);
+                    btn.style.setProperty('--pt-swatch', preset.color);
+                    return btn;
+                }),
+            ]);
+            body.append(h('section', { class: 'pt-list-section' }, [
+                h('div', { class: 'pt-list-header', text: 'Accent colour' }),
+                swatches,
+                listGroup({ rows: [
+                    listRow({ title: 'Match character colour', subtitle: "Tint the chat accent from the active character's portrait.", end: 'toggle', checked: !!actions.get('adaptiveAccent'), onToggle: on => actions.set('adaptiveAccent', on) }),
+                ] }),
+            ]));
 
             // Themes: Pocket Tavern's own, then SillyTavern's made to fit.
             const own = h('div', { class: 'pt-themes' }, THEMES.map(theme => themeCard({
@@ -171,7 +219,8 @@ export function displayPage(actions) {
             }
             body.append(lookSetting);
             body.append(choiceSetting({ title: 'Text size', options: TEXT_SIZES, value: actions.get('textSize'), onChange: value => actions.set('textSize', value) }));
-            body.append(choiceSetting({ title: 'Reading font', options: FONTS, value: actions.get('modernFont') ? 'system' : 'st', note: value => value === 'system' ? "Your device's own system font, crisp at every size." : "SillyTavern's font, as set in its settings.", onChange: value => actions.set('modernFont', value === 'system') }));
+            const currentFont = actions.get('readingFont') || (actions.get('modernFont') === false ? 'st' : 'system');
+            body.append(choiceSetting({ title: 'Reading font', options: FONTS, value: currentFont, note: value => FONT_NOTES[value] ?? FONT_NOTES.system, onChange: value => actions.set('readingFont', value) }));
             const shape = actions.avatarShape();
             if (shape) body.append(choiceSetting({ title: 'Avatar shape', options: SHAPES, value: shape, note: 'Pictures in the chat, Chats and character pages.', onChange: actions.setAvatarShape }));
             body.append(listGroup({ rows: [
@@ -212,5 +261,26 @@ function chatWidthSetting({ min, max, value }, onChange) {
         h('div', { class: 'pt-list-header', text: 'Chat width' }),
         h('div', { class: 'pt-width-row' }, [input, shown]),
         h('p', { class: 'pt-choice-note', text: "How much of a wide screen the chat uses. The same as Chat width in SillyTavern's settings." }),
+    ]);
+}
+
+/** Dimmer slider over chat background images (0-80%), applied live when a chat background shows. */
+function bgDimSetting(value, onChange) {
+    const shown = h('span', { class: 'pt-width-value', 'aria-hidden': 'true' });
+    const input = h('input', { type: 'range', class: 'pt-width-range pt-focus', min: '0', max: '80', step: '5', 'aria-label': 'Background dim' });
+    input.value = String(value);
+    const show = () => {
+        input.style.setProperty('--pt-share', String(Number(input.value) / 80));
+        shown.textContent = `${input.value}%`;
+    };
+    show();
+    input.addEventListener('input', () => {
+        show();
+        onChange(Number(input.value));
+    });
+    return h('section', { class: 'pt-list-section pt-dim-setting' }, [
+        h('div', { class: 'pt-list-header', text: 'Background dim' }),
+        h('div', { class: 'pt-width-row' }, [input, shown]),
+        h('p', { class: 'pt-choice-note', text: 'Darken a chat background image so messages stay easy to read.' }),
     ]);
 }

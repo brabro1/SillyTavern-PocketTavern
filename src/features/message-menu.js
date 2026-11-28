@@ -4,6 +4,7 @@
 import { h } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 import { summaryAction, summaryButtons } from '../compat/message-summarize.js';
+import { isMessagePinned, toggleMessagePin } from './message-pins.js';
 import { CHAT, MESSAGE_EDITOR } from '../st/selectors.js';
 import { safe } from '../core/lifecycle.js';
 
@@ -218,6 +219,20 @@ export function openMessageMenu(message) {
                     h('span', { text: messageActionLabel(button) }),
                 ]);
             });
+            const mesId = Number(message.getAttribute('mesid'));
+            if (Number.isFinite(mesId)) {
+                const pinned = isMessagePinned(mesId);
+                rows.unshift(h('button', {
+                    type: 'button',
+                    class: 'pt-menu-row',
+                    onclick: () => {
+                        deps.closeSheet(true);
+                        deps.buzz(8);
+                        const nowPinned = toggleMessagePin(message);
+                        globalThis.toastr?.success(t(nowPinned ? 'Message pinned.' : 'Message unpinned.'), '', { timeOut: 2000 });
+                    },
+                }, [deps.ui('bookmark', 'pt-menu-row-icon'), h('span', { text: pinned ? 'Unpin message' : 'Pin message' })]));
+            }
             const edit = message.querySelector('.mes_edit');
             if (edit && getComputedStyle(edit).display !== 'none') {
                 rows.push(h('button', {

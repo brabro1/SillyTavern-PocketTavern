@@ -16,7 +16,7 @@ import { builtInInstruction, draftSettings, profileNames, resetDraftSettings, sa
 import { chatMenu } from '../views/chat-menu.js';
 import { chatsPage } from '../views/chats.js';
 import { characterPage } from '../views/character.js';
-import { aiStatus, aiQuickRows, openPresetsOn } from '../st/ai.js';
+import { aiStatus, aiQuickRows, aiQuickSliders, openPresetsOn } from '../st/ai.js';
 import { filterByTag } from '../st/character-list.js';
 import { aboutCharacter, characterTarget, pickCharacterLorebook, favoriteCharacter, openCharacterPage, editCharacter, fetchCharacterChats, isCurrentCharacter, openCharacterChatFor, openCharacterMenu, targetCharacter } from '../st/characters.js';
 import { openDraftPreview, openDraftRefine } from '../shell/menus.js';
@@ -115,6 +115,7 @@ export function registerOwnPages({ useSillyTavernForNow }) {
         openPage,
         status: aiStatus,
         quick: aiQuickRows,
+        sliders: aiQuickSliders,
         chatCompletion: () => ctx().mainApi === 'openai',
         openSamplers: () => openPresetsOn('params'),
         openPrompts: () => openPresetsOn('prompts'),

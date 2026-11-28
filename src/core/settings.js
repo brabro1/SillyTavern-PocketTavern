@@ -9,6 +9,10 @@
 const STEPS = [
     // 1: 2.x settings are the 3.0 baseline; nothing changes yet.
     () => {},
+    // 2: 3.1 expands modernFont (boolean) into readingFont ('system' | 'serif' | 'mono' | 'st').
+    saved => {
+        if (!saved.readingFont) saved.readingFont = saved.modernFont === false ? 'st' : 'system';
+    },
 ];
 export const SETTINGS_VERSION = STEPS.length;
 

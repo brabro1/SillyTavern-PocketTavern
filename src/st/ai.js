@@ -407,6 +407,48 @@ export function aiQuickRows() {
     ].filter(Boolean);
 }
 
+/** Finds the active range input for a quick sampler on the AI page (reads and writes SillyTavern's own input). */
+function samplerInput(ids) {
+    const scope = document.getElementById('ai_response_configuration');
+    for (const id of ids) {
+        const el = document.getElementById(id);
+        if (!el || el.disabled) continue;
+        if (scope?.contains(el) && !inActiveSection(el, scope)) continue;
+        const min = Number(el.min);
+        const max = Number(el.max);
+        const value = Number(el.value);
+        if (Number.isFinite(min) && Number.isFinite(max) && max > min && Number.isFinite(value)) return el;
+    }
+    return null;
+}
+
+/** Live quick samplers on the AI page (Temperature, Response length, Context size), bound to SillyTavern's controls. */
+export function aiQuickSliders() {
+    const openai = ctx().mainApi === 'openai';
+    const specs = [
+        { label: 'Temperature', ids: openai ? ['temp_openai'] : ['temp_kobold', 'temp_novel', 'temp_textgenerationwebui', 'temp'], fallbackStep: 0.05 },
+        { label: 'Response length', ids: openai ? ['openai_max_tokens'] : ['amount_gen'], fallbackStep: 16 },
+        { label: 'Context size', ids: openai ? ['openai_max_context'] : ['max_context'], fallbackStep: 256 },
+    ];
+    const out = [];
+    for (const spec of specs) {
+        const input = samplerInput(spec.ids);
+        if (!input) continue;
+        const step = Number(input.step) > 0 ? Number(input.step) : spec.fallbackStep;
+        out.push({
+            label: spec.label,
+            value: Number(input.value),
+            min: Number(input.min),
+            max: Number(input.max),
+            step,
+            onChange: next => {
+                $j()(input).val(String(next)).trigger('input').trigger('change');
+            },
+        });
+    }
+    return out;
+}
+
 /** SillyTavern's Presets page on its Parameters or Prompts tab (Pocket Tavern's, or Chat Completion Tabs'). */
 export function openPresetsOn(tab) {
     openPage('ai-config-button');

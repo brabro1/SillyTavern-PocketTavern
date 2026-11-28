@@ -204,22 +204,54 @@ html.pt-motion-off .pt-chat-group-chevron {
     transition: none;
 }
 
-/* -- Desktop's chat column with no chat open: SillyTavern's logo and the ways in ---------------- */
+/* -- Desktop's chat column with no chat open: SillyTavern's logo, ways in, and recent chats ----- */
+
+.pt-welcome-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--pt-space-6);
+    width: 100%;
+    max-width: 560px;
+    animation: pt-welcome-in var(--pt-dur-slow) var(--pt-ease);
+}
 
 .pt-welcome {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--pt-space-2);
-    max-width: 420px;
+    width: 100%;
+    max-width: 440px;
+    box-sizing: border-box;
     text-align: center;
-    animation: pt-welcome-in var(--pt-dur-slow) var(--pt-ease);
+}
+
+/* Over a chat background, wrap the welcome in a calm surface card so text always reads cleanly. */
+html.pt-glass .pt-welcome {
+    padding: var(--pt-space-6);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: color-mix(in srgb, var(--pt-bg) 90%, transparent);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-float);
+}
+
+/* Dark squircle behind SillyTavern's white-and-red logo so it keeps contrast on light themes too. */
+.pt-welcome-logo-wrap {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: var(--pt-space-2);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: #16181d;
+    box-shadow: var(--pt-shadow-raise);
 }
 
 .pt-welcome-logo {
-    width: 88px;
-    height: 88px;
-    margin-bottom: var(--pt-space-2);
+    width: 56px;
+    height: 56px;
     object-fit: contain;
 }
 
@@ -238,7 +270,7 @@ html.pt-motion-off .pt-chat-group-chevron {
 }
 
 .pt-welcome-text {
-    margin: var(--pt-space-2) 0 var(--pt-space-3);
+    margin: var(--pt-space-1) 0 var(--pt-space-3);
     color: var(--pt-text-secondary);
     font-family: var(--pt-font-ui);
     font-size: var(--pt-text-body);
@@ -252,6 +284,116 @@ html.pt-motion-off .pt-chat-group-chevron {
     gap: var(--pt-space-2);
 }
 
+.pt-welcome-recent {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+    width: 100%;
+}
+
+.pt-welcome-recent-head {
+    padding: 0 var(--pt-space-1);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    font-weight: 600;
+    text-align: start;
+}
+
+html.pt-glass .pt-welcome-recent-head {
+    display: inline-block;
+    align-self: flex-start;
+    padding: var(--pt-space-1) var(--pt-space-3);
+    border-radius: var(--pt-radius-full);
+    background: color-mix(in srgb, var(--pt-bg) 82%, transparent);
+}
+
+.pt-welcome-recent-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pt-space-2);
+}
+
+.pt-welcome-recent-card {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-3);
+    width: 100%;
+    margin: 0;
+    padding: var(--pt-space-3) var(--pt-space-4);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    text-align: start;
+    cursor: pointer;
+    transition: transform var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-glass .pt-welcome-recent-card {
+    background: color-mix(in srgb, var(--pt-bg) 90%, transparent);
+}
+
+@media (hover: hover) {
+    .pt-welcome-recent-card:hover {
+        background: var(--pt-surface-elevated);
+        transform: translateY(-2px);
+    }
+}
+
+.pt-welcome-recent-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--pt-space-1);
+    min-width: 0;
+}
+
+.pt-welcome-recent-line {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    min-width: 0;
+}
+
+.pt-welcome-recent-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--pt-text-body);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-welcome-recent-when {
+    flex: 0 0 auto;
+    color: var(--pt-text-muted);
+    font-size: var(--pt-text-xs);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.pt-welcome-recent-preview {
+    overflow: hidden;
+    color: var(--pt-text-secondary);
+    font-size: var(--pt-text-sm);
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-welcome-recent-preview em {
+    color: var(--SmartThemeEmColor, var(--pt-text-secondary));
+}
+
+.pt-welcome-recent-preview q {
+    color: var(--SmartThemeQuoteColor, var(--pt-accent));
+    quotes: none;
+}
+
 @keyframes pt-welcome-in {
     from {
         opacity: 0;
@@ -259,7 +401,7 @@ html.pt-motion-off .pt-chat-group-chevron {
     }
 }
 
-html.pt-motion-off .pt-welcome {
+html.pt-motion-off .pt-welcome-stack {
     animation: none;
 }
 

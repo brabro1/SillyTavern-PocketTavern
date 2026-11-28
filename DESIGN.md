@@ -150,18 +150,14 @@ Layers within a band use `calc(var(--pt-z-band) + n)` with `n < 300`. SillyTaver
 
 ### Themes
 
-Six built-in themes:
-- **Pocket** (default) and **Pocket Light**
-- **AMOLED** (true black)
-- **Midnight**
-- **Ember**
-- **Paper** (light, for reading)
+Built-in themes include **Pocket** (default), **Pocket Light**, **Obsidian Gold**, **Velvet**, **Sepia Book**, **AMOLED**, **Midnight**, **Mocha**, **Ocean**, **Forest**, **Sakura**, **Ember**, **Nord**, **Abyss**, **Paper**, **Cloud** and **Lavender**.
 
 Each one fills every colour role above, is flat (no gradients, no glows), and passes the contrast rules. A saved theme that no longer exists falls back to Pocket.
 
+- **Custom accent swatches & adaptive character accent:** Users can override any theme's accent with a curated swatch (Cobalt, Iris, Rose, Amber, Gold, Emerald, Teal, Crimson) or enable **Match character colour** to tint the chat header aura and accent from the active character's portrait. Overrides are automatically contrast-checked against `bg`, `raised`, and `onAccent`.
 - **SillyTavern UI themes** are offered in the same picker, converted into these roles, with contrast enforced. A converted theme keeps its own User and AI message colours, even when they are equal. They are only darkened or lightened until text passes (issue #5). Themes without message tints get Pocket's faint cards.
 - **A Pocket Tavern theme draws the messages.** When one is chosen, SillyTavern's Chat Style goes to Flat once and the old style is remembered. Choosing a SillyTavern theme or turning Pocket Tavern off restores it.
-- **Chat backgrounds** (`html.pt-glass`): bars, pages, sheets, dialogs and the message box stay **opaque**. Only message cards become translucent, so the picture shows through and between them. Card text is checked over mid-grey and over a bright picture, and lifted until it passes. SillyTavern's own blur is switched off while Pocket Tavern is on.
+- **Chat backgrounds** (`html.pt-glass`): bars, pages, sheets, dialogs and the message box stay **opaque**. Only message cards become translucent, so the picture shows through and between them, with an optional **Background dim** slider (0–80%) over `#bg1`/`#bg_custom`. Card text is checked over mid-grey and over a bright picture, and lifted until it passes. SillyTavern's own blur is switched off while Pocket Tavern is on.
 
 ### Icons
 
@@ -234,13 +230,14 @@ Phone                                  Desktop
 Every long settings page (Chat and layout, Pocket Tavern, About) starts with a filter field ("Filter settings"). Typing hides the rows and groups that don't match; "Nothing matches that." shows when none do.
 
 - **Appearance** (themes and the background only, so it never needs a long scroll):
-  - Chat background (opens Backgrounds) and Theme background (switch), first
+  - Chat background (opens Backgrounds), Theme background (switch), and Background dim (0–80% slider), first
+  - Accent colour (curated swatch row + Theme default) and Match character colour (switch)
   - Theme (Pocket Tavern's and SillyTavern's, as preview cards), Import a SillyTavern theme, SillyTavern's Custom CSS (switch, off: with a Pocket Tavern theme it is set aside, because a SillyTavern theme writes its own CSS there)
   - **A Pocket Tavern theme owns the look.** Whatever SillyTavern theme was on before (or is picked later in SillyTavern's own settings), none of it shows through: its colours, checkbox colour, font scale, blur, text-shadow switch, Chat Style (a theme switching it is put back on Flat; one you pick by hand stays) and Custom CSS. Picking "Your theme" or one of SillyTavern's themes in Appearance brings them back. A new install starts on the Pocket theme
 - **Chat and layout** (everything else about how it looks):
-  - Chat look (Cards, Bubbles, Flat)
+  - Chat look (Cards, Bubbles, Flat, Editorial)
   - Text size (Small, Normal, Large, Extra large)
-  - Reading font (System, SillyTavern's): the 2.x Modern font switch, renamed
+  - Reading font (System, Serif, Mono, SillyTavern's)
   - New icons (switch)
   - Avatar shape (Circle, Square, Rounded, Rectangle): SillyTavern's own setting, so every picture follows it: the chat, Chats, a character's page and the header
   - Layout (Automatic, Phone, Desktop; section 4)
@@ -426,9 +423,9 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - Columns: 3 on phones 360px and wider, 2 below. On desktop the panel fills with columns at least 120px wide.
   - Tap opens the character page. Grid is the default. A list view is offered in the Characters header (Sort & view).
 - **Chat row:**
-  - A title line (the character, or the chat's own name, or "Chat from 12 May 2023"), when, and ⋯.
-  - Then the last message as a **message bubble** drawn like a message card of the chat: `--pt-card-bot`, hairline edge, the chat font, and SillyTavern's narration and dialogue colours. `*narration*`, `"dialogue"` and `**bold**` are built from text nodes, never HTML. Three lines at most (two in Compact and groups), clamped cleanly, with `dir="auto"`.
-  - Then a message count.
+  - A title line (the character, or the chat's own name, or "Chat from 12 May 2023"), relative timestamp at the end (tabular numbers), and ⋯.
+  - Then the last message as clean, borderless inline prose inside the row card (no card-inside-a-card), keeping SillyTavern's narration and dialogue colours. `*narration*`, `"dialogue"` and `**bold**` are built from text nodes, never HTML. Two lines at most on Chats home, clamped cleanly, with `dir="auto"`.
+  - Then quiet metadata: custom chat name (when renamed) and message count separated by `·`.
   - The open chat gets an accent edge and an "Open now" label.
 - **Lorebook entry card:** title, keyword chips, an on/off switch, a strategy icon. Tap opens the entry editor.
 
@@ -496,10 +493,10 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 
 ### The chat
 - **Header:**
-  - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: home (closes the chat, back to the Chats welcome) in place of ‹.
+  - Phone: ‹, then the avatar and name (a group shows its members), then ⋯. Desktop: home (closes the chat, back to the Chats welcome) in place of ‹, plus a quiet Focus mode button beside ⋯.
   - Tapping the avatar or name opens the character page (for a group, the group's page).
   - The header never shows connection state.
-  - ⋯ holds, in order: Search this chat, Translate chat, Rename, SillyTavern's own items for this chat when they apply (Save checkpoint, Back to parent chat, Convert to group), and Chat files (SillyTavern's list of saved chats, where a chat is exported or deleted). Then, in its own group in danger red, Delete messages.
+  - ⋯ holds, in order: Search this chat, Pinned messages (lightweight story bookmarks stored in extension settings), Chat insights (local words, reading time and voice balance), Focus mode (hides chrome on phone or rail/panel on desktop while reading), Translate chat, Rename, SillyTavern's own items for this chat when they apply (Save checkpoint, Back to parent chat, Convert to group), and Chat files (SillyTavern's list of saved chats, where a chat is exported or deleted). Then, in its own group in danger red, Delete messages.
 - **Opening a chat:**
   - The header changes at once.
   - If the messages take longer than 300ms to arrive, still placeholder messages cover the message area until they do, then fade out (`--pt-dur-fast`). There is no shimmer.
@@ -507,9 +504,12 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
   - Only the latest switch counts: opening another chat first cancels the earlier one's layer.
   - The chat opens at the latest message.
 - **Messages:**
-  - Chat look is Cards (default), Bubbles or Flat. User and character messages are told apart by `--pt-card-user` and `--pt-card-bot`.
-  - A message has a header (avatar, name, time in `caption`), then the text across the full width, then a footer (message number, tokens, as SillyTavern's Display settings choose).
-  - **Actions:** two quiet icon buttons, ✎ and ⋯. On desktop with a mouse they sit at low opacity until the message is hovered or focused. On a phone, long-press opens ⋯ (when the switch is on).
+  - Chat look is Cards (default), Bubbles, Flat or Editorial (book-column reading measure). User and character messages are told apart by `--pt-card-user` and `--pt-card-bot` (or a subtle accent bar in Editorial).
+  - Quiet calendar **Day dividers** (`Today`, `Yesterday`, `Nov 18`) render via CSS on the first message of each calendar day (zero extra DOM children inside `#chat`), optional via Settings → Pocket Tavern → Day dividers.
+  - A message has a header (avatar, name, compact time in `caption` with the full date on hover), then the text across the full width (with styled tables, blockquotes, code blocks with one-tap copy, and rules), then a quiet footer (message number, tokens, as SillyTavern's Display settings choose).
+  - **Actions:** two quiet icon buttons, ✎ and ⋯ (which includes **Pin message** / **Unpin message** for Story Moments). On desktop with a mouse they sit at low opacity until the message is hovered or focused. On a phone, long-press opens ⋯ (when the switch is on).
+  - **Live typing indicator:** while a reply is generating, a quiet pill (`{name} is writing…` with three gentle dots) sits above the message box (outside `#chat`).
+  - **RP formatting bar:** while the message box is focused, an optional slim row of one-tap pills (`*Italic*`, `"Quote"`, `**Bold**`, `(OOC)`) sits above the composer and wraps selections without dismissing the keyboard.
   - **Versions (swipes):** on the last reply, ‹ and › as two 32px round buttons (44px hit area) with the count between them in secondary text, at the end of the footer. One version shows only ›. On a phone, dragging the last reply sideways also changes version.
   - **Thinking** (reasoning) is a quiet box that opens with a tap. While it is still thinking, its title breathes.
   - **Long older messages** fold with "Show more". Code blocks and tables scroll sideways inside themselves.
@@ -522,7 +522,7 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
     - **Where they go**, when SillyTavern has a prompt breakdown for this chat (the one behind a message's prompt view): character, persona, lorebooks, chat history, and other. Before the first reply in a visit, it shows only used and total.
     - One action: **Open prompt settings** (AI → Prompts or Formatting).
   - **Send** is a 44px accent circle anchored at the end that never shrinks. While a reply is written it becomes **Stop** (same circle, a square inside, a soft pulsing ring).
-  - **`+` opens one sheet (desktop: popover) with these groups:**
+  - **`+` opens one sheet (desktop: popover) with a quick-switch chip row (Connection profile, Model, Preset, Active lorebooks) and these groups:**
     - **Write** (the Draft helper, while its switch is on): Enhance my draft, Write for me, Continue my draft, then **Writing as: name** (each tap moves to the next: you, the character or each group member, the narrator; the menu stays open) and **Undo** when there is something to undo.
     - **Reply:** Regenerate, Continue, Impersonate, Attach.
     - **Tools:** Author's Note, CFG, Token probabilities, quick reply sets, other extensions' tools.
@@ -578,14 +578,14 @@ Pressed: scale 0.97 and one surface step lighter or darker. Disabled: 40% opacit
 ### Lorebooks
 - **Top:** **Active lorebooks** (global), a picker row showing how many are on ("3 of 17"); it opens the lorebook multi-picker. With the Easy lorebook picker switch off, it opens SillyTavern's own list instead. Then **Activation settings** (SillyTavern's scan depth, budget and the rest, as a page), **New lorebook** and **Import** (SillyTavern's own buttons).
 - **Below:** every lorebook as a row, which opens its page. Lorebooks that are active for every chat say so. More than 8 lorebooks get a filter field.
-- **A lorebook's page:** SillyTavern's editor for that one lorebook, restyled: the header shows its name; its tools (new entry, export, rename, duplicate, delete) and SillyTavern's search, which filters its entry cards. The other parts of SillyTavern's World Info screen are on the Lorebooks page instead. Deleting the lorebook returns to the Lorebooks page.
-- **An entry** opens its editor: full screen on a phone, the panel on desktop.
+- **A lorebook's page:** SillyTavern's editor for that one lorebook, restyled: the header shows its name; its tools (accented New entry, export, rename, duplicate, delete), SillyTavern's search, and a quick filter strip (**All**, **Enabled**, **Constant**, **Disabled**) with live approximate token totals. Closed entry cards show a left status indicator, on/off switch, bold title, semantic strategy pill (**Triggered**, **Constant**, **Vectorized** — tapping cycles SillyTavern's select), 2-line content preview, keyword chips, and a compact metadata strip (`↑Char · #100 · ~tok`) instead of bulky raw inputs; tapping anywhere on the card opens it. The other parts of SillyTavern's World Info screen are on the Lorebooks page instead. Deleting the lorebook returns to the Lorebooks page.
+- **An entry** opens its structured tabbed editor (full screen on a phone, the panel on desktop): clean header (back arrow, full-width title, on/off switch, strategy pill, and Move / Duplicate / Delete buttons) plus four segmented tabs (**Content**, **Triggers**, **Placement**, **Advanced**) that show only the active section's SillyTavern controls without moving any DOM nodes.
 
 ### AI
 - **Status card:**
   - The API and model names, and the connection state with a status-coloured dot.
   - When something is wrong, the card says what, in one sentence, with **Connect** or **Reconnect**.
-- **Quick rows:** Connection profile, Model, Preset (pickers).
+- **Quick rows:** Connection profile, Model, Preset (pickers), followed by **Quick samplers** (live Temperature, Response length and Context size sliders wired to SillyTavern's own controls).
 - **Rows to pages** (SillyTavern's own screens, restyled): Connection settings, Samplers, Prompts (Chat Completion only; the Presets page on its Prompts tab) and Formatting (every API: it also holds the tokenizer and other settings Chat Completion uses), each one page.
 - **Formatting** opens on its sections as rows. In **Context template**, **Instruct template** and **System prompt**:
   - Instruct mode and the System prompt have a switch row at the top (it presses SillyTavern's own hidden checkbox), in place of the small ⏻ button.

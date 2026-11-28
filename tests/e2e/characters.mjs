@@ -71,9 +71,10 @@ for (const layout of ['phone', 'desktop']) {
         await page.evaluate(() => { document.querySelector('.pt-tabs-btn')?.click(); });
         await page.waitForTimeout(300);
         await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
-        await waitFor(page, 'Characters open', () => document.documentElement.dataset.ptPage === 'rightNavHolder' && document.querySelectorAll('#rm_print_characters_block .character_select').length > 0);
+        await waitFor(page, 'Characters open', () => document.documentElement.dataset.ptPage === 'rightNavHolder');
         // SillyTavern keeps filters between visits: start from none, so every card is there.
         await page.evaluate(() => document.querySelector('#rm_characters_block .rm_tag_filter .clearAllFilters')?.click());
+        await waitFor(page, 'character cards shown', () => document.querySelectorAll('#rm_print_characters_block .character_select').length > 0);
         await page.waitForTimeout(800);
         await page.screenshot({ path: `${OUT}/${layout}-list.png` });
 
@@ -137,6 +138,14 @@ for (const layout of ['phone', 'desktop']) {
             if (bar.chips.join() !== 'Favorites' || bar.count !== '1' || !bar.shown) throw new Error(JSON.stringify(bar));
             await page.locator('#pt_char_filters .pt-filter-chip').first().click();
             await waitFor(page, 'the filter undone', () => document.querySelector('#rm_characters_block .rm_tag_filter .filterByFavorites')?.getAttribute('data-toggle-state') === 'UNDEFINED' && !document.getElementById('pt_char_filters'));
+        });
+
+        await step('quick filter chips appear under the toolbar and filter with one tap', async () => {
+            await waitFor(page, 'quick filter chips', () => document.querySelectorAll('#pt_char_quick_tags .pt-quick-tag').length > 0);
+            await page.locator('#pt_char_quick_tags .pt-quick-tag', { hasText: 'Favorites' }).click();
+            await waitFor(page, 'filtered via quick chip', () => document.querySelector('#rm_characters_block .rm_tag_filter .filterByFavorites')?.getAttribute('data-toggle-state') === 'SELECTED' && !!document.getElementById('pt_char_filters'));
+            await page.locator('#pt_char_filters .pt-filter-chip').first().click();
+            await waitFor(page, 'quick filter undone', () => document.querySelector('#rm_characters_block .rm_tag_filter .filterByFavorites')?.getAttribute('data-toggle-state') === 'UNDEFINED' && !document.getElementById('pt_char_filters'));
         });
 
         await step("a right click (desktop) or long press (phone) on a card opens that character's menu, and nothing else happens", async () => {
@@ -297,7 +306,12 @@ for (const layout of ['phone', 'desktop']) {
             // SillyTavern's closing animation runs only with animations on (Reduced motion off).
             const reduced = await page.evaluate(() => document.getElementById('reduced_motion')?.checked ?? false);
             if (reduced) await page.evaluate(() => document.getElementById('reduced_motion').click());
-            await page.evaluate(() => document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click());
+            await page.evaluate(() => {
+                if (document.documentElement.dataset.ptPage !== 'rightNavHolder') {
+                    document.querySelector('.pt-tab[data-tab="rightNavHolder"]').click();
+                }
+            });
+            await waitFor(page, 'Characters open before leaving', () => document.documentElement.dataset.ptPage === 'rightNavHolder');
             await page.waitForTimeout(1200);
             // Every frame for a second after switching: SillyTavern's closing drawer must stay invisible.
             const seen = await page.evaluate(async () => {
@@ -332,9 +346,12 @@ for (const layout of ['phone', 'desktop']) {
                 await page.locator(`.pt-tab[data-tab="${id}"]`).click();
             };
             try {
+                if (await page.evaluate(() => document.documentElement.dataset.ptPage !== 'rightNavHolder')) {
+                    await tap('rightNavHolder');
+                    await waitFor(page, 'Characters open before switching', () => document.documentElement.dataset.ptPage === 'rightNavHolder');
+                }
                 if (lock !== null) await pin(true);
                 await page.waitForTimeout(300);
-                // Characters is open already (tapping it again would hide it on desktop).
                 for (const id of ['pt-lorebooks', 'rightNavHolder', 'pt-lorebooks', 'rightNavHolder']) {
                     await tap(id);
                     await waitFor(page, `${id} open alone`, want => {

@@ -5,7 +5,10 @@
    Long chats: skip drawing messages that are far off screen
    ========================================================================== */
 
-html.pt-on.pt-fast-chat #chat > .mes:not(.last_mes):not(:has(#curEditTextarea)) {
+/* Messages with a day divider (::before positioned above the card) skip content-visibility: auto so
+   paint containment neither clips the divider pill nor triggers Chromium's View Transition crash.
+   Uses [data-pt-editing] (set by history.js) instead of :has(#curEditTextarea) to avoid per-message :has() checks. */
+html.pt-on.pt-fast-chat #chat > .mes:not(.last_mes):not([data-pt-day]):not([data-pt-editing]) {
     content-visibility: auto;
     contain-intrinsic-size: auto 260px;
     /* The chat is a flex column: without this, skipped messages shrank to almost nothing
@@ -14,6 +17,6 @@ html.pt-on.pt-fast-chat #chat > .mes:not(.last_mes):not(:has(#curEditTextarea)) 
 }
 
 /* For one frame after a chat opens every message is drawn, so its real height is remembered. */
-html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not(:has(#curEditTextarea)) {
+html.pt-on.pt-fast-chat #chat.pt-fast-prime > .mes:not(.last_mes):not([data-pt-day]):not([data-pt-editing]) {
     content-visibility: visible;
 }

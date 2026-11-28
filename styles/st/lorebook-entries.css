@@ -14,3 +14,9 @@ html.pt-lorecards #world_popup_entries_list .WIEnteryHeaderControls :is(input, s
     padding: 0 8px;
     font-size: 14px;
 }
+
+/* Skip painting lorebook entries far outside the viewport (open full-screen editors stay visible). */
+html.pt-lore-ui.pt-lorecards #world_popup_entries_list > .world_entry:not(.pt-entry-open) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 96px;
+}

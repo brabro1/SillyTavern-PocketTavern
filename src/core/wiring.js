@@ -24,6 +24,10 @@ import { primeChatSizes, setupChatScroll } from '../features/chat-scroll.js';
 import { copyText, setupMessageMenu } from '../features/message-menu.js';
 import { setupContextRing } from '../features/context-ring.js';
 import { setupChatFinder } from '../features/chat-finder.js';
+import { setupCharAccent } from '../features/char-accent.js';
+import { setupChatInsights } from '../features/chat-insights.js';
+import { setupFormatBar } from '../features/format-bar.js';
+import { setupMessagePins } from '../features/message-pins.js';
 import { setupKeepAwake } from '../features/keep-awake.js';
 import { setupServerWatch } from '../features/server-watch.js';
 import { reloadWhenIdle, setupAutoReload, updateReload } from '../features/auto-reload.js';
@@ -62,6 +66,10 @@ export function setupFeatures() {
     setupMessageMenu({ active: () => active, settings: () => settings, context: ctx, sheet: currentSheet, actionRow, buzz, closeSheet, icon, showSheet, ui, MenuSheet });
     setupContextRing({ active: () => active, settings: () => settings, context: ctx, composer: () => composer, sheet: currentSheet, closeSheet, icon, openPage, showSheet, MenuSheet });
     setupChatFinder({ active: () => active, context: ctx, motionAllowed, normalizeText, scheduleHistorySync, ui });
+    setupCharAccent({ active: () => active, settings: () => settings, context: ctx, onAccentChanged: applyAppearance });
+    setupFormatBar({ active: () => active, settings: () => settings, buzz });
+    setupMessagePins({ active: () => active, settings: () => settings, saveSettings, context: ctx, buzz, showSheet, closeSheet, MenuSheet, motionAllowed });
+    setupChatInsights({ context: ctx, showSheet, MenuSheet });
     setupKeepAwake({ active: () => active, settings: () => settings, generating: () => extras.generating });
     setupServerWatch({ active: () => active, settings: () => settings, context: ctx, isWide, buzz });
     setupDrafts({ active: () => active, settings: () => settings, context: ctx });
@@ -154,6 +162,7 @@ export function setupMessageView() {
             fold: active && settings.chatStyle && settings.foldLong,
             jump: active && settings.jumpButton,
             drag: active && settings.chatStyle && settings.dragSwipe,
+            dayDividers: active && settings.chatStyle && settings.dayDividers,
         }),
         generating: () => !!extras.generating,
         motion: motionAllowed,

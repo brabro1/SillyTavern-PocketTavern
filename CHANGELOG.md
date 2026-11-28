@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.1.0
+
+A major visual polish, productivity, lorebook redesign and performance update.
+
+### Both
+
+- **Redesigned Lorebook entries and 4-tab editor.** Lorebook entries are now scannable cards with a coloured left status strip, a clickable strategy pill (**Triggered** / **Constant** / **Vectorized**) that cycles SillyTavern's selector directly, a 2-line content preview, keyword chips, compact metadata and quick filter pills (**All**, **Enabled**, **Constant**, **Disabled**) with an approximate token count. Opening an entry organizes all controls into four clean tabs (**Content**, **Triggers**, **Placement** and **Advanced**) while keeping SillyTavern's underlying inputs intact.
+- **New themes, custom accents and adaptive character tinting.** Added three contrast-checked themes — **Obsidian Gold**, **Velvet** and **Sepia Book** (17 themes total) — alongside eight custom **Accent colour** swatches (automatically tuned for WCAG AA contrast), subtle ambient portrait tinting in the chat header, and an optional **Match character colour** toggle in **Settings → Appearance**.
+- **Editorial chat look, curated reading fonts and wallpaper dimmer.** Added **Editorial** as a fourth chat look (comfortable 680px reading measure, generous line height and accent edge), curated **Reading font** choices (**System**, **Serif**, **Mono**, or **SillyTavern's**) under **Settings → Chat and layout**, and a **Background dim** slider (`0–80%`) in **Settings → Appearance** so messages stay readable over bright wallpapers.
+- **One-tap RP formatting bar, live typing indicator and calendar day dividers.** Focusing the message box reveals a floating formatting strip (`*Italic*`, `"Quote"`, `**Bold**`, `(OOC)`) above the composer without shifting layout. Added a live `{name} is writing…` status pill while waiting for a reply to start streaming, plus quiet calendar **Day dividers** (`Today`, `Yesterday`, date) between days (configurable under **Settings → Pocket Tavern**).
+- **Story Moments (pinned messages) and Chat insights.** Pin memorable messages from any message's **⋯** menu and jump back to them anytime from **⋯ → Pinned messages** (saved in SillyTavern's chat metadata). **⋯ → Chat insights** shows instant local stats for the open chat (messages, words, approximate tokens, swipes and top terms).
+- **Live AI Quick samplers, `+` quick-switch chips and Character quick filters.** The **AI** page now includes live **Quick samplers** sliders (Temperature, Top P, Top K, Repetition penalty, Max response) bound directly to SillyTavern's controls; **`+`** opens with one-tap **Model**, **Preset** and **Persona** quick-switch chips; and **Characters** shows one-tap quick filter pills (**Favorites**, **Groups** and top tags) below the search bar.
+- **Editorial chat & Chats polish.** Refined Markdown typography (headings, blockquotes, code blocks with a one-tap **Copy** button), shortened verbose message timestamps (full date preserved on hover), made Quick Replies a clean single-row scrollable strip, quieted the context ring, refreshed the Welcome screen with recent chats, and fixed Chats rows and timestamps.
+- **Performance and anti-flash boost.** Eliminated full-document `:has()` invalidations and inherited `--pt-form-h` restyles across long chats, cached SVG icon templates, skipped no-op Chats list refreshes and redundant drawer re-scans, neutralized SillyTavern's expensive `transition: all` on `.avatar`, removed transparent drawer fades that let the chat bleed through during tab switches, reused `#pt-page` in place between Pocket Tavern pages, and stopped `Escape` inside sheets from leaking to SillyTavern's background drawer hotkeys.
+- **Character Library compatibility.** Kept Character Library's closed launcher dropdown out of layout so it never extends the root page below the screen on phones.
+
+### Phone
+
+- **Focus mode & chat-row gestures.** Toggle **Focus mode** from the chat's **⋯** menu to hide the top bar while reading (a subtle corner pill exits), and swipe a chat row on **Chats** to open its quick menu.
+- **Zero-jank tab switching.** Toggling tabs out of the way when opening a full-screen page no longer forces synchronous full-chat layouts, and closing Pocket Tavern pages updates the header immediately.
+
+### Desktop
+
+- **Per-column split headers and Focus mode.** The top app bar aligns cleanly over each column (full-height left rail, panel header over the open panel, and the active chat's header beside it), with a one-click **Focus mode** button in the chat header (<kbd>Esc</kbd> exits) and a fixed Welcome screen resize grip.
+
 ## 3.0.1
 
 Fixes and improvements answering GitHub issues #15, #16, #18 and #19.

@@ -5,6 +5,7 @@ import { closeGuidedPopup, openGuidedPopups } from '../compat/guided-generations
 import { chatFinderHasFocus, chatFinderOpen, closeChatFinder } from '../features/chat-finder.js';
 import { viewerOpen } from '../features/picture-viewer.js';
 import { focusChatsSearch } from './chats-home.js';
+import { isFocusMode, setFocusMode } from './app-shell.js';
 import { editorOpen, openOverlays } from './history.js';
 import { isTypingField } from './layout.js';
 import { backFromPage, currentPageId } from './pages.js';
@@ -80,6 +81,11 @@ export function onWideKeyDown(event) {
     // Typing in a tool panel (Author's Note) or side-panel field keeps Escape for the text box.
     if (typing) return;
     if (closeToolPanel()) {
+        event.preventDefault();
+        return;
+    }
+    if (isFocusMode()) {
+        setFocusMode(false);
         event.preventDefault();
         return;
     }

@@ -5,7 +5,10 @@ import { startPopupWatch } from '../st/popup-watch.js';
 import { applyLayout, IS_IOS, keyboardUp, watchLayout } from '../shell/layout.js';
 import { followViewport } from '../shell/overlay.js';
 import { watchChatLoading } from '../features/chat-loading.js';
-import { cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd, onSwipeMove, onSwipeStart, onSwipedEvent, syncJumpButton, updateJump } from '../views/messages.js';
+import { cancelSwipe, foldLongMessages, markSingleVersions, onSwipeEnd, onSwipeMove, onSwipeStart, onSwipedEvent, syncJumpButton, syncTypingIndicator, updateJump } from '../views/messages.js';
+import { syncCharAccent } from '../features/char-accent.js';
+import { syncFormatBar } from '../features/format-bar.js';
+import { syncPinnedMarks } from '../features/message-pins.js';
 import { promptEditor, syncPromptEditorSession, syncPromptNameBox, syncPresetTabs, syncTriggerChips } from '../st/ai.js';
 import { syncCharacterPage } from '../st/characters.js';
 import { syncPersonaTabs } from '../st/personas.js';
@@ -83,6 +86,7 @@ function onSendClick(event) {
 export function onGenerating(on) {
     extras.generating = on;
     updateJump();
+    syncTypingIndicator();
     setAwake(on);
 }
 
@@ -96,8 +100,12 @@ export function syncExtras() {
     applyChatLook();
     applyLayoutPrefs();
     syncComposer();
+    syncFormatBar();
     // (Also takes the one-version marker off again when Pocket Tavern turns off.)
     markSingleVersions();
+    syncPinnedMarks();
+    syncTypingIndicator();
+    syncCharAccent();
     foldLongMessages();
     markMissingAvatars();
     syncLoreEntries();

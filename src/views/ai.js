@@ -5,6 +5,7 @@
 import { h } from '../core/dom.js';
 import { button } from '../ui/button.js';
 import { listGroup, listRow } from '../ui/list.js';
+import { numberRow } from '../ui/number.js';
 
 /** Which SillyTavern pages belong to the AI place: Back from them returns here, and the AI tab stays lit. */
 export const AI_PAGES = ['sys-settings-button', 'ai-config-button', 'advanced-formatting-button'];
@@ -30,7 +31,7 @@ export const AI_PAGES = ['sys-settings-button', 'ai-config-button', 'advanced-fo
  * @param {() => void} actions.openPrompts SillyTavern's prompt list (on the Samplers page, for Chat Completion)
  * @returns {import('../shell/page.js').PageSpec}
  */
-export function aiPage({ openPage, status, quick, chatCompletion, openSamplers, openPrompts }) {
+export function aiPage({ openPage, status, quick, sliders = () => [], chatCompletion, openSamplers, openPrompts }) {
     return {
         title: 'AI',
         long: 'Connection, model and preset',
@@ -55,6 +56,14 @@ export function aiPage({ openPage, status, quick, chatCompletion, openSamplers, 
             const rows = quick();
             if (rows.length) {
                 body.append(listGroup({ rows: rows.map(row => listRow({ title: row.title, end: 'picker', value: row.value, onClick: row.pick })) }));
+            }
+
+            const quickSliders = sliders();
+            if (quickSliders.length) {
+                body.append(h('section', { class: 'pt-list-section' }, [
+                    h('div', { class: 'pt-list-header', text: 'Quick samplers' }),
+                    h('div', { class: 'pt-ai-samplers' }, quickSliders.map(item => numberRow(item))),
+                ]));
             }
 
             body.append(listGroup({ rows: [

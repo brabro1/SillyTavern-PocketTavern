@@ -9,7 +9,33 @@
     padding: var(--pt-space-4);
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
     font-family: var(--pt-font-ui);
+}
+
+/* Quick live samplers right on the AI hub (Temperature, Response length, Context size). */
+.pt-ai-samplers {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+}
+
+.pt-ai-samplers > .pt-number-row {
+    position: relative;
+    padding: var(--pt-space-3) var(--pt-space-4);
+}
+
+.pt-ai-samplers > .pt-number-row + .pt-number-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: var(--pt-space-4) 0;
+    height: 1px;
+    background: var(--pt-border);
+    pointer-events: none;
 }
 
 .pt-ai-status-line {

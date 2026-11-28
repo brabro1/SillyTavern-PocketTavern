@@ -5,7 +5,9 @@ import { IS_IOS, resolveLayout } from '../shell/layout.js';
 import { refreshOwnPage } from '../shell/page.js';
 import { showBackPill } from '../shell/native.js';
 import { restartAll } from './lifecycle.js';
-import { foldLongMessages, markSingleVersions, updateJump } from '../views/messages.js';
+import { foldLongMessages, markSingleVersions, onStreamToken, syncTypingIndicator, updateJump } from '../views/messages.js';
+import { syncCharAccent } from '../features/char-accent.js';
+import { syncPinnedMarks } from '../features/message-pins.js';
 import { refreshAiPage } from '../st/ai.js';
 import { onCardPeekPress, onCharacterTap, onExportClick } from '../st/characters.js';
 import { chatsHome, endStartWindow, fadeInChat, refreshChatsHome, syncChatsHome } from '../shell/chats-home.js';
@@ -144,6 +146,9 @@ function init() {
         applyPendingAnimated();
         currentSheet()?.refresh();
         currentShell()?.onChatChanged();
+        syncCharAccent();
+        syncTypingIndicator();
+        syncPinnedMarks();
         guardKeyboard();
         restoreDraft();
         // A new chat starts at the bottom; hide the jump button until you scroll up.
@@ -163,6 +168,7 @@ function init() {
         chatTimer = window.setTimeout(safe(SOURCE, () => {
             foldLongMessages();
             markMissingAvatars();
+            syncPinnedMarks();
         }), 200);
     };
     for (const name of ['MESSAGE_RECEIVED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'MESSAGE_EDITED', 'CHARACTER_MESSAGE_RENDERED', 'USER_MESSAGE_RENDERED', 'MORE_MESSAGES_LOADED', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'CHAT_CHANGED']) {
@@ -224,6 +230,7 @@ function init() {
         // Dry runs (prompt token counts) start but never end; they aren't replies.
         if (!dryRun) onGenerating(true);
     }));
+    if (event_types.STREAM_TOKEN_RECEIVED) eventSource?.on?.(event_types.STREAM_TOKEN_RECEIVED, safe(SOURCE, onStreamToken));
     for (const name of ['GENERATION_ENDED', 'GENERATION_STOPPED']) {
         if (event_types[name]) eventSource?.on?.(event_types[name], safe(SOURCE, () => onGenerating(false)));
     }

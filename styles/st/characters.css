@@ -3,6 +3,12 @@
    strip, and the character editor's card with its tabs. Moved whole from styles/legacy.css (M3); the rules
    that use !important beat SillyTavern's own list and form styles. */
 
+/* Neutralize SillyTavern's `transition: all 250ms` on `.avatar`: during swipes, list renders,
+   and chat streaming it spawned hundreds of main-thread transition animations per scroll. */
+html.pt-on :is(#rm_print_characters_block, #chat, #user_avatar_block) .avatar {
+    transition: none;
+}
+
 /* -- Characters page ------------------------------------------------------ */
 
 html.pt-touch #right-nav-panel {
@@ -777,6 +783,73 @@ html.pt-charpage .pt-filter-clear {
     cursor: pointer;
 }
 
+/* One-tap quick filter pills under the Characters toolbar when no filters are active. */
+html.pt-charpage .pt-char-quick-tags {
+    display: flex;
+    align-items: center;
+    gap: var(--pt-space-2);
+    margin: 0 calc(-1 * var(--pt-space-3)) var(--pt-space-1);
+    padding: var(--pt-space-1) var(--pt-space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+
+html.pt-charpage .pt-char-quick-tags::-webkit-scrollbar {
+    display: none;
+}
+
+html.pt-charpage .pt-quick-tag {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--pt-space-1);
+    height: 32px;
+    padding: 0 var(--pt-space-3);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface);
+    color: var(--pt-text-secondary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), color var(--pt-dur-fast) var(--pt-ease);
+}
+
+html.pt-charpage .pt-quick-tag::after {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+}
+
+html.pt-charpage .pt-quick-tag:active {
+    background: var(--pt-surface-elevated);
+    color: var(--pt-text-primary);
+}
+
+@media (hover: hover) {
+    html.pt-charpage .pt-quick-tag:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+}
+
+html.pt-charpage .pt-quick-tag-icon {
+    width: 14px;
+    height: 14px;
+}
+
+html.pt-charpage .pt-quick-tag-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--pt-border);
+}
+
 /* The top of the list (src/st/character-list.js): Favorites as picks, then "All characters" with the count.
    It spans every column of the grid. */
 html.pt-charpage #rm_print_characters_block > .pt-char-top {
@@ -893,7 +966,7 @@ html.pt-charpage body.charListGrid #rm_print_characters_block > :is(.character_s
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
     overflow: hidden;
-    box-shadow: var(--pt-shadow-card);
+    box-shadow: var(--pt-shadow-card), inset 0 0 0 1px rgb(255 255 255 / 0.08);
     transition: transform var(--pt-dur-fast) var(--pt-ease);
 }
 
@@ -1113,7 +1186,7 @@ html.pt-charpage body.charListGrid #rm_print_characters_block :is(.character_sel
     flex-direction: column;
     justify-content: flex-end;
     padding: 8px;
-    background: linear-gradient(180deg, transparent 55%, var(--pt-photo-scrim));
+    background: linear-gradient(180deg, transparent 42%, rgb(0 0 0 / 0.32) 70%, var(--pt-photo-scrim) 100%);
 }
 
 html.pt-charpage body.charListGrid #rm_print_characters_block :is(.character_select_container, .group_select_container) {

@@ -7,6 +7,7 @@ import { t } from '../core/i18n.js';
 import { safe } from '../core/lifecycle.js';
 import { shieldFromDrawerAutoClose } from '../st/drawers.js';
 import { CHAT, MESSAGE_EDITOR } from '../st/selectors.js';
+import { chatWhen } from '../ui/chat-row.js';
 import { svgIcon } from '../ui/icons.js';
 
 /** Longer than this (characters), an older message folds. */
@@ -32,6 +33,137 @@ export function setupMessages(supplied) {
 // ---- versions: "2/3" only when there is more than one --------------------------------------------
 
 /**
+ * Shortens verbose message timestamps ("November 28, 2026 11:28 AM" → "11:28 AM" or "Nov 28") while keeping
+ * the full date in the title attribute. Restores SillyTavern's exact text when Pocket Tavern turns off.
+ */
+function syncTimestamps(on) {
+    if (!on) {
+        for (const el of document.querySelectorAll(`${CHAT} .timestamp[data-pt-full-time]`)) {
+            el.textContent = el.dataset.ptFullTime;
+            if (el.getAttribute('title') === el.dataset.ptFullTime) el.removeAttribute('title');
+            delete el.dataset.ptFullTime;
+        }
+        return;
+    }
+    for (const el of document.querySelectorAll(`${CHAT} > .mes .ch_name .timestamp`)) {
+        if (el.dataset.ptFullTime) continue;
+        const full = el.textContent?.trim();
+        if (!full) continue;
+        const short = chatWhen(full);
+        if (!short || short === full) continue;
+        el.dataset.ptFullTime = full;
+        if (!el.getAttribute('title')) el.setAttribute('title', full);
+        el.textContent = short;
+    }
+}
+
+/**
+ * Adds a quiet Copy button to fenced code blocks in messages; removes them cleanly on teardown.
+ */
+function syncCodeCopy(on) {
+    if (!on) {
+        document.querySelectorAll(`${CHAT} .pt-code-copy`).forEach(btn => btn.remove());
+        return;
+    }
+    for (const pre of document.querySelectorAll(`${CHAT} > .mes .mes_text pre`)) {
+        if (pre.querySelector(':scope > .pt-code-copy')) continue;
+        const btn = h('button', {
+            type: 'button',
+            class: 'pt-code-copy pt-focus pt-press',
+            'aria-label': 'Copy code',
+            title: 'Copy code',
+            onclick: event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const code = pre.querySelector('code')?.textContent ?? pre.textContent ?? '';
+                navigator.clipboard?.writeText?.(code).catch(() => {});
+                deps.buzz(6);
+                btn.classList.add('pt-code-copy--done');
+                btn.replaceChildren(svgIcon('check'));
+                window.setTimeout(safe('messages: copy code', () => {
+                    if (!btn.isConnected) return;
+                    btn.classList.remove('pt-code-copy--done');
+                    btn.replaceChildren(svgIcon('copy'));
+                }), 1400);
+            },
+        }, [svgIcon('copy')]);
+        pre.append(btn);
+    }
+}
+
+/**
+ * Parses a SillyTavern message date into a valid Date (or null).
+ */
+function parseMessageDate(raw) {
+    if (!raw) return null;
+    if (typeof raw === 'number') {
+        const d = new Date(raw);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    const text = String(raw).trim();
+    if (!text) return null;
+    // SillyTavern formats like "2026-11-28@11h28m" or "November 28, 2026 11:28 AM"
+    const normalized = text.replace(/@(\d+)h(\d+)m.*$/i, ' $1:$2');
+    const d = new Date(normalized);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function dayDividerLabel(date, now) {
+    const startOf = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diffDays = Math.round((startOf(now) - startOf(date)) / 86400000);
+    if (diffDays === 0) return t('Today');
+    if (diffDays === 1) return t('Yesterday');
+    const sameYear = date.getFullYear() === now.getFullYear();
+    try {
+        return new Intl.DateTimeFormat(undefined, sameYear
+            ? { month: 'short', day: 'numeric' }
+            : { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+    } catch {
+        return date.toDateString();
+    }
+}
+
+let lastDividerSig = '';
+
+/**
+ * Sets a quiet data-pt-day attribute on messages that start a new calendar day (rendered via CSS ::before,
+ * zero extra DOM children inside #chat). Cleans up completely on teardown.
+ */
+function syncDayDividers(on) {
+    if (!on) {
+        lastDividerSig = '';
+        for (const mes of document.querySelectorAll(`${CHAT} > .mes[data-pt-day]`)) delete mes.dataset.ptDay;
+        return;
+    }
+    const chat = deps.context().chat ?? [];
+    const chatId = deps.context().getCurrentChatId?.() ?? '';
+    const nodes = document.querySelectorAll(`${CHAT} > .mes`);
+    const sig = `${chatId}|${nodes.length}|${nodes[0]?.getAttribute('mesid') ?? ''}|${nodes[nodes.length - 1]?.getAttribute('mesid') ?? ''}`;
+    if (sig === lastDividerSig) return;
+    lastDividerSig = sig;
+    const now = new Date();
+    let prevKey = '';
+    for (const mes of nodes) {
+        const idx = Number(mes.getAttribute('mesid'));
+        const message = chat[idx];
+        const tsEl = mes.querySelector('.ch_name .timestamp');
+        const date = parseMessageDate(message?.send_date) ?? parseMessageDate(tsEl?.dataset.ptFullTime ?? tsEl?.textContent);
+        if (!date) {
+            delete mes.dataset.ptDay;
+            continue;
+        }
+        const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        if (key !== prevKey) {
+            prevKey = key;
+            const label = dayDividerLabel(date, now);
+            if (mes.dataset.ptDay !== label) mes.dataset.ptDay = label;
+        } else {
+            delete mes.dataset.ptDay;
+        }
+    }
+}
+
+/**
  * The version pill shows "1/3" only when there is more than one version. With one, it is just the round
  * "new version" button (styles/views/messages.css → .pt-one-swipe).
  */
@@ -39,16 +171,23 @@ export function markSingleVersions() {
     // Turning off (or falling back after an error) clears the marks at once: callbacks stop running then.
     if (!deps.enabled().chat) {
         document.querySelectorAll(`${CHAT} > .mes.pt-one-swipe`).forEach(mes => mes.classList.remove('pt-one-swipe'));
+        syncTimestamps(false);
+        syncCodeCopy(false);
+        syncDayDividers(false);
         return;
     }
     requestAnimationFrame(safe('messages: versions', () => {
         const chat = deps.context().chat ?? [];
-        const on = deps.enabled().chat;
+        const flags = deps.enabled();
+        const on = flags.chat;
         const all = document.body.classList.contains('swipeAllMessages');
         for (const mes of document.querySelectorAll(all ? `${CHAT} > .mes` : `${CHAT} > .mes.last_mes, ${CHAT} > .mes.pt-one-swipe`)) {
             const message = chat[Number(mes.getAttribute('mesid'))];
             mes.classList.toggle('pt-one-swipe', on && !((message?.swipes?.length ?? 0) > 1));
         }
+        syncTimestamps(on);
+        syncCodeCopy(on);
+        syncDayDividers(on && flags.dayDividers);
     }));
 }
 
@@ -253,4 +392,46 @@ export function syncJumpButton() {
     sheld.append(jump.button);
     chat.addEventListener('scroll', updateJump, { passive: true });
     updateJump();
+}
+
+// ---- Live typing indicator ("{name} is writing…") ------------------------------------------------
+
+const typing = { pill: null, label: null, streamed: false };
+
+/** Once tokens visibly stream into the reply, hide the typing pill so its dots never tick during streaming. */
+export function onStreamToken() {
+    if (typing.streamed) return;
+    typing.streamed = true;
+    typing.pill?.remove();
+    typing.pill = null;
+    typing.label = null;
+}
+
+export function syncTypingIndicator() {
+    const flags = deps?.enabled();
+    const context = deps?.context?.();
+    const inChat = context?.getCurrentChatId?.() !== undefined;
+    const generating = !!deps?.generating();
+    if (!generating) typing.streamed = false;
+    const want = !!flags?.chat && inChat && generating && !typing.streamed;
+    if (!want) {
+        typing.pill?.remove();
+        typing.pill = null;
+        typing.label = null;
+        return;
+    }
+    const sheld = document.getElementById('sheld');
+    if (!sheld) return;
+    const charName = !context.groupId ? (context.characters?.[context.characterId]?.name?.trim() ?? '') : '';
+    const text = charName ? t('{name} is writing…', { name: charName }) : t('Writing…');
+    if (!typing.pill) {
+        typing.label = h('span', { class: 'pt-typing-text', raw: text });
+        typing.pill = h('div', { id: 'pt-typing-pill', class: 'pt-typing-pill', role: 'status', 'aria-live': 'polite' }, [
+            h('span', { class: 'pt-typing-dots', 'aria-hidden': 'true' }, [h('span'), h('span'), h('span')]),
+            typing.label,
+        ]);
+        sheld.append(typing.pill);
+    } else if (typing.label) {
+        typing.label.textContent = text;
+    }
 }

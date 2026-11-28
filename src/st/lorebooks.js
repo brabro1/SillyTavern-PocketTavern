@@ -610,18 +610,47 @@ export function startObserver() {
     if (domObserver) return;
     const baseSelector = LOREBOOK_TARGETS.map(target => target.selector).join(',');
     let wasEditing = !!document.getElementById('curEditTextarea');
+    let chatEl = document.getElementById('chat');
     domObserver = new MutationObserver(safe(SOURCE, records => {
+        if (!chatEl || !chatEl.isConnected) chatEl = document.getElementById('chat');
+        // Fast O(1) path during reply streaming: every streamed token mutates inside #chat.
+        // Only check for message-editor changes if the editor was open or a textarea was added.
+        let anyOutsideChat = false;
+        let maybeEditor = wasEditing;
+        for (const record of records) {
+            if (!chatEl || !chatEl.contains(record.target)) {
+                anyOutsideChat = true;
+                break;
+            }
+            if (!maybeEditor && record.addedNodes.length) {
+                for (const node of record.addedNodes) {
+                    if (node.nodeType === 1 && (node.id === 'curEditTextarea' || node.classList?.contains('edit_textarea') || node.querySelector?.('#curEditTextarea'))) {
+                        maybeEditor = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!anyOutsideChat) {
+            if (maybeEditor) {
+                const nowEditing = !!document.getElementById('curEditTextarea');
+                if (nowEditing !== wasEditing) {
+                    wasEditing = nowEditing;
+                    syncEditorState();
+                }
+            }
+            return;
+        }
         const selector = deps.settings().longSelects ? `${baseSelector},select` : baseSelector;
         let rescan = false;
         let layers = false;
         const nowEditing = !!document.getElementById('curEditTextarea');
         const editorChanged = nowEditing !== wasEditing;
         wasEditing = nowEditing;
-        const chat = document.getElementById('chat');
         for (const record of records) {
             if (record.target === document.body) layers = true;
             // Inside the chat (a streaming reply changes it on every token) skip heavy subtree scans.
-            const inChat = !!chat && chat.contains(record.target);
+            const inChat = !!chatEl && chatEl.contains(record.target);
             if (inChat || rescan) continue;
             for (const node of record.addedNodes) {
                 if (node.nodeType !== 1 || node.closest?.('#chat')) continue;
@@ -798,27 +827,60 @@ export function watchLorebooks() {
     }
 }
 
-// -- lorebooks: entry cards with keyword chips, full-screen entry editor
+// -- lorebooks: scannable entry cards, quick filters, structured tabbed editor
 
-export const lore = { observer: null, timer: 0, edited: false };
+export const lore = { observer: null, timer: 0, edited: false, filter: 'all' };
 
-/** Keywords of every entry in the open lorebook, from its data (entries build their insides only when opened). */
-let loreKeys = { name: '', byUid: new Map() };
+/** Snapshot of every entry in the open lorebook, from its data (closed entries have no form in the DOM). */
+let loreData = { name: '', byUid: new Map() };
 
-async function refreshLoreKeys() {
+const STATE_ORDER = ['normal', 'constant', 'vectorized'];
+const STATE_LABELS = { normal: 'Triggered', constant: 'Constant', vectorized: 'Vectorized' };
+const POSITION_LABELS = {
+    '0': '↑Char',
+    '1': '↓Char',
+    '2': '↑AN',
+    '3': '↓AN',
+    '4': '@Depth',
+    '5': '↑EM',
+    '6': '↓EM',
+    '7': 'Outlet',
+};
+const ENTRY_TABS = [
+    ['content', 'Content'],
+    ['triggers', 'Triggers'],
+    ['placement', 'Placement'],
+    ['advanced', 'Advanced'],
+];
+
+async function refreshLoreData() {
     const name = document.getElementById('world_editor_select')?.selectedOptions[0]?.textContent?.trim();
     if (!name) return;
     try {
         const data = await ctx().loadWorldInfo?.(name);
         const byUid = new Map();
-        for (const entry of Object.values(data?.entries ?? {})) byUid.set(String(entry.uid), Array.isArray(entry.key) ? entry.key : []);
-        loreKeys = { name, byUid };
+        for (const entry of Object.values(data?.entries ?? {})) {
+            byUid.set(String(entry.uid), {
+                key: Array.isArray(entry.key) ? entry.key : [],
+                content: typeof entry.content === 'string' ? entry.content : '',
+                disable: !!entry.disable,
+                constant: !!entry.constant,
+                vectorized: !!entry.vectorized,
+                position: entry.position ?? 0,
+                depth: entry.depth ?? 4,
+                order: entry.order ?? 100,
+                probability: entry.probability ?? 100,
+                sticky: Number(entry.sticky) || 0,
+                group: typeof entry.group === 'string' ? entry.group.trim() : '',
+            });
+        }
+        loreData = { name, byUid };
     } catch {
         // Keep what we had.
     }
 }
 
-function entryKeys(entry) {
+function entryKeys(entry, info) {
     // An open entry has its form, with both fields: a tag picker (computers) and a plain text box (phones, or
     // SillyTavern's "plain text keys" option). Only the one in use is filled; the other stays hidden and empty.
     const select = entry.querySelector('select[name="key"]');
@@ -826,7 +888,141 @@ function entryKeys(entry) {
     const field = entry.querySelector('textarea[name="key"]');
     if (field) return field.value.split(',').map(key => key.trim()).filter(Boolean);
     // A closed entry has no form, so use the book's data.
-    return (loreKeys.byUid.get(String(entry.getAttribute('uid'))) ?? []).map(key => String(key).trim()).filter(Boolean);
+    return (info?.key ?? []).map(key => String(key).trim()).filter(Boolean);
+}
+
+function entryState(entry, info) {
+    const val = entry.querySelector('select[name="entryStateSelector"]')?.value;
+    if (val === 'constant' || val === 'normal' || val === 'vectorized') return val;
+    if (info?.constant) return 'constant';
+    if (info?.vectorized) return 'vectorized';
+    return 'normal';
+}
+
+function entryDisabled(entry, info) {
+    const toggle = entry.querySelector('.inline-drawer-header > .world_entry_thin_controls > .killSwitch');
+    if (toggle) return toggle.classList.contains('fa-toggle-off');
+    return !!info?.disable;
+}
+
+function entryMetaSummary(entry, info, contentText) {
+    const posSelect = entry.querySelector('.WIEnteryHeaderControls select[name="position"]');
+    const posVal = posSelect ? posSelect.value : String(info?.position ?? 0);
+    const depthInput = entry.querySelector('.WIEnteryHeaderControls input[name="depth"]');
+    const depth = depthInput?.value !== '' && depthInput?.value !== undefined ? depthInput.value : String(info?.depth ?? 4);
+    const orderInput = entry.querySelector('.WIEnteryHeaderControls input[name="order"]');
+    const order = orderInput?.value !== '' && orderInput?.value !== undefined ? orderInput.value : String(info?.order ?? 100);
+    const probInput = entry.querySelector('.WIEnteryHeaderControls input[name="probability"]');
+    const prob = probInput?.value !== '' && probInput?.value !== undefined ? Number(probInput.value) : Number(info?.probability ?? 100);
+
+    const posLabel = posVal === '4' ? `@D ${depth}` : (POSITION_LABELS[posVal] ?? posSelect?.selectedOptions?.[0]?.textContent?.trim() ?? '↑Char');
+    const parts = [posLabel, `#${order}`];
+    if (!Number.isNaN(prob) && prob < 100) parts.push(`${prob}%`);
+    const trimmed = contentText.trim();
+    if (trimmed) parts.push(`~${Math.max(1, Math.round(trimmed.length / 4))} tok`);
+    if (info?.sticky > 0) parts.push(`Sticky ${info.sticky}`);
+    if (info?.group) parts.push(info.group);
+    return parts;
+}
+
+function cycleEntryState(entry) {
+    const select = entry.querySelector('select[name="entryStateSelector"]');
+    if (!select) return;
+    const current = STATE_ORDER.includes(select.value) ? select.value : 'normal';
+    const next = STATE_ORDER[(STATE_ORDER.indexOf(current) + 1) % STATE_ORDER.length];
+    select.value = next;
+    $j()(select).trigger('change');
+}
+
+function syncEntryTabs(entry, header, open) {
+    let tabs = header.querySelector(':scope > .pt-entry-tabs');
+    if (!open) {
+        tabs?.remove();
+        delete entry.dataset.ptEtab;
+        return;
+    }
+    if (!entry.dataset.ptEtab) entry.dataset.ptEtab = 'content';
+    const activeTab = entry.dataset.ptEtab;
+    if (!tabs) {
+        tabs = h('div', { class: 'pt-entry-tabs', role: 'tablist', 'aria-label': t('Entry sections') });
+        for (const [id, label] of ENTRY_TABS) {
+            tabs.append(h('button', {
+                type: 'button',
+                role: 'tab',
+                class: 'pt-etab pt-focus',
+                'data-etab': id,
+                'aria-selected': String(activeTab === id),
+                onclick: event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    entry.dataset.ptEtab = id;
+                    for (const btn of tabs.querySelectorAll('.pt-etab')) {
+                        const on = btn.dataset.etab === id;
+                        btn.classList.toggle('pt-etab--on', on);
+                        btn.setAttribute('aria-selected', String(on));
+                    }
+                    entry.scrollTop = 0;
+                },
+            }, [h('span', { text: label })]));
+        }
+        header.append(tabs);
+    }
+    for (const btn of tabs.querySelectorAll('.pt-etab')) {
+        const on = btn.dataset.etab === activeTab;
+        btn.classList.toggle('pt-etab--on', on);
+        btn.setAttribute('aria-selected', String(on));
+    }
+    // Mark SillyTavern's unnamed section rows inside the opened form (never moves DOM nodes).
+    const edit = entry.querySelector('.world_entry_edit');
+    if (edit) {
+        for (const child of edit.children) {
+            if (child.querySelector('input[name="group"]')) child.classList.add('pt-wi-timing');
+            else if (child.querySelector('select[name="characterFilter"]')) child.classList.add('pt-wi-filters');
+            else if (child.classList.contains('inline-drawer')) child.classList.add('pt-wi-sources');
+        }
+    }
+}
+
+function syncFilterBar(list, counts, totalTokens) {
+    const popup = document.getElementById('world_popup');
+    if (!popup || !list) return;
+    let bar = document.getElementById('pt-lore-filter');
+    if (!counts.all) {
+        bar?.remove();
+        delete list.dataset.ptFilter;
+        return;
+    }
+    if (!bar) {
+        bar = h('div', { id: 'pt-lore-filter', class: 'pt-lore-filter', role: 'toolbar', 'aria-label': t('Filter entries') });
+        list.before(bar);
+    }
+    const items = [
+        ['all', 'All', counts.all],
+        ['active', 'Enabled', counts.active],
+        ['constant', 'Constant', counts.constant],
+        ['disabled', 'Disabled', counts.disabled],
+    ];
+    if (lore.filter !== 'all' && !counts[lore.filter]) lore.filter = 'all';
+    list.dataset.ptFilter = lore.filter;
+    const signature = `${lore.filter}|${items.map(i => i[2]).join(',')}|${totalTokens}`;
+    if (bar.dataset.sig === signature) return;
+    bar.dataset.sig = signature;
+    const pills = h('div', { class: 'pt-lore-filter-pills' }, items.map(([id, label, count]) => h('button', {
+        type: 'button',
+        class: `pt-lore-chip pt-focus pt-press ${lore.filter === id ? 'pt-lore-chip--on' : ''}`,
+        'data-filter': id,
+        'aria-pressed': String(lore.filter === id),
+        onclick: () => {
+            lore.filter = id;
+            list.dataset.ptFilter = id;
+            bar.dataset.sig = '';
+            syncFilterBar(list, counts, totalTokens);
+        },
+    }, [h('span', { text: label }), h('span', { class: 'pt-lore-chip-count', raw: String(count) })])));
+    const summary = totalTokens > 0
+        ? h('span', { class: 'pt-lore-summary', raw: `~${totalTokens.toLocaleString()} tok` })
+        : null;
+    bar.replaceChildren(pills, ...(summary ? [summary] : []));
 }
 
 async function decorateEntries(forceRefresh = false) {
@@ -834,38 +1030,107 @@ async function decorateEntries(forceRefresh = false) {
     const list = document.getElementById('world_popup_entries_list');
     if (!list) return;
     const currentBook = document.getElementById('world_editor_select')?.selectedOptions[0]?.textContent?.trim() ?? '';
-    // SillyTavern replaces an entry's key list when it is edited, and removes the form when the entry closes.
-    // So after an entry was open, read the book again once its form is gone, or the chips show the old keys.
+    // SillyTavern replaces an entry's form when it is edited, and removes the form when the entry closes.
+    // So after an entry was open, read the book again once its form is gone, or previews and chips show stale data.
     const closedSinceEdit = lore.edited && !list.querySelector('.world_entry [name="key"]');
-    if (forceRefresh || closedSinceEdit || (currentBook && loreKeys.name !== currentBook)) {
+    if (forceRefresh || closedSinceEdit || (currentBook && loreData.name !== currentBook)) {
         lore.edited = false;
-        await refreshLoreKeys();
+        await refreshLoreData();
         if (!deps.active() || !deps.settings().touchSizing || !deps.settings().loreCards || !deps.lorebookUiOn()) return;
     }
+    const counts = { all: 0, active: 0, constant: 0, disabled: 0 };
+    let totalTokens = 0;
     for (const entry of list.querySelectorAll('.world_entry')) {
-        // The content block uses the same class, so ask for the one in the header.
-        const header = entry.querySelector('.inline-drawer-header > .world_entry_thin_controls');
-        if (!header) continue;
-        let chips = header.querySelector('.pt-entry-keys');
+        const drawerHeader = entry.querySelector('.world_entry_form > .inline-drawer > .inline-drawer-header');
+        const header = drawerHeader?.querySelector(':scope > .world_entry_thin_controls');
+        if (!header || !drawerHeader) continue;
+        const uid = String(entry.getAttribute('uid') ?? '');
+        const info = loreData.byUid.get(uid) ?? null;
+        const state = entryState(entry, info);
+        const disabled = entryDisabled(entry, info);
+        const contentText = entry.querySelector('textarea[name="content"]')?.value ?? info?.content ?? '';
+
+        entry.dataset.ptState = state;
+        entry.dataset.ptDisabled = disabled ? '1' : '0';
+        counts.all++;
+        if (disabled) counts.disabled++;
+        else {
+            counts.active++;
+            if (state === 'constant') counts.constant++;
+            if (contentText.trim()) totalTokens += Math.max(1, Math.round(contentText.trim().length / 4));
+        }
+
+        // Strategy pill button (clean semantic replacement for the emoji dropdown; cycles SillyTavern's select).
+        let stateBtn = header.querySelector(':scope > .pt-entry-state');
+        if (!stateBtn) {
+            stateBtn = h('button', {
+                type: 'button',
+                class: 'pt-entry-state pt-focus pt-press',
+                title: 'Switch entry strategy',
+                onclick: event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    cycleEntryState(entry);
+                },
+            });
+            header.append(stateBtn);
+        }
+        if (stateBtn.dataset.state !== state) {
+            stateBtn.dataset.state = state;
+            stateBtn.setAttribute('aria-label', `${t(STATE_LABELS[state])}: ${t('Switch entry strategy')}`);
+            stateBtn.replaceChildren(h('span', { class: 'pt-state-dot', 'aria-hidden': 'true' }), h('span', { text: STATE_LABELS[state] }));
+        }
+
+        // Content snippet preview (closed cards only; hidden via CSS while open).
+        let preview = header.querySelector(':scope > .pt-entry-preview');
+        if (!preview) {
+            preview = h('div', { class: 'pt-entry-preview' });
+            header.append(preview);
+        }
+        const snippet = contentText.replace(/\s+/g, ' ').trim().slice(0, 180);
+        if (preview.dataset.sig !== snippet) {
+            preview.dataset.sig = snippet;
+            preview.textContent = snippet;
+            preview.hidden = !snippet;
+        }
+
+        // Keyword chips (closed cards only; hidden via CSS while open).
+        let chips = header.querySelector(':scope > .pt-entry-keys');
         if (!chips) {
             chips = h('div', { class: 'pt-entry-keys' });
             header.append(chips);
         }
-        const keys = entryKeys(entry);
+        const keys = entryKeys(entry, info);
         const signature = keys.join('\u0001');
         if (chips.dataset.keys !== signature) {
             chips.dataset.keys = signature;
-            chips.replaceChildren(...keys.slice(0, 8).map(key => h('span', { class: 'pt-key-chip', raw: key })),
-                ...(keys.length > 8 ? [h('span', { class: 'pt-key-chip pt-key-more', raw: `+${keys.length - 8}` })] : []));
+            chips.replaceChildren(...keys.slice(0, 6).map(key => h('span', { class: 'pt-key-chip', raw: key })),
+                ...(keys.length > 6 ? [h('span', { class: 'pt-key-chip pt-key-more', raw: `+${keys.length - 6}` })] : []));
             chips.hidden = !keys.length;
         }
-        const content = entry.querySelector('.inline-drawer-content');
+
+        // Compact metadata summary strip (closed cards only; replaces bulky 4-column inputs).
+        let meta = header.querySelector(':scope > .pt-entry-meta');
+        if (!meta) {
+            meta = h('div', { class: 'pt-entry-meta' });
+            header.append(meta);
+        }
+        const metaParts = entryMetaSummary(entry, info, contentText);
+        const metaSig = metaParts.join('\u0001');
+        if (meta.dataset.sig !== metaSig) {
+            meta.dataset.sig = metaSig;
+            meta.replaceChildren(...metaParts.map(part => h('span', { class: 'pt-entry-meta-item', raw: part })));
+        }
+
+        const content = entry.querySelector('.world_entry_form > .inline-drawer > .inline-drawer-content');
         const open = !!content && content.style.display !== 'none' && getComputedStyle(content).display !== 'none';
         if (entry.classList.contains('pt-entry-open') !== open) {
             entry.classList.toggle('pt-entry-open', open);
             scheduleHistorySync();
         }
+        syncEntryTabs(entry, drawerHeader, open);
     }
+    syncFilterBar(list, counts, totalTokens);
     const anyOpen = !!list.querySelector('.world_entry.pt-entry-open');
     if (anyOpen) lore.edited = true;
     document.documentElement.classList.toggle('pt-entry-editing', anyOpen);
@@ -892,24 +1157,47 @@ export function syncLoreEntries() {
         lore.observer?.disconnect();
         lore.observer = null;
         lore.edited = false;
-        document.querySelectorAll('.pt-entry-keys').forEach(node => node.remove());
-        document.querySelectorAll('.world_entry.pt-entry-open').forEach(node => node.classList.remove('pt-entry-open'));
+        lore.filter = 'all';
+        document.getElementById('pt-lore-filter')?.remove();
+        if (list) delete list.dataset.ptFilter;
+        document.querySelectorAll('.pt-entry-keys, .pt-entry-preview, .pt-entry-meta, .pt-entry-state, .pt-entry-tabs').forEach(node => node.remove());
+        document.querySelectorAll('.world_entry').forEach(node => {
+            node.classList.remove('pt-entry-open');
+            delete node.dataset.ptState;
+            delete node.dataset.ptDisabled;
+            delete node.dataset.ptEtab;
+        });
+        document.querySelectorAll('.pt-wi-timing, .pt-wi-filters, .pt-wi-sources').forEach(node => node.classList.remove('pt-wi-timing', 'pt-wi-filters', 'pt-wi-sources'));
         document.documentElement.classList.remove('pt-entry-editing');
         return;
     }
     if (list && !lore.observer) {
         lore.observer = new MutationObserver(safe(SOURCE, records => {
-            if (records.every(record => record.target.closest?.('.pt-entry-keys'))) return;
+            if (records.every(record => record.target.closest?.('.pt-entry-keys, .pt-entry-preview, .pt-entry-meta, .pt-entry-state, .pt-entry-tabs'))) return;
             window.clearTimeout(lore.timer);
             lore.timer = window.setTimeout(safe(SOURCE, () => decorateEntries(false)), 120);
         }));
-        lore.observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+        lore.observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
         wireOnce(list, 'input', event => {
             // Entry cards may have been switched off since (the observer goes with them).
-            if (lore.observer && event.target.matches?.('textarea[name="key"]')) {
+            if (lore.observer && event.target.matches?.('textarea[name="key"], textarea[name="content"], input[name="order"], input[name="depth"], input[name="probability"]')) {
                 window.clearTimeout(lore.timer);
                 lore.timer = window.setTimeout(safe(SOURCE, () => decorateEntries(false)), 300);
             }
+        });
+        wireOnce(list, 'change', event => {
+            if (lore.observer && event.target.matches?.('select[name="entryStateSelector"], select[name="position"]')) {
+                window.clearTimeout(lore.timer);
+                lore.timer = window.setTimeout(safe(SOURCE, () => decorateEntries(false)), 80);
+            }
+        });
+        // Tapping anywhere on a closed entry card (outside its toggle, title field or state pill) opens it.
+        wireOnce(list, 'click', event => {
+            if (!lore.observer) return;
+            const entry = event.target.closest?.('.world_entry:not(.pt-entry-open)');
+            if (!entry) return;
+            if (event.target.closest?.('.killSwitch, textarea, input, select, button, .inline-drawer-toggle, i.menu_button, .drag-handle')) return;
+            entry.querySelector('.world_entry_thin_controls > .inline-drawer-toggle')?.click();
         });
     }
     decorateEntries(true);

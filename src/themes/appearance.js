@@ -10,7 +10,8 @@ import { currentSheet } from '../shell/sheet.js';
 import { AVATAR_STYLE, BACKGROUND_THUMB, UI_THEME_PICKER } from '../st/selectors.js';
 import { syncSettingsInputs } from '../st/settings.js';
 import { currentTheme, stThemes } from './st-themes.js';
-import { findTheme, themeCss } from './themes.js';
+import { ACCENT_PRESETS, findTheme, themeCss, withAccent } from './themes.js';
+import { activeCharAccent } from '../features/char-accent.js';
 import { iconCss, iconUrl } from '../ui/icons.js';
 import { SETTINGS_OWN_PAGES } from '../views/settings.js';
 import { safe } from '../core/lifecycle.js';
@@ -101,7 +102,19 @@ function chatBackgroundSet() {
 function syncGlass() {
     const root = document.documentElement;
     const own = deps.active() && ownThemeOn() && deps.settings().themeBackdrop;
-    root.classList.toggle('pt-glass', deps.active() && !own && chatBackgroundSet());
+    const glassOn = deps.active() && !own && chatBackgroundSet();
+    root.classList.toggle('pt-glass', glassOn);
+    const dim = Math.max(0, Math.min(80, Number(deps.settings().bgDim) || 0));
+    let scrim = document.getElementById('pt-bg-dim');
+    if (glassOn && dim > 0) {
+        if (!scrim) {
+            scrim = h('div', { id: 'pt-bg-dim', 'aria-hidden': 'true' });
+            document.body.prepend(scrim);
+        }
+        scrim.style.setProperty('--pt-bg-dim', (dim / 100).toFixed(2));
+    } else {
+        scrim?.remove();
+    }
 }
 
 const glassWatch = { observer: null, frame: 0 };
@@ -130,15 +143,26 @@ function watchBackground() {
     for (const target of targets) glassWatch.observer.observe(target, { attributes: true, attributeFilter: ['style', 'class'] });
 }
 
+function resolveEffectiveTheme(base) {
+    if (!base) return null;
+    const adaptive = activeCharAccent();
+    const preset = ACCENT_PRESETS.find(item => item.id === deps.settings().accentColor)?.color ?? '';
+    const customHex = adaptive || preset;
+    return customHex ? withAccent(base, customHex) : base;
+}
+
 export function applyAppearance() {
     const root = document.documentElement;
-    const theme = deps.active() ? currentTheme() : null;
+    const theme = deps.active() ? resolveEffectiveTheme(currentTheme()) : null;
     root.classList.toggle('pt-themed', !!theme);
     // SillyTavern's themes have no background of their own: your chat background always shows, as in SillyTavern.
     root.classList.toggle('pt-backdrop', !!theme && ownThemeOn() && deps.settings().themeBackdrop);
     syncGlass();
     watchBackground();
-    root.classList.toggle('pt-font', deps.active() && deps.settings().modernFont);
+    const font = deps.settings().readingFont || (deps.settings().modernFont === false ? 'st' : 'system');
+    root.classList.toggle('pt-font', deps.active() && font !== 'st');
+    if (deps.active() && (font === 'serif' || font === 'mono')) root.dataset.ptFont = font;
+    else delete root.dataset.ptFont;
     root.classList.toggle('pt-icons', deps.active() && deps.settings().customIcons);
     root.classList.toggle('pt-toasts', deps.active() && deps.settings().niceToasts);
     for (const level of Object.keys(deps.MOTION_LABELS())) root.classList.toggle(`pt-motion-${level}`, deps.active() && deps.settings().motion === level);
@@ -198,18 +222,19 @@ export function setAppearance(key, value, origin) {
     if (deps.settings()[key] === value) return;
     const change = () => {
         deps.settings()[key] = value;
+        if (key === 'readingFont') deps.settings().modernFont = value !== 'st';
         deps.saveSettings();
         applyAppearance();
         deps.syncExtras();
         syncSettingsInputs();
         currentShell()?.update();
         // Switches already show their new state; re-render only what depends on the choice.
-        if (currentSheet() && !currentSheet().picker && ['theme', 'motion', 'textSize', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) currentSheet().refresh();
+        if (currentSheet() && !currentSheet().picker && ['theme', 'accentColor', 'adaptiveAccent', 'motion', 'textSize', 'readingFont', 'chatLook', 'uiSize', 'composerStyle', 'layout'].includes(key)) currentSheet().refresh();
         // The layout changes the whole interface.
         if (key === 'layout') deps.applyState();
         // Switches and segments on a settings page already show their new state (and keep the filter).
         const page = currentPageId();
-        if (!SETTINGS_OWN_PAGES.includes(page) || ['theme', 'layout', 'chatLook'].includes(key)) refreshOwnPage();
+        if (!SETTINGS_OWN_PAGES.includes(page) || ['theme', 'accentColor', 'layout', 'chatLook'].includes(key)) refreshOwnPage();
     };
     if (key === 'theme') revealChange(origin, change);
     else change();

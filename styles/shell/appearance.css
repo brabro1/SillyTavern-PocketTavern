@@ -10,6 +10,16 @@ html.pt-font {
     --mainFontFamily: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif !important;
 }
 
+/* Curated reading fonts for chat text (UI chrome stays crisp sans). */
+html.pt-chat[data-pt-font="serif"] #chat .mes .mes_text,
+html.pt-chat[data-pt-font="serif"] #send_textarea {
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+}
+
+html.pt-chat[data-pt-font="mono"] #chat .mes .mes_text {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
 /* Theme backdrop replaces the chat background image with the theme's gradient. */
 html.pt-themed.pt-backdrop body {
     background: var(--pt-backdrop) !important;

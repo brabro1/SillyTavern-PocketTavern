@@ -22,6 +22,13 @@
     border-radius: var(--pt-radius);
     background: var(--pt-surface);
     box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+    transition: box-shadow var(--pt-dur-fast) var(--pt-ease);
+}
+
+@media (hover: hover) {
+    .pt-list-group:hover {
+        box-shadow: var(--pt-highlight), 0 0 0 1px color-mix(in srgb, var(--pt-text-primary) 12%, transparent), var(--pt-shadow-card);
+    }
 }
 
 .pt-list-row,

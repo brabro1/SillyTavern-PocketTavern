@@ -127,7 +127,7 @@ html.pt-motion-full .pt-quick-pick .pt-avatar {
     border: 0;
     border-radius: var(--pt-radius);
     background: var(--pt-surface-elevated);
-    box-shadow: var(--pt-shadow-card);
+    box-shadow: var(--pt-shadow-card), inset 0 0 0 1px rgb(255 255 255 / 0.08);
     color: var(--pt-on-avatar);
     font-family: var(--pt-font-ui);
     cursor: pointer;
@@ -159,7 +159,7 @@ html.pt-motion-full .pt-quick-pick .pt-avatar {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 52%, var(--pt-photo-scrim));
+    background: linear-gradient(180deg, transparent 42%, rgb(0 0 0 / 0.32) 70%, var(--pt-photo-scrim) 100%);
     pointer-events: none;
 }
 

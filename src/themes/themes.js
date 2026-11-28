@@ -117,10 +117,67 @@ export const THEMES = [
         user: 'rgba(106, 74, 158, 0.08)', bot: 'rgba(38, 34, 47, 0.035)', border: 'rgba(38, 34, 47, 0.11)',
         backdrop: '#f3f0f7',
     },
+    {
+        id: 'obsidian-gold', name: 'Obsidian Gold', note: 'Deep onyx with brushed gold', mode: 'dark',
+        bg: '#0c0b0e', raised: '#16141a', elevated: '#201d26', text: '#f5f0e6', muted: '#aba294', accent: '#e0b354', onAccent: '#141008', quote: '#f0cf85',
+        user: 'rgba(224, 179, 84, 0.13)', bot: 'rgba(255, 248, 235, 0.04)', border: 'rgba(240, 224, 192, 0.11)',
+        backdrop: '#09080b',
+    },
+    {
+        id: 'velvet', name: 'Velvet', note: 'Midnight plum with soft rose', mode: 'dark',
+        bg: '#130e17', raised: '#1d1624', elevated: '#281f31', text: '#f4eef7', muted: '#b3a3bf', accent: '#e47ba3', onAccent: '#190b12', quote: '#f2b1c9',
+        user: 'rgba(228, 123, 163, 0.14)', bot: 'rgba(244, 232, 250, 0.045)', border: 'rgba(244, 220, 240, 0.11)',
+        backdrop: '#0e0a12',
+    },
+    {
+        id: 'sepia-book', name: 'Sepia Book', note: 'Aged parchment with terracotta', mode: 'light',
+        bg: '#f4ecd8', raised: '#fbf5e6', elevated: '#ede2c8', text: '#2c2218', muted: '#665442', accent: '#a64b2a', onAccent: '#fffaf2', quote: '#7c3f1d',
+        user: 'rgba(166, 75, 42, 0.09)', bot: 'rgba(44, 34, 24, 0.04)', border: 'rgba(44, 34, 24, 0.14)',
+        backdrop: '#ebe0c6',
+    },
+];
+
+/** Curated custom accent swatches; contrast is tuned automatically to the active theme. */
+export const ACCENT_PRESETS = [
+    { id: 'cobalt', name: 'Cobalt', color: '#5b8def' },
+    { id: 'iris', name: 'Iris', color: '#9a82ff' },
+    { id: 'rose', name: 'Rose', color: '#e47ba3' },
+    { id: 'amber', name: 'Amber', color: '#e5a23c' },
+    { id: 'gold', name: 'Gold', color: '#e0b354' },
+    { id: 'emerald', name: 'Emerald', color: '#42b883' },
+    { id: 'teal', name: 'Teal', color: '#2fb5b0' },
+    { id: 'crimson', name: 'Crimson', color: '#e55d5d' },
 ];
 
 export function findTheme(id) {
     return THEMES.find(theme => theme.id === id) ?? null;
+}
+
+/**
+ * Returns a copy of `theme` with a custom (or adaptive character) accent colour, automatically
+ * adjusted to keep WCAG AA contrast against the theme's surfaces and button label.
+ * @param {Theme} theme
+ * @param {string} accentHex
+ * @returns {Theme}
+ */
+export function withAccent(theme, accentHex) {
+    if (!theme || !accentHex) return theme;
+    const raw = parseColor(accentHex);
+    const bgRgb = parseColor(theme.bg);
+    const raisedRgb = parseColor(theme.raised) ?? bgRgb;
+    if (!raw || !bgRgb) return theme;
+    const minAccent = theme.mode === 'light' ? 4.5 : 3.6;
+    const accentRgb = readableOnBoth(raw, bgRgb, raisedRgb, minAccent);
+    const darkInk = mixRgb(accentRgb, BLACK, 0.84);
+    const onAccentRgb = contrast(WHITE, accentRgb) >= contrast(darkInk, accentRgb) ? WHITE : darkInk;
+    const quoteRgb = readableOnBoth(mixRgb(accentRgb, theme.mode === 'light' ? BLACK : WHITE, 0.25), bgRgb, raisedRgb, 4.5);
+    return {
+        ...theme,
+        accent: hex(accentRgb),
+        onAccent: hex(onAccentRgb),
+        quote: hex(quoteRgb),
+        user: rgba(accentRgb, theme.mode === 'light' ? 0.09 : 0.13),
+    };
 }
 
 // -- SillyTavern's UI themes, made to fit Pocket Tavern
@@ -424,8 +481,10 @@ ${scope}.pt-glass {
     --pt-card-user: ${see(g.userCard, g.card)};
     ${inkCss}
 }
-/* Looks without cards (Flat, SillyTavern's Document) keep a tinted chat to read on. */
-${scope}.pt-glass:is([data-pt-look="flat"], :has(body:is(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle))) {
+/* Looks without cards (Flat, Editorial, SillyTavern's Document) keep a tinted chat to read on.
+   Written without :has() on <html> so mutations inside the page never invalidate the root element. */
+${scope}.pt-glass:is([data-pt-look="flat"], [data-pt-look="editorial"]),
+${scope}.pt-glass body:is(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) {
     --SmartThemeChatTintColor: ${see(t.bg, g.card)} !important;
 }
 `;

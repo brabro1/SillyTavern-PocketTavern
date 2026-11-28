@@ -9,7 +9,7 @@
 }
 
 .pt-character-hero > .pt-avatar {
-    box-shadow: var(--pt-shadow-raise);
+    box-shadow: var(--pt-shadow-raise), 0 0 0 1px rgb(255 255 255 / 0.14);
 }
 
 /* The picture behind the top, blurred and fading out downwards. The blur is on this layer alone,
@@ -18,12 +18,12 @@
     position: absolute;
     inset: calc(-1 * var(--pt-space-4)) calc(-1 * var(--pt-space-4)) auto;
     z-index: -1;
-    height: 200px;
+    height: 220px;
     overflow: hidden;
-    opacity: 0.4;
+    opacity: 0.45;
     pointer-events: none;
-    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent);
-    mask-image: linear-gradient(to bottom, #000 30%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
 }
 
 .pt-character-backdrop img {

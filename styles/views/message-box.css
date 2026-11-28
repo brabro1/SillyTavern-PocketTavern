@@ -47,3 +47,84 @@ html.pt-desktop.pt-chat.pt-compact .pt-plus-btn {
     width: 36px;
     height: 36px;
 }
+
+/* Quick-switch chips at the top of the + sheet: switch model, preset, profile or active lorebooks in one tap. */
+.pt-plus-quick {
+    display: flex;
+    gap: var(--pt-space-2);
+    margin: 0 calc(-1 * var(--pt-space-3)) var(--pt-space-3);
+    padding: var(--pt-space-1) var(--pt-space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+
+.pt-plus-quick::-webkit-scrollbar {
+    display: none;
+}
+
+.pt-plus-quick-chip {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--pt-space-1);
+    max-width: 240px;
+    height: 36px;
+    padding: 0 var(--pt-space-3);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-full);
+    background: var(--pt-surface);
+    box-shadow: var(--pt-highlight), var(--pt-shadow-card);
+    color: var(--pt-text-primary);
+    font-family: var(--pt-font-ui);
+    font-size: var(--pt-text-sm);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--pt-dur-fast) var(--pt-ease), transform var(--pt-dur-fast) var(--pt-ease);
+}
+
+.pt-plus-quick-chip::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+}
+
+.pt-plus-quick-chip:active {
+    background: var(--pt-surface-elevated);
+}
+
+@media (hover: hover) {
+    .pt-plus-quick-chip:hover {
+        background: var(--pt-surface-elevated);
+    }
+}
+
+.pt-plus-quick-icon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: var(--pt-accent);
+}
+
+.pt-plus-quick-label {
+    flex: 0 0 auto;
+    color: var(--pt-text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.pt-plus-quick-val {
+    overflow: hidden;
+    color: var(--pt-text-primary);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-plus-quick-caret {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: var(--pt-text-muted);
+}

@@ -7,7 +7,7 @@ import { t } from '../core/i18n.js';
 import { safe } from '../core/lifecycle.js';
 import { avatar } from '../ui/avatar.js';
 import { button, iconButton } from '../ui/button.js';
-import { chatRow, chatTitle, formatPreview } from '../ui/chat-row.js';
+import { chatRow, chatTitle, formatPreview, parseChatTime } from '../ui/chat-row.js';
 import { emptyState } from '../ui/feedback.js';
 import { listGroup, listRow } from '../ui/list.js';
 import { tag } from '../ui/tag.js';
@@ -131,7 +131,7 @@ export function characterPage(actions) {
                         fileName: '',
                         preview: chat.mes ?? '',
                         count: Number(chat.chat_items),
-                        time: Number(chat.last_mes),
+                        time: parseChatTime(chat.last_mes),
                         open: actions.isOpen(fileId),
                         onOpen: () => actions.chat(fileId),
                     });

@@ -70,7 +70,7 @@ for (const layout of ['phone', 'desktop']) {
         await page.waitForFunction(() => document.documentElement.classList.contains('pt-on') && SillyTavern.getContext().characters.length, null, { timeout: 60000 });
         await page.waitForTimeout(5000);
         await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
-        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, textSize: s.textSize ?? 'normal', jumpButton: s.jumpButton, extensionsTab: !!s.extensionsTab, lorebookUi: s.lorebookUi ?? 'both' }; });
+        saved = await page.evaluate(() => { const s = SillyTavern.getContext().extensionSettings.mobileUI; return { theme: s.theme, stTheme: s.stTheme, accentColor: s.accentColor ?? '', adaptiveAccent: !!s.adaptiveAccent, bgDim: Number(s.bgDim) || 0, chatLook: s.chatLook ?? 'cards', readingFont: s.readingFont ?? 'system', modernFont: s.modernFont ?? true, textSize: s.textSize ?? 'normal', jumpButton: s.jumpButton, extensionsTab: !!s.extensionsTab, lorebookUi: s.lorebookUi ?? 'both' }; });
         await openSettings(page);
         await page.screenshot({ path: `${OUT}/${layout}-hub.png` });
 
@@ -80,14 +80,24 @@ for (const layout of ['phone', 'desktop']) {
             if (order.some(at => at === -1) || order.some((at, i) => i && at < order[i - 1])) throw new Error(JSON.stringify(titles));
         });
 
-        await step('Appearance: theme cards (one picked), and picking one changes the theme', async () => {
+        await step('Appearance: theme cards (including Obsidian Gold, Velvet, Sepia Book), accent swatches and Background dim work', async () => {
             await openOwn(page, 'Appearance', 'pt-appearance');
             await page.screenshot({ path: `${OUT}/${layout}-appearance.png` });
-            const cards = await page.evaluate(() => ({ count: document.querySelectorAll('#pt-page .pt-themes:not(.pt-themes-st) .pt-theme-card').length, on: document.querySelectorAll('#pt-page .pt-theme-on').length }));
-            if (cards.count < 6 || cards.on !== 1) throw new Error(JSON.stringify(cards));
+            const cards = await page.evaluate(() => ({
+                count: document.querySelectorAll('#pt-page .pt-themes:not(.pt-themes-st) .pt-theme-card').length,
+                on: document.querySelectorAll('#pt-page .pt-theme-on').length,
+                luxury: ['obsidian-gold', 'velvet', 'sepia-book'].every(id => !!document.querySelector(`#pt-page .pt-theme-card[data-theme="${id}"]`)),
+                swatches: document.querySelectorAll('#pt-page .pt-swatch').length,
+                dimSlider: !!document.querySelector('#pt-page .pt-dim-setting input[type="range"]'),
+            }));
+            if (cards.count < 17 || cards.on !== 1 || !cards.luxury || cards.swatches < 9 || !cards.dimSlider) throw new Error(JSON.stringify(cards));
             const other = await page.evaluate(() => [...document.querySelectorAll('#pt-page .pt-themes:not(.pt-themes-st) .pt-theme-card')].find(card => !card.classList.contains('pt-theme-on')).dataset.theme);
             await page.locator(`#pt-page .pt-theme-card[data-theme="${other}"]`).click();
             await waitFor(page, 'the theme picked', want => SillyTavern.getContext().extensionSettings.mobileUI.theme === want && document.querySelector('#pt-page .pt-theme-on')?.dataset.theme === want, other);
+            await page.locator('#pt-page .pt-swatch[data-accent="gold"]').click();
+            await waitFor(page, 'gold accent picked', () => SillyTavern.getContext().extensionSettings.mobileUI.accentColor === 'gold');
+            await page.locator('#pt-page .pt-swatch--default').click();
+            await waitFor(page, 'default accent restored', () => SillyTavern.getContext().extensionSettings.mobileUI.accentColor === '');
         });
 
         await step('Appearance starts with the chat background and holds only themes; the rest is on Chat and layout', async () => {
@@ -100,7 +110,17 @@ for (const layout of ['phone', 'desktop']) {
             await openOwn(page, 'Chat and layout', 'pt-display');
         });
 
-        await step('Chat and layout: Text size is a segmented control that saves at once', async () => {
+        await step('Chat and layout: Editorial look, Serif/Mono reading fonts and Text size save at once', async () => {
+            const lookGroup = page.locator('#pt-page .pt-choice-setting', { hasText: 'Chat look' });
+            await lookGroup.locator('.pt-segment[data-value="editorial"]').click();
+            await waitFor(page, 'editorial look saved', () => SillyTavern.getContext().extensionSettings.mobileUI.chatLook === 'editorial' && document.documentElement.dataset.ptLook === 'editorial');
+            await lookGroup.locator('.pt-segment[data-value="cards"]').click();
+            await waitFor(page, 'cards look restored', () => SillyTavern.getContext().extensionSettings.mobileUI.chatLook === 'cards');
+            const fontGroup = page.locator('#pt-page .pt-choice-setting', { hasText: 'Reading font' });
+            await fontGroup.locator('.pt-segment[data-value="serif"]').click();
+            await waitFor(page, 'serif font saved', () => SillyTavern.getContext().extensionSettings.mobileUI.readingFont === 'serif' && document.documentElement.dataset.ptFont === 'serif');
+            await fontGroup.locator('.pt-segment[data-value="system"]').click();
+            await waitFor(page, 'system font restored', () => SillyTavern.getContext().extensionSettings.mobileUI.readingFont === 'system' && !document.documentElement.dataset.ptFont);
             const next = saved.textSize === 'large' ? 'normal' : 'large';
             const group = page.locator('#pt-page .pt-choice-setting', { hasText: 'Text size' });
             await group.locator(`.pt-segment[data-value="${next}"]`).click();

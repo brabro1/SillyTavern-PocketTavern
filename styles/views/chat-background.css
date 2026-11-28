@@ -26,3 +26,12 @@ html.pt-on.pt-glass:not(.pt-themed) {
 html.pt-glass.pt-chat body:not(.bubblechat):not(.documentstyle, .echostyle, .whisperstyle, .hushstyle, .ripplestyle, .tidestyle) #chat .mes[is_system='true'] {
     background-color: var(--pt-card-bot) !important;
 }
+
+/* Wallpaper dimmer overlay above #bg1/#bg_custom and below the chat so vivid images stay effortless to read over. */
+#pt-bg-dim {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: rgb(0 0 0 / var(--pt-bg-dim, 0));
+    pointer-events: none;
+}

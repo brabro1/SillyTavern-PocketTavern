@@ -38,21 +38,35 @@ export function onPageChange(callback) {
     listener = callback;
 }
 
-/** How long a newly opened page's groups may take to fade in (8 at 20ms apart, 240ms each). */
-const ENTER_MS = 500;
+/** How long a fresh page's quick fade runs. */
+const ENTER_MS = 180;
 
 export function openOwnPage(id) {
     const spec = pages.get(id);
     if (!spec || open?.id === id) return;
-    closeOwnPage(true);
+    const lang = currentLang();
+    const dir = isRtl() ? 'rtl' : 'ltr';
+    // Reuse the mounted #pt-page in place when navigating between Pocket Tavern pages:
+    // zero document.body churn and zero background flash between screens.
+    if (open?.el?.isConnected) {
+        open.id = id;
+        open.el.dataset.page = id;
+        open.el.setAttribute('aria-label', spec.title);
+        open.el.setAttribute('lang', lang);
+        open.el.setAttribute('dir', dir);
+        open.el.classList.remove('pt-page--fresh');
+        open.body.replaceChildren();
+        open.body.scrollTop = 0;
+        spec.render(open.body);
+        listener();
+        return;
+    }
     const body = h('div', { class: 'pt-page-body' });
     // The language of its labels, and right-to-left for Arabic (DESIGN.md → Layouts).
-    const el = h('section', { id: 'pt-page', class: 'pt-page', 'data-page': id, 'aria-label': spec.title, lang: currentLang(), dir: isRtl() ? 'rtl' : 'ltr' }, [body]);
+    const el = h('section', { id: 'pt-page', class: 'pt-page pt-page--fresh', 'data-page': id, 'aria-label': spec.title, lang, dir }, [body]);
     shieldFromDrawerAutoClose(el);
     spec.render(body);
-    // Its first groups fade in with a short rise as it opens (DESIGN.md → Motion), not when it is drawn again.
-    el.classList.add('pt-page--enter');
-    window.setTimeout(safe('a page', () => el.classList.remove('pt-page--enter')), ENTER_MS);
+    window.setTimeout(safe('a page', () => el.classList.remove('pt-page--fresh')), ENTER_MS);
     document.body.append(el);
     open = { id, el, body };
     listener();

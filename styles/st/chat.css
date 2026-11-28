@@ -8,6 +8,16 @@ html.pt-no-chat #sheld #chat > * {
     display: none !important;
 }
 
+/* Hide any browser resize grip on SillyTavern's chat column (prevented stray grip on desktop welcome). */
+html.pt-on :is(#sheld, #chat) {
+    resize: none !important;
+}
+
+html.pt-no-chat #sheld {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 /* Start-up with no chat open: SillyTavern reopens its locked Characters panel and Pocket Tavern closes it
    again (src/shell/chats-home.js → endStartWindow); it stays invisible meanwhile so it never flashes.
    !important beats SillyTavern's own drawer styles while it slides. */
@@ -22,12 +32,26 @@ html.pt-starting.pt-no-chat.pt-desktop #right-nav-panel {
    .mes_buttons and :not(.pt-editing) outrank the legacy rule that sets them to full opacity. */
 @media (hover: hover) and (pointer: fine) {
     html.pt-chat:not(.pt-editing) #chat .mes .mes_buttons :is(.extraMesButtonsHint, .mes_edit) {
-        opacity: 0.3;
-        transition: opacity var(--pt-dur-fast) var(--pt-ease);
+        opacity: 0.18;
+        transition: opacity var(--pt-dur-fast) var(--pt-ease), background-color var(--pt-dur-fast) var(--pt-ease);
     }
 
     html.pt-chat:not(.pt-editing) #chat .mes:is(:hover, :focus-within) .mes_buttons :is(.extraMesButtonsHint, .mes_edit) {
         opacity: 1;
+    }
+
+    html.pt-chat:not(.pt-editing) #chat .mes .mes_buttons .mes_button:hover {
+        background: var(--pt-surface-elevated);
+        color: var(--pt-text-primary);
+    }
+
+    html.pt-chat:not(.pt-editing) #chat .mes .mesAvatarWrapper > .mesIDDisplay {
+        opacity: 0.45;
+        transition: opacity var(--pt-dur-fast) var(--pt-ease);
+    }
+
+    html.pt-chat:not(.pt-editing) #chat .mes:is(:hover, :focus-within) .mesAvatarWrapper > .mesIDDisplay {
+        opacity: 0.9;
     }
 }
 

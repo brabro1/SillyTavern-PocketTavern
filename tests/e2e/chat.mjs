@@ -172,16 +172,36 @@ for (const layout of ['phone', 'desktop']) {
                 return {
                     long: !!long,
                     more: !!long?.querySelector('.pt-more-btn'),
-                    pre: pre ? { scroll: [pre, pre.querySelector('code')].some(el => el && el.scrollWidth > el.clientWidth + 1), overflow: getComputedStyle(pre).overflowX, wrap: getComputedStyle(pre.querySelector('code') ?? pre).whiteSpace } : null,
+                    pre: pre ? { scroll: [pre, pre.querySelector('code')].some(el => el && el.scrollWidth > el.clientWidth + 1), overflow: getComputedStyle(pre).overflowX, wrap: getComputedStyle(pre.querySelector('code') ?? pre).whiteSpace, copy: !!pre.querySelector('.pt-code-copy') } : null,
                     table: table ? getComputedStyle(table).overflowX : null,
                     pageWide: document.scrollingElement.scrollWidth > window.innerWidth + 1,
                 };
             });
             if (!state.long || !state.more) throw new Error(`fold: ${JSON.stringify(state)}`);
-            if (!state.pre || state.pre.overflow !== 'auto' || !state.pre.scroll || state.table !== 'auto' || state.pageWide) throw new Error(`code: ${JSON.stringify(state)}`);
+            if (!state.pre || state.pre.overflow !== 'auto' || !state.pre.scroll || !state.pre.copy || state.table !== 'auto' || state.pageWide) throw new Error(`code: ${JSON.stringify(state)}`);
             await page.evaluate(() => document.querySelector('#chat .mes.pt-long .pt-more-btn').click());
             await page.waitForFunction(() => document.querySelector('#chat .mes.pt-long')?.classList.contains('pt-long-open'));
             await page.evaluate(() => document.querySelector('#chat .mes.pt-long .pt-more-btn').click());
+        });
+
+        await step('Focus mode hides chrome cleanly and toggles off again; + shows quick-switch chips', async () => {
+            await page.locator('.pt-plus-btn').click();
+            await page.waitForFunction(() => !!document.querySelector('#pt-sheet .pt-plus-quick-chip'), null, { timeout: 5000 });
+            await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+            await page.waitForFunction(() => !document.getElementById('pt-sheet'));
+            if (phone) {
+                await page.locator('#pt-appbar .pt-ab-menu').click();
+                await page.waitForFunction(() => [...document.querySelectorAll('#pt-sheet .pt-list-row-title')].some(n => n.textContent === 'Focus mode'));
+                await page.locator('#pt-sheet .pt-list-row', { hasText: 'Focus mode' }).click();
+                await page.waitForFunction(() => document.documentElement.classList.contains('pt-focus-mode') && getComputedStyle(document.getElementById('pt-focus-exit')).display !== 'none');
+                await page.locator('#pt-focus-exit').click();
+                await page.waitForFunction(() => !document.documentElement.classList.contains('pt-focus-mode'));
+            } else {
+                await page.locator('#pt-appbar .pt-ab-focus').click();
+                await page.waitForFunction(() => document.documentElement.classList.contains('pt-focus-mode') && getComputedStyle(document.getElementById('pt-tabbar')).display === 'none');
+                await page.keyboard.press('Escape');
+                await page.waitForFunction(() => !document.documentElement.classList.contains('pt-focus-mode'));
+            }
         });
 
         await step('Jump to latest appears when you scroll up and takes you to the end', async () => {
@@ -211,6 +231,58 @@ for (const layout of ['phone', 'desktop']) {
                 await page.evaluate(() => document.getElementById('chat').append(...window.__ptSaved));
             }
             await page.waitForFunction(() => !document.querySelector('.pt-chat-loading'), null, { timeout: 2000 });
+        });
+
+        await step('RP formatting bar appears when focusing the message box and wraps text cleanly', async () => {
+            try {
+                await page.locator('#send_textarea').click();
+                await page.waitForFunction(() => {
+                    const bar = document.getElementById('pt-format-bar');
+                    return !!bar && !bar.hidden && bar.querySelectorAll('.pt-fmt-btn').length === 4;
+                }, null, { timeout: 5000 });
+                await page.locator('#pt-format-bar .pt-fmt-btn[data-fmt="italic"]').click();
+                const val = await page.locator('#send_textarea').inputValue();
+                if (val !== '**') throw new Error(`unexpected formatted value: ${JSON.stringify(val)}`);
+            } finally {
+                await page.evaluate(() => {
+                    const box = document.getElementById('send_textarea');
+                    if (box) { box.value = ''; box.dispatchEvent(new Event('input', { bubbles: true })); box.blur(); }
+                });
+            }
+        });
+
+        await step('Story Moments pins a message, jumps from Pinned messages, and Chat insights shows local stats', async () => {
+            try {
+                // Pin the last message via its ⋯ menu.
+                await page.evaluate(() => document.querySelector('#chat .mes.last_mes .extraMesButtonsHint')?.click());
+                await page.waitForFunction(() => !!document.querySelector('#pt-sheet.pt-sheet-open .pt-menu-row'), null, { timeout: 5000 });
+                await page.locator('#pt-sheet .pt-menu-row', { hasText: 'Pin message' }).click();
+                await page.waitForFunction(() => !!document.querySelector('#chat .mes.last_mes.pt-mes-pinned'), null, { timeout: 5000 });
+                // Open Chat ⋯ → Pinned messages and verify the pin is listed, then unpin it cleanly.
+                await page.locator('#pt-appbar .pt-ab-menu').click();
+                await page.waitForFunction(() => !!document.querySelector('#pt-sheet.pt-sheet-open .pt-list-row'), null, { timeout: 5000 });
+                await page.locator('#pt-sheet .pt-list-row', { hasText: 'Pinned messages' }).click();
+                await page.waitForFunction(() => document.querySelectorAll('#pt-sheet .pt-pin-row').length >= 1, null, { timeout: 5000 });
+                await page.locator('#pt-sheet .pt-pin-row .pt-icon-btn').first().click();
+                await page.waitForFunction(() => !document.querySelector('#chat .mes.pt-mes-pinned'), null, { timeout: 5000 });
+                await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+                await page.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 5000 });
+                // Open Chat ⋯ → Chat insights and verify KPIs + voice balance render.
+                await page.locator('#pt-appbar .pt-ab-menu').click();
+                await page.waitForFunction(() => !!document.querySelector('#pt-sheet.pt-sheet-open .pt-list-row'), null, { timeout: 5000 });
+                await page.locator('#pt-sheet .pt-list-row', { hasText: 'Chat insights' }).click();
+                await page.waitForFunction(() => document.querySelectorAll('#pt-sheet .pt-insight-card').length === 3 && !!document.querySelector('#pt-sheet .pt-insight-bar'), null, { timeout: 5000 });
+                await page.waitForTimeout(300);
+                await page.screenshot({ path: `${OUT}/${layout}-insights.png` });
+                await page.evaluate(() => document.querySelector('#pt-sheet .pt-overlay-close')?.click());
+                await page.waitForFunction(() => !document.getElementById('pt-sheet'), null, { timeout: 5000 });
+            } finally {
+                await page.evaluate(() => {
+                    const s = SillyTavern.getContext().extensionSettings.mobileUI;
+                    if (s?.pinnedMessages) { s.pinnedMessages = {}; SillyTavern.getContext().saveSettingsDebounced(); }
+                    document.querySelector('#pt-sheet .pt-overlay-close')?.click();
+                }).catch(() => {});
+            }
         });
 
         await step('no errors from Pocket Tavern', async () => {

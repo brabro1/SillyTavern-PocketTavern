@@ -34,7 +34,15 @@ const DEFAULTS = Object.freeze({
     wandShortcut: true,
     theme: 'pocket',
     themeBackdrop: true,
+    /** Curated accent override id ('' = theme default). */
+    accentColor: '',
+    /** Tint chat header and accent colour from the active character's portrait. */
+    adaptiveAccent: false,
+    /** Dimmer over chat background images (0-80, percent). */
+    bgDim: 0,
     modernFont: true,
+    /** 'system' | 'serif' | 'mono' | 'st' */
+    readingFont: 'system',
     customIcons: true,
     /** 'full' | 'light' | 'off' */
     motion: 'full',
@@ -85,6 +93,12 @@ const DEFAULTS = Object.freeze({
     lorebookUi: 'both',
     /** Dedicated Extensions button in the navigation bar / rail (issue #18). */
     extensionsTab: false,
+    /** Slim RP formatting toolbar above the message box while typing. */
+    formatBar: true,
+    /** Quiet calendar day dividers between messages from different days. */
+    dayDividers: true,
+    /** Lightweight story pins keyed by chat id (stored in extension settings, never touches ST chat files). */
+    pinnedMessages: {},
 });
 
 /** The motion curve, the same as --pt-ease in style.css (DESIGN.md, motion). */

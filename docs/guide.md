@@ -1,7 +1,7 @@
 # Getting around Pocket Tavern
 
 > [!NOTE]
-> This guide describes **Pocket Tavern 3.0**. Coming from 2.x? The table at the end shows where everything went.
+> This guide describes **Pocket Tavern 3.1**. Coming from 2.x? The table at the end shows where everything went.
 
 Pocket Tavern has **five places**. Everything you can do lives in exactly one of them, and they are the same on a phone and on a computer.
 
@@ -34,12 +34,14 @@ Pocket Tavern has **five places**. Everything you can do lives in exactly one of
 
 - **Open a chat** from Chats. The chat covers the tabs so you have the whole screen. Tap **‹** (or swipe back) to return.
 - **Tap the name** at the top of a chat to see that character: start a **New chat**, see all your chats with them, or **Edit** them.
-- **`+` in the message box** has everything for the next reply: Regenerate, Continue, Impersonate, attach a file, plus tools like Author's Note and quick replies.
-- **⋯ at the top of a chat** has everything about the chat: search in it, translate it, rename, select messages, export, delete.
+- **`+` in the message box** has quick-switch chips (Model, Preset, Persona), the Draft helper, reply actions (Regenerate, Continue, Impersonate, attach a file) and tools like Author's Note. Focusing the message box also shows a one-tap **RP formatting bar** (`*Italic*`, `"Quote"`, `**Bold**`, `(OOC)`).
+- **⋯ at the top of a chat** has everything about the chat: **Focus mode**, **Pinned messages** (Story Moments), **Chat insights**, search in it, translate it, rename, select messages, export and delete.
 - **The persona button** (your picture in the message box) switches who you are.
 - **The little ring** in the message box shows how full the model's memory is. Tap it to see what is using it: the character, your persona, lorebooks and the chat so far.
-- **On a message:** tap ✎ to edit it, or ⋯ (or long-press the message) for everything else. Drag the last reply sideways for another version.
-- **Characters** has a **Filter** button for favourites, groups and tags. Long-press a card (right-click on a computer) for its menu.
+- **On a message:** tap ✎ to edit it, or ⋯ (or long-press the message) to pin a Story Moment, copy, branch or delete. Drag the last reply sideways for another version.
+- **Characters** has one-tap quick filter chips and a **Filter** button for favourites, groups and tags. Long-press a card (right-click on a computer) for its menu.
+- **Lorebooks** shows each entry as a scannable card with quick filters (`All`, `Enabled`, `Constant`, `Disabled`), a clickable strategy pill, previews and a 4-tab editor (`Content`, `Triggers`, `Placement`, `Advanced`).
+- **AI** shows your connection status, preset, live **Quick samplers** sliders, and links to Connection settings, Samplers and Formatting.
 - **Close anything** with ✕, by dragging a sheet down, or with your phone's back gesture.
 - Tapping the tab you're already on takes you back to the top of that place.
 

@@ -42,7 +42,7 @@ A rail with the five places, pages beside the chat and keyboard shortcuts.
 </table>
 
 > [!NOTE]
-> **This is Pocket Tavern 3.0**, rebuilt around five places: **Chats, Characters, Lorebooks, AI and Settings**. Coming from 2.x? The [guide](docs/guide.md#where-did-it-go-coming-from-2x) shows where everything went, and the [changelog](CHANGELOG.md#300) lists what changed.
+> **Pocket Tavern 3.1** builds on the 3.0 five-place layout (**Chats, Characters, Lorebooks, AI and Settings**) with redesigned Lorebooks, 17 themes with custom accent swatches, an Editorial reading look, Focus mode, Story Moments, Chat insights, live AI Quick samplers, an RP formatting bar and a major smoothness boost. Coming from 2.x? The [guide](docs/guide.md#where-did-it-go-coming-from-2x) shows where everything went, and the [changelog](CHANGELOG.md#310) lists everything new.
 
 > [!WARNING]
 > **Pocket Tavern is in alpha.** Things can change between updates and you may find bugs, so keep your own backups. If something breaks, [tell me](#feedback). If Pocket Tavern itself runs into a problem, it steps aside and SillyTavern's own screens show, with a button to come back.
@@ -155,18 +155,17 @@ A rail with the five places, pages beside the chat and keyboard shortcuts.
 #### 💬 Chatting
 
 - **Chats** is home: pinned and recent chats grouped by character, and one search for chats, characters, lorebooks and settings.
-- In a chat, **⋯** has the chat's actions (search, translate, rename, chat files) and **+** has the next reply (Regenerate, Continue, Impersonate, attach a file) and the tools.
-- Clean message cards, swipe arrows with the count between them (‹ 2/3 ›), and drag the last reply sideways for another version.
-- Your persona in the message box, and a context ring that shows how full the model's memory is.
-- The **Draft helper** in +: Enhance my draft, Write for me and Continue my draft.
+- In a chat, **⋯** has **Focus mode**, **Pinned messages** (Story Moments), **Chat insights**, search, translate, rename and chat files; **+** has quick-switch chips (Model, Preset, Persona), reply actions and tools.
+- Clean message cards, quiet day dividers, code-block copy buttons, live typing indicator, swipe arrows (`‹ 2/3 ›`), and drag the last reply sideways for another version.
+- Floating one-tap **RP formatting bar** (`*Italic*`, `"Quote"`, `**Bold**`, `(OOC)`) above the message box, your persona chip, a context ring, and the built-in **Draft helper**.
 
 </td>
 <td width="50%" valign="top">
 
 #### 🎨 Make it yours
 
-- 14 calm, flat themes (10 dark, 4 light), starting with **Pocket** and **Pocket Light**, plus your SillyTavern themes made to fit. Over your chat background the messages become tinted cards and the bars stay solid.
-- Cards, bubbles or flat messages, four text sizes, your device's font or SillyTavern's, and animations you can turn down or off.
+- **17 calm, flat themes** (including Obsidian Gold, Velvet and Sepia Book), **8 Accent colour swatches**, optional **Match character colour** tinting, and a **Background dim** slider — plus your SillyTavern themes made to fit.
+- Four chat looks (**Cards, Bubbles, Flat, Editorial**), four text sizes, curated **Reading fonts** (**System, Serif, Mono** or SillyTavern's), and animations you can turn down or off.
 - Every helper has its own switch under **Settings → Pocket Tavern**.
 - Menus in English, Spanish, Portuguese, Russian, Chinese, Japanese and Arabic.
 
@@ -177,10 +176,10 @@ A rail with the five places, pages beside the chat and keyboard shortcuts.
 
 #### 🗂️ Characters, lorebooks and AI
 
-- Characters as picture cards with search, a **Filter** sheet, a Favorites row and a menu on each card.
+- Characters as picture cards with search, one-tap quick filter chips, a **Filter** sheet, a Favorites row and a menu on each card.
 - Each character has a page: **Chat**, **New chat**, **Edit** and their chats. **Edit** opens the card without opening the chat.
-- **Lorebooks** has its own tab: what's on in every chat, activation settings, and each lorebook's entries as cards with keyword chips.
-- **AI** shows whether you're connected, with your preset, connection, samplers and formatting one tap away.
+- **Redesigned Lorebooks:** scannable entry cards with status strips, clickable strategy pills, previews, keyword chips, quick filters and a structured **4-tab entry editor** (Content, Triggers, Placement, Advanced).
+- **AI** shows whether you're connected, with your preset, live **Quick samplers**, connection, samplers and formatting one tap away.
 - SillyTavern's own settings, Formatting and Extensions open on a short list, each section on its own page.
 
 </td>

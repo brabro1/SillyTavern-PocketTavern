@@ -22,6 +22,8 @@ export const SWITCH_GROUPS = [
         { key: 'contextMeter', id: 'pt_meter', label: 'Context ring', hint: 'A ring in the message box shows how full the context is. Tap it for the details.' },
         { key: 'saveDrafts', id: 'pt_drafts', label: 'Keep unsent messages', hint: 'What you type is kept for each chat, even if the browser reloads.' },
         { key: 'draftHelper', id: 'pt_draft', label: 'Draft helper', hint: 'Enhance my draft, Write for me and Continue my draft in +.' },
+        { key: 'formatBar', id: 'pt_fmtbar', label: 'Formatting bar', hint: 'One-tap italic, quote, bold and OOC pills above the message box while typing.' },
+        { key: 'dayDividers', id: 'pt_daydiv', label: 'Day dividers', hint: 'Quiet date labels between messages from different days.' },
         { key: 'sendEffect', id: 'pt_sendfx', label: 'Send animation', hint: 'The send button gives a short press when you send.' },
         { key: 'ggButton', id: 'pt_ggbutton', label: 'Guided Generations button', hint: 'Its row of buttons becomes one button next to Send, with every action named and explained. Off shows its own row again.', only: 'gg' },
     ] },
